@@ -1,0 +1,9 @@
+# Optional repo-local Codex config example.
+# Copy to .codex/config.toml only if you want repo-specific behavior.
+
+# Keep permissions conservative until the repo is trusted.
+# approval_policy = "on-request"
+# sandbox_mode = "workspace-write"
+
+# If AGENTS.md grows too large, increase discovery limit.
+# project_doc_max_bytes = 65536

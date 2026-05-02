@@ -1,0 +1,10 @@
+node_modules/
+.expo/
+dist/
+coverage/
+android/
+ios/
+*.jks
+*.keystore
+.env
+.DS_Store

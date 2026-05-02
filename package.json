@@ -1,0 +1,49 @@
+{
+  "name": "whatsapp-media-timefixer",
+  "version": "0.1.0",
+  "private": true,
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "prebuild:android": "expo prebuild --platform android",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^15.1.1",
+    "expo": "~55.0.19",
+    "expo-application": "~55.0.14",
+    "expo-document-picker": "~55.0.13",
+    "expo-file-system": "~55.0.17",
+    "expo-font": "~55.0.6",
+    "expo-media-library": "~55.0.15",
+    "expo-sharing": "~55.0.18",
+    "expo-system-ui": "~55.0.16",
+    "react": "19.2.0",
+    "react-native": "0.83.6",
+    "react-native-paper": "^5.15.1",
+    "react-native-safe-area-context": "~5.6.2",
+    "react-native-screens": "~4.23.0",
+    "whatsapp-timefixer-native": "file:./modules/whatsapp-timefixer-native",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@typescript-eslint/eslint-plugin": "8.48.0",
+    "@typescript-eslint/parser": "8.48.0",
+    "eslint": "^9.39.1",
+    "eslint-config-expo": "^55.0.0",
+    "typescript": "~5.9.2",
+    "vitest": "^4.1.5"
+  },
+  "overrides": {
+    "@typescript-eslint/scope-manager": "8.48.0",
+    "@typescript-eslint/types": "8.48.0",
+    "@typescript-eslint/typescript-estree": "8.48.0",
+    "@typescript-eslint/utils": "8.48.0",
+    "@typescript-eslint/visitor-keys": "8.48.0"
+  }
+}
