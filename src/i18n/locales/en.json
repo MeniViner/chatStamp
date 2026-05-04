@@ -17,7 +17,9 @@
     "false": "false",
     "none": "none",
     "showTechnicalDetails": "Show technical details",
-    "technicalDetails": "Technical details"
+    "technicalDetails": "Technical details",
+    "ok": "OK",
+    "later": "Later"
   },
   "bootstrap": {
     "loading": "Loading app assets",
@@ -254,7 +256,9 @@
     "cacheCleared": "Cache cleared",
     "cacheClearedBody": "Temporary import files were removed.",
     "cacheCleanupFailed": "Cache cleanup failed",
-    "couldNotClearCache": "Could not clear cache."
+    "couldNotClearCache": "Could not clear cache.",
+    "restartRequiredTitle": "Restart required",
+    "restartRequiredBody": "To apply the Right-to-Left layout change correctly, please restart the app."
   },
   "reviewSave": {
     "title": "Review & Save",

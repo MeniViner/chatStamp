@@ -1,10 +1,8 @@
 import { createInstance } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { getLocales } from 'expo-localization';
-import * as Updates from 'expo-updates';
 import { I18nManager } from 'react-native';
 import type { AppLanguagePreference } from '../types/media';
-import { logger } from '../lib/logger';
 
 import en from './locales/en.json';
 import he from './locales/he.json';
@@ -31,7 +29,8 @@ void i18n.use(initReactI18next).init({
 });
 
 export function getSystemAppLanguage(): SupportedAppLanguage {
-  const languageTag = getLocales()?.[0]?.languageTag ?? 'en';
+  const locales = getLocales();
+  const languageTag = locales?.[0]?.languageTag ?? 'en';
   return languageTag.startsWith('he') ? 'he' : 'en';
 }
 
@@ -40,7 +39,12 @@ export function resolveAppLanguage(preference: AppLanguagePreference = 'system')
   return getSystemAppLanguage();
 }
 
-export async function syncI18nLanguage(preference: AppLanguagePreference = 'system'): Promise<{ language: SupportedAppLanguage; restarted: boolean }> {
+/**
+ * Syncs the i18n instance with the desired preference.
+ * Returns true if the layout direction (RTL/LTR) was changed, 
+ * suggesting a restart might be needed for full layout application.
+ */
+export async function syncI18nLanguage(preference: AppLanguagePreference = 'system'): Promise<boolean> {
   const language = resolveAppLanguage(preference);
   const rtlChanged = applyRtlPreference(language);
 
@@ -48,21 +52,13 @@ export async function syncI18nLanguage(preference: AppLanguagePreference = 'syst
     await i18n.changeLanguage(language);
   }
 
-  if (rtlChanged) {
-    try {
-      await Updates.reloadAsync();
-      return { language, restarted: true };
-    } catch (error) {
-      logger.warn('i18nReloadFailed', error);
-    }
-  }
-
-  return { language, restarted: false };
+  return rtlChanged;
 }
 
 function applyRtlPreference(language: SupportedAppLanguage): boolean {
   const shouldUseRtl = language === 'he';
   if (I18nManager.isRTL === shouldUseRtl) return false;
+  
   I18nManager.allowRTL(shouldUseRtl);
   I18nManager.forceRTL(shouldUseRtl);
   return true;

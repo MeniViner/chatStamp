@@ -37,6 +37,7 @@ export function SettingsScreen() {
   const [snackbar, setSnackbar] = React.useState<string | undefined>();
   const [clearCacheOpen, setClearCacheOpen] = React.useState(false);
   const [clearHistoryOpen, setClearHistoryOpen] = React.useState(false);
+  const [restartDialogVisible, setRestartDialogVisible] = React.useState(false);
   const [languageBusy, setLanguageBusy] = React.useState(false);
   const [organizationSheetOpen, setOrganizationSheetOpen] = React.useState(false);
 
@@ -82,7 +83,10 @@ export function SettingsScreen() {
     setLanguageBusy(true);
     try {
       await updateSettings({ languagePreference });
-      await syncI18nLanguage(languagePreference);
+      const rtlChanged = await syncI18nLanguage(languagePreference);
+      if (rtlChanged) {
+        setRestartDialogVisible(true);
+      }
     } finally {
       setLanguageBusy(false);
     }
@@ -331,6 +335,16 @@ export function SettingsScreen() {
       <Snackbar visible={Boolean(snackbar)} onDismiss={() => setSnackbar(undefined)} duration={3200}>
         {snackbar}
       </Snackbar>
+
+      <ConfirmDialog
+        visible={restartDialogVisible}
+        title={t('settings.restartRequiredTitle')}
+        body={t('settings.restartRequiredBody')}
+        confirmLabel={t('common.ok')}
+        cancelLabel={t('common.later')}
+        onConfirm={() => setRestartDialogVisible(false)}
+        onDismiss={() => setRestartDialogVisible(false)}
+      />
     </WizardScreen>
   );
 }

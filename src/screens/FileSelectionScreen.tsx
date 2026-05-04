@@ -458,11 +458,19 @@ function MediaPreviewSheet({
 
 function VoicePreview({ uri }: { uri: string }) {
   const { t } = useTranslation();
+  const isMounted = React.useRef(true);
   const player = useAudioPlayer({ uri }, { updateInterval: 250 });
   const status = useAudioPlayerStatus(player);
 
-  React.useEffect(() => () => {
-    player.pause();
+  React.useEffect(() => {
+    return () => {
+      isMounted.current = false;
+      try {
+        player.pause();
+      } catch {
+        // Ignore errors during cleanup
+      }
+    };
   }, [player]);
 
   const progress = getVoicePreviewProgress(status.currentTime, status.duration);
@@ -482,31 +490,37 @@ function VoicePreview({ uri }: { uri: string }) {
 
 function VideoPreview({ uri }: { uri: string }) {
   const { t } = useTranslation();
+  const isMounted = React.useRef(true);
   const [thumbnail, setThumbnail] = React.useState<unknown>();
   const [error, setError] = React.useState<string | undefined>();
+  
   const player = useVideoPlayer({ uri }, (videoPlayer) => {
     videoPlayer.muted = false;
   });
 
   React.useEffect(() => {
-    let cancelled = false;
+    isMounted.current = true;
+    
     player
       .generateThumbnailsAsync([0], { maxWidth: 1280, maxHeight: 720 })
       .then((thumbs) => {
-        if (!cancelled) setThumbnail(thumbs[0]);
+        if (isMounted.current) setThumbnail(thumbs[0]);
       })
       .catch((thumbnailError) => {
-        if (!cancelled) setError(thumbnailError instanceof Error ? thumbnailError.message : t('fileSelection.videoPreviewFailed'));
+        if (isMounted.current) setError(thumbnailError instanceof Error ? thumbnailError.message : t('fileSelection.videoPreviewFailed'));
       });
+
     const subscription = player.addListener('statusChange', ({ status, error: playerError }) => {
-      if (status === 'error') {
+      if (isMounted.current && status === 'error') {
         setError(playerError?.message ?? t('fileSelection.videoPreviewFailed'));
       }
     });
+
     return () => {
-      cancelled = true;
+      isMounted.current = false;
       subscription.remove();
-      player.pause();
+      // No need to call player.pause() here as useVideoPlayer handles disposal
+      // and calling it during unmount can cause the shared object rejection error
     };
   }, [player, t]);
 
@@ -514,14 +528,14 @@ function VideoPreview({ uri }: { uri: string }) {
     return (
       <View style={styles.fallbackPreview}>
         {thumbnail ? <ExpoImage source={thumbnail} contentFit="cover" style={styles.previewMedia} /> : null}
-        <Text variant="bodySmall">{error}</Text>
+        <Text variant="bodySmall" style={{ textAlign: 'center', marginTop: 12 }}>{error}</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.videoPreview}>
-      {thumbnail ? <ExpoImage source={thumbnail} contentFit="cover" style={styles.videoPoster} /> : null}
+      {thumbnail && !error ? <ExpoImage source={thumbnail} contentFit="cover" style={styles.videoPoster} /> : null}
       <VideoView
         player={player}
         style={styles.previewMedia}
@@ -551,20 +565,20 @@ function PreviewThumb({ file }: { file: ExtractedMediaFile }) {
 
 function VideoThumbnail({ uri }: { uri: string }) {
   const theme = useAppTheme();
+  const isMounted = React.useRef(true);
   const [thumbnail, setThumbnail] = React.useState<unknown>();
   const player = useVideoPlayer({ uri });
 
   React.useEffect(() => {
-    let cancelled = false;
+    isMounted.current = true;
     player
       .generateThumbnailsAsync([0], { maxWidth: 160, maxHeight: 160 })
       .then((thumbs) => {
-        if (!cancelled) setThumbnail(thumbs[0]);
+        if (isMounted.current) setThumbnail(thumbs[0]);
       })
       .catch(() => undefined);
     return () => {
-      cancelled = true;
-      player.pause();
+      isMounted.current = false;
     };
   }, [player]);
 

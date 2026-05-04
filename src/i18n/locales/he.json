@@ -17,7 +17,9 @@
     "false": "לא",
     "none": "אין",
     "showTechnicalDetails": "הצג פרטים טכניים",
-    "technicalDetails": "פרטים טכניים"
+    "technicalDetails": "פרטים טכניים",
+    "ok": "אישור",
+    "later": "מאוחר יותר"
   },
   "bootstrap": {
     "loading": "טוען את האפליקציה",
@@ -254,7 +256,9 @@
     "cacheCleared": "המטמון נוקה",
     "cacheClearedBody": "קבצי ייבוא זמניים הוסרו.",
     "cacheCleanupFailed": "ניקוי המטמון נכשל",
-    "couldNotClearCache": "לא היה ניתן לנקות מטמון."
+    "couldNotClearCache": "לא היה ניתן לנקות מטמון.",
+    "restartRequiredTitle": "נדרש אתחול",
+    "restartRequiredBody": "כדי להחיל את שינוי הכיוון (RTL) בצורה נכונה, מומלץ לסגור ולפתוח את האפליקציה מחדש."
   },
   "reviewSave": {
     "title": "סקירה ושמירה",
