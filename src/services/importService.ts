@@ -42,6 +42,7 @@ export async function importWhatsAppZip({
   const copiedZipUri = `${workingDirectory}${sanitizeFileName(zipName || 'whatsapp-export.zip')}`;
 
   try {
+    logger.info('Import started', { zipName });
     onProgress?.({ stageLabel: 'Preparing cache', processed: 0, total: 7, failed: 0 });
     await FileSystem.makeDirectoryAsync(extractionDirectory, { intermediates: true });
 
@@ -98,6 +99,12 @@ export async function importWhatsAppZip({
     });
 
     logger.debug('mediaCategorizationSummary', importSummary);
+    logger.info('Import completed', {
+      matchedMedia: importSummary.matchedMedia,
+      photos: importSummary.photos,
+      videos: importSummary.videos,
+      other: importSummary.voice + importSummary.stickers + importSummary.documents + importSummary.unknown
+    });
     onProgress?.({ stageLabel: 'Import ready', processed: 7, total: 7, failed: 0 });
 
     return {

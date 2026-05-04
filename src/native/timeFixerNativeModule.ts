@@ -1,5 +1,5 @@
 import { requireOptionalNativeModule } from 'expo-modules-core';
-import type { MediaType } from '../types/media';
+import type { MediaType, PickedFolderResult, PickedFolderTimestampSupportResult } from '../types/media';
 
 export type NativeExtractedMediaFile = {
   filename: string;
@@ -48,15 +48,43 @@ export type NativeSaveMediaItem = {
   originalTimestampMillis: number;
   sender: string;
   albumName?: string;
+  relativeFolder?: string;
+};
+
+export type TermuxParitySaveOptions = {
+  chatName?: string;
+  baseFolder?: string;
+  exportTimestamp?: string;
+  organization?: Record<string, unknown>;
+  duplicateHandling?: string;
+};
+
+export type SafCustomFolderSaveOptions = {
+  treeUri: string;
+  chatName?: string;
+  exportTimestamp?: string;
+  organization?: Record<string, unknown>;
+  duplicateHandling?: string;
 };
 
 export type NativeSavedMediaFileResult = {
   filename: string;
   ok: boolean;
   insertedUri?: string | null;
+  outputPath?: string | null;
   collection?: string | null;
+  displayName?: string | null;
   mimeType?: string | null;
+  mediaType?: MediaType;
   originalTimestampMillis: number;
+  whatsAppTimestampMillis?: number;
+  whatsAppDateIso?: string | null;
+  copied?: boolean;
+  setLastModifiedReturned?: boolean;
+  actualLastModifiedMillis?: number | null;
+  filesystemTimestampFixed?: boolean;
+  mediaScannerCompleted?: boolean;
+  scannedUri?: string | null;
   dateCorrectionSupported: boolean;
   dateCorrectionVerified: boolean;
   galleryMaySortByImportTime: boolean;
@@ -72,7 +100,10 @@ export type NativeSavedMediaFileResult = {
   retrieverDateAfterInsert?: string | null;
   mediaStoreDateTaken?: number | null;
   mediaStoreDateModified?: number | null;
+  mediaStoreDateAdded?: number | null;
   mediaStoreValues?: Record<string, number | string | null> | null;
+  mp4MetadataFixed?: boolean;
+  mediaStoreIndexedExpectedDate?: boolean;
   mp4InspectionBefore?: Record<string, unknown> | null;
   mp4InspectionAfterRewrite?: Record<string, unknown> | null;
   mp4RewriteFailureCode?: string | null;
@@ -83,10 +114,18 @@ export type NativeSavedMediaFileResult = {
 };
 
 export type NativeSaveMediaResult = {
+  mode?: string;
+  outputDirectory?: string;
+  copied?: number;
   saved: number;
   failed: number;
+  filesystemTimestampFixed?: number;
   dateCorrected: number;
   dateCorrectionFailed: number;
+  exifFixed?: number;
+  mp4MetadataFixed?: number;
+  scanned?: number;
+  fallbackImportTimeRisk?: number;
   results: NativeSavedMediaFileResult[];
 };
 
@@ -129,6 +168,22 @@ type WhatsAppTimeFixerNativeModule = {
     items: NativeSaveMediaItem[],
     options?: { albumName?: string; keepFailedDebugFiles?: boolean } | null
   ) => Promise<NativeSaveMediaResult>;
+  saveMediaTermuxParityAsync: (
+    items: NativeSaveMediaItem[],
+    options?: TermuxParitySaveOptions | null
+  ) => Promise<NativeSaveMediaResult>;
+  saveMediaToSafFolderAsync: (
+    items: NativeSaveMediaItem[],
+    options?: SafCustomFolderSaveOptions | null
+  ) => Promise<NativeSaveMediaResult>;
+  openOutputFolderPickerAsync: () => Promise<PickedFolderResult>;
+  testPickedFolderTimestampSupportAsync: (treeUri: string) => Promise<PickedFolderTimestampSupportResult>;
+  openFolderTargetAsync: (target: { treeUri?: string | null; path?: string | null }) => Promise<{ opened?: boolean; reason?: string; activity?: string | null; attempted?: string; fallbackUsed?: boolean }>;
+  shareOutputFilesAsync: (files: { uri?: string | null; path?: string | null; mimeType?: string | null; mediaType?: MediaType | null; filename?: string | null }[]) => Promise<{ opened?: boolean; shared?: number; reason?: string; activity?: string | null }>;
+  deleteOutputFilesAsync: (files: { uri?: string | null; path?: string | null }[]) => Promise<{ deleted: number; failed: number; results: { target?: string | null; deleted: boolean; reason?: string | null }[] }>;
+  isExternalStorageManagerAsync: () => Promise<boolean>;
+  openAllFilesAccessSettingsAsync: () => Promise<Record<string, unknown>>;
+  openScannedMediaAsync: (contentUri: string, mimeType?: string | null) => Promise<{ opened?: boolean; reason?: string; uri?: string }>;
   setMediaStoreDatesAsync: (
     assetId: string,
     localUri: string,

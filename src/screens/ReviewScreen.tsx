@@ -7,10 +7,12 @@ import type { MediaType } from '../types/media';
 import { logger } from '../lib/logger';
 import { countSelectedSaveableFiles } from '../store/selectionLogic';
 import { buildSelectedPreview } from '../store/selectedPreview';
+import { useTranslation } from 'react-i18next';
 
 const mediaTypes: MediaType[] = ['photo', 'video', 'voice', 'audio', 'sticker', 'gif'];
 
 export function ReviewScreen() {
+  const { t } = useTranslation();
   const mediaFiles = usePipelineStore((state) => state.mediaFiles);
   const importSummary = usePipelineStore((state) => state.importSummary);
   const selectedSenders = usePipelineStore((state) => state.selectedSenders);
@@ -47,14 +49,14 @@ export function ReviewScreen() {
       selectedFiles: selectedPreview.selectedFiles.length,
       selectedPhotos: selectedPreview.selectedPhotos,
       selectedVideos: selectedPreview.selectedVideos,
-      skippedVoiceOrOther: selectedPreview.skippedVoiceOrOther
+      selectedOther: selectedPreview.selectedOther
     });
   }, [
     selectedPreview.matchedFiles,
     selectedPreview.selectedFiles.length,
     selectedPreview.selectedPhotos,
     selectedPreview.selectedVideos,
-    selectedPreview.skippedVoiceOrOther
+    selectedPreview.selectedOther
   ]);
 
   async function handleSavePress() {
@@ -65,7 +67,7 @@ export function ReviewScreen() {
       setStage('saving');
     } catch (error) {
       logger.error('Permission request before save failed', error);
-      setError(error instanceof Error ? error.message : 'Could not request Gallery permission.');
+      setError(error instanceof Error ? error.message : t('review.couldNotRequestPermission'));
     }
   }
 
@@ -73,18 +75,18 @@ export function ReviewScreen() {
     <ScrollView contentContainerStyle={screenStyles.container}>
       <Card>
         <Card.Content style={screenStyles.cardContent}>
-          <Text variant="headlineSmall">Review import</Text>
-          <Text>{mediaFiles.length} media files detected.</Text>
+          <Text variant="headlineSmall">{t('review.title')}</Text>
+          <Text>{t('review.mediaFilesDetected', { count: mediaFiles.length })}</Text>
           {importSummary ? (
             <>
-              <Text>Matched: {importSummary.matchedMedia}</Text>
-              <Text>Unmatched: {importSummary.unmatchedMedia}</Text>
-              <Text>Senders: {importSummary.senders}</Text>
-              <Text>ZIP entries skipped: {importSummary.skippedZipEntries}</Text>
+              <Text>{t('review.matched', { count: importSummary.matchedMedia })}</Text>
+              <Text>{t('review.unmatched', { count: importSummary.unmatchedMedia })}</Text>
+              <Text>{t('review.senders', { count: importSummary.senders })}</Text>
+              <Text>{t('review.zipEntriesSkipped', { count: importSummary.skippedZipEntries })}</Text>
             </>
           ) : null}
 
-          <Text variant="titleMedium">Media types</Text>
+          <Text variant="titleMedium">{t('review.mediaTypes')}</Text>
           <View style={screenStyles.rowWrap}>
             {mediaTypes.map((mediaType) => (
               <Chip
@@ -97,12 +99,12 @@ export function ReviewScreen() {
                 style={selectedMediaTypes[mediaType] ? screenStyles.selectedChip : screenStyles.unselectedChip}
                 onPress={() => toggleMediaType(mediaType)}
               >
-                {getMediaTypeLabel(mediaType)}
+                {t(`media.plural.${mediaType}`)}
               </Chip>
             ))}
           </View>
 
-          <Text variant="titleMedium">Senders</Text>
+          <Text variant="titleMedium">{t('summary.senders')}</Text>
           {senders.map((sender) => (
             <Checkbox.Item
               key={sender}
@@ -115,26 +117,26 @@ export function ReviewScreen() {
           ))}
 
           <Button mode="contained" onPress={() => void handleSavePress()} disabled={selectedSaveCount === 0}>
-            Save {selectedSaveCount} selected
+            {t('review.saveSelected', { count: selectedSaveCount })}
           </Button>
           {hasSelectedVideos ? (
-            <Text>Videos may still appear by import time unless MP4 metadata correction is supported.</Text>
+            <Text>{t('review.videoWarning')}</Text>
           ) : null}
-          <Text variant="titleMedium">Selected files</Text>
-          <Text>Matched files: {selectedPreview.matchedFiles}</Text>
-          <Text>Selected files: {selectedPreview.selectedFiles.length}</Text>
-          <Text>Photos: {selectedPreview.selectedPhotos} · Videos: {selectedPreview.selectedVideos}</Text>
-          {selectedPreview.skippedVoiceOrOther > 0 ? (
-            <Text>Skipped voice/other: {selectedPreview.skippedVoiceOrOther}</Text>
+          <Text variant="titleMedium">{t('review.selectedFiles')}</Text>
+          <Text>{t('review.matchedFiles', { count: selectedPreview.matchedFiles })}</Text>
+          <Text>{t('review.selectedFilesCount', { count: selectedPreview.selectedFiles.length })}</Text>
+          <Text>{t('review.photosVideosCount', { photos: selectedPreview.selectedPhotos, videos: selectedPreview.selectedVideos })}</Text>
+          {selectedPreview.selectedOther > 0 ? (
+            <Text>{t('review.otherFilesCount', { count: selectedPreview.selectedOther })}</Text>
           ) : null}
-          {selectedPreview.selectedFiles.length === 0 ? <Text>No saveable files selected.</Text> : null}
+          {selectedPreview.selectedFiles.length === 0 ? <Text>{t('review.noSaveableSelected')}</Text> : null}
           <View style={screenStyles.previewList}>
             <View style={screenStyles.rowWrap}>
               <Button mode="outlined" onPress={() => selectFiles(visibleSaveableFileIds)}>
-                Select all visible
+                {t('fileSelection.selectAll')}
               </Button>
               <Button mode="outlined" onPress={() => clearFiles(visibleSaveableFileIds)}>
-                Clear visible
+                {t('review.clearVisible')}
               </Button>
             </View>
             {visibleFiles.map((file) => (
@@ -145,9 +147,9 @@ export function ReviewScreen() {
                   disabled={file.mediaType !== 'photo' && file.mediaType !== 'video'}
                   onPress={() => toggleFile(file.id)}
                 />
-                <Text variant="bodySmall">{file.matchedRecord?.sender ?? 'Unknown'} · {file.mediaType}</Text>
+                <Text variant="bodySmall">{file.matchedRecord?.sender ?? t('fileSelection.unknownSender')} · {t(`media.singular.${file.mediaType}`)}</Text>
                 <Text variant="bodySmall">{formatPreviewDate(file.matchedRecord?.messageDateIso ?? '')}</Text>
-                <Text variant="bodySmall">{getCapabilityLabel(file.mediaType, file.filename)}</Text>
+                <Text variant="bodySmall">{getCapabilityLabel(t, file.mediaType, file.filename)}</Text>
               </View>
             ))}
           </View>
@@ -163,21 +165,11 @@ function formatPreviewDate(iso: string): string {
   return date.toLocaleString();
 }
 
-function getMediaTypeLabel(mediaType: MediaType): string {
-  if (mediaType === 'photo') return 'photos';
-  if (mediaType === 'video') return 'videos';
-  if (mediaType === 'voice') return 'voice';
-  if (mediaType === 'audio') return 'audio';
-  if (mediaType === 'sticker') return 'stickers';
-  if (mediaType === 'gif') return 'gifs';
-  return mediaType;
-}
-
-function getCapabilityLabel(mediaType: MediaType, filename: string): string {
-  if (mediaType === 'photo' && /\.(jpe?g)$/i.test(filename)) return 'Photo date fix supported';
-  if (mediaType === 'photo') return 'Photo date fix limited';
-  if (mediaType === 'video') return 'Video date fix supported only after Android verification passes';
-  if (mediaType === 'sticker') return 'Sticker not saved by default';
-  if (mediaType === 'voice') return 'Voice not saved by default';
-  return 'Not saved by default';
+function getCapabilityLabel(t: (key: string) => string, mediaType: MediaType, filename: string): string {
+  if (mediaType === 'photo' && /\.(jpe?g)$/i.test(filename)) return t('review.capabilities.photoSupported');
+  if (mediaType === 'photo') return t('review.capabilities.photoLimited');
+  if (mediaType === 'video') return t('review.capabilities.videoSupportedAfterVerification');
+  if (mediaType === 'sticker') return t('review.capabilities.stickerNotDefault');
+  if (mediaType === 'voice') return t('review.capabilities.voiceNotDefault');
+  return t('review.capabilities.notDefault');
 }

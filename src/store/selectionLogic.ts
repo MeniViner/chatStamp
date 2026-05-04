@@ -27,12 +27,10 @@ export function countSelectedSaveableFiles(
   const fileSet = selectedFileIds ? new Set(selectedFileIds) : undefined;
   return files.filter((file) => {
     const sender = file.matchedRecord?.sender;
-    const canSaveToGallery = file.mediaType === 'photo' || file.mediaType === 'video';
     return Boolean(
       sender &&
         senderSet.has(sender) &&
         selectedMediaTypes[file.mediaType] &&
-        canSaveToGallery &&
         (!fileSet || fileSet.has(file.id))
     );
   }).length;

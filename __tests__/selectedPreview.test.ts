@@ -32,7 +32,7 @@ function file(id: string, mediaType: MediaType, sender = 'Avi'): ExtractedMediaF
 }
 
 describe('buildSelectedPreview', () => {
-  it('summarizes selected photos, videos, and skipped voice files', () => {
+  it('summarizes selected photos, videos, and other files', () => {
     const summary = buildSelectedPreview(
       [file('photo-1', 'photo'), file('video-1', 'video'), file('voice-1', 'voice'), file('photo-2', 'photo', 'Dana')],
       ['Avi'],
@@ -40,9 +40,9 @@ describe('buildSelectedPreview', () => {
     );
 
     expect(summary.matchedFiles).toBe(4);
-    expect(summary.selectedFiles).toHaveLength(2);
+    expect(summary.selectedFiles).toHaveLength(3);
     expect(summary.selectedPhotos).toBe(1);
     expect(summary.selectedVideos).toBe(1);
-    expect(summary.skippedVoiceOrOther).toBe(1);
+    expect(summary.selectedOther).toBe(1);
   });
 });

@@ -8,11 +8,22 @@ const config = {
   assetBundlePatterns: ['**/*'],
   android: {
     package: 'com.local.whatsappmediatimefixer',
+    locales: {
+      en: './android/app/src/main/res/values/strings.xml',
+      he: './android/app/src/main/res/values-he/strings.xml'
+    },
     permissions: [
-      'READ_MEDIA_IMAGES',
-      'READ_MEDIA_VIDEO',
-      'READ_EXTERNAL_STORAGE',
+      'MANAGE_EXTERNAL_STORAGE',
       'WRITE_EXTERNAL_STORAGE'
+    ],
+    blockedPermissions: [
+      'android.permission.ACCESS_MEDIA_LOCATION',
+      'android.permission.READ_EXTERNAL_STORAGE',
+      'android.permission.READ_MEDIA_AUDIO',
+      'android.permission.READ_MEDIA_IMAGES',
+      'android.permission.READ_MEDIA_VIDEO',
+      'android.permission.READ_MEDIA_VISUAL_USER_SELECTED',
+      'android.permission.RECORD_AUDIO'
     ],
     intentFilters: [
       {
@@ -52,6 +63,9 @@ const config = {
     ]
   },
   plugins: [
+    'expo-video',
+    'expo-audio',
+    'expo-image',
     [
       'expo-font',
       {
@@ -59,14 +73,6 @@ const config = {
           './node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf',
           './node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialIcons.ttf'
         ]
-      }
-    ],
-    [
-      'expo-media-library',
-      {
-        photosPermission: 'Allow WhatsApp Media TimeFixer to save selected photos with corrected dates.',
-        savePhotosPermission: 'Allow WhatsApp Media TimeFixer to save selected media to your Gallery.',
-        isAccessMediaLocationEnabled: true
       }
     ]
   ]

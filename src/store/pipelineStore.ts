@@ -13,6 +13,7 @@ import { toggleMediaTypeSelection, toggleSenderSelection } from './selectionLogi
 
 export type PipelineState = {
   stage: PipelineStage;
+  overlayReturnStage?: PipelineStage;
   zipUri?: string;
   zipName?: string;
   workingDirectory?: string;
@@ -25,6 +26,8 @@ export type PipelineState = {
   completion?: CompletionSummary;
   error?: string;
   setStage: (stage: PipelineStage) => void;
+  openOverlayStage: (stage: 'settings' | 'history') => void;
+  closeOverlayStage: (fallback?: PipelineStage) => void;
   setZip: (zip: { uri: string; name: string }) => void;
   setImportResult: (result: {
     workingDirectory: string;
@@ -62,8 +65,23 @@ export const usePipelineStore = create<PipelineState>((set) => ({
   selectedFileIds: [],
   setStage: (stage) => {
     logger.debug('wizardStepChanged', { stage });
-    set({ stage });
+    set((state) => ({
+      stage,
+      overlayReturnStage: isOverlayStage(stage) ? state.overlayReturnStage : undefined
+    }));
   },
+  openOverlayStage: (stage) =>
+    set((state) => {
+      const overlayReturnStage = state.overlayReturnStage ?? (isOverlayStage(state.stage) ? 'welcome' : state.stage);
+      logger.debug('overlayStageOpened', { stage, overlayReturnStage });
+      return { stage, overlayReturnStage };
+    }),
+  closeOverlayStage: (fallback = 'welcome') =>
+    set((state) => {
+      const stage = state.overlayReturnStage ?? fallback;
+      logger.debug('overlayStageClosed', { fallback, restoredStage: stage });
+      return { stage, overlayReturnStage: undefined };
+    }),
   setZip: (zip) => set({ zipUri: zip.uri, zipName: zip.name }),
   setImportResult: ({ workingDirectory, mediaFiles, importSummary }) =>
     set({
@@ -74,7 +92,7 @@ export const usePipelineStore = create<PipelineState>((set) => ({
       selectedFileIds: mediaFiles
         .filter((file) => file.matchedRecord && (file.mediaType === 'photo' || file.mediaType === 'video'))
         .map((file) => file.id),
-      stage: 'summary'
+      stage: 'selectFiles'
     }),
   toggleSender: (sender) =>
     set((state) => {
@@ -116,6 +134,7 @@ export const usePipelineStore = create<PipelineState>((set) => ({
   reset: () =>
     set({
       stage: 'welcome',
+      overlayReturnStage: undefined,
       zipUri: undefined,
       zipName: undefined,
       workingDirectory: undefined,
@@ -129,3 +148,7 @@ export const usePipelineStore = create<PipelineState>((set) => ({
       error: undefined
     })
 }));
+
+function isOverlayStage(stage: PipelineStage): stage is 'settings' | 'history' {
+  return stage === 'settings' || stage === 'history';
+}

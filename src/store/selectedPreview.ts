@@ -15,7 +15,7 @@ export type SelectedPreviewSummary = {
   selectedFiles: SelectedFilePreview[];
   selectedPhotos: number;
   selectedVideos: number;
-  skippedVoiceOrOther: number;
+  selectedOther: number;
 };
 
 export function buildSelectedPreview(
@@ -28,17 +28,11 @@ export function buildSelectedPreview(
   const fileSet = selectedFileIds ? new Set(selectedFileIds) : undefined;
   const matchedFiles = files.filter((file) => file.matchedRecord).length;
   const selectedFiles: SelectedFilePreview[] = [];
-  let skippedVoiceOrOther = 0;
 
   for (const file of files) {
     const record = file.matchedRecord;
     if (!record || !senderSet.has(record.sender) || !selectedMediaTypes[file.mediaType]) continue;
     if (fileSet && !fileSet.has(file.id)) continue;
-
-    if (file.mediaType !== 'photo' && file.mediaType !== 'video') {
-      skippedVoiceOrOther += 1;
-      continue;
-    }
 
     selectedFiles.push({
       id: file.id,
@@ -55,6 +49,6 @@ export function buildSelectedPreview(
     selectedFiles,
     selectedPhotos: selectedFiles.filter((file) => file.mediaType === 'photo').length,
     selectedVideos: selectedFiles.filter((file) => file.mediaType === 'video').length,
-    skippedVoiceOrOther
+    selectedOther: selectedFiles.filter((file) => file.mediaType !== 'photo' && file.mediaType !== 'video').length
   };
 }

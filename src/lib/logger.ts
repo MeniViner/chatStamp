@@ -1,7 +1,15 @@
 const prefix = '[WhatsAppTimeFixer]';
+let debugEnabled = false;
 
 export const logger = {
+  setDebugEnabled(enabled: boolean) {
+    debugEnabled = enabled;
+  },
+  info(message: string, details?: unknown) {
+    write(console.log, message, details);
+  },
   debug(message: string, details?: unknown) {
+    if (!debugEnabled) return;
     write(console.log, message, details);
   },
   warn(message: string, details?: unknown) {

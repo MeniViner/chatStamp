@@ -38,4 +38,29 @@ describe('buildSaveSummary', () => {
       mayShowImportTime: 1
     });
   });
+
+  it('counts Termux Parity diagnostics separately from MP4 metadata', () => {
+    expect(
+      buildSaveSummary({
+        totalFiles: 4,
+        selectedFiles: 2,
+        saved: 2,
+        copied: 2,
+        failed: 0,
+        filesystemTimestampFixed: 2,
+        exifFixed: 1,
+        mp4MetadataFixed: 0,
+        scanned: 2,
+        dateCorrected: 2,
+        cacheCleared: true
+      })
+    ).toMatchObject({
+      copied: 2,
+      filesystemTimestampFixed: 2,
+      exifFixed: 1,
+      mp4MetadataFixed: 0,
+      scanned: 2,
+      dateCorrectionFailed: 0
+    });
+  });
 });

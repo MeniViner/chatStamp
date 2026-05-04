@@ -1,28 +1,31 @@
 import React from 'react';
 import { AppState } from 'react-native';
 import { ImportScreen } from './ImportScreen';
-import { SummaryScreen } from './SummaryScreen';
 import { FileSelectionScreen } from './FileSelectionScreen';
-import { ReviewSaveScreen } from './ReviewSaveScreen';
+import { OutputFolderScreen } from './OutputFolderScreen';
 import { ProcessingScreen } from './ProcessingScreen';
 import { DoneScreen } from './DoneScreen';
 import { ErrorScreen } from './ErrorScreen';
+import { SettingsScreen } from './SettingsScreen';
+import { HistoryScreen } from './HistoryScreen';
 import { usePipelineStore } from '../store/pipelineStore';
 import { getPendingSharedZip, getShareIntentDebugStatus } from '../native/shareIntent';
 import { importWhatsAppZip } from '../services/importService';
 import { logger } from '../lib/logger';
+import i18n from '../i18n';
 
 export function AppNavigator() {
   const stage = usePipelineStore((state) => state.stage);
   useGlobalSharedZipImport();
 
-  if (stage === 'summary') return <SummaryScreen />;
   if (stage === 'selectFiles') return <FileSelectionScreen />;
-  if (stage === 'reviewSave') return <ReviewSaveScreen />;
+  if (stage === 'outputOptions') return <OutputFolderScreen />;
   if (stage === 'analyzing' || stage === 'saving') {
     return <ProcessingScreen />;
   }
   if (stage === 'results') return <DoneScreen />;
+  if (stage === 'settings') return <SettingsScreen />;
+  if (stage === 'history') return <HistoryScreen />;
   if (stage === 'error') return <ErrorScreen />;
 
   return <ImportScreen />;
@@ -36,14 +39,19 @@ function useGlobalSharedZipImport() {
   const setImportResult = usePipelineStore((state) => state.setImportResult);
   const setError = usePipelineStore((state) => state.setError);
   const importingRef = React.useRef(false);
+  const stageRef = React.useRef(stage);
+
+  React.useEffect(() => {
+    stageRef.current = stage;
+  }, [stage]);
 
   const consumePendingShare = React.useCallback(async (reason: string) => {
-    if (importingRef.current || stage === 'analyzing' || stage === 'saving') return;
+    if (importingRef.current || stageRef.current === 'analyzing' || stageRef.current === 'saving') return;
     importingRef.current = true;
     try {
       const sharedZip = await getPendingSharedZip();
       if (!sharedZip.received) {
-        if (__DEV__ && reason !== 'poll') {
+        if (__DEV__ && reason === 'startup') {
           const status = await getShareIntentDebugStatus();
           logger.debug('shareIntentDebugStatus', status);
         }
@@ -52,7 +60,7 @@ function useGlobalSharedZipImport() {
 
       if (!sharedZip.copiedUri) {
         logger.warn('shareIntentReceivedButInvalid', sharedZip);
-        setError(sharedZip.error ?? 'The shared file could not be opened. Please select the ZIP from storage.');
+        setError(sharedZip.error ?? i18n.t('import.sharedFileCouldNotOpen'));
         return;
       }
 
@@ -73,11 +81,11 @@ function useGlobalSharedZipImport() {
       });
     } catch (error) {
       logger.error('Share intent handling failed', error);
-      setError(error instanceof Error ? error.message : 'Shared ZIP import failed.');
+      setError(error instanceof Error ? error.message : i18n.t('import.sharedZipFailed'));
     } finally {
       importingRef.current = false;
     }
-  }, [setError, setImportResult, setProgress, setStage, setZip, stage]);
+  }, [setError, setImportResult, setProgress, setStage, setZip]);
 
   React.useEffect(() => {
     void consumePendingShare('startup');

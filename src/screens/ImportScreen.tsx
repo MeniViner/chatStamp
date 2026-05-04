@@ -1,23 +1,26 @@
 import React, { useCallback, useEffect } from 'react';
-import { AppState, View } from 'react-native';
-import { Button, Text } from 'react-native-paper';
+import { AppState, ScrollView, StyleSheet, View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Appbar, Button, Surface, Text } from 'react-native-paper';
 import * as DocumentPicker from 'expo-document-picker';
 import { usePipelineStore } from '../store/pipelineStore';
 import { importWhatsAppZip } from '../services/importService';
 import { logger } from '../lib/logger';
-import {
-  getMediaPermissionStatus,
-  type GalleryPermissionStatus
-} from '../services/mediaLibraryService';
-import { screenStyles } from './screenStyles';
+import { hasAllFilesAccess } from '../native/allFilesAccess';
+import { useAppTheme } from '../theme/useAppTheme';
+import { FooterActions, WizardScreen, wizardStyles } from './WizardScreen';
+import { useTranslation } from 'react-i18next';
 
 export function ImportScreen() {
+  const { t } = useTranslation();
+  const theme = useAppTheme();
   const setZip = usePipelineStore((state) => state.setZip);
   const setStage = usePipelineStore((state) => state.setStage);
+  const openOverlayStage = usePipelineStore((state) => state.openOverlayStage);
   const setProgress = usePipelineStore((state) => state.setProgress);
   const setImportResult = usePipelineStore((state) => state.setImportResult);
   const setError = usePipelineStore((state) => state.setError);
-  const [permissionStatus, setPermissionStatus] = React.useState<GalleryPermissionStatus | undefined>();
+  const [allFilesAccessGranted, setAllFilesAccessGranted] = React.useState<boolean | undefined>();
 
   const importZip = useCallback(async (uri: string, name: string) => {
     setZip({ uri, name });
@@ -38,11 +41,11 @@ export function ImportScreen() {
 
   const refreshPermissionStatus = useCallback(async (reason: string) => {
     try {
-      const status = await getMediaPermissionStatus();
-      logger.debug(reason, status);
-      setPermissionStatus(status);
+      const granted = await hasAllFilesAccess();
+      logger.debug(reason, { allFilesAccessGranted: granted });
+      setAllFilesAccessGranted(granted);
     } catch (error) {
-      logger.warn('Could not read startup permission status', error);
+      logger.warn('Could not read All Files Access status', error);
     }
   }, []);
 
@@ -72,28 +75,135 @@ export function ImportScreen() {
       const asset = result.assets[0];
       await importZip(asset.uri, asset.name);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Import failed.');
+      setError(error instanceof Error ? error.message : t('import.importFailed'));
     }
   }
 
   return (
-    <View style={screenStyles.container}>
-      <Text variant="headlineMedium">WhatsApp Media TimeFixer</Text>
-      <Text variant="bodyLarge">
-        Import a WhatsApp chat export ZIP, choose photos and videos, and save them to Gallery using their original chat dates.
-      </Text>
-      <Text variant="bodyMedium">Choose a ZIP here, or share the ZIP directly from WhatsApp to this app.</Text>
-      <Text variant="titleMedium">Gallery access</Text>
-      <Text variant="bodyMedium">{getPermissionLabel(permissionStatus)}</Text>
-      <Button mode="contained" onPress={pickZip}>
-        Choose WhatsApp ZIP
-      </Button>
+    <WizardScreen
+      stage="welcome"
+      title={t('import.title')}
+      subtitle={t('import.subtitle')}
+      actions={
+        <>
+          <Appbar.Action icon="history" onPress={() => openOverlayStage('history')} />
+          <Appbar.Action icon="cog-outline" onPress={() => openOverlayStage('settings')} />
+        </>
+      }
+      footer={
+        <FooterActions>
+          <Button mode="contained" icon="folder-zip-outline" onPress={pickZip}>
+            {t('import.chooseZip')}
+          </Button>
+        </FooterActions>
+      }
+    >
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Surface
+          elevation={0}
+          style={[
+            styles.hero,
+            {
+              backgroundColor: theme.colors.primaryContainer,
+              borderColor: theme.colors.outlineVariant
+            }
+          ]}
+        >
+          <View style={[styles.iconBubble, { backgroundColor: theme.colors.surface }]}>
+            <MaterialCommunityIcons name="calendar-clock" size={34} color={theme.colors.primary} />
+          </View>
+          <Text variant="headlineMedium" style={[styles.heroTitle, { color: theme.colors.onPrimaryContainer }]}>
+            {t('import.heroTitle')}
+          </Text>
+          <Text variant="bodyMedium" style={{ color: theme.colors.onPrimaryContainer }}>
+            {t('import.heroBody')}
+          </Text>
+        </Surface>
+
+        <View style={wizardStyles.section}>
+          <InfoRow icon="cellphone-lock" title={t('import.infoLocalTitle')} body={t('import.infoLocalBody')} />
+          <InfoRow icon="share-variant" title={t('import.infoShareTitle')} body={t('import.infoShareBody')} />
+          <InfoRow
+            icon={allFilesAccessGranted ? 'check-circle-outline' : 'shield-outline'}
+            title={allFilesAccessGranted ? t('import.infoPermReadyTitle') : t('import.infoPermLaterTitle')}
+            body={
+              allFilesAccessGranted
+                ? t('import.infoPermReadyBody')
+                : t('import.infoPermLaterBody')
+            }
+          />
+        </View>
+
+        <Surface
+          elevation={0}
+          style={[
+            styles.instructionCard,
+            {
+              backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant,
+              borderColor: theme.colors.outlineVariant
+            }
+          ]}
+        >
+          <Text variant="titleMedium">{t('import.instructionTitle')}</Text>
+          <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+            {t('import.instructionBody')}
+          </Text>
+        </Surface>
+      </ScrollView>
+    </WizardScreen>
+  );
+}
+
+function InfoRow({ icon, title, body }: { icon: React.ComponentProps<typeof MaterialCommunityIcons>['name']; title: string; body: string }) {
+  const theme = useAppTheme();
+  return (
+    <View style={styles.infoRow}>
+      <MaterialCommunityIcons name={icon} size={24} color={theme.colors.secondary} />
+      <View style={styles.infoText}>
+        <Text variant="titleSmall">{title}</Text>
+        <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+          {body}
+        </Text>
+      </View>
     </View>
   );
 }
 
-function getPermissionLabel(status?: GalleryPermissionStatus): string {
-  if (!status) return 'Checking Android media permission status for diagnostics...';
-  if (status.granted) return 'Read permission is granted, but saving new files does not depend on it.';
-  return 'No broad Gallery read permission is required for saving new files created by this app.';
-}
+const styles = StyleSheet.create({
+  content: {
+    gap: 18,
+    paddingBottom: 24
+  },
+  hero: {
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 20,
+    gap: 14
+  },
+  iconBubble: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  heroTitle: {
+    fontWeight: '800',
+    letterSpacing: 0
+  },
+  infoRow: {
+    flexDirection: 'row',
+    gap: 14,
+    alignItems: 'flex-start'
+  },
+  infoText: {
+    flex: 1,
+    gap: 2
+  },
+  instructionCard: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 8,
+    padding: 16,
+    gap: 6
+  }
+});
