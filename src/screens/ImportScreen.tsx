@@ -10,6 +10,7 @@ import { hasAllFilesAccess } from '../native/allFilesAccess';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, WizardScreen, wizardStyles } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
+import { textStyles } from '../components/AppUi';
 
 export function ImportScreen() {
   const { t } = useTranslation();
@@ -112,10 +113,10 @@ export function ImportScreen() {
           <View style={[styles.iconBubble, { backgroundColor: theme.colors.surface }]}>
             <MaterialCommunityIcons name="calendar-clock" size={34} color={theme.colors.primary} />
           </View>
-          <Text variant="headlineMedium" style={[styles.heroTitle, { color: theme.colors.onPrimaryContainer }]}>
+          <Text variant="headlineMedium" style={[styles.heroTitle, textStyles.start, { color: theme.colors.onPrimaryContainer }]}>
             {t('import.heroTitle')}
           </Text>
-          <Text variant="bodyMedium" style={{ color: theme.colors.onPrimaryContainer }}>
+          <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.onPrimaryContainer }]}>
             {t('import.heroBody')}
           </Text>
         </Surface>
@@ -144,8 +145,8 @@ export function ImportScreen() {
             }
           ]}
         >
-          <Text variant="titleMedium">{t('import.instructionTitle')}</Text>
-          <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+          <Text variant="titleMedium" style={textStyles.start}>{t('import.instructionTitle')}</Text>
+          <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
             {t('import.instructionBody')}
           </Text>
         </Surface>
@@ -160,8 +161,8 @@ function InfoRow({ icon, title, body }: { icon: React.ComponentProps<typeof Mate
     <View style={styles.infoRow}>
       <MaterialCommunityIcons name={icon} size={24} color={theme.colors.secondary} />
       <View style={styles.infoText}>
-        <Text variant="titleSmall">{title}</Text>
-        <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+        <Text variant="titleSmall" style={textStyles.start}>{title}</Text>
+        <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
           {body}
         </Text>
       </View>

@@ -9,6 +9,7 @@ import { isSaveableMediaType, visibleMediaTypes } from '../lib/mediaUi';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, MetricCard, WizardScreen, wizardStyles } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
+import { textStyles } from '../components/AppUi';
 
 export function SummaryScreen() {
   const { t } = useTranslation();
@@ -59,7 +60,7 @@ export function SummaryScreen() {
       onBack={() => setStage('welcome')}
       footer={
         <FooterActions>
-          <Text variant="labelLarge" style={[wizardStyles.tabular, { color: theme.colors.onSurfaceVariant }]}>
+          <Text variant="labelLarge" style={[wizardStyles.tabular, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
             {t('summary.selectedSaveable', { count: selectedSaveCount })}
           </Text>
           <Button mode="contained" disabled={selectedSaveCount === 0} onPress={() => setStage('selectFiles')}>
@@ -77,7 +78,7 @@ export function SummaryScreen() {
         </View>
 
         <View style={wizardStyles.section}>
-          <Text variant="titleMedium">{t('summary.categories')}</Text>
+          <Text variant="titleMedium" style={textStyles.start}>{t('summary.categories')}</Text>
           <View style={styles.categoryList}>
             {visibleMediaTypes.map((mediaType) => (
               <CategoryRow
@@ -93,7 +94,7 @@ export function SummaryScreen() {
 
         <View style={wizardStyles.section}>
           <View style={styles.sectionHeader}>
-            <Text variant="titleMedium">{t('summary.senders')}</Text>
+            <Text variant="titleMedium" style={textStyles.start}>{t('summary.senders')}</Text>
             <View style={styles.headerActions}>
               <Button compact mode="text" onPress={selectAllSenders}>
                 {t('summary.allSenders')}
@@ -152,10 +153,10 @@ function CategoryRow({
       <View style={styles.categoryMain}>
         <MaterialCommunityIcons name={getCategoryIcon(mediaType)} size={24} color={saveable ? theme.colors.primary : theme.colors.onSurfaceVariant} />
         <View style={styles.categoryText}>
-          <Text variant="titleSmall" style={{ color: foregroundColor }}>
+          <Text variant="titleSmall" style={[textStyles.start, { color: foregroundColor }]}>
             {t(`media.plural.${mediaType}`)}
           </Text>
-          <Text variant="bodySmall" style={[wizardStyles.tabular, { color: theme.colors.onSurfaceVariant }]}>
+          <Text variant="bodySmall" style={[wizardStyles.tabular, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
             {saveable ? t('summary.countFound', { count }) : t('summary.countFoundNotSaved', { count })}
           </Text>
         </View>

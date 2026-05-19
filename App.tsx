@@ -11,7 +11,7 @@ import { useSettingsStore } from './src/store/settingsStore';
 import { useHistoryStore } from './src/store/historyStore';
 import { useOnboardingStore } from './src/store/onboardingStore';
 import { useTranslation } from 'react-i18next';
-import { syncI18nLanguage } from './src/i18n';
+import { onRtlLayoutChange, syncI18nLanguage } from './src/i18n';
 
 type AppAssetState = 'loading' | 'ready' | 'failed';
 
@@ -24,6 +24,7 @@ export default function App() {
   const developerMode = useSettingsStore((state) => state.settings.developerMode);
   const loadHistory = useHistoryStore((state) => state.loadHistory);
   const replayRequested = useOnboardingStore((state) => state.replayRequested);
+  const [rtlRefreshKey, setRtlRefreshKey] = React.useState(0);
 
   useEffect(() => {
     logger.setDebugEnabled(developerMode);
@@ -71,24 +72,30 @@ export default function App() {
     return () => subscription.remove();
   }, []);
 
+  useEffect(() => {
+    return onRtlLayoutChange(() => {
+      setRtlRefreshKey((current) => current + 1);
+    });
+  }, []);
+
   if (assetState !== 'ready') {
     return (
       <SafeAreaProvider>
-        <View style={bootstrapStyles.container}>
+        <View style={styles.container}>
           {assetState === 'loading' ? (
             <>
               <ActivityIndicator size="large" />
-              <Text style={bootstrapStyles.title}>{t('bootstrap.loading')}</Text>
+              <Text style={styles.title}>{t('bootstrap.loading')}</Text>
             </>
           ) : (
             <>
-              <Text style={bootstrapStyles.title}>{t('bootstrap.assetLoadFailed')}</Text>
-              {__DEV__ ? <Text style={bootstrapStyles.body}>{assetError}</Text> : null}
+              <Text style={styles.title}>{t('bootstrap.assetLoadFailed')}</Text>
+              {__DEV__ ? <Text style={styles.body}>{assetError}</Text> : null}
               {__DEV__ ? (
-                <Text style={bootstrapStyles.body}>{t('bootstrap.adbHint')}</Text>
+                <Text style={styles.body}>{t('bootstrap.adbHint')}</Text>
               ) : null}
-              <Pressable style={bootstrapStyles.button} onPress={() => void loadRequiredAssets()}>
-                <Text style={bootstrapStyles.buttonText}>{t('common.tryAgain')}</Text>
+              <Pressable style={styles.button} onPress={() => void loadRequiredAssets()}>
+                <Text style={styles.buttonText}>{t('common.tryAgain')}</Text>
               </Pressable>
             </>
           )}
@@ -99,14 +106,19 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <AppThemeProvider>
-        {!onboardingCompleted || replayRequested ? <OnboardingFlow /> : <AppNavigator />}
-      </AppThemeProvider>
+      <View key={`rtl-layout-${rtlRefreshKey}`} style={styles.appRoot}>
+        <AppThemeProvider>
+          {!onboardingCompleted || replayRequested ? <OnboardingFlow /> : <AppNavigator />}
+        </AppThemeProvider>
+      </View>
     </SafeAreaProvider>
   );
 }
 
-const bootstrapStyles = StyleSheet.create({
+const styles = StyleSheet.create({
+  appRoot: {
+    flex: 1
+  },
   container: {
     flex: 1,
     justifyContent: 'center',

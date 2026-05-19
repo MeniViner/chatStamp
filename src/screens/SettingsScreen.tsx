@@ -3,7 +3,7 @@ import { AppState, BackHandler, ScrollView, StyleSheet, View } from 'react-nativ
 import * as Application from 'expo-application';
 import { Directory, Paths } from 'expo-file-system';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Button, Chip, Divider, RadioButton, Snackbar, Surface, Switch, Text } from 'react-native-paper';
+import { Button, RadioButton, Snackbar, Text } from 'react-native-paper';
 import { BottomSheet } from '../components/BottomSheet';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { hasAllFilesAccess, openAllFilesAccessSettings } from '../native/allFilesAccess';
@@ -15,9 +15,18 @@ import { useOnboardingStore } from '../store/onboardingStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { syncI18nLanguage } from '../i18n';
 import { useAppTheme } from '../theme/useAppTheme';
-import { FooterActions, WizardScreen } from './WizardScreen';
+import { WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
 import type { AppLanguagePreference, AppSettings, DuplicateHandlingMode, OutputOrganizationMode } from '../types/media';
+import {
+  InfoRow,
+  SecondaryButton,
+  SelectableOptionCard,
+  SettingsSectionCard,
+  SettingRow as UiSettingRow,
+  textStyles
+} from '../components/AppUi';
+import { spacing } from '../theme/designTokens';
 
 const organizationModes: OutputOrganizationMode[] = ['all-in-one', 'by-type', 'by-sender', 'by-sender-and-type'];
 const duplicateModes: DuplicateHandlingMode[] = ['keep-both', 'skip-existing', 'replace-existing'];
@@ -30,14 +39,12 @@ export function SettingsScreen() {
   const updateSettings = useSettingsStore((state) => state.updateSettings);
   const resetSaveLocation = useSettingsStore((state) => state.resetSaveLocation);
   const closeOverlayStage = usePipelineStore((state) => state.closeOverlayStage);
-  const openOverlayStage = usePipelineStore((state) => state.openOverlayStage);
   const requestOnboardingReplay = useOnboardingStore((state) => state.requestReplay);
   const clearHistory = useHistoryStore((state) => state.clearHistory);
   const [allFilesAccessGranted, setAllFilesAccessGranted] = React.useState(false);
   const [snackbar, setSnackbar] = React.useState<string | undefined>();
   const [clearCacheOpen, setClearCacheOpen] = React.useState(false);
   const [clearHistoryOpen, setClearHistoryOpen] = React.useState(false);
-  const [restartDialogVisible, setRestartDialogVisible] = React.useState(false);
   const [languageBusy, setLanguageBusy] = React.useState(false);
   const [organizationSheetOpen, setOrganizationSheetOpen] = React.useState(false);
 
@@ -83,10 +90,7 @@ export function SettingsScreen() {
     setLanguageBusy(true);
     try {
       await updateSettings({ languagePreference });
-      const rtlChanged = await syncI18nLanguage(languagePreference);
-      if (rtlChanged) {
-        setRestartDialogVisible(true);
-      }
+      await syncI18nLanguage(languagePreference);
     } finally {
       setLanguageBusy(false);
     }
@@ -116,13 +120,6 @@ export function SettingsScreen() {
       title={t('settings.title')}
       subtitle={t('settings.subtitle')}
       onBack={() => closeOverlayStage('welcome')}
-      footer={
-        <FooterActions>
-          <Button mode="contained-tonal" icon="history" onPress={() => openOverlayStage('history')}>
-            {t('settings.history')}
-          </Button>
-        </FooterActions>
-      }
     >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Section title={t('settings.saveLocation')} icon="folder-cog-outline">
@@ -153,22 +150,22 @@ export function SettingsScreen() {
               })
             }
           />
-          <View style={styles.buttonRow}>
-            <Button mode="outlined" icon="folder-plus-outline" onPress={() => void chooseFolder()}>
+          <View style={styles.compactButtonRow}>
+            <SecondaryButton icon="folder-plus-outline" style={styles.compactButton} onPress={() => void chooseFolder()}>
               {t('settings.chooseFolder')}
-            </Button>
-            <Button mode="text" onPress={() => void resetSaveLocation()}>
+            </SecondaryButton>
+            <SecondaryButton style={styles.compactButton} onPress={() => void resetSaveLocation()}>
               {t('settings.resetToDefault')}
-            </Button>
+            </SecondaryButton>
           </View>
           <Detail
             icon={allFilesAccessGranted ? 'shield-check-outline' : 'shield-alert-outline'}
             label={t('settings.allFilesAccess')}
             value={allFilesAccessGranted ? t('settings.granted') : t('settings.notGranted')}
           />
-          <Button mode="contained-tonal" icon="cog-outline" onPress={() => void openAllFilesAccessSettings()}>
+          <SecondaryButton icon="cog-outline" onPress={() => void openAllFilesAccessSettings()}>
             {t('settings.openAllFilesAccess')}
-          </Button>
+          </SecondaryButton>
           {settings.customFolder ? (
             <Detail
               icon={settings.customFolderTimestampSupport?.timestampVerified ? 'calendar-check-outline' : 'calendar-alert-outline'}
@@ -184,16 +181,18 @@ export function SettingsScreen() {
 
         <Section title={t('settings.outputOrg')} icon="folder-multiple-outline">
           <View style={styles.summaryRow}>
-            <Text variant="titleSmall">{t(`settings.organizationModes.${settings.outputOrganization.mode}.title`)}</Text>
-            <Chip compact onPress={() => setOrganizationSheetOpen(true)}>
+            <Text variant="titleSmall" numberOfLines={2} style={[styles.flex, textStyles.start]}>
+              {t(`settings.organizationModes.${settings.outputOrganization.mode}.title`)}
+            </Text>
+            <Button compact mode="contained-tonal" onPress={() => setOrganizationSheetOpen(true)}>
               {t('settings.change')}
-            </Chip>
+            </Button>
           </View>
           <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
             {getOrganizationSummaryText(t, settings.outputOrganization)}
           </Text>
-          <SettingRow
-            label={t('settings.createExportTimestampFolder')}
+          <UiSettingRow
+            title={t('settings.createExportTimestampFolder')}
             value={settings.outputOrganization.createExportTimestampFolder}
             onValueChange={(value) =>
               void updateSettings({
@@ -228,8 +227,7 @@ export function SettingsScreen() {
               <RadioItem key={languagePreference} label={t(`settings.languageOptions.${languagePreference}`)} value={languagePreference} disabled={languageBusy} />
             ))}
           </RadioButton.Group>
-          <Button
-            mode="text"
+          <SecondaryButton
             icon="android"
             onPress={async () => {
               const outcome = await openAppLanguageSettings();
@@ -241,7 +239,7 @@ export function SettingsScreen() {
             }}
           >
             {t('settings.openAppLanguageSettings')}
-          </Button>
+          </SecondaryButton>
         </Section>
 
         <Section title={t('settings.appearance')} icon="theme-light-dark">
@@ -253,8 +251,8 @@ export function SettingsScreen() {
             <RadioItem label={t('settings.light')} value="light" />
             <RadioItem label={t('settings.dark')} value="dark" />
           </RadioButton.Group>
-          <SettingRow
-            label={t('settings.dynamicColors')}
+          <UiSettingRow
+            title={t('settings.dynamicColors')}
             value={settings.useDynamicColors}
             onValueChange={(value) => void updateSettings({ useDynamicColors: value })}
           />
@@ -262,8 +260,7 @@ export function SettingsScreen() {
 
         <Section title={t('settings.appOptions')} icon="tune-variant">
           <Detail icon="star-four-points-outline" label={t('settings.welcomeTour')} value={t('settings.welcomeTourBody')} />
-          <Button
-            mode="contained-tonal"
+          <SecondaryButton
             icon="play-circle-outline"
             onPress={() => {
               closeOverlayStage('welcome');
@@ -271,32 +268,32 @@ export function SettingsScreen() {
             }}
           >
             {t('settings.showWelcomeTourAgain')}
-          </Button>
-          <SettingRow
-            label={t('settings.developerModeToggle')}
+          </SecondaryButton>
+          <UiSettingRow
+            title={t('settings.developerModeToggle')}
             value={settings.developerMode}
             onValueChange={(value) => void updateSettings({ developerMode: value, showTechnicalLogs: value ? settings.showTechnicalLogs : false })}
           />
           {settings.developerMode ? (
             <>
-              <SettingRow label={t('settings.showTechnicalLogs')} value={settings.showTechnicalLogs} onValueChange={(value) => void updateSettings({ showTechnicalLogs: value })} />
-              <SettingRow label={t('settings.keepCache')} value={settings.keepCacheAfterFailedRun} onValueChange={(value) => void updateSettings({ keepCacheAfterFailedRun: value })} />
+              <UiSettingRow title={t('settings.showTechnicalLogs')} value={settings.showTechnicalLogs} onValueChange={(value) => void updateSettings({ showTechnicalLogs: value })} />
+              <UiSettingRow title={t('settings.keepCache')} value={settings.keepCacheAfterFailedRun} onValueChange={(value) => void updateSettings({ keepCacheAfterFailedRun: value })} />
               <Detail icon="information-outline" label={t('settings.developerMode')} value={t('settings.developerModeBody')} />
             </>
           ) : null}
-          <Detail icon="folder-outline" label={t('settings.lastOutputFolder')} value={settings.lastOutputFolder ?? t('settings.noneYet')} />
+          <Detail icon="folder-outline" label={t('settings.lastOutputFolder')} value={settings.lastOutputFolder ?? t('settings.noneYet')} path />
           <Detail
             icon="information-outline"
             label={t('settings.versionBuild')}
             value={`${Application.nativeApplicationVersion ?? '0.1.0'} (${Application.nativeBuildVersion ?? t('settings.devBuild')})`}
           />
           <View style={styles.buttonRow}>
-            <Button mode="outlined" onPress={() => setClearCacheOpen(true)}>
+            <SecondaryButton onPress={() => setClearCacheOpen(true)}>
               {t('settings.clearAppCache')}
-            </Button>
-            <Button mode="text" onPress={() => setClearHistoryOpen(true)}>
+            </SecondaryButton>
+            <SecondaryButton danger onPress={() => setClearHistoryOpen(true)}>
               {t('settings.clearHistory')}
-            </Button>
+            </SecondaryButton>
           </View>
         </Section>
       </ScrollView>
@@ -335,16 +332,6 @@ export function SettingsScreen() {
       <Snackbar visible={Boolean(snackbar)} onDismiss={() => setSnackbar(undefined)} duration={3200}>
         {snackbar}
       </Snackbar>
-
-      <ConfirmDialog
-        visible={restartDialogVisible}
-        title={t('settings.restartRequiredTitle')}
-        body={t('settings.restartRequiredBody')}
-        confirmLabel={t('common.ok')}
-        cancelLabel={t('common.later')}
-        onConfirm={() => setRestartDialogVisible(false)}
-        onDismiss={() => setRestartDialogVisible(false)}
-      />
     </WizardScreen>
   );
 }
@@ -383,17 +370,7 @@ function OutputOrganizationSheet({
 }
 
 function Section({ title, icon, children }: { title: string; icon: React.ComponentProps<typeof MaterialCommunityIcons>['name']; children: React.ReactNode }) {
-  const theme = useAppTheme();
-  return (
-    <Surface elevation={0} style={[styles.section, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}>
-      <View style={styles.sectionTitle}>
-        <MaterialCommunityIcons name={icon} size={20} color={theme.colors.primary} />
-        <Text variant="titleMedium">{title}</Text>
-      </View>
-      <Divider />
-      {children}
-    </Surface>
-  );
+  return <SettingsSectionCard title={title} icon={icon}>{children}</SettingsSectionCard>;
 }
 
 function DestinationCard({
@@ -409,32 +386,16 @@ function DestinationCard({
   onPress: () => void;
   badge?: string;
 }) {
-  const { t } = useTranslation();
-  const theme = useAppTheme();
   return (
-    <Surface
-      elevation={0}
-      style={[
-        styles.choiceCard,
-        {
-          backgroundColor: selected ? theme.colors.primaryContainer : theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant,
-          borderColor: selected ? theme.colors.primary : theme.colors.outlineVariant
-        }
-      ]}
-    >
-      <View style={styles.summaryRow}>
-        <Text variant="titleSmall" style={styles.flex}>
-          {title}
-        </Text>
-        {badge ? <Chip compact>{badge}</Chip> : null}
-      </View>
-      <Text variant="bodySmall" style={{ color: selected ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant }}>
-        {description}
-      </Text>
-      <Button mode={selected ? 'contained-tonal' : 'outlined'} compact onPress={onPress}>
-        {selected ? t('common.selected') : t('common.useThis')}
-      </Button>
-    </Surface>
+    <SelectableOptionCard
+      title={title}
+      description={description}
+      selected={selected}
+      badge={badge}
+      showRadio={false}
+      onPress={onPress}
+      example={description.includes('/') || description.includes('\\') ? description : undefined}
+    />
   );
 }
 
@@ -451,69 +412,24 @@ function PressCard({
   selected: boolean;
   onPress: () => void;
 }) {
-  const theme = useAppTheme();
   return (
-    <Surface
-      elevation={0}
-      style={[
-        styles.choiceCard,
-        {
-          backgroundColor: selected ? theme.colors.secondaryContainer : theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant,
-          borderColor: selected ? theme.colors.secondary : theme.colors.outlineVariant
-        }
-      ]}
-    >
-      <View style={styles.summaryRow}>
-        <Text variant="titleSmall" style={styles.flex}>
-          {title}
-        </Text>
-        <RadioButton value={title} status={selected ? 'checked' : 'unchecked'} onPress={onPress} />
-      </View>
-      <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-        {body}
-      </Text>
-      <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant }}>
-        {example}
-      </Text>
-    </Surface>
-  );
-}
-
-function SettingRow({ label, value, onValueChange }: { label: string; value: boolean; onValueChange: (value: boolean) => void }) {
-  return (
-    <View style={styles.row}>
-      <Text variant="bodyMedium" style={styles.flex}>
-        {label}
-      </Text>
-      <Switch value={value} onValueChange={onValueChange} />
-    </View>
+    <SelectableOptionCard title={title} description={body} example={example} selected={selected} onPress={onPress} />
   );
 }
 
 function RadioItem({ label, value, disabled = false }: { label: string; value: string; disabled?: boolean }) {
   return (
     <View style={styles.row}>
-      <RadioButton value={value} disabled={disabled} />
-      <Text variant="bodyMedium" style={styles.flex}>
+      <Text variant="bodyMedium" numberOfLines={2} style={[styles.flex, textStyles.start]}>
         {label}
       </Text>
+      <RadioButton value={value} disabled={disabled} />
     </View>
   );
 }
 
-function Detail({ icon, label, value }: { icon: React.ComponentProps<typeof MaterialCommunityIcons>['name']; label: string; value: string }) {
-  const theme = useAppTheme();
-  return (
-    <View style={styles.detail}>
-      <MaterialCommunityIcons name={icon} size={18} color={theme.colors.secondary} />
-      <View style={styles.flex}>
-        <Text variant="labelMedium">{label}</Text>
-        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-          {value}
-        </Text>
-      </View>
-    </View>
-  );
+function Detail({ icon, label, value, path = false }: { icon: React.ComponentProps<typeof MaterialCommunityIcons>['name']; label: string; value: string; path?: boolean }) {
+  return <InfoRow icon={icon} label={label} value={value} path={path} />;
 }
 
 function normalizeDuplicateMode(value: string): DuplicateHandlingMode {
@@ -538,46 +454,32 @@ function getOrganizationSummaryText(
 
 const styles = StyleSheet.create({
   content: {
-    gap: 14,
-    paddingBottom: 24
-  },
-  section: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 24,
-    padding: 16,
-    gap: 12
-  },
-  sectionTitle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
-  },
-  choiceCard: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 20,
-    padding: 14,
-    gap: 10
+    gap: spacing.card,
+    paddingBottom: spacing.section
   },
   summaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 8
   },
   row: {
-    minHeight: 40,
+    minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
-  },
-  detail: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10
+    gap: 12
   },
   buttonRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8
+    gap: 10
+  },
+  compactButtonRow: {
+    flexDirection: 'row',
+    gap: spacing.smallGap
+  },
+  compactButton: {
+    flex: 1
   },
   flex: {
     flex: 1

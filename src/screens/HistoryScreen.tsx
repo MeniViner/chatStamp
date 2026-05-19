@@ -1,7 +1,7 @@
 import React from 'react';
 import { BackHandler, FlatList, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Button, Chip, Snackbar, Surface, Text } from 'react-native-paper';
+import { Button, IconButton, Menu, Snackbar, Surface, Text } from 'react-native-paper';
 import { BottomSheet } from '../components/BottomSheet';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { FolderFallbackSheet } from '../components/FolderFallbackSheet';
@@ -13,6 +13,8 @@ import type { ExportHistoryItem, MediaType } from '../types/media';
 import { useAppTheme } from '../theme/useAppTheme';
 import { WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
+import { FilePathText, StatusBadge, textStyles } from '../components/AppUi';
+import { spacing } from '../theme/designTokens';
 
 export function HistoryScreen() {
   const { t } = useTranslation();
@@ -142,6 +144,7 @@ function HistoryCard({
   const { t } = useTranslation();
   const theme = useAppTheme();
   const [shareOpen, setShareOpen] = React.useState(false);
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
   async function openFolder() {
     const outcome = await openFolderBestEffort(item.outputFolderPath);
@@ -154,18 +157,41 @@ function HistoryCard({
     <Surface elevation={0} style={[styles.card, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}>
       <View style={styles.header}>
         <View style={styles.flex}>
-          <Text variant="titleMedium" numberOfLines={1}>
+          <Text variant="titleMedium" numberOfLines={2} style={[styles.cardTitle, textStyles.start]}>
             {item.chatName}
           </Text>
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+          <Text variant="bodySmall" numberOfLines={1} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
             {new Date(item.exportTimestampIso).toLocaleString()}
           </Text>
         </View>
-        <Chip compact>{item.allFilesHadTimestampsFixed ? t('history.dateReady') : t('history.needsCheck')}</Chip>
+        <View style={styles.headerActions}>
+          <StatusBadge label={item.allFilesHadTimestampsFixed ? t('history.dateReady') : t('history.needsCheck')} selected={item.allFilesHadTimestampsFixed} />
+          <Menu
+            visible={menuOpen}
+            onDismiss={() => setMenuOpen(false)}
+            anchor={<IconButton icon="dots-vertical" size={20} style={styles.iconButton} onPress={() => setMenuOpen(true)} />}
+          >
+            <Menu.Item
+              leadingIcon="delete-outline"
+              title={t('history.delete')}
+              onPress={() => {
+                setMenuOpen(false);
+                onDeleteRecord();
+              }}
+            />
+            <Menu.Item
+              leadingIcon="delete-forever-outline"
+              title={t('history.deleteFiles')}
+              disabled={!item.savedFiles?.length}
+              onPress={() => {
+                setMenuOpen(false);
+                onDeleteWithFiles();
+              }}
+            />
+          </Menu>
+        </View>
       </View>
-      <Text variant="bodySmall" numberOfLines={2} style={{ color: theme.colors.onSurfaceVariant }}>
-        {item.outputFolderPath}
-      </Text>
+      <FilePathText value={item.outputFolderPath} maxLines={1} ellipsizeMode="tail" />
       <Text variant="labelMedium">
         {t('history.counts', {
           saved: item.counts.totalSaved,
@@ -176,18 +202,23 @@ function HistoryCard({
         })}
       </Text>
       <View style={styles.actions}>
-        <Button compact mode="contained-tonal" icon="folder-open-outline" onPress={() => void openFolder()}>
-          {t('history.openFolder')}
-        </Button>
-        <Button compact mode="text" disabled={!item.savedFiles?.length} onPress={() => setShareOpen(true)}>
-          {t('history.shareFiles')}
-        </Button>
-        <Button compact mode="text" textColor={theme.colors.error} onPress={onDeleteRecord}>
-          {t('history.delete')}
-        </Button>
-        <Button compact mode="text" textColor={theme.colors.error} disabled={!item.savedFiles?.length} onPress={onDeleteWithFiles}>
-          {t('history.deleteFiles')}
-        </Button>
+        <IconButton
+          mode="contained-tonal"
+          icon="folder-open-outline"
+          size={18}
+          style={styles.iconButton}
+          accessibilityLabel={t('history.openFolder')}
+          onPress={() => void openFolder()}
+        />
+        <IconButton
+          mode="contained-tonal"
+          icon="share-variant-outline"
+          size={18}
+          style={styles.iconButton}
+          accessibilityLabel={t('history.shareFiles')}
+          disabled={!item.savedFiles?.length}
+          onPress={() => setShareOpen(true)}
+        />
       </View>
       <HistoryShareSheet
         visible={shareOpen}
@@ -231,11 +262,13 @@ function HistoryShareSheet({
 
   return (
     <BottomSheet visible={visible} title={t('history.shareFiles')} subtitle={t('history.shareFilesBody')} onDismiss={onDismiss}>
-      {available.map((type) => (
-        <Button key={type} mode={selected.includes(type) ? 'contained-tonal' : 'outlined'} onPress={() => toggle(type)}>
-          {t(`media.plural.${type}`)}
-        </Button>
-      ))}
+      <View style={styles.shareChipRow}>
+        {available.map((type) => (
+          <Button key={type} compact mode={selected.includes(type) ? 'contained-tonal' : 'outlined'} onPress={() => toggle(type)}>
+            {t(`media.plural.${type}`)}
+          </Button>
+        ))}
+      </View>
       <Button mode="contained" disabled={selected.length === 0} onPress={() => onShare(selected)}>
         {t('history.shareFiles')}
       </Button>
@@ -245,8 +278,8 @@ function HistoryShareSheet({
 
 const styles = StyleSheet.create({
   content: {
-    gap: 12,
-    paddingBottom: 24
+    gap: spacing.gap,
+    paddingBottom: spacing.section
   },
   emptyContent: {
     flexGrow: 1,
@@ -254,24 +287,43 @@ const styles = StyleSheet.create({
   },
   empty: {
     alignItems: 'center',
-    gap: 8,
-    padding: 24
+    gap: spacing.gap,
+    padding: 20
   },
   card: {
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 24,
-    padding: 16,
-    gap: 10
+    borderRadius: 12,
+    paddingHorizontal: spacing.compactInner,
+    paddingVertical: spacing.smallGap,
+    gap: spacing.tinyGap
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 8
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.tinyGap
   },
   actions: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.tinyGap
+  },
+  iconButton: {
+    width: 36,
+    height: 36,
+    margin: 0
+  },
+  shareChipRow: {
+    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6
+  },
+  cardTitle: {
+    fontWeight: '700'
   },
   flex: {
     flex: 1

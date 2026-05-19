@@ -1,8 +1,9 @@
 import React from 'react';
-import { Animated, I18nManager, StyleSheet, View, type ViewStyle } from 'react-native';
+import { Animated, I18nManager, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Surface, Text } from 'react-native-paper';
 import { useAppTheme } from '../../theme/useAppTheme';
+import { textStyles } from '../../components/AppUi';
 
 type OnboardingHighlight = {
   icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -29,6 +30,7 @@ type OnboardingPageProps = {
   visualAnimatedStyle?: Animated.WithAnimatedValue<ViewStyle>;
   copyAnimatedStyle?: Animated.WithAnimatedValue<ViewStyle>;
   detailsAnimatedStyle?: Animated.WithAnimatedValue<ViewStyle>;
+  extraContent?: React.ReactNode;
 };
 
 export function OnboardingPage({
@@ -43,14 +45,19 @@ export function OnboardingPage({
   statusPanel,
   visualAnimatedStyle,
   copyAnimatedStyle,
-  detailsAnimatedStyle
+  detailsAnimatedStyle,
+  extraContent
 }: OnboardingPageProps) {
   const theme = useAppTheme();
   const isRtl = I18nManager.isRTL;
   const panelColors = getPanelColors(statusPanel?.tone ?? 'info', theme);
 
   return (
-    <View style={styles.page}>
+    <ScrollView 
+      style={styles.page} 
+      contentContainerStyle={styles.scrollContent} 
+      showsVerticalScrollIndicator={false}
+    >
       <Animated.View style={visualAnimatedStyle}>
         <Surface
           elevation={0}
@@ -83,7 +90,7 @@ export function OnboardingPage({
             <View style={[styles.heroIconWrap, { backgroundColor: theme.colors.primaryContainer }]}>
               <MaterialCommunityIcons name={heroIcon} size={38} color={theme.colors.primary} />
             </View>
-            <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+            <Text variant="titleMedium" style={[textStyles.start, { color: theme.colors.onSurface }]}>
               {heroLabel}
             </Text>
           </Surface>
@@ -91,7 +98,7 @@ export function OnboardingPage({
             elevation={1}
             style={[
               styles.floatingCard,
-              styles.floatingTop,
+              isRtl ? styles.floatingTopRtl : styles.floatingTopLtr,
               {
                 backgroundColor: theme.colors.secondaryContainer,
                 borderColor: theme.colors.outlineVariant
@@ -99,7 +106,7 @@ export function OnboardingPage({
             ]}
           >
             <MaterialCommunityIcons name="calendar-check-outline" size={18} color={theme.colors.secondary} />
-            <Text variant="labelMedium" style={{ color: theme.colors.onSecondaryContainer }}>
+            <Text variant="labelMedium" style={[textStyles.start, { color: theme.colors.onSecondaryContainer }]}>
               {heroBadges[0]}
             </Text>
           </Surface>
@@ -107,7 +114,7 @@ export function OnboardingPage({
             elevation={1}
             style={[
               styles.floatingCard,
-              styles.floatingBottom,
+              isRtl ? styles.floatingBottomRtl : styles.floatingBottomLtr,
               {
                 backgroundColor: theme.colors.tertiaryContainer,
                 borderColor: theme.colors.outlineVariant
@@ -115,7 +122,7 @@ export function OnboardingPage({
             ]}
           >
             <MaterialCommunityIcons name="shield-lock-outline" size={18} color={theme.colors.tertiary} />
-            <Text variant="labelMedium" style={{ color: theme.colors.onTertiaryContainer }}>
+            <Text variant="labelMedium" style={[textStyles.start, { color: theme.colors.onTertiaryContainer }]}>
               {heroBadges[1]}
             </Text>
           </Surface>
@@ -129,7 +136,7 @@ export function OnboardingPage({
             styles.eyebrow,
             {
               color: theme.colors.primary,
-              textAlign: isRtl ? 'right' : 'left'
+              textAlign: 'auto'
             }
           ]}
         >
@@ -141,7 +148,7 @@ export function OnboardingPage({
             styles.title,
             {
               color: theme.colors.onBackground,
-              textAlign: isRtl ? 'right' : 'left'
+              textAlign: 'auto'
             }
           ]}
         >
@@ -153,7 +160,7 @@ export function OnboardingPage({
             styles.description,
             {
               color: theme.colors.onSurfaceVariant,
-              textAlign: isRtl ? 'right' : 'left'
+              textAlign: 'auto'
             }
           ]}
         >
@@ -176,7 +183,7 @@ export function OnboardingPage({
               ]}
             >
               <MaterialCommunityIcons name={highlight.icon} size={18} color={theme.colors.secondary} />
-              <Text variant="bodyMedium" style={styles.flex}>
+              <Text variant="bodyMedium" style={[styles.flex, textStyles.start]}>
                 {highlight.label}
               </Text>
             </Surface>
@@ -196,10 +203,10 @@ export function OnboardingPage({
           >
             <MaterialCommunityIcons name={statusPanel.icon} size={20} color={panelColors.iconColor} />
             <View style={styles.flex}>
-              <Text variant="titleSmall" style={{ color: panelColors.textColor }}>
+              <Text variant="titleSmall" style={[textStyles.start, { color: panelColors.textColor }]}>
                 {statusPanel.title}
               </Text>
-              <Text variant="bodyMedium" style={{ color: panelColors.textColor }}>
+              <Text variant="bodyMedium" style={[textStyles.start, { color: panelColors.textColor }]}>
                 {statusPanel.body}
               </Text>
             </View>
@@ -213,15 +220,16 @@ export function OnboardingPage({
               styles.note,
               {
                 color: theme.colors.onSurfaceVariant,
-                textAlign: isRtl ? 'right' : 'left'
+                textAlign: 'auto'
               }
             ]}
           >
             {note}
           </Text>
         ) : null}
+        {extraContent}
       </Animated.View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -254,8 +262,11 @@ function getPanelColors(tone: OnboardingStatusPanel['tone'], theme: ReturnType<t
 
 const styles = StyleSheet.create({
   page: {
-    flex: 1,
-    gap: 24
+    flex: 1
+  },
+  scrollContent: {
+    gap: 24,
+    paddingBottom: 24
   },
   heroShell: {
     minHeight: 250,
@@ -302,13 +313,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10
   },
-  floatingTop: {
+  floatingTopLtr: {
     top: 20,
     right: 18
   },
-  floatingBottom: {
+  floatingTopRtl: {
+    top: 20,
+    left: 18
+  },
+  floatingBottomLtr: {
     bottom: 18,
     left: 18
+  },
+  floatingBottomRtl: {
+    bottom: 18,
+    right: 18
   },
   copyBlock: {
     gap: 8
@@ -354,4 +373,3 @@ const styles = StyleSheet.create({
     flex: 1
   }
 });
-

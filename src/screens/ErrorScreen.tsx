@@ -9,6 +9,7 @@ import { logger } from '../lib/logger';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
+import { textStyles } from '../components/AppUi';
 
 export function ErrorScreen() {
   const { t } = useTranslation();
@@ -94,17 +95,17 @@ export function ErrorScreen() {
         <Surface elevation={0} style={[styles.errorCard, { backgroundColor: theme.colors.errorContainer, borderColor: theme.colors.error }]}>
           <MaterialCommunityIcons name="alert-circle-outline" size={32} color={theme.colors.error} />
           <View style={styles.flex}>
-            <Text variant="titleMedium" style={{ color: theme.colors.onErrorContainer }}>
+            <Text variant="titleMedium" style={[textStyles.start, { color: theme.colors.onErrorContainer }]}>
               {friendly.title}
             </Text>
-            <Text variant="bodyMedium" style={{ color: theme.colors.onErrorContainer }}>
+            <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.onErrorContainer }]}>
               {friendly.action}
             </Text>
           </View>
         </Surface>
         <List.Accordion title={t('error.showDetails')} left={(props) => <List.Icon {...props} icon="text-box-search-outline" />}>
           <Surface elevation={0} style={[styles.details, { borderColor: theme.colors.outlineVariant }]}>
-            <Text variant="bodySmall">{error ?? t('error.unknownError')}</Text>
+            <Text variant="bodySmall" style={textStyles.start}>{error ?? t('error.unknownError')}</Text>
           </Surface>
         </List.Accordion>
       </ScrollView>

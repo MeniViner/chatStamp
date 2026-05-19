@@ -85,6 +85,16 @@
       "transcriptMatch": "Transcript matched automatically",
       "zipReady": "ZIP import ready"
     },
+    "language": {
+      "eyebrow": "Language & Direction",
+      "title": "Choose your app language before starting the workflow.",
+      "body": "Switch between system language, English, or Hebrew. Layout direction updates immediately when needed.",
+      "note": "You can change this later in Settings at any time.",
+      "heroLabel": "Language and layout preferences",
+      "highlightOne": "Apply text language immediately across onboarding and the app.",
+      "highlightTwo": "Apply RTL/LTR direction changes without a manual full refresh.",
+      "highlightThree": "Use Android app-language settings later if you prefer."
+    },
     "welcome": {
       "eyebrow": "Welcome",
       "title": "Restore the original WhatsApp dates for exported photos, videos, and media.",

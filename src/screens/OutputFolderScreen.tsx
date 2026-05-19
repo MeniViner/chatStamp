@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppState, BackHandler, ScrollView, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Button, Chip, RadioButton, Snackbar, Surface, Switch, Text } from 'react-native-paper';
+import { RadioButton, Snackbar, Text } from 'react-native-paper';
 import { FooterActions, WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
 import { usePipelineStore } from '../store/pipelineStore';
@@ -18,6 +18,18 @@ import {
   sanitizePathSegment
 } from '../lib/termuxParityOutput';
 import type { DuplicateHandlingMode, OutputOrganizationMode } from '../types/media';
+import {
+  InfoRow,
+  MetricTile,
+  PrimaryButton,
+  SecondaryButton,
+  SelectableOptionCard,
+  SettingsSectionCard,
+  SettingRow,
+  StatusBadge,
+  textStyles
+} from '../components/AppUi';
+import { spacing } from '../theme/designTokens';
 
 const organizationModes: OutputOrganizationMode[] = ['all-in-one', 'by-type', 'by-sender', 'by-sender-and-type'];
 const duplicateModes: DuplicateHandlingMode[] = ['keep-both', 'skip-existing', 'replace-existing'];
@@ -118,9 +130,9 @@ export function OutputFolderScreen() {
       onBack={() => setStage('selectFiles')}
       footer={
         <FooterActions>
-          <Button mode="contained" icon="content-save-check-outline" disabled={!canSave} onPress={() => setStage('saving')}>
+          <PrimaryButton icon="content-save-check-outline" disabled={!canSave} onPress={() => setStage('saving')}>
             {t('outputOptions.save')}
-          </Button>
+          </PrimaryButton>
         </FooterActions>
       }
     >
@@ -154,12 +166,12 @@ export function OutputFolderScreen() {
             }
           />
           <View style={styles.buttonRow}>
-            <Button mode="outlined" icon="folder-plus-outline" onPress={() => void chooseFolder()}>
+            <SecondaryButton icon="folder-plus-outline" onPress={() => void chooseFolder()}>
               {t('outputOptions.chooseFolder')}
-            </Button>
-            <Button mode="text" onPress={() => void resetSaveLocation()}>
+            </SecondaryButton>
+            <SecondaryButton onPress={() => void resetSaveLocation()}>
               {t('outputOptions.resetFolder')}
-            </Button>
+            </SecondaryButton>
           </View>
         </Section>
 
@@ -183,22 +195,17 @@ export function OutputFolderScreen() {
               />
             ))}
           </View>
-          <View style={styles.switchRow}>
-            <View style={styles.flex}>
-              <Text variant="titleSmall">{t('outputOptions.createExportTimestampFolder')}</Text>
-              <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-                {t('outputOptions.createExportTimestampFolderBody')}
-              </Text>
-            </View>
-            <Switch
-              value={settings.outputOrganization.createExportTimestampFolder}
-              onValueChange={(value) =>
-                void updateSettings({
-                  outputOrganization: { ...settings.outputOrganization, createExportTimestampFolder: value }
-                })
-              }
-            />
-          </View>
+          <SettingRow
+            icon="calendar-clock-outline"
+            title={t('outputOptions.createExportTimestampFolder')}
+            description={t('outputOptions.createExportTimestampFolderBody')}
+            value={settings.outputOrganization.createExportTimestampFolder}
+            onValueChange={(value) =>
+              void updateSettings({
+                outputOrganization: { ...settings.outputOrganization, createExportTimestampFolder: value }
+              })
+            }
+          />
           <Text variant="labelLarge">{t('outputOptions.duplicateHandling')}</Text>
           <RadioButton.Group
             value={settings.outputOrganization.duplicateHandling}
@@ -215,7 +222,7 @@ export function OutputFolderScreen() {
               <RadioItem key={mode} label={t(`outputOptions.duplicateModes.${mode}`)} value={mode} />
             ))}
           </RadioButton.Group>
-          <Chip compact>{t(`outputOptions.organizationModes.${settings.outputOrganization.mode}.title`)}</Chip>
+          <StatusBadge label={t(`outputOptions.organizationModes.${settings.outputOrganization.mode}.title`)} selected />
           <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
             {getOrganizationSummaryText(t, settings.outputOrganization)}
           </Text>
@@ -230,9 +237,9 @@ export function OutputFolderScreen() {
                 value={checking ? t('outputOptions.checkingPermission') : allFilesAccessGranted ? t('outputOptions.granted') : t('outputOptions.needed')}
               />
               {!allFilesAccessGranted ? (
-                <Button mode="contained-tonal" icon="cog-outline" onPress={() => void openAllFilesAccessSettings()}>
+                <SecondaryButton icon="cog-outline" onPress={() => void openAllFilesAccessSettings()}>
                   {t('outputOptions.grantAccess')}
-                </Button>
+                </SecondaryButton>
               ) : null}
             </>
           ) : (
@@ -263,10 +270,7 @@ export function OutputFolderScreen() {
           <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
             {t('outputOptions.previewBody')}
           </Text>
-          <PathPreview path={outputRoot} />
-          {previewPaths.map((path) => (
-            <PathPreview key={path} path={path} />
-          ))}
+          <FolderTreePreview paths={[outputRoot, ...previewPaths]} />
         </Section>
       </ScrollView>
       <Snackbar visible={Boolean(snackbar)} onDismiss={() => setSnackbar(undefined)} duration={3200}>
@@ -277,16 +281,7 @@ export function OutputFolderScreen() {
 }
 
 function Section({ title, icon, children }: { title: string; icon: React.ComponentProps<typeof MaterialCommunityIcons>['name']; children: React.ReactNode }) {
-  const theme = useAppTheme();
-  return (
-    <Surface elevation={0} style={[styles.section, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}>
-      <View style={styles.sectionHeader}>
-        <MaterialCommunityIcons name={icon} size={20} color={theme.colors.primary} />
-        <Text variant="titleMedium">{title}</Text>
-      </View>
-      {children}
-    </Surface>
-  );
+  return <SettingsSectionCard title={title} icon={icon}>{children}</SettingsSectionCard>;
 }
 
 function ChoiceCard({
@@ -304,80 +299,78 @@ function ChoiceCard({
   badge?: string;
   example?: string;
 }) {
-  const theme = useAppTheme();
   return (
-    <Surface
-      elevation={0}
-      style={[
-        styles.choiceCard,
-        {
-          backgroundColor: selected ? theme.colors.primaryContainer : theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant,
-          borderColor: selected ? theme.colors.primary : theme.colors.outlineVariant
-        }
-      ]}
-    >
-      <View style={styles.choiceHeader}>
-        <Text variant="titleSmall" style={styles.flex}>
-          {title}
-        </Text>
-        {badge ? <Chip compact>{badge}</Chip> : null}
-        <RadioButton value={title} status={selected ? 'checked' : 'unchecked'} onPress={onPress} />
-      </View>
-      <Text variant="bodySmall" style={{ color: selected ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant }}>
-        {body}
-      </Text>
-      {example ? (
-        <Text variant="labelSmall" style={{ color: selected ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant }}>
-          {example}
-        </Text>
-      ) : null}
-    </Surface>
+    <SelectableOptionCard title={title} description={body} selected={selected} badge={badge} example={example} onPress={onPress} />
   );
 }
 
 function MetricPill({ label, value }: { label: string; value: string }) {
-  const theme = useAppTheme();
   return (
-    <Surface elevation={0} style={[styles.metricPill, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]}>
-      <Text variant="titleSmall">{value}</Text>
-      <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant }}>
-        {label}
-      </Text>
-    </Surface>
+    <MetricTile label={label} value={value} />
   );
 }
 
 function StatusRow({ icon, label, value }: { icon: React.ComponentProps<typeof MaterialCommunityIcons>['name']; label: string; value: string }) {
+  return <InfoRow icon={icon} label={label} value={value} path={value.includes('/') || value.includes('\\')} />;
+}
+
+function FolderTreePreview({ paths }: { paths: string[] }) {
+  const rows = React.useMemo(() => buildTreeRows(paths), [paths]);
   const theme = useAppTheme();
   return (
-    <View style={styles.statusRow}>
-      <MaterialCommunityIcons name={icon} size={18} color={theme.colors.secondary} />
-      <View style={styles.flex}>
-        <Text variant="labelLarge">{label}</Text>
-        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-          {value}
-        </Text>
-      </View>
+    <View style={styles.treePreview}>
+      {rows.map((row) => (
+        <View key={row.key} style={[styles.treeRow, { paddingStart: row.level * 12 }]}>
+          <MaterialCommunityIcons
+            name={row.isLeaf ? 'file-outline' : 'folder-outline'}
+            size={16}
+            color={row.isLeaf ? theme.colors.onSurfaceVariant : theme.colors.primary}
+          />
+          <Text
+            variant="bodySmall"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={[styles.flex, textStyles.start, { color: theme.colors.onSurfaceVariant }]}
+          >
+            {row.label}
+          </Text>
+        </View>
+      ))}
     </View>
   );
 }
 
-function PathPreview({ path }: { path: string }) {
-  const theme = useAppTheme();
-  return (
-    <Surface elevation={0} style={[styles.previewCard, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]}>
-      <Text variant="bodySmall">{path}</Text>
-    </Surface>
-  );
+function buildTreeRows(paths: string[]): { key: string; label: string; level: number; isLeaf: boolean }[] {
+  const normalizedPaths = paths.map((path) => path.replace(/\\/g, '/')).filter(Boolean);
+  const prefixSet = new Set<string>();
+  const fullPathSet = new Set(normalizedPaths);
+  const rows: { key: string; label: string; level: number; isLeaf: boolean }[] = [];
+
+  normalizedPaths.forEach((path) => {
+    const segments = path.split('/').filter(Boolean).slice(-6);
+    segments.forEach((segment, index) => {
+      const prefix = segments.slice(0, index + 1).join('/');
+      if (prefixSet.has(prefix)) return;
+      prefixSet.add(prefix);
+      rows.push({
+        key: prefix,
+        label: segment,
+        level: index,
+        isLeaf: fullPathSet.has(prefix) || index === segments.length - 1
+      });
+    });
+  });
+
+  return rows.slice(0, 18);
 }
 
 function RadioItem({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.radioRow}>
-      <RadioButton value={value} status="unchecked" />
-      <Text variant="bodyMedium" style={styles.flex}>
+      <Text variant="bodyMedium" numberOfLines={2} style={[styles.flex, textStyles.start]}>
         {label}
       </Text>
+      <RadioButton value={value} />
     </View>
   );
 }
@@ -403,52 +396,25 @@ function getOrganizationSummaryText(
 
 const styles = StyleSheet.create({
   content: {
-    gap: 14,
-    paddingBottom: 24
-  },
-  section: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 24,
-    padding: 16,
-    gap: 12
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
+    gap: spacing.card,
+    paddingBottom: spacing.section
   },
   modeList: {
-    gap: 10
-  },
-  choiceCard: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 20,
-    padding: 14,
     gap: 8
   },
-  choiceHeader: {
+  treePreview: {
+    gap: spacing.tinyGap
+  },
+  treeRow: {
+    minHeight: 24,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
-  },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10
-  },
-  previewCard: {
-    borderRadius: 18,
-    padding: 12
+    gap: spacing.tinyGap
   },
   buttonRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8
+    gap: 6
   },
   radioRow: {
     minHeight: 40,

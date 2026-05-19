@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button, Dialog, Portal, Text } from 'react-native-paper';
+import { textStyles } from './AppUi';
 
 type ConfirmDialogProps = {
   visible: boolean;
@@ -25,9 +26,9 @@ export function ConfirmDialog({
   return (
     <Portal>
       <Dialog visible={visible} onDismiss={onDismiss}>
-        <Dialog.Title>{title}</Dialog.Title>
+        <Dialog.Title style={textStyles.start}>{title}</Dialog.Title>
         <Dialog.Content>
-          <Text variant="bodyMedium">{body}</Text>
+          <Text variant="bodyMedium" style={textStyles.start}>{body}</Text>
         </Dialog.Content>
         <Dialog.Actions>
           <Button onPress={onDismiss}>{cancelLabel}</Button>

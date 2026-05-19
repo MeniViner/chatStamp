@@ -8,6 +8,7 @@ import { logger } from '../lib/logger';
 import { countSelectedSaveableFiles } from '../store/selectionLogic';
 import { buildSelectedPreview } from '../store/selectedPreview';
 import { useTranslation } from 'react-i18next';
+import { MediaFileListItem, textStyles } from '../components/AppUi';
 
 const mediaTypes: MediaType[] = ['photo', 'video', 'voice', 'audio', 'sticker', 'gif'];
 
@@ -75,18 +76,18 @@ export function ReviewScreen() {
     <ScrollView contentContainerStyle={screenStyles.container}>
       <Card>
         <Card.Content style={screenStyles.cardContent}>
-          <Text variant="headlineSmall">{t('review.title')}</Text>
-          <Text>{t('review.mediaFilesDetected', { count: mediaFiles.length })}</Text>
+          <Text variant="headlineSmall" style={textStyles.start}>{t('review.title')}</Text>
+          <Text style={textStyles.start}>{t('review.mediaFilesDetected', { count: mediaFiles.length })}</Text>
           {importSummary ? (
             <>
-              <Text>{t('review.matched', { count: importSummary.matchedMedia })}</Text>
-              <Text>{t('review.unmatched', { count: importSummary.unmatchedMedia })}</Text>
-              <Text>{t('review.senders', { count: importSummary.senders })}</Text>
-              <Text>{t('review.zipEntriesSkipped', { count: importSummary.skippedZipEntries })}</Text>
+              <Text style={textStyles.start}>{t('review.matched', { count: importSummary.matchedMedia })}</Text>
+              <Text style={textStyles.start}>{t('review.unmatched', { count: importSummary.unmatchedMedia })}</Text>
+              <Text style={textStyles.start}>{t('review.senders', { count: importSummary.senders })}</Text>
+              <Text style={textStyles.start}>{t('review.zipEntriesSkipped', { count: importSummary.skippedZipEntries })}</Text>
             </>
           ) : null}
 
-          <Text variant="titleMedium">{t('review.mediaTypes')}</Text>
+          <Text variant="titleMedium" style={textStyles.start}>{t('review.mediaTypes')}</Text>
           <View style={screenStyles.rowWrap}>
             {mediaTypes.map((mediaType) => (
               <Chip
@@ -104,13 +105,14 @@ export function ReviewScreen() {
             ))}
           </View>
 
-          <Text variant="titleMedium">{t('summary.senders')}</Text>
+          <Text variant="titleMedium" style={textStyles.start}>{t('summary.senders')}</Text>
           {senders.map((sender) => (
             <Checkbox.Item
               key={sender}
               label={`${sender} (${senderCounts.get(sender) ?? 0})`}
               status={selectedSenders.includes(sender) ? 'checked' : 'unchecked'}
               mode="android"
+              labelStyle={textStyles.start}
               style={selectedSenders.includes(sender) ? screenStyles.selectedListItem : screenStyles.unselectedListItem}
               onPress={() => toggleSender(sender)}
             />
@@ -122,14 +124,14 @@ export function ReviewScreen() {
           {hasSelectedVideos ? (
             <Text>{t('review.videoWarning')}</Text>
           ) : null}
-          <Text variant="titleMedium">{t('review.selectedFiles')}</Text>
-          <Text>{t('review.matchedFiles', { count: selectedPreview.matchedFiles })}</Text>
-          <Text>{t('review.selectedFilesCount', { count: selectedPreview.selectedFiles.length })}</Text>
-          <Text>{t('review.photosVideosCount', { photos: selectedPreview.selectedPhotos, videos: selectedPreview.selectedVideos })}</Text>
+          <Text variant="titleMedium" style={textStyles.start}>{t('review.selectedFiles')}</Text>
+          <Text style={textStyles.start}>{t('review.matchedFiles', { count: selectedPreview.matchedFiles })}</Text>
+          <Text style={textStyles.start}>{t('review.selectedFilesCount', { count: selectedPreview.selectedFiles.length })}</Text>
+          <Text style={textStyles.start}>{t('review.photosVideosCount', { photos: selectedPreview.selectedPhotos, videos: selectedPreview.selectedVideos })}</Text>
           {selectedPreview.selectedOther > 0 ? (
-            <Text>{t('review.otherFilesCount', { count: selectedPreview.selectedOther })}</Text>
+            <Text style={textStyles.start}>{t('review.otherFilesCount', { count: selectedPreview.selectedOther })}</Text>
           ) : null}
-          {selectedPreview.selectedFiles.length === 0 ? <Text>{t('review.noSaveableSelected')}</Text> : null}
+          {selectedPreview.selectedFiles.length === 0 ? <Text style={textStyles.start}>{t('review.noSaveableSelected')}</Text> : null}
           <View style={screenStyles.previewList}>
             <View style={screenStyles.rowWrap}>
               <Button mode="outlined" onPress={() => selectFiles(visibleSaveableFileIds)}>
@@ -140,17 +142,13 @@ export function ReviewScreen() {
               </Button>
             </View>
             {visibleFiles.map((file) => (
-              <View key={file.id} style={screenStyles.previewItem}>
-                <Checkbox.Item
-                  label={file.filename}
-                  status={selectedFileIds.includes(file.id) ? 'checked' : 'unchecked'}
-                  disabled={file.mediaType !== 'photo' && file.mediaType !== 'video'}
-                  onPress={() => toggleFile(file.id)}
-                />
-                <Text variant="bodySmall">{file.matchedRecord?.sender ?? t('fileSelection.unknownSender')} · {t(`media.singular.${file.mediaType}`)}</Text>
-                <Text variant="bodySmall">{formatPreviewDate(file.matchedRecord?.messageDateIso ?? '')}</Text>
-                <Text variant="bodySmall">{getCapabilityLabel(t, file.mediaType, file.filename)}</Text>
-              </View>
+              <MediaFileListItem
+                key={file.id}
+                file={file}
+                selected={selectedFileIds.includes(file.id)}
+                onToggle={() => toggleFile(file.id)}
+                onPreview={() => toggleFile(file.id)}
+              />
             ))}
           </View>
         </Card.Content>
@@ -159,17 +157,3 @@ export function ReviewScreen() {
   );
 }
 
-function formatPreviewDate(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  return date.toLocaleString();
-}
-
-function getCapabilityLabel(t: (key: string) => string, mediaType: MediaType, filename: string): string {
-  if (mediaType === 'photo' && /\.(jpe?g)$/i.test(filename)) return t('review.capabilities.photoSupported');
-  if (mediaType === 'photo') return t('review.capabilities.photoLimited');
-  if (mediaType === 'video') return t('review.capabilities.videoSupportedAfterVerification');
-  if (mediaType === 'sticker') return t('review.capabilities.stickerNotDefault');
-  if (mediaType === 'voice') return t('review.capabilities.voiceNotDefault');
-  return t('review.capabilities.notDefault');
-}

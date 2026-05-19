@@ -1,7 +1,7 @@
 import React from 'react';
 import { BackHandler, ScrollView, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Button, Divider, Surface, Text } from 'react-native-paper';
+import { Divider, Surface, Text } from 'react-native-paper';
 import { usePipelineStore } from '../store/pipelineStore';
 import { buildSelectedPreview } from '../store/selectedPreview';
 import { buildTermuxParityOutputPath, sanitizePathSegment } from '../lib/termuxParityOutput';
@@ -9,6 +9,8 @@ import { useSettingsStore } from '../store/settingsStore';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, MetricCard, WizardScreen, wizardStyles } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
+import { FilePathText, PrimaryButton, SecondaryButton, textStyles } from '../components/AppUi';
+import { radius, spacing } from '../theme/designTokens';
 
 export function ReviewSaveScreen() {
   const { t } = useTranslation();
@@ -45,12 +47,12 @@ export function ReviewSaveScreen() {
       onBack={() => setStage('outputOptions')}
       footer={
         <FooterActions>
-          <Button mode="contained" icon="content-save-check-outline" onPress={() => setStage('saving')}>
+          <PrimaryButton icon="content-save-check-outline" onPress={() => setStage('saving')}>
             {t('reviewSave.saveToGallery')}
-          </Button>
-          <Button mode="text" onPress={() => setStage('outputOptions')}>
+          </PrimaryButton>
+          <SecondaryButton onPress={() => setStage('outputOptions')}>
             {t('reviewSave.back')}
-          </Button>
+          </SecondaryButton>
         </FooterActions>
       }
     >
@@ -64,17 +66,17 @@ export function ReviewSaveScreen() {
         <Surface elevation={0} style={[styles.confidenceCard, { backgroundColor: theme.colors.secondaryContainer, borderColor: theme.colors.secondary }]}>
           <MaterialCommunityIcons name="calendar-check-outline" size={28} color={theme.colors.secondary} />
           <View style={styles.flex}>
-            <Text variant="titleMedium" style={{ color: theme.colors.onSecondaryContainer }}>
+            <Text variant="titleMedium" numberOfLines={2} style={[textStyles.start, { color: theme.colors.onSecondaryContainer }]}>
               {t('reviewSave.originalDates')}
             </Text>
-            <Text variant="bodyMedium" style={{ color: theme.colors.onSecondaryContainer }}>
+            <Text variant="bodyMedium" numberOfLines={4} style={[textStyles.start, { color: theme.colors.onSecondaryContainer }]}>
               {t('reviewSave.appWillUse')}
             </Text>
           </View>
         </Surface>
 
         <View style={wizardStyles.section}>
-          <Text variant="titleMedium">{t('reviewSave.saveDetails')}</Text>
+      <Text variant="titleMedium" style={textStyles.start}>{t('reviewSave.saveDetails')}</Text>
           <Detail label={t('reviewSave.outputFolder')} value={outputPath} />
           <Detail label={t('reviewSave.saveMethod')} value={t('reviewSave.accurateMode')} />
         </View>
@@ -91,10 +93,14 @@ function Detail({ label, value }: { label: string; value: string }) {
   const theme = useAppTheme();
   return (
     <View style={styles.detail}>
-      <Text variant="labelLarge">{label}</Text>
-      <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-        {value}
-      </Text>
+      <Text variant="labelLarge" style={textStyles.start}>{label}</Text>
+      {value.includes('/') || value.includes('\\') ? (
+        <FilePathText value={value} maxLines={2} />
+      ) : (
+        <Text variant="bodyMedium" numberOfLines={3} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+          {value}
+        </Text>
+      )}
     </View>
   );
 }
@@ -105,22 +111,22 @@ function GroupedPreview({ title, files }: { title: string; files: ReturnType<typ
   if (files.length === 0) return null;
   return (
     <Surface elevation={0} style={[styles.group, { borderColor: theme.colors.outlineVariant }]}>
-      <Text variant="titleMedium" style={[wizardStyles.tabular, styles.groupTitle]}>
+      <Text variant="titleMedium" style={[wizardStyles.tabular, styles.groupTitle, textStyles.start]}>
         {title} ({files.length})
       </Text>
       <Divider />
       {files.slice(0, 8).map((file) => (
         <View key={file.id} style={styles.fileLine}>
-          <Text variant="bodyMedium" numberOfLines={1} style={styles.flex}>
-            {file.filename}
-          </Text>
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+        <Text variant="bodyMedium" numberOfLines={2} style={[styles.flex, textStyles.start]}>
+          {file.filename}
+        </Text>
+          <Text variant="bodySmall" numberOfLines={1} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
             {new Date(file.originalDateIso).toLocaleDateString()}
           </Text>
         </View>
       ))}
       {files.length > 8 ? (
-        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+        <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
           {t('reviewSave.andXMore', { count: files.length - 8 })}
         </Text>
       ) : null}
@@ -130,13 +136,13 @@ function GroupedPreview({ title, files }: { title: string; files: ReturnType<typ
 
 const styles = StyleSheet.create({
   content: {
-    gap: 18,
-    paddingBottom: 24
+    gap: spacing.card,
+    paddingBottom: spacing.section
   },
   confidenceCard: {
-    borderRadius: 8,
+    borderRadius: radius.card,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 16,
+    padding: 20,
     flexDirection: 'row',
     gap: 12
   },
@@ -147,10 +153,10 @@ const styles = StyleSheet.create({
     gap: 2
   },
   group: {
-    borderRadius: 8,
+    borderRadius: radius.card,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 14,
-    gap: 10
+    padding: 20,
+    gap: 12
   },
   groupTitle: {
     fontWeight: '700'

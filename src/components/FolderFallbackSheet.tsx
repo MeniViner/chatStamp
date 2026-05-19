@@ -1,8 +1,9 @@
 import React from 'react';
 import * as Clipboard from 'expo-clipboard';
-import { Button, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { BottomSheet } from './BottomSheet';
+import { FilePathText, PrimaryButton, SecondaryButton, textStyles } from './AppUi';
 
 type FolderFallbackSheetProps = {
   visible: boolean;
@@ -38,20 +39,20 @@ export function FolderFallbackSheet({
 
   return (
     <BottomSheet visible={visible} title={title} subtitle={subtitle} onDismiss={onDismiss}>
-      <Button mode="contained" icon="folder-open-outline" onPress={onRetryOpenFolder}>
+      <PrimaryButton icon="folder-open-outline" onPress={onRetryOpenFolder}>
         {t('results.openFolder')}
-      </Button>
+      </PrimaryButton>
       {canOpenFirstSavedItem && onOpenFirstSavedItem ? (
-        <Button mode="contained-tonal" icon="image-outline" onPress={onOpenFirstSavedItem}>
+        <SecondaryButton icon="image-outline" onPress={onOpenFirstSavedItem}>
           {t('results.openFirstSavedItem')}
-        </Button>
+        </SecondaryButton>
       ) : null}
-      <Button mode="text" icon="content-copy" onPress={() => void copyPath()}>
+      <SecondaryButton icon="content-copy" onPress={() => void copyPath()}>
         {t('results.copyFolderPath')}
-      </Button>
+      </SecondaryButton>
       <Text variant="labelLarge">{t('results.outputFolder')}</Text>
-      <Text variant="bodySmall">{outputFolder}</Text>
-      <Text variant="bodySmall">{helperText}</Text>
+      <FilePathText value={outputFolder} maxLines={3} />
+      <Text variant="bodySmall" style={textStyles.start}>{helperText}</Text>
     </BottomSheet>
   );
 }

@@ -16,6 +16,7 @@ import type { MediaType, SaveFileResult } from '../types/media';
 import { shareOutputFiles } from '../native/outputFiles';
 import { useTranslation } from 'react-i18next';
 import { getResultStatusKey, getResultsHeadlineKey, shouldShowTechnicalResults } from './resultsLogic';
+import { textStyles } from '../components/AppUi';
 
 export function DoneScreen() {
   const { t } = useTranslation();
@@ -26,6 +27,7 @@ export function DoneScreen() {
   const reset = usePipelineStore((state) => state.reset);
   const openOverlayStage = usePipelineStore((state) => state.openOverlayStage);
   const developerMode = useSettingsStore((state) => state.settings.developerMode);
+  const saveDestinationMode = useSettingsStore((state) => state.settings.saveDestinationMode);
   const customFolder = useSettingsStore((state) => state.settings.customFolder);
   const [snackbar, setSnackbar] = React.useState<string | undefined>();
   const [shareSheetOpen, setShareSheetOpen] = React.useState(false);
@@ -44,7 +46,8 @@ export function DoneScreen() {
   }
 
   async function openFolder() {
-    const outcome = await openFolderBestEffort(outputFolder, customFolder);
+    const folderTarget = saveDestinationMode === 'custom-folder' ? customFolder : null;
+    const outcome = await openFolderBestEffort(outputFolder, folderTarget);
     if (outcome === 'manual-fallback') {
       setFolderFallbackOpen(true);
     }
@@ -118,8 +121,8 @@ export function DoneScreen() {
             color={completion?.failed ? theme.colors.error : theme.colors.primary}
           />
           <View style={styles.flex}>
-            <Text variant="headlineSmall">{completion?.failed ? t('results.savedWithIssues') : t('results.successTitle')}</Text>
-            <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+            <Text variant="headlineSmall" style={textStyles.start}>{completion?.failed ? t('results.savedWithIssues') : t('results.successTitle')}</Text>
+            <Text variant="bodySmall" numberOfLines={2} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
               {outputFolder}
             </Text>
           </View>
@@ -176,7 +179,8 @@ export function DoneScreen() {
         onDismiss={() => setFolderFallbackOpen(false)}
         onOpenFirstSavedItem={() => void openFirstSavedItem()}
         onRetryOpenFolder={async () => {
-          const outcome = await openFolderBestEffort(outputFolder, customFolder);
+          const folderTarget = saveDestinationMode === 'custom-folder' ? customFolder : null;
+          const outcome = await openFolderBestEffort(outputFolder, folderTarget);
           if (outcome === 'manual-fallback') {
             setSnackbar(t('results.openFolderFallback'));
           } else {
@@ -202,7 +206,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   const theme = useAppTheme();
   return (
     <Surface elevation={0} style={[styles.section, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}>
-      <Text variant="titleMedium">{title}</Text>
+      <Text variant="titleMedium" style={textStyles.start}>{title}</Text>
       {children}
     </Surface>
   );
@@ -214,8 +218,8 @@ function SummaryRow({ icon, label, value }: { icon: React.ComponentProps<typeof 
     <View style={styles.summaryRow}>
       <MaterialCommunityIcons name={icon} size={20} color={theme.colors.secondary} />
       <View style={styles.flex}>
-        <Text variant="labelLarge">{label}</Text>
-        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+        <Text variant="labelLarge" style={textStyles.start}>{label}</Text>
+        <Text variant="bodySmall" numberOfLines={2} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
           {value}
         </Text>
       </View>
@@ -277,21 +281,21 @@ function ResultCard({ result, developerMode }: { result: SaveFileResult; develop
           color={ok ? theme.colors.primary : theme.colors.error}
         />
         <View style={styles.flex}>
-          <Text variant="titleSmall" numberOfLines={1}>
+          <Text variant="titleSmall" numberOfLines={1} style={textStyles.start}>
             {result.filename}
           </Text>
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+          <Text variant="bodySmall" numberOfLines={1} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
             {t(`media.singular.${result.mediaType ?? 'unknown'}`)} • {formatDate(result.whatsAppDateIso ?? result.originalTimestampMillis, t)}
           </Text>
         </View>
       </View>
       <Divider />
-      <Text variant="labelLarge" style={{ color: ok ? theme.colors.primary : theme.colors.error }}>
+      <Text variant="labelLarge" style={[textStyles.start, { color: ok ? theme.colors.primary : theme.colors.error }]}>
         {result.failureReason
           ? t(getResultStatusKey(result), { reason: result.failureReason })
           : t(getResultStatusKey(result))}
       </Text>
-      <Text variant="bodySmall" numberOfLines={2} style={{ color: theme.colors.onSurfaceVariant }}>
+      <Text variant="bodySmall" numberOfLines={2} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
         {result.outputPath ?? t('common.none')}
       </Text>
       {shouldShowTechnicalResults(developerMode) ? (

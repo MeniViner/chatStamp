@@ -15,13 +15,17 @@ import { useTranslation } from 'react-i18next';
 import { hasAllFilesAccess, openAllFilesAccessSettings } from '../../native/allFilesAccess';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useOnboardingStore } from '../../store/onboardingStore';
+import { syncI18nLanguage } from '../../i18n';
+import type { AppLanguagePreference } from '../../types/media';
 import { useAppTheme } from '../../theme/useAppTheme';
+import { textStyles } from '../../components/AppUi';
 import { OnboardingPage } from './OnboardingPage';
 import { getOnboardingPermissionVisualState } from './onboardingLogic';
 
-const totalPages = 5;
+const languageOptions: AppLanguagePreference[] = ['system', 'en', 'he'];
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 type OnboardingPageConfig = {
+  key: 'welcome' | 'language' | 'importZip' | 'chooseSave' | 'restoreDates' | 'permission';
   eyebrow: string;
   title: string;
   description: string;
@@ -46,6 +50,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const isRtl = I18nManager.isRTL;
+  const languagePreference = useSettingsStore((state) => state.settings.languagePreference);
   const onboardingCompleted = useSettingsStore((state) => state.settings.onboardingCompleted);
   const updateSettings = useSettingsStore((state) => state.updateSettings);
   const clearReplayRequest = useOnboardingStore((state) => state.clearReplayRequest);
@@ -53,6 +58,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
   const [transitionDirection, setTransitionDirection] = React.useState<1 | -1>(1);
   const [accessGranted, setAccessGranted] = React.useState<boolean | undefined>();
   const [grantAttempted, setGrantAttempted] = React.useState(false);
+  const [languageBusy, setLanguageBusy] = React.useState(false);
   const transition = React.useRef(new Animated.Value(1)).current;
   const indicator = React.useRef(new Animated.Value(0)).current;
 
@@ -80,6 +86,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
   const pages = React.useMemo<OnboardingPageConfig[]>(
     () => [
       {
+        key: 'welcome',
         eyebrow: t('onboarding.welcome.eyebrow'),
         title: t('onboarding.welcome.title'),
         description: t('onboarding.welcome.body'),
@@ -94,6 +101,22 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
         ]
       },
       {
+        key: 'language',
+        eyebrow: t('onboarding.language.eyebrow'),
+        title: t('onboarding.language.title'),
+        description: t('onboarding.language.body'),
+        note: t('onboarding.language.note'),
+        heroIcon: 'translate' as const,
+        heroLabel: t('onboarding.language.heroLabel'),
+        heroBadges: [t('settings.languageOptions.system'), t('settings.languageOptions.he')],
+        highlights: [
+          { icon: 'refresh-auto' as const, label: t('onboarding.language.highlightOne') },
+          { icon: 'arrow-left-right' as const, label: t('onboarding.language.highlightTwo') },
+          { icon: 'cog-outline' as const, label: t('onboarding.language.highlightThree') }
+        ]
+      },
+      {
+        key: 'importZip',
         eyebrow: t('onboarding.importZip.eyebrow'),
         title: t('onboarding.importZip.title'),
         description: t('onboarding.importZip.body'),
@@ -108,6 +131,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
         ]
       },
       {
+        key: 'chooseSave',
         eyebrow: t('onboarding.chooseSave.eyebrow'),
         title: t('onboarding.chooseSave.title'),
         description: t('onboarding.chooseSave.body'),
@@ -122,6 +146,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
         ]
       },
       {
+        key: 'restoreDates',
         eyebrow: t('onboarding.restoreDates.eyebrow'),
         title: t('onboarding.restoreDates.title'),
         description: t('onboarding.restoreDates.body'),
@@ -136,6 +161,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
         ]
       },
       {
+        key: 'permission',
         eyebrow: t('onboarding.permission.eyebrow'),
         title: t('onboarding.permission.title'),
         description: t('onboarding.permission.body'),
@@ -154,6 +180,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
     [permissionState, t]
   );
 
+  const totalPages = pages.length;
   const currentPage = pages[pageIndex];
 
   const animatePage = React.useCallback(
@@ -190,7 +217,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
   const goNext = React.useCallback(() => {
     if (pageIndex >= totalPages - 1) return;
     animatePage(pageIndex + 1, 1);
-  }, [animatePage, pageIndex]);
+  }, [animatePage, pageIndex, totalPages]);
 
   const goBack = React.useCallback(() => {
     if (pageIndex <= 0) return;
@@ -201,6 +228,20 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
     setGrantAttempted(true);
     await openAllFilesAccessSettings();
   }, []);
+
+  const applyLanguagePreference = React.useCallback(
+    async (nextLanguage: AppLanguagePreference) => {
+      if (languageBusy || nextLanguage === languagePreference) return;
+      setLanguageBusy(true);
+      try {
+        await updateSettings({ languagePreference: nextLanguage });
+        await syncI18nLanguage(nextLanguage);
+      } finally {
+        setLanguageBusy(false);
+      }
+    },
+    [languageBusy, languagePreference, updateSettings]
+  );
 
   const visualAnimatedStyle = React.useMemo(
     () => ({
@@ -267,10 +308,10 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
     <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
       <View style={[styles.headerRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
         <View style={styles.brandBlock}>
-          <Text variant="titleSmall" style={{ color: theme.colors.onBackground }}>
+          <Text variant="titleSmall" style={[textStyles.start, { color: theme.colors.onBackground }]}>
             {t('onboarding.appName')}
           </Text>
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+          <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
             {t('onboarding.progress', { current: pageIndex + 1, total: totalPages })}
           </Text>
         </View>
@@ -287,7 +328,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
         ) : null}
       </View>
 
-      <View style={styles.indicatorRow}>
+      <View style={[styles.indicatorRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
         {pages.map((page, index) => {
           const width = indicator.interpolate({
             inputRange: [index - 1, index, index + 1],
@@ -326,6 +367,15 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
           heroBadges={currentPage.heroBadges}
           highlights={currentPage.highlights}
           statusPanel={currentPage.statusPanel}
+          extraContent={
+            currentPage.key === 'language' ? (
+              <LanguageSelectionCard
+                selectedLanguage={languagePreference}
+                disabled={languageBusy}
+                onSelect={(nextLanguage) => void applyLanguagePreference(nextLanguage)}
+              />
+            ) : null
+          }
           visualAnimatedStyle={visualAnimatedStyle}
           copyAnimatedStyle={copyAnimatedStyle}
           detailsAnimatedStyle={detailsAnimatedStyle}
@@ -369,6 +419,61 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
         </View>
       </Surface>
     </SafeAreaView>
+  );
+}
+
+function LanguageSelectionCard({
+  selectedLanguage,
+  disabled,
+  onSelect
+}: {
+  selectedLanguage: AppLanguagePreference;
+  disabled: boolean;
+  onSelect: (language: AppLanguagePreference) => void;
+}) {
+  const { t } = useTranslation();
+  const theme = useAppTheme();
+
+  return (
+    <Surface
+      elevation={0}
+      style={[
+        styles.languageCard,
+        {
+          backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant,
+          borderColor: theme.colors.outlineVariant
+        }
+      ]}
+    >
+      {languageOptions.map((option) => {
+        const active = selectedLanguage === option;
+        return (
+          <Pressable
+            key={option}
+            accessibilityRole="button"
+            disabled={disabled}
+            onPress={() => onSelect(option)}
+            style={[
+              styles.languageRow,
+              {
+                backgroundColor: active ? theme.colors.primaryContainer : theme.colors.surface,
+                borderColor: active ? theme.colors.primary : theme.colors.outlineVariant,
+                opacity: disabled ? 0.64 : 1
+              }
+            ]}
+          >
+            <Text variant="titleSmall" style={[styles.flex, textStyles.start, { color: theme.colors.onSurface }]}>
+              {t(`settings.languageOptions.${option}`)}
+            </Text>
+            <MaterialCommunityIcons
+              name={active ? 'radiobox-marked' : 'radiobox-blank'}
+              size={20}
+              color={active ? theme.colors.primary : theme.colors.onSurfaceVariant}
+            />
+          </Pressable>
+        );
+      })}
+    </Surface>
   );
 }
 
@@ -447,6 +552,22 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 18
   },
+  languageCard: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 10,
+    gap: 6
+  },
+  languageRow: {
+    minHeight: 42,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6
+  },
   footer: {
     gap: 10,
     paddingHorizontal: 20,
@@ -458,6 +579,9 @@ const styles = StyleSheet.create({
     gap: 12
   },
   flexButton: {
+    flex: 1
+  },
+  flex: {
     flex: 1
   },
   primaryContent: {

@@ -10,6 +10,7 @@ import { useSettingsStore } from '../store/settingsStore';
 import { useAppTheme } from '../theme/useAppTheme';
 import { WizardScreen, wizardStyles } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
+import { textStyles } from '../components/AppUi';
 
 const analyzeStepKeys = [
   'processing.analyzeSteps.receivingZip',
@@ -131,7 +132,7 @@ export function ProcessingScreen() {
     >
       <View style={styles.centerPanel}>
         <ActivityIndicator size="large" />
-        <Text variant="titleMedium">{stageLabel}</Text>
+        <Text variant="titleMedium" style={textStyles.start}>{stageLabel}</Text>
         <ProgressBar progress={progressValue} color={theme.colors.primary} style={styles.progressBar} />
         <Text variant="bodyMedium" style={[wizardStyles.tabular, { color: theme.colors.onSurfaceVariant }]}>
           {t('processing.progressCount', {
@@ -197,7 +198,7 @@ function ChecklistRow({ label, state }: { label: string; state: 'pending' | 'act
   return (
     <View style={styles.checkRow}>
       <MaterialCommunityIcons name={icon} size={24} color={color} />
-      <Text variant="bodyLarge" style={{ color: state === 'pending' ? theme.colors.onSurfaceVariant : theme.colors.onSurface }}>
+      <Text variant="bodyLarge" style={[styles.flex, textStyles.start, { color: state === 'pending' ? theme.colors.onSurfaceVariant : theme.colors.onSurface }]}>
         {label}
       </Text>
     </View>
@@ -223,5 +224,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     minHeight: 38
+  },
+  flex: {
+    flex: 1
   }
 });

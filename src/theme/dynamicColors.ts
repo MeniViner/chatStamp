@@ -1,7 +1,7 @@
 import { createMaterial3Theme, isDynamicThemeSupported, type Material3Theme } from '@pchmn/expo-material3-theme';
 import { MD3DarkTheme, MD3LightTheme, type MD3Theme } from 'react-native-paper';
 
-export const fallbackMaterialYouSourceColor = '#506350';
+export const fallbackMaterialYouSourceColor = '#8a4f2a';
 
 export type AppColorScheme = 'light' | 'dark';
 

@@ -5,7 +5,7 @@ import { Image as ExpoImage } from 'expo-image';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { BottomSheet } from '../components/BottomSheet';
-import { Button, Checkbox, Chip, IconButton, ProgressBar, Searchbar, Surface, Switch, Text } from 'react-native-paper';
+import { Button, Chip, IconButton, ProgressBar, RadioButton, Searchbar, Surface, Switch, Text } from 'react-native-paper';
 import { usePipelineStore } from '../store/pipelineStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { countSelectedSaveableFiles } from '../store/selectionLogic';
@@ -24,6 +24,8 @@ import {
   toggleCategoryFilter,
   type SortMode
 } from './fileSelectionUi';
+import { MediaFileListItem, MetricTile, PrimaryButton, textStyles } from '../components/AppUi';
+import { spacing } from '../theme/designTokens';
 
 export function FileSelectionScreen() {
   const { t } = useTranslation();
@@ -135,8 +137,9 @@ export function FileSelectionScreen() {
       })}
       onBack={() => setStage('welcome')}
       footer={
+        filterSheetOpen || sortSheetOpen || previewFile ? undefined :
         <FooterActions>
-          <Text variant="labelLarge" style={{ color: theme.colors.onSurfaceVariant }}>
+          <Text variant="labelLarge" numberOfLines={2} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
             {t('fileSelection.footerSelected', {
               selected: selectedCount,
               photos: selectedByType.photos,
@@ -144,9 +147,9 @@ export function FileSelectionScreen() {
               other: selectedByType.other
             })}
           </Text>
-          <Button mode="contained" disabled={selectedCount === 0} onPress={() => setStage('outputOptions')}>
+          <PrimaryButton disabled={selectedCount === 0} onPress={() => setStage('outputOptions')}>
             {t('fileSelection.continue')}
-          </Button>
+          </PrimaryButton>
         </FooterActions>
       }
     >
@@ -161,12 +164,12 @@ export function FileSelectionScreen() {
         </View>
 
         <View style={styles.toolbarRow}>
-          <Text variant="bodySmall" style={{ flex: 1, color: theme.colors.onSurfaceVariant }}>
+          <Text variant="bodySmall" numberOfLines={2} style={[styles.flex, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
             {t('fileSelection.totalShown', { count: visibleFiles.length })}
           </Text>
-          <IconButton mode="contained-tonal" icon={searchOpen ? 'close' : 'magnify'} size={20} onPress={() => setSearchOpen((value) => !value)} />
-          <IconButton mode="contained-tonal" icon="sort" size={20} onPress={() => setSortSheetOpen(true)} />
-          <IconButton mode="contained-tonal" icon="filter-variant" size={20} onPress={() => setFilterSheetOpen(true)} />
+          <IconButton mode="contained-tonal" icon={searchOpen ? 'close' : 'magnify'} size={20} style={styles.iconButton} accessibilityLabel={t('fileSelection.searchPlaceholder')} onPress={() => setSearchOpen((value) => !value)} />
+          <IconButton mode="contained-tonal" icon="sort" size={20} style={styles.iconButton} accessibilityLabel={t('fileSelection.sortTitle')} onPress={() => setSortSheetOpen(true)} />
+          <IconButton mode="contained-tonal" icon="filter-variant" size={20} style={styles.iconButton} accessibilityLabel={t('fileSelection.filterTitle')} onPress={() => setFilterSheetOpen(true)} />
         </View>
 
         {searchOpen ? (
@@ -194,7 +197,7 @@ export function FileSelectionScreen() {
         data={visibleFiles}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <FileRow
+          <MediaFileListItem
             file={item}
             selected={selectedFileIds.includes(item.id)}
             onToggle={() => toggleVisibleFile(item)}
@@ -347,71 +350,24 @@ function SortSheet({
   const options: SortMode[] = ['date-desc', 'date-asc', 'name', 'sender', 'type'];
   return (
     <BottomSheet visible={visible} title={t('fileSelection.sortTitle')} subtitle={t('fileSelection.sortSubtitle')} onDismiss={onDismiss}>
-      {options.map((option) => (
-        <Button key={option} mode={sortMode === option ? 'contained-tonal' : 'outlined'} onPress={() => onSortMode(option)}>
-          {t(`fileSelection.sortModes.${option}`)}
-        </Button>
-      ))}
+      <RadioButton.Group value={sortMode} onValueChange={(value) => onSortMode(value as SortMode)}>
+        <View style={styles.selectableList}>
+          {options.map((option) => (
+            <Pressable key={option} onPress={() => onSortMode(option)} style={styles.selectableRow}>
+              <Text variant="bodyMedium" numberOfLines={1} style={[styles.flex, textStyles.start]}>
+                {t(`fileSelection.sortModes.${option}`)}
+              </Text>
+              <RadioButton value={option} />
+            </Pressable>
+          ))}
+        </View>
+      </RadioButton.Group>
     </BottomSheet>
   );
 }
 
 function CompactMetric({ label, value }: { label: string; value: number }) {
-  const theme = useAppTheme();
-  return (
-    <View style={[styles.compactMetric, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]}>
-      <Text variant="labelLarge">{value}</Text>
-      <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant }}>
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-function FileRow({
-  file,
-  selected,
-  onToggle,
-  onPreview
-}: {
-  file: ExtractedMediaFile;
-  selected: boolean;
-  onToggle: () => void;
-  onPreview: () => void;
-}) {
-  const { t } = useTranslation();
-  const theme = useAppTheme();
-  return (
-    <Surface
-      elevation={0}
-      style={[
-        styles.fileRow,
-        {
-          backgroundColor: selected ? theme.colors.primaryContainer : theme.colors.surface,
-          borderColor: selected ? theme.colors.primary : theme.colors.outlineVariant
-        }
-      ]}
-    >
-      <Pressable onPress={onPreview} style={styles.filePress}>
-        <PreviewThumb file={file} />
-        <View style={styles.fileBody}>
-          <View style={styles.fileTopLine}>
-            <Text variant="titleSmall" numberOfLines={2} style={styles.flex}>
-              {file.filename}
-            </Text>
-            <Chip compact>{t(`media.singular.${file.mediaType}`)}</Chip>
-          </View>
-          <Text variant="bodySmall" numberOfLines={1} style={{ color: theme.colors.onSurfaceVariant }}>
-            {file.matchedRecord?.sender ?? t('fileSelection.unknownSender')}
-          </Text>
-          <Text variant="bodySmall" numberOfLines={1} style={{ color: theme.colors.onSurfaceVariant }}>
-            {file.matchedRecord?.messageDateIso ? new Date(file.matchedRecord.messageDateIso).toLocaleString() : t('fileSelection.noDate')}
-          </Text>
-        </View>
-      </Pressable>
-      <Checkbox status={selected ? 'checked' : 'unchecked'} onPress={onToggle} />
-    </Surface>
-  );
+  return <MetricTile label={label} value={value} />;
 }
 
 function MediaPreviewSheet({
@@ -548,51 +504,6 @@ function VideoPreview({ uri }: { uri: string }) {
   );
 }
 
-function PreviewThumb({ file }: { file: ExtractedMediaFile }) {
-  const theme = useAppTheme();
-  if (file.mediaType === 'photo' || file.mediaType === 'sticker') {
-    return <ExpoImage source={file.thumbnailUri ?? file.uri} contentFit="cover" style={styles.previewImage} />;
-  }
-  if (file.mediaType === 'video') {
-    return <VideoThumbnail uri={file.uri} />;
-  }
-  return (
-    <View style={[styles.previewIcon, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]}>
-      <MaterialCommunityIcons name={getPreviewIcon(file.mediaType)} size={22} color={theme.colors.primary} />
-    </View>
-  );
-}
-
-function VideoThumbnail({ uri }: { uri: string }) {
-  const theme = useAppTheme();
-  const isMounted = React.useRef(true);
-  const [thumbnail, setThumbnail] = React.useState<unknown>();
-  const player = useVideoPlayer({ uri });
-
-  React.useEffect(() => {
-    isMounted.current = true;
-    player
-      .generateThumbnailsAsync([0], { maxWidth: 160, maxHeight: 160 })
-      .then((thumbs) => {
-        if (isMounted.current) setThumbnail(thumbs[0]);
-      })
-      .catch(() => undefined);
-    return () => {
-      isMounted.current = false;
-    };
-  }, [player]);
-
-  if (!thumbnail) {
-    return (
-      <View style={[styles.previewIcon, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]}>
-        <MaterialCommunityIcons name="play-circle-outline" size={24} color={theme.colors.primary} />
-      </View>
-    );
-  }
-
-  return <ExpoImage source={thumbnail} contentFit="cover" style={styles.previewImage} />;
-}
-
 function createSortComparator(sortMode: SortMode) {
   return (a: ExtractedMediaFile, b: ExtractedMediaFile) => {
     const aDate = new Date(a.matchedRecord?.messageDateIso ?? 0).getTime();
@@ -623,30 +534,28 @@ function formatSeconds(value: number): string {
 const styles = StyleSheet.create({
   toolbarBlock: {
     gap: 8,
-    paddingBottom: 8
+    paddingBottom: 6
   },
   metricRow: {
     flexDirection: 'row',
     gap: 8
   },
-  compactMetric: {
-    flex: 1,
-    borderRadius: 18,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 2
-  },
   toolbarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4
+    gap: 8
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    margin: 0
   },
   search: {
-    height: 48,
-    borderRadius: 18
+    height: 44,
+    borderRadius: 14
   },
   searchInput: {
-    minHeight: 48
+    minHeight: 44
   },
   quickActions: {
     flexDirection: 'row',
@@ -654,48 +563,12 @@ const styles = StyleSheet.create({
     gap: 4
   },
   listContent: {
-    paddingBottom: 12,
-    gap: 8
-  },
-  fileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 20,
-    padding: 10,
+    paddingBottom: spacing.section,
     gap: 6
-  },
-  filePress: {
-    flex: 1,
-    flexDirection: 'row',
-    gap: 12,
-    minWidth: 0
-  },
-  fileBody: {
-    flex: 1,
-    gap: 4,
-    minWidth: 0
-  },
-  fileTopLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
-  },
-  previewImage: {
-    width: 56,
-    height: 56,
-    borderRadius: 16
-  },
-  previewIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center'
   },
   emptyState: {
     alignItems: 'center',
-    padding: 28,
+    padding: 20,
     gap: 8
   },
   diagnosticPanel: {
@@ -706,7 +579,7 @@ const styles = StyleSheet.create({
   chipWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8
+    gap: 4
   },
   sheetSectionHeader: {
     flexDirection: 'row',
@@ -717,11 +590,21 @@ const styles = StyleSheet.create({
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12
+    gap: 8
+  },
+  selectableList: {
+    gap: spacing.tinyGap
+  },
+  selectableRow: {
+    minHeight: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.smallGap,
+    paddingVertical: 2
   },
   previewPanel: {
-    minHeight: 260,
-    borderRadius: 22,
+    minHeight: 220,
+    borderRadius: 16,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center'
@@ -732,18 +615,18 @@ const styles = StyleSheet.create({
   },
   fallbackPreview: {
     width: '100%',
-    minHeight: 280,
+    minHeight: 240,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: 8,
     padding: 16
   },
   voicePreview: {
     width: '100%',
-    minHeight: 220,
+    minHeight: 180,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 14,
+    gap: 10,
     padding: 16
   },
   voiceProgress: {

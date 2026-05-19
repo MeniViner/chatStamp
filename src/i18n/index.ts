@@ -8,6 +8,7 @@ import en from './locales/en.json';
 import he from './locales/he.json';
 
 const i18n = createInstance();
+const rtlChangeListeners = new Set<(isRtl: boolean) => void>();
 
 const resources = {
   en: { translation: en },
@@ -46,13 +47,27 @@ export function resolveAppLanguage(preference: AppLanguagePreference = 'system')
  */
 export async function syncI18nLanguage(preference: AppLanguagePreference = 'system'): Promise<boolean> {
   const language = resolveAppLanguage(preference);
+  const shouldUseRtl = language === 'he';
   const rtlChanged = applyRtlPreference(language);
 
   if (i18n.language !== language) {
     await i18n.changeLanguage(language);
   }
 
+  if (rtlChanged) {
+    notifyRtlChanged(shouldUseRtl);
+  }
+
   return rtlChanged;
+}
+
+export function onRtlLayoutChange(listener: (isRtl: boolean) => void): () => void {
+  rtlChangeListeners.add(listener);
+  return () => rtlChangeListeners.delete(listener);
+}
+
+function notifyRtlChanged(isRtl: boolean) {
+  rtlChangeListeners.forEach((listener) => listener(isRtl));
 }
 
 function applyRtlPreference(language: SupportedAppLanguage): boolean {
