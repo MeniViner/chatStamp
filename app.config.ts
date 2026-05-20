@@ -1,13 +1,13 @@
 const config = {
-  name: 'WhatsApp Media TimeFixer',
-  slug: 'whatsapp-media-timefixer',
+  name: 'chatStamp',
+  slug: 'chatstamp',
   version: '0.1.0',
   orientation: 'portrait',
-  scheme: 'watimefixer',
+  scheme: 'chatstamp',
   userInterfaceStyle: 'automatic',
   assetBundlePatterns: ['**/*'],
   android: {
-    package: 'com.local.whatsappmediatimefixer',
+    package: 'com.local.chatstamp',
     locales: {
       en: './android/app/src/main/res/values/strings.xml',
       he: './android/app/src/main/res/values-he/strings.xml'

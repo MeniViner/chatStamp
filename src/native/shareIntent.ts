@@ -1,13 +1,13 @@
 import {
-  getTimeFixerNativeModule,
+  getChatStampNativeModule,
   type NativeShareIntentDebugStatus,
   type NativeSharedZipResult
-} from './timeFixerNativeModule';
+} from './chatStampNativeModule';
 
 export async function getPendingSharedZip(): Promise<NativeSharedZipResult> {
-  return getTimeFixerNativeModule().consumePendingSharedZipAsync();
+  return getChatStampNativeModule().consumePendingSharedZipAsync();
 }
 
 export async function getShareIntentDebugStatus(): Promise<NativeShareIntentDebugStatus> {
-  return getTimeFixerNativeModule().getShareIntentDebugStatusAsync();
+  return getChatStampNativeModule().getShareIntentDebugStatusAsync();
 }

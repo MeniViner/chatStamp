@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mapDateCorrectionStatus } from '../src/services/dateCorrectionResult';
-import type { NativeSavedMediaFileResult } from '../src/native/timeFixerNativeModule';
+import type { NativeSavedMediaFileResult } from '../src/native/chatStampNativeModule';
 
 function result(overrides: Partial<NativeSavedMediaFileResult>): NativeSavedMediaFileResult {
   return {

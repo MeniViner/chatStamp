@@ -1,5 +1,5 @@
 {
-  "name": "whatsapp-timefixer-native",
+  "name": "chatstamp-native",
   "version": "0.1.0",
   "private": true,
   "main": "src/index.ts",

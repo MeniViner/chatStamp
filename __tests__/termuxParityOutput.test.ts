@@ -13,14 +13,14 @@ describe('Termux Parity output helpers', () => {
   it('preserves Hebrew chat names while removing path separators', () => {
     expect(sanitizePathSegment('משפחה / חברים: 2026')).toBe('משפחה _ חברים_ 2026');
     expect(buildTermuxParityOutputPath('צ׳אט משפחתי', { organization: { mode: 'all-in-one', createExportTimestampFolder: false, duplicateHandling: 'keep-both' } })).toBe(
-      '/storage/emulated/0/Pictures/WhatsApp Media TimeFixer/צ׳אט משפחתי'
+      '/storage/emulated/0/Pictures/chatStamp/צ׳אט משפחתי'
     );
   });
 
   it('builds export timestamp folders and organizes categories by type', () => {
     const organization = { mode: 'by-sender-and-type' as const, createExportTimestampFolder: true, duplicateHandling: 'keep-both' as const };
     expect(buildTermuxParityOutputPath('Chat', { exportTimestamp: '2026-05-02 14-30', organization })).toBe(
-      '/storage/emulated/0/Pictures/WhatsApp Media TimeFixer/Chat/Export 2026-05-02 14-30'
+      '/storage/emulated/0/Pictures/chatStamp/Chat/Export 2026-05-02 14-30'
     );
     expect(folderNameForMediaType('voice', organization)).toBe('Voice notes');
     expect(relativeOutputFolderForFile({

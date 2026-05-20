@@ -1,9 +1,9 @@
-import { getTimeFixerNativeModule } from './timeFixerNativeModule';
+import { getChatStampNativeModule } from './chatStampNativeModule';
 
 export async function hasAllFilesAccess(): Promise<boolean> {
-  return getTimeFixerNativeModule().isExternalStorageManagerAsync();
+  return getChatStampNativeModule().isExternalStorageManagerAsync();
 }
 
 export async function openAllFilesAccessSettings(): Promise<Record<string, unknown>> {
-  return getTimeFixerNativeModule().openAllFilesAccessSettingsAsync();
+  return getChatStampNativeModule().openAllFilesAccessSettingsAsync();
 }

@@ -1,4 +1,4 @@
-# WhatsApp Media TimeFixer
+# chatStamp
 
 Local Android pipeline app for importing WhatsApp chat export ZIP files, filtering media by sender and media type, and fixing gallery ordering by applying original message dates from the WhatsApp chat transcript TXT.
 
@@ -40,15 +40,15 @@ For live terminal logs while testing on a real Android device:
 ```bash
 npx expo start --dev-client
 adb reverse tcp:8081 tcp:8081
-adb logcat -s WhatsAppTimeFixer ReactNativeJS Expo
+adb logcat -s ChatStamp ReactNativeJS Expo
 ```
 
 For Android resolver and merged-package share target diagnostics:
 
 ```bash
 adb shell cmd package query-intent-activities -a android.intent.action.SEND -t application/zip
-adb shell dumpsys package com.local.whatsappmediatimefixer
-adb logcat -s WhatsAppTimeFixer ReactNativeJS Expo
+adb shell dumpsys package com.local.chatstamp
+adb logcat -s ChatStamp ReactNativeJS Expo
 ```
 
 The installed package must show `MainActivity` as a ZIP share target for `SEND` and `SEND_MULTIPLE`. A real WhatsApp share attempt should log `shareIntentRaw`, `shareIntentAccepted`, `shareIntentCopied`, and `shareIntentConsumedByJS` with a `content://` source URI, copied size greater than zero, and `validZip=true`.

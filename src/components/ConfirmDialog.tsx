@@ -1,6 +1,9 @@
 import React from 'react';
 import { Button, Dialog, Portal, Text } from 'react-native-paper';
+import { StyleSheet } from 'react-native';
 import { textStyles } from './AppUi';
+import { radius } from '../theme/designTokens';
+import { useAppTheme } from '../theme/useAppTheme';
 
 type ConfirmDialogProps = {
   visible: boolean;
@@ -23,16 +26,17 @@ export function ConfirmDialog({
   onDismiss,
   destructive = false
 }: ConfirmDialogProps) {
+  const theme = useAppTheme();
   return (
     <Portal>
-      <Dialog visible={visible} onDismiss={onDismiss}>
-        <Dialog.Title style={textStyles.start}>{title}</Dialog.Title>
+      <Dialog visible={visible} onDismiss={onDismiss} style={[styles.dialog, { backgroundColor: theme.colors.surface }]}>
+        <Dialog.Title style={[styles.title, textStyles.start]}>{title}</Dialog.Title>
         <Dialog.Content>
           <Text variant="bodyMedium" style={textStyles.start}>{body}</Text>
         </Dialog.Content>
-        <Dialog.Actions>
+        <Dialog.Actions style={styles.actions}>
           <Button onPress={onDismiss}>{cancelLabel}</Button>
-          <Button buttonColor={destructive ? undefined : undefined} textColor={destructive ? '#b3261e' : undefined} onPress={onConfirm}>
+          <Button mode={destructive ? 'text' : 'contained'} textColor={destructive ? theme.colors.error : undefined} onPress={onConfirm}>
             {confirmLabel}
           </Button>
         </Dialog.Actions>
@@ -40,3 +44,17 @@ export function ConfirmDialog({
     </Portal>
   );
 }
+
+const styles = StyleSheet.create({
+  dialog: {
+    borderRadius: radius.largeCard
+  },
+  title: {
+    fontWeight: '800',
+    letterSpacing: 0
+  },
+  actions: {
+    flexWrap: 'wrap',
+    gap: 8
+  }
+});

@@ -1,8 +1,8 @@
-import { getTimeFixerNativeModule, type NativeZipExtractionResult } from './timeFixerNativeModule';
+import { getChatStampNativeModule, type NativeZipExtractionResult } from './chatStampNativeModule';
 
 export async function extractSupportedZipEntries(
   zipUri: string,
   outputDirectoryUri: string
 ): Promise<NativeZipExtractionResult> {
-  return getTimeFixerNativeModule().extractSupportedZipEntriesAsync(zipUri, outputDirectoryUri);
+  return getChatStampNativeModule().extractSupportedZipEntriesAsync(zipUri, outputDirectoryUri);
 }

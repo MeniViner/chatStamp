@@ -1,9 +1,10 @@
 import React from 'react';
-import { Animated, I18nManager, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
+import { Animated, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Surface, Text } from 'react-native-paper';
 import { useAppTheme } from '../../theme/useAppTheme';
-import { textStyles } from '../../components/AppUi';
+import { StatusBadge, StatusBanner, textStyles } from '../../components/AppUi';
+import { radius, spacing } from '../../theme/designTokens';
 
 type OnboardingHighlight = {
   icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -49,8 +50,6 @@ export function OnboardingPage({
   extraContent
 }: OnboardingPageProps) {
   const theme = useAppTheme();
-  const isRtl = I18nManager.isRTL;
-  const panelColors = getPanelColors(statusPanel?.tone ?? 'info', theme);
 
   return (
     <ScrollView 
@@ -64,19 +63,11 @@ export function OnboardingPage({
           style={[
             styles.heroShell,
             {
-              backgroundColor: theme.colors.surfaceContainerLow ?? theme.colors.surface,
-              borderColor: theme.colors.outlineVariant
+              backgroundColor: theme.colors.primaryContainer,
+              borderColor: theme.colors.primary
             }
           ]}
         >
-          <View
-            style={[
-              styles.heroGlow,
-              {
-                backgroundColor: theme.colors.primaryContainer
-              }
-            ]}
-          />
           <Surface
             elevation={1}
             style={[
@@ -94,38 +85,10 @@ export function OnboardingPage({
               {heroLabel}
             </Text>
           </Surface>
-          <Surface
-            elevation={1}
-            style={[
-              styles.floatingCard,
-              isRtl ? styles.floatingTopRtl : styles.floatingTopLtr,
-              {
-                backgroundColor: theme.colors.secondaryContainer,
-                borderColor: theme.colors.outlineVariant
-              }
-            ]}
-          >
-            <MaterialCommunityIcons name="calendar-check-outline" size={18} color={theme.colors.secondary} />
-            <Text variant="labelMedium" style={[textStyles.start, { color: theme.colors.onSecondaryContainer }]}>
-              {heroBadges[0]}
-            </Text>
-          </Surface>
-          <Surface
-            elevation={1}
-            style={[
-              styles.floatingCard,
-              isRtl ? styles.floatingBottomRtl : styles.floatingBottomLtr,
-              {
-                backgroundColor: theme.colors.tertiaryContainer,
-                borderColor: theme.colors.outlineVariant
-              }
-            ]}
-          >
-            <MaterialCommunityIcons name="shield-lock-outline" size={18} color={theme.colors.tertiary} />
-            <Text variant="labelMedium" style={[textStyles.start, { color: theme.colors.onTertiaryContainer }]}>
-              {heroBadges[1]}
-            </Text>
-          </Surface>
+          <View style={styles.heroBadgeRow}>
+            <StatusBadge label={heroBadges[0]} selected />
+            <StatusBadge label={heroBadges[1]} />
+          </View>
         </Surface>
       </Animated.View>
 
@@ -191,26 +154,7 @@ export function OnboardingPage({
         </View>
 
         {statusPanel ? (
-          <Surface
-            elevation={0}
-            style={[
-              styles.statusPanel,
-              {
-                backgroundColor: panelColors.backgroundColor,
-                borderColor: panelColors.borderColor
-              }
-            ]}
-          >
-            <MaterialCommunityIcons name={statusPanel.icon} size={20} color={panelColors.iconColor} />
-            <View style={styles.flex}>
-              <Text variant="titleSmall" style={[textStyles.start, { color: panelColors.textColor }]}>
-                {statusPanel.title}
-              </Text>
-              <Text variant="bodyMedium" style={[textStyles.start, { color: panelColors.textColor }]}>
-                {statusPanel.body}
-              </Text>
-            </View>
-          </Surface>
+          <StatusBanner tone={statusPanel.tone} icon={statusPanel.icon} title={statusPanel.title} body={statusPanel.body} />
         ) : null}
 
         {note ? (
@@ -233,68 +177,33 @@ export function OnboardingPage({
   );
 }
 
-function getPanelColors(tone: OnboardingStatusPanel['tone'], theme: ReturnType<typeof useAppTheme>) {
-  if (tone === 'success') {
-    return {
-      backgroundColor: theme.colors.primaryContainer,
-      borderColor: theme.colors.primary,
-      iconColor: theme.colors.primary,
-      textColor: theme.colors.onPrimaryContainer
-    };
-  }
-
-  if (tone === 'warning') {
-    return {
-      backgroundColor: theme.colors.secondaryContainer,
-      borderColor: theme.colors.secondary,
-      iconColor: theme.colors.secondary,
-      textColor: theme.colors.onSecondaryContainer
-    };
-  }
-
-  return {
-    backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant,
-    borderColor: theme.colors.outlineVariant,
-    iconColor: theme.colors.primary,
-    textColor: theme.colors.onSurface
-  };
-}
-
 const styles = StyleSheet.create({
   page: {
     flex: 1
   },
   scrollContent: {
-    gap: 24,
-    paddingBottom: 24
+    gap: spacing.section,
+    paddingBottom: spacing.section
   },
   heroShell: {
-    minHeight: 250,
-    borderRadius: 32,
+    minHeight: 246,
+    borderRadius: radius.largeCard,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 20
-  },
-  heroGlow: {
-    position: 'absolute',
-    top: -90,
-    left: -32,
-    right: -32,
-    height: 220,
-    borderRadius: 999,
-    opacity: 0.92
+    paddingHorizontal: spacing.innerCard,
+    paddingVertical: spacing.innerCard,
+    gap: spacing.gap
   },
   heroCore: {
     alignSelf: 'center',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.gap,
     minWidth: 210,
-    borderRadius: 28,
+    borderRadius: radius.card,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 24,
-    paddingVertical: 24
+    paddingHorizontal: spacing.innerCard,
+    paddingVertical: spacing.innerCard
   },
   heroIconWrap: {
     width: 78,
@@ -303,34 +212,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
-  floatingCard: {
-    position: 'absolute',
+  heroBadgeRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderRadius: 18,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 14,
-    paddingVertical: 10
-  },
-  floatingTopLtr: {
-    top: 20,
-    right: 18
-  },
-  floatingTopRtl: {
-    top: 20,
-    left: 18
-  },
-  floatingBottomLtr: {
-    bottom: 18,
-    left: 18
-  },
-  floatingBottomRtl: {
-    bottom: 18,
-    right: 18
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: spacing.smallGap
   },
   copyBlock: {
-    gap: 8
+    gap: spacing.smallGap
   },
   eyebrow: {
     fontWeight: '700',
@@ -344,27 +233,19 @@ const styles = StyleSheet.create({
     lineHeight: 26
   },
   detailsBlock: {
-    gap: 16
+    gap: spacing.gap
   },
   highlightList: {
-    gap: 10
+    gap: spacing.smallGap
   },
   highlightCard: {
-    borderRadius: 20,
+    borderRadius: radius.card,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14
-  },
-  statusPanel: {
-    borderRadius: 22,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    padding: 16
+    gap: spacing.gap,
+    paddingHorizontal: spacing.compactInner,
+    paddingVertical: spacing.compactInner
   },
   note: {
     lineHeight: 22

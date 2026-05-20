@@ -1,5 +1,5 @@
 import type { MediaType } from '../types/media';
-import { getTimeFixerNativeModule, type NativeDateWriteResult } from './timeFixerNativeModule';
+import { getChatStampNativeModule, type NativeDateWriteResult } from './chatStampNativeModule';
 
 export type SetAndroidMediaStoreDatesParams = {
   assetId: string;
@@ -12,7 +12,7 @@ export type SetAndroidMediaStoreDatesParams = {
 export async function setAndroidMediaStoreDates(
   params: SetAndroidMediaStoreDatesParams
 ): Promise<NativeDateWriteResult> {
-  return getTimeFixerNativeModule().setMediaStoreDatesAsync(
+  return getChatStampNativeModule().setMediaStoreDatesAsync(
     params.assetId,
     params.localUri,
     params.mediaType,

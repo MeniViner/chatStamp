@@ -1,7 +1,7 @@
 export function shouldIgnoreShareIntentUri(uri: string): boolean {
   const value = uri.toLowerCase();
   return (
-    value.startsWith('watimefixer://expo-development-client') ||
+    value.startsWith('chatstamp://expo-development-client') ||
     value.startsWith('exp://') ||
     value.includes('expo-development-client') ||
     value.includes('localhost:8081') ||

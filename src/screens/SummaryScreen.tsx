@@ -1,15 +1,14 @@
 import React from 'react';
 import { BackHandler, ScrollView, StyleSheet, View } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Button, Chip, Surface, Text } from 'react-native-paper';
+import { Button, Text } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
+import { FilterChipGroup, MetricTile, OptionChoiceCard, PremiumCard, PrimaryButton, SectionHeader, textStyles } from '../components/AppUi';
+import { isSaveableMediaType, visibleMediaTypes } from '../lib/mediaUi';
 import { usePipelineStore } from '../store/pipelineStore';
 import { countSelectedSaveableFiles } from '../store/selectionLogic';
-import type { MediaType } from '../types/media';
-import { isSaveableMediaType, visibleMediaTypes } from '../lib/mediaUi';
 import { useAppTheme } from '../theme/useAppTheme';
-import { FooterActions, MetricCard, WizardScreen, wizardStyles } from './WizardScreen';
-import { useTranslation } from 'react-i18next';
-import { textStyles } from '../components/AppUi';
+import { spacing } from '../theme/designTokens';
+import { FooterActions, WizardScreen, wizardStyles } from './WizardScreen';
 
 export function SummaryScreen() {
   const { t } = useTranslation();
@@ -63,118 +62,66 @@ export function SummaryScreen() {
           <Text variant="labelLarge" style={[wizardStyles.tabular, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
             {t('summary.selectedSaveable', { count: selectedSaveCount })}
           </Text>
-          <Button mode="contained" disabled={selectedSaveCount === 0} onPress={() => setStage('selectFiles')}>
+          <PrimaryButton disabled={selectedSaveCount === 0} onPress={() => setStage('selectFiles')}>
             {t('summary.continueToFiles')}
-          </Button>
+          </PrimaryButton>
         </FooterActions>
       }
     >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={wizardStyles.rowWrap}>
-          <MetricCard label={t('summary.matchedMedia')} value={importSummary?.matchedMedia ?? 0} />
-          <MetricCard label={t('media.plural.photo')} value={importSummary?.photos ?? 0} />
-          <MetricCard label={t('media.plural.video')} value={importSummary?.videos ?? 0} />
-          <MetricCard label={t('summary.senders')} value={importSummary?.senders ?? senders.length} />
+          <MetricTile label={t('summary.matchedMedia')} value={importSummary?.matchedMedia ?? 0} />
+          <MetricTile label={t('media.plural.photo')} value={importSummary?.photos ?? 0} />
+          <MetricTile label={t('media.plural.video')} value={importSummary?.videos ?? 0} />
+          <MetricTile label={t('summary.senders')} value={importSummary?.senders ?? senders.length} />
         </View>
 
-        <View style={wizardStyles.section}>
-          <Text variant="titleMedium" style={textStyles.start}>{t('summary.categories')}</Text>
-          <View style={styles.categoryList}>
-            {visibleMediaTypes.map((mediaType) => (
-              <CategoryRow
-                key={mediaType}
-                mediaType={mediaType}
-                count={getCategoryCount(mediaType, importSummary)}
-                selected={selectedMediaTypes[mediaType]}
-                onPress={() => toggleMediaType(mediaType)}
-              />
-            ))}
+        <PremiumCard>
+          <SectionHeader icon="file-multiple-outline" label={t('summary.categories')} />
+          <View style={styles.list}>
+            {visibleMediaTypes.map((mediaType) => {
+              const saveable = isSaveableMediaType(mediaType);
+              const count = getCategoryCount(mediaType, importSummary);
+              return (
+                <OptionChoiceCard
+                  key={mediaType}
+                  title={t(`media.plural.${mediaType}`)}
+                  description={saveable ? t('summary.countFound', { count }) : t('summary.countFoundNotSaved', { count })}
+                  selected={selectedMediaTypes[mediaType] && saveable}
+                  disabled={!saveable}
+                  onPress={() => toggleMediaType(mediaType)}
+                  showRadio={false}
+                />
+              );
+            })}
           </View>
-        </View>
+        </PremiumCard>
 
-        <View style={wizardStyles.section}>
+        <PremiumCard>
           <View style={styles.sectionHeader}>
-            <Text variant="titleMedium" style={textStyles.start}>{t('summary.senders')}</Text>
+            <SectionHeader icon="account-multiple-outline" label={t('summary.senders')} />
             <View style={styles.headerActions}>
-              <Button compact mode="text" onPress={selectAllSenders}>
+              <Button mode="text" onPress={selectAllSenders}>
                 {t('summary.allSenders')}
               </Button>
-              <Button compact mode="text" onPress={clearSenders}>
+              <Button mode="text" onPress={clearSenders}>
                 {t('fileSelection.clear')}
               </Button>
             </View>
           </View>
-          <View style={wizardStyles.rowWrap}>
-            {senders.map((sender) => {
-              const selected = selectedSenders.includes(sender);
-              return (
-                <Chip
-                  key={sender}
-                  mode={selected ? 'flat' : 'outlined'}
-                  selected={selected}
-                  showSelectedCheck
-                  onPress={() => toggleSender(sender)}
-                  style={{
-                    backgroundColor: selected ? theme.colors.secondaryContainer : theme.colors.surface,
-                    borderColor: theme.colors.outline
-                  }}
-                  textStyle={{ color: selected ? theme.colors.onSecondaryContainer : theme.colors.onSurface }}
-                >
-                  {sender} ({senderCounts.get(sender) ?? 0})
-                </Chip>
-              );
-            })}
-          </View>
-        </View>
+          <FilterChipGroup
+            values={senders}
+            selectedValues={selectedSenders}
+            getLabel={(sender) => `${sender} (${senderCounts.get(sender) ?? 0})`}
+            onToggle={toggleSender}
+          />
+        </PremiumCard>
       </ScrollView>
     </WizardScreen>
   );
 }
 
-function CategoryRow({
-  mediaType,
-  count,
-  selected,
-  onPress
-}: {
-  mediaType: MediaType;
-  count: number;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  const { t } = useTranslation();
-  const theme = useAppTheme();
-  const saveable = isSaveableMediaType(mediaType);
-  const backgroundColor = selected && saveable ? theme.colors.primaryContainer : theme.colors.surface;
-  const foregroundColor = selected && saveable ? theme.colors.onPrimaryContainer : theme.colors.onSurface;
-
-  return (
-    <Surface elevation={0} style={[styles.categoryRow, { backgroundColor, borderColor: theme.colors.outlineVariant, opacity: saveable ? 1 : 0.76 }]}>
-      <View style={styles.categoryMain}>
-        <MaterialCommunityIcons name={getCategoryIcon(mediaType)} size={24} color={saveable ? theme.colors.primary : theme.colors.onSurfaceVariant} />
-        <View style={styles.categoryText}>
-          <Text variant="titleSmall" style={[textStyles.start, { color: foregroundColor }]}>
-            {t(`media.plural.${mediaType}`)}
-          </Text>
-          <Text variant="bodySmall" style={[wizardStyles.tabular, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {saveable ? t('summary.countFound', { count }) : t('summary.countFoundNotSaved', { count })}
-          </Text>
-        </View>
-      </View>
-      <Chip
-        compact
-        disabled={!saveable}
-        selected={selected && saveable}
-        onPress={onPress}
-        style={{ backgroundColor: saveable ? theme.colors.surface : theme.colors.surfaceVariant }}
-      >
-        {saveable ? (selected ? t('summary.included') : t('summary.include')) : t('summary.later')}
-      </Chip>
-    </Surface>
-  );
-}
-
-function getCategoryCount(mediaType: MediaType, summary: ReturnType<typeof usePipelineStore.getState>['importSummary']): number {
+function getCategoryCount(mediaType: (typeof visibleMediaTypes)[number], summary: ReturnType<typeof usePipelineStore.getState>['importSummary']): number {
   if (!summary) return 0;
   if (mediaType === 'photo') return summary.photos;
   if (mediaType === 'video') return summary.videos;
@@ -184,49 +131,20 @@ function getCategoryCount(mediaType: MediaType, summary: ReturnType<typeof usePi
   return summary.unknown;
 }
 
-function getCategoryIcon(mediaType: MediaType): React.ComponentProps<typeof MaterialCommunityIcons>['name'] {
-  if (mediaType === 'photo') return 'image-outline';
-  if (mediaType === 'video') return 'video-outline';
-  if (mediaType === 'voice' || mediaType === 'audio') return 'microphone-outline';
-  if (mediaType === 'sticker') return 'sticker-outline';
-  if (mediaType === 'document') return 'file-document-outline';
-  return 'file-question-outline';
-}
-
 const styles = StyleSheet.create({
   content: {
-    gap: 18,
-    paddingBottom: 24
+    gap: spacing.section,
+    paddingBottom: spacing.section
   },
-  categoryList: {
-    borderRadius: 8,
-    overflow: 'hidden'
-  },
-  categoryRow: {
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 12,
-    gap: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between'
-  },
-  categoryMain: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1
-  },
-  categoryText: {
-    flex: 1
+  list: {
+    gap: spacing.smallGap
   },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8
+    gap: spacing.smallGap
   },
   headerActions: {
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    flexWrap: 'wrap'
   }
 });

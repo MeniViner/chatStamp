@@ -1,12 +1,12 @@
 import React from 'react';
-import { I18nManager, StatusBar, StyleSheet, View, type ViewStyle } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Appbar, ProgressBar, Surface, Text } from 'react-native-paper';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { Surface, Text } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../theme/useAppTheme';
 import type { PipelineStage } from '../types/media';
 import { getWizardStepIndex, wizardSteps } from './wizardNavigation';
 import { appTypography, size, spacing } from '../theme/designTokens';
-import { textStyles } from '../components/AppUi';
+import { AppScreenScaffold } from '../components/AppUi';
 
 type WizardScreenProps = {
   stage: PipelineStage;
@@ -32,40 +32,26 @@ export function WizardScreen({
   actions,
   contentStyle
 }: WizardScreenProps) {
-  const theme = useAppTheme();
-  const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const stepIndex = getWizardStepIndex(stage);
   const progress = (stepIndex + 1) / wizardSteps.length;
-  const statusBarStyle = theme.dark ? 'light-content' : 'dark-content';
+  const isWizardStage = wizardSteps.includes(stage);
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
-      <StatusBar translucent backgroundColor="transparent" barStyle={statusBarStyle} />
-      <Appbar.Header mode="small" elevated={false} statusBarHeight={0} style={[styles.appbar, { backgroundColor: theme.colors.background }]}>
-        {onBack ? <Appbar.BackAction disabled={backDisabled} onPress={onBack} /> : null}
-        <Appbar.Content title={title} titleStyle={styles.appbarTitle} />
-        {actions}
-      </Appbar.Header>
-      <ProgressBar progress={progress} color={theme.colors.primary} style={[styles.progress, I18nManager.isRTL ? styles.rtlProgress : null]} />
-      <View style={[styles.header, { borderBottomColor: theme.colors.outlineVariant }]}>
-        <View style={[styles.stepPill, { backgroundColor: theme.colors.secondaryContainer }]}>
-          <Text variant="labelSmall" style={[styles.tabular, { color: theme.colors.onSecondaryContainer }]}>
-            {Math.min(stepIndex + 1, wizardSteps.length)}/{wizardSteps.length}
-          </Text>
-        </View>
-        {subtitle ? (
-          <Text variant="bodyMedium" numberOfLines={3} style={[textStyles.start, styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
-            {subtitle}
-          </Text>
-        ) : null}
-      </View>
-      <View style={[styles.content, contentStyle]}>{children}</View>
-      {footer ? (
-        <Surface elevation={2} style={[styles.footer, { backgroundColor: theme.colors.surface, paddingBottom: Math.max(insets.bottom, 10) }]}>
-          {footer}
-        </Surface>
-      ) : null}
-    </SafeAreaView>
+    <AppScreenScaffold
+      title={title}
+      subtitle={subtitle}
+      stepLabel={isWizardStage ? t('common.stepOf', { current: Math.min(stepIndex + 1, wizardSteps.length), total: wizardSteps.length }) : undefined}
+      progress={progress}
+      showProgress={isWizardStage}
+      onBack={onBack}
+      backDisabled={backDisabled}
+      actions={actions}
+      footer={footer}
+      contentStyle={contentStyle}
+    >
+      {children}
+    </AppScreenScaffold>
   );
 }
 
@@ -100,15 +86,12 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1
   },
-  appbarTitle: {
-    ...appTypography.screenTitle,
-    letterSpacing: 0,
-    textAlign: 'auto',
-    writingDirection: 'auto'
-  },
   appbar: {
-    height: 56,
-    paddingHorizontal: 6
+    height: 48,
+    paddingHorizontal: 8
+  },
+  appbarSpacer: {
+    flex: 1
   },
   progress: {
     height: 3
@@ -118,38 +101,36 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.screenHorizontal,
-    paddingTop: 8,
-    paddingBottom: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: 8,
-    minHeight: 56
+    paddingTop: spacing.smallGap,
+    paddingBottom: spacing.card,
+    gap: spacing.smallGap
   },
-  title: {
-    fontWeight: '700',
+  screenTitle: {
+    ...appTypography.screenTitle,
     letterSpacing: 0
   },
   content: {
     flex: 1,
     paddingHorizontal: spacing.screenHorizontal,
-    paddingTop: spacing.card
+    paddingTop: spacing.tinyGap
   },
   footer: {
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     paddingHorizontal: spacing.screenHorizontal,
-    paddingTop: 8,
+    paddingTop: spacing.compactInner,
     minHeight: size.stickyFooterMinHeight
   },
   footerActions: {
-    gap: 8
+    gap: spacing.smallGap
   },
   metricCard: {
     flex: 1,
     minWidth: 136,
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 12,
-    padding: 10,
-    gap: 3
+    borderRadius: 20,
+    padding: 14,
+    gap: 4
   },
   tabular: {
     fontVariant: ['tabular-nums'],
@@ -167,7 +148,7 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: 10,
-    marginBottom: 18
+    marginBottom: spacing.card
   },
   fullBleedList: {
     marginHorizontal: -spacing.screenHorizontal
@@ -175,8 +156,8 @@ const styles = StyleSheet.create({
   stepPill: {
     alignSelf: 'flex-start',
     borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 4
+    paddingHorizontal: 14,
+    paddingVertical: 6
   },
   subtitle: {
     ...appTypography.secondaryBody

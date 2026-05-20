@@ -1,5 +1,5 @@
 import { extractSupportedZipEntries } from '../native/zipExtractor';
-import type { NativeZipExtractionResult } from '../native/timeFixerNativeModule';
+import type { NativeZipExtractionResult } from '../native/chatStampNativeModule';
 
 export type ZipExtractionResult = NativeZipExtractionResult;
 

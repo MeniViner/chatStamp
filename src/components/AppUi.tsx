@@ -1,10 +1,11 @@
 import React from 'react';
-import { Pressable, StyleSheet, View, type ImageStyle, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { I18nManager, Pressable, StatusBar, StyleSheet, View, type ImageStyle, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Button, Checkbox, Chip, RadioButton, Surface, Switch, Text } from 'react-native-paper';
+import { Appbar, Button, Chip, IconButton, ProgressBar, RadioButton, Surface, Switch, Text } from 'react-native-paper';
 import { Image as ExpoImage } from 'expo-image';
 import { useTranslation } from 'react-i18next';
-import { spacing, radius, size, appTypography } from '../theme/designTokens';
+import { spacing, radius, size, appTypography, appColorTokens } from '../theme/designTokens';
 import { useAppTheme } from '../theme/useAppTheme';
 import type { ExtractedMediaFile, MediaType } from '../types/media';
 
@@ -19,7 +20,107 @@ export const textStyles = StyleSheet.create({
 
 const styles = createStyles();
 
+export function AppScreenScaffold({
+  title,
+  subtitle,
+  stepLabel,
+  progress,
+  showProgress,
+  onBack,
+  backDisabled,
+  actions,
+  children,
+  footer,
+  contentStyle
+}: {
+  title: string;
+  subtitle?: string;
+  stepLabel?: string;
+  progress?: number;
+  showProgress?: boolean;
+  onBack?: () => void;
+  backDisabled?: boolean;
+  actions?: React.ReactNode;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+  contentStyle?: StyleProp<ViewStyle>;
+}) {
+  const theme = useAppTheme();
+  const statusBarStyle = theme.dark ? 'light-content' : 'dark-content';
+
+  return (
+    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.scaffoldSafeArea, { backgroundColor: theme.colors.background }]}>
+      <StatusBar translucent backgroundColor="transparent" barStyle={statusBarStyle} />
+      <Appbar.Header mode="small" elevated={false} statusBarHeight={0} style={[styles.scaffoldAppbar, { backgroundColor: theme.colors.background }]}>
+        {onBack ? <Appbar.BackAction disabled={backDisabled} onPress={onBack} /> : null}
+        <View style={styles.flex} />
+        {actions}
+      </Appbar.Header>
+      {showProgress && typeof progress === 'number' ? (
+        <ProgressBar progress={progress} color={theme.colors.primary} style={[styles.scaffoldProgress, I18nManager.isRTL ? styles.rtlProgress : null]} />
+      ) : null}
+      <StepHeader stepLabel={stepLabel} title={title} subtitle={subtitle} />
+      <View style={[styles.scaffoldContent, contentStyle]}>{children}</View>
+      {footer ? <PrimaryBottomActionBar>{footer}</PrimaryBottomActionBar> : null}
+    </SafeAreaView>
+  );
+}
+
+export function StepHeader({
+  stepLabel,
+  title,
+  subtitle,
+  style
+}: {
+  stepLabel?: string;
+  title: string;
+  subtitle?: string;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const theme = useAppTheme();
+  return (
+    <View style={[styles.stepHeader, style]}>
+      {stepLabel ? (
+        <View style={[styles.stepPill, { backgroundColor: theme.colors.secondaryContainer }]}>
+          <Text variant="labelMedium" style={[styles.tabular, { color: theme.colors.onSecondaryContainer }]}>
+            {stepLabel}
+          </Text>
+        </View>
+      ) : null}
+      <Text variant="headlineLarge" style={[styles.screenTitle, textStyles.start]}>
+        {title}
+      </Text>
+      {subtitle ? (
+        <Text variant="bodyMedium" numberOfLines={5} style={[styles.scaffoldSubtitle, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+          {subtitle}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+export function PrimaryBottomActionBar({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+  const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
+  return (
+    <Surface
+      elevation={2}
+      style={[
+        styles.primaryBottomActionBar,
+        {
+          backgroundColor: theme.colors.surface,
+          paddingBottom: Math.max(insets.bottom, spacing.compactInner)
+        },
+        style
+      ]}
+    >
+      {children}
+    </Surface>
+  );
+}
+
 export function semanticColors(theme: ReturnType<typeof useAppTheme>) {
+  const tokens = appColorTokens[theme.dark ? 'dark' : 'light'];
   return {
     primaryBrown: theme.colors.primary,
     primaryBrownOn: theme.colors.onPrimary,
@@ -31,6 +132,10 @@ export function semanticColors(theme: ReturnType<typeof useAppTheme>) {
     textPrimary: theme.colors.onSurface,
     textSecondary: theme.colors.onSurfaceVariant,
     danger: theme.colors.error,
+    warning: tokens.warning,
+    warningContainer: tokens.warningContainer,
+    success: tokens.success,
+    successContainer: tokens.successContainer,
     disabled: theme.colors.surfaceDisabled
   };
 }
@@ -84,6 +189,45 @@ export function StatusBadge({ label, selected = false, danger = false }: { label
         styles.badgeText,
         { color: danger ? theme.colors.onErrorContainer : selected ? theme.colors.onPrimaryContainer : colors.textSecondary }
       ]}
+    >
+      {label}
+    </Chip>
+  );
+}
+
+export function SelectableChip({
+  label,
+  selected,
+  onPress,
+  icon,
+  disabled,
+  style
+}: {
+  label: string;
+  selected: boolean;
+  onPress?: () => void;
+  icon?: IconName;
+  disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const theme = useAppTheme();
+  const colors = semanticColors(theme);
+  return (
+    <Chip
+      selected={selected}
+      showSelectedCheck
+      icon={icon}
+      disabled={disabled}
+      onPress={onPress}
+      style={[
+        styles.filterChip,
+        {
+          backgroundColor: selected ? colors.peachSelected : colors.surface,
+          borderColor: selected ? colors.primaryBrown : colors.borderSubtle
+        },
+        style
+      ]}
+      textStyle={[styles.filterChipText, { color: selected ? theme.colors.onPrimaryContainer : colors.textSecondary }]}
     >
       {label}
     </Chip>
@@ -161,52 +305,162 @@ export function SettingsSectionCard({
   icon: IconName;
   children: React.ReactNode;
 }) {
+  return (
+    <PremiumCard>
+      <SectionHeader icon={icon} label={title} />
+      {children}
+    </PremiumCard>
+  );
+}
+
+export function PremiumCard({
+  title,
+  icon,
+  trailing,
+  children,
+  style,
+  contentStyle
+}: {
+  title?: string;
+  icon?: IconName;
+  trailing?: React.ReactNode;
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+  contentStyle?: StyleProp<ViewStyle>;
+}) {
   const theme = useAppTheme();
   const colors = semanticColors(theme);
   return (
-    <Surface elevation={0} style={[styles.sectionCard, { borderColor: colors.borderSubtle, backgroundColor: colors.surface }]}>
-      <View style={styles.sectionHeader}>
-        <View style={[styles.smallIconBubble, { backgroundColor: colors.peachSoft }]}>
-          <MaterialCommunityIcons name={icon} size={20} color={colors.primaryBrown} />
+    <Surface elevation={0} style={[styles.sectionCard, { borderColor: colors.borderSubtle, backgroundColor: colors.surface }, style]}>
+      {title || icon || trailing ? (
+        <View style={styles.sectionHeader}>
+          {icon ? (
+            <View style={[styles.smallIconBubble, { backgroundColor: colors.peachSoft }]}>
+              <MaterialCommunityIcons name={icon} size={20} color={colors.primaryBrown} />
+            </View>
+          ) : null}
+          {title ? (
+            <Text variant="titleMedium" numberOfLines={3} style={[styles.sectionTitle, textStyles.start]}>
+              {title}
+            </Text>
+          ) : (
+            <View style={styles.flex} />
+          )}
+          {trailing}
         </View>
-        <Text variant="titleMedium" numberOfLines={2} style={[styles.sectionTitle, textStyles.start]}>
-          {title}
-        </Text>
-      </View>
-      {children}
+      ) : null}
+      <View style={[styles.cardContent, contentStyle]}>{children}</View>
     </Surface>
   );
 }
 
-export function SelectableOptionCard({
+export function SectionHeader({
+  icon,
+  label,
+  style
+}: {
+  icon: IconName;
+  label: string;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const theme = useAppTheme();
+  const colors = semanticColors(theme);
+  return (
+    <View style={[styles.sectionHeader, style]}>
+      <View style={[styles.smallIconBubble, { backgroundColor: colors.peachSoft }]}>
+        <MaterialCommunityIcons name={icon} size={20} color={colors.primaryBrown} />
+      </View>
+      <Text variant="titleMedium" numberOfLines={3} style={[styles.sectionTitle, textStyles.start, { color: colors.primaryBrown }]}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+export function StatusBanner({
+  tone = 'info',
+  title,
+  body,
+  icon,
+  style
+}: {
+  tone?: 'info' | 'success' | 'warning' | 'error';
+  title: string;
+  body?: string;
+  icon?: IconName;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const theme = useAppTheme();
+  const colors = semanticColors(theme);
+  const toneColor =
+    tone === 'error'
+      ? theme.colors.error
+      : tone === 'warning'
+        ? colors.warning
+        : tone === 'success'
+          ? colors.success
+          : theme.colors.primary;
+  const background =
+    tone === 'error'
+      ? theme.colors.errorContainer
+      : tone === 'warning'
+        ? colors.warningContainer
+        : tone === 'success'
+          ? colors.successContainer
+          : theme.colors.primaryContainer;
+  return (
+    <Surface elevation={0} style={[styles.statusBanner, { backgroundColor: background, borderColor: toneColor }, style]}>
+      <MaterialCommunityIcons name={icon ?? (tone === 'success' ? 'check-circle-outline' : tone === 'error' ? 'alert-circle-outline' : 'information-outline')} size={24} color={toneColor} />
+      <View style={styles.flex}>
+        <Text variant="titleSmall" style={[styles.settingTitle, textStyles.start, { color: theme.colors.onSurface }]}>
+          {title}
+        </Text>
+        {body ? (
+          <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+            {body}
+          </Text>
+        ) : null}
+      </View>
+    </Surface>
+  );
+}
+
+export function OptionChoiceCard({
   title,
   description,
   selected,
   disabled,
   badge,
   example,
+  technicalDetail,
+  caution,
   showRadio = true,
   onPress
 }: {
   title: string;
-  description: string;
+  description?: string;
   selected: boolean;
   disabled?: boolean;
   badge?: string;
   example?: string;
+  technicalDetail?: string;
+  caution?: boolean;
   showRadio?: boolean;
-  onPress: () => void;
+  onPress?: () => void;
 }) {
+  const { t } = useTranslation();
   const theme = useAppTheme();
   const colors = semanticColors(theme);
+  const [detailsOpen, setDetailsOpen] = React.useState(false);
+  const detail = technicalDetail ?? example;
   const content = (
     <Surface
       elevation={0}
       style={[
         styles.optionCard,
         {
-          backgroundColor: selected ? colors.peachSelected : colors.surfaceVariant,
-          borderColor: selected ? colors.primaryBrown : colors.borderSubtle,
+          backgroundColor: selected ? colors.peachSelected : colors.surface,
+          borderColor: caution && selected ? theme.colors.error : selected ? colors.primaryBrown : colors.borderSubtle,
           opacity: disabled ? 0.56 : 1
         }
       ]}
@@ -224,23 +478,75 @@ export function SelectableOptionCard({
         </View>
         {showRadio ? <RadioButton value={title} status={selected ? 'checked' : 'unchecked'} disabled={disabled} onPress={onPress} /> : null}
       </View>
-      <Text
-        variant="bodySmall"
-        numberOfLines={2}
-        style={[styles.optionDescription, textStyles.start, { color: selected ? theme.colors.onPrimaryContainer : colors.textSecondary }]}
-      >
-        {description}
-      </Text>
-      {example ? (
+      {description ? (
+        <Text
+          variant="bodySmall"
+          numberOfLines={3}
+          style={[styles.optionDescription, textStyles.start, { color: selected ? theme.colors.onPrimaryContainer : colors.textSecondary }]}
+        >
+          {description}
+        </Text>
+      ) : null}
+      {detail ? (
+        <Button
+          mode="text"
+          compact
+          icon={detailsOpen ? 'chevron-up' : 'chevron-down'}
+          onPress={() => setDetailsOpen((value) => !value)}
+          style={styles.detailsButton}
+          labelStyle={styles.detailsButtonLabel}
+        >
+          {detailsOpen ? t('common.hideTechnicalDetails') : t('common.showTechnicalDetails')}
+        </Button>
+      ) : null}
+      {detail && detailsOpen ? (
         <Surface elevation={0} style={[styles.codePathContainer, { backgroundColor: theme.colors.surface }]}>
-          <FilePathText value={example} maxLines={2} style={{ color: colors.textSecondary }} />
+          <FilePathText value={detail} maxLines={3} style={{ color: colors.textSecondary }} />
         </Surface>
       ) : null}
     </Surface>
   );
 
-  if (disabled) return content;
+  if (disabled || !onPress) return content;
   return <Pressable onPress={onPress}>{content}</Pressable>;
+}
+
+export function SelectableOptionCard(props: React.ComponentProps<typeof OptionChoiceCard>) {
+  return <OptionChoiceCard {...props} />;
+}
+
+export function OptionCard(props: React.ComponentProps<typeof OptionChoiceCard>) {
+  return <OptionChoiceCard {...props} />;
+}
+
+export function FilterChipGroup<T extends string>({
+  values,
+  selectedValues,
+  getLabel,
+  onToggle,
+  style
+}: {
+  values: T[];
+  selectedValues: T[];
+  getLabel: (value: T) => string;
+  onToggle: (value: T) => void;
+  style?: StyleProp<ViewStyle>;
+}) {
+  return (
+    <View style={[styles.chipWrap, style]}>
+      {values.map((value) => {
+        const selected = selectedValues.includes(value);
+        return (
+          <SelectableChip
+            key={value}
+            selected={selected}
+            onPress={() => onToggle(value)}
+            label={getLabel(value)}
+          />
+        );
+      })}
+    </View>
+  );
 }
 
 export function SettingRow({
@@ -312,6 +618,59 @@ export function MetricTile({ label, value }: { label: string; value: string | nu
   );
 }
 
+export function SummaryMetricCard({ label, value, icon }: { label: string; value: string | number; icon?: IconName }) {
+  const theme = useAppTheme();
+  return (
+    <Surface elevation={0} style={[styles.summaryMetricCard, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]}>
+      {icon ? <MaterialCommunityIcons name={icon} size={20} color={theme.colors.primary} /> : null}
+      <View style={styles.flex}>
+        <Text variant="titleLarge" numberOfLines={1} style={styles.tabular}>
+          {value}
+        </Text>
+        <Text variant="labelMedium" numberOfLines={2} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+          {label}
+        </Text>
+      </View>
+    </Surface>
+  );
+}
+
+export function ExpandableTechnicalDetails({
+  title,
+  collapsedTitle,
+  expandedTitle,
+  children,
+  initiallyExpanded = false,
+  style
+}: {
+  title?: string;
+  collapsedTitle?: string;
+  expandedTitle?: string;
+  children: React.ReactNode;
+  initiallyExpanded?: boolean;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const { t } = useTranslation();
+  const theme = useAppTheme();
+  const [open, setOpen] = React.useState(initiallyExpanded);
+  const label = title ?? (open ? expandedTitle ?? t('common.hideTechnicalDetails') : collapsedTitle ?? t('common.showTechnicalDetails'));
+  return (
+    <View style={[styles.expandableDetails, style]}>
+      <Pressable onPress={() => setOpen((value) => !value)} style={styles.expandableHeader}>
+        <Text variant="labelLarge" style={[styles.flex, textStyles.start, { color: theme.colors.primary }]}>
+          {label}
+        </Text>
+        <MaterialCommunityIcons name={open ? 'chevron-up' : 'chevron-down'} size={22} color={theme.colors.primary} />
+      </Pressable>
+      {open ? (
+        <Surface elevation={0} style={[styles.expandableBody, { backgroundColor: theme.colors.surfaceContainerLow ?? theme.colors.surfaceVariant }]}>
+          {children}
+        </Surface>
+      ) : null}
+    </View>
+  );
+}
+
 export function MediaFileListItem({
   file,
   selected,
@@ -326,41 +685,47 @@ export function MediaFileListItem({
   const { t } = useTranslation();
   const theme = useAppTheme();
   const colors = semanticColors(theme);
+  const sender = file.matchedRecord?.sender ?? t('fileSelection.unknownSender');
+  const restoredDate = file.matchedRecord?.messageDateIso ? new Date(file.matchedRecord.messageDateIso).toLocaleString() : t('fileSelection.noDate');
   return (
-    <Surface
-      elevation={0}
-      style={[
-        styles.mediaItem,
-        {
-          backgroundColor: selected ? colors.peachSelected : colors.surface,
-          borderColor: selected ? colors.primaryBrown : colors.borderSubtle
-        }
-      ]}
-    >
-      <Pressable onPress={onPreview} style={styles.mediaPreviewPress}>
+    <Pressable onPress={onToggle} accessibilityRole="button">
+      <Surface
+        elevation={0}
+        style={[
+          styles.mediaItem,
+          {
+            backgroundColor: selected ? colors.peachSelected : colors.surface,
+            borderColor: selected ? colors.primaryBrown : colors.borderSubtle
+          }
+        ]}
+      >
         <MediaThumb file={file} />
         <View style={styles.mediaText}>
-          <Text variant="bodyMedium" numberOfLines={1} ellipsizeMode="tail" style={[styles.mediaTitle, textStyles.start]}>
+          <View style={styles.mediaMainLine}>
+            <StatusBadge label={t(`media.singular.${file.mediaType}`)} selected={selected} />
+            {selected ? <MaterialCommunityIcons name="check-circle" size={22} color={colors.primaryBrown} /> : null}
+          </View>
+          <Text variant="titleSmall" numberOfLines={1} ellipsizeMode="tail" style={[styles.mediaTitle, textStyles.start]}>
+            {sender}
+          </Text>
+          <Text variant="bodySmall" numberOfLines={1} style={[textStyles.start, { color: colors.textSecondary }]}>
+            {restoredDate}
+          </Text>
+          <Text variant="bodySmall" numberOfLines={1} ellipsizeMode="middle" style={[textStyles.start, { color: colors.textSecondary }]}>
             {file.filename}
           </Text>
-          <Text variant="bodySmall" numberOfLines={1} style={[textStyles.start, { color: colors.textSecondary }]}>
-            {`${t(`media.singular.${file.mediaType}`)} • ${file.matchedRecord?.sender ?? t('fileSelection.unknownSender')}`}
-          </Text>
-          <Text variant="bodySmall" numberOfLines={1} style={[textStyles.start, { color: colors.textSecondary }]}>
-            {file.matchedRecord?.messageDateIso ? new Date(file.matchedRecord.messageDateIso).toLocaleString() : t('fileSelection.noDate')}
-          </Text>
         </View>
-      </Pressable>
-      <CheckboxHitBox selected={selected} onToggle={onToggle} />
-    </Surface>
-  );
-}
-
-function CheckboxHitBox({ selected, onToggle }: { selected: boolean; onToggle: () => void }) {
-  return (
-    <View style={styles.checkboxBox}>
-      <Checkbox status={selected ? 'checked' : 'unchecked'} onPress={onToggle} />
-    </View>
+        <IconButton
+          icon="eye-outline"
+          size={20}
+          onPress={(event) => {
+            event.stopPropagation();
+            onPreview();
+          }}
+          accessibilityLabel={t('fileSelection.previewFile')}
+        />
+      </Surface>
+    </Pressable>
   );
 }
 
@@ -386,6 +751,49 @@ function getMediaIcon(mediaType: MediaType): IconName {
 
 function createStyles() {
   return StyleSheet.create({
+  scaffoldSafeArea: {
+    flex: 1
+  },
+  scaffoldAppbar: {
+    height: 48,
+    paddingHorizontal: 8
+  },
+  scaffoldProgress: {
+    height: 3
+  },
+  rtlProgress: {
+    transform: [{ scaleX: -1 }]
+  },
+  stepHeader: {
+    paddingHorizontal: spacing.screenHorizontal,
+    paddingTop: spacing.smallGap,
+    paddingBottom: spacing.card,
+    gap: spacing.smallGap
+  },
+  stepPill: {
+    alignSelf: 'flex-start',
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 6
+  },
+  screenTitle: {
+    ...appTypography.screenTitle,
+    letterSpacing: 0
+  },
+  scaffoldSubtitle: {
+    ...appTypography.secondaryBody
+  },
+  scaffoldContent: {
+    flex: 1,
+    paddingHorizontal: spacing.screenHorizontal,
+    paddingTop: spacing.tinyGap
+  },
+  primaryBottomActionBar: {
+    paddingHorizontal: spacing.screenHorizontal,
+    paddingTop: spacing.compactInner,
+    minHeight: size.stickyFooterMinHeight,
+    gap: spacing.smallGap
+  },
   pathText: {
     ...appTypography.caption,
     textAlign: 'auto',
@@ -428,6 +836,9 @@ function createStyles() {
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: radius.card,
     padding: spacing.innerCard,
+    gap: spacing.gap
+  },
+  cardContent: {
     gap: spacing.gap
   },
   sectionHeader: {
@@ -475,9 +886,19 @@ function createStyles() {
     flexWrap: 'wrap'
   },
   codePathContainer: {
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 6
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  detailsButton: {
+    alignSelf: 'flex-start',
+    marginHorizontal: -8,
+    marginVertical: -2
+  },
+  detailsButtonLabel: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '700'
   },
   settingRow: {
     minHeight: size.touchTarget,
@@ -502,58 +923,100 @@ function createStyles() {
   },
   metricTile: {
     flex: 1,
-    minWidth: 84,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    gap: 2
+    minWidth: 98,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 4
+  },
+  summaryMetricCard: {
+    flex: 1,
+    minWidth: 112,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.smallGap
+  },
+  expandableDetails: {
+    gap: spacing.smallGap
+  },
+  expandableHeader: {
+    minHeight: size.touchTarget,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.smallGap
+  },
+  expandableBody: {
+    borderRadius: 18,
+    padding: spacing.compactInner,
+    gap: spacing.smallGap
+  },
+  statusBanner: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.card,
+    padding: spacing.compactInner,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.gap
+  },
+  chipWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.smallGap
+  },
+  filterChip: {
+    minHeight: size.chipHeight,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.chip
+  },
+  filterChipText: {
+    ...appTypography.caption,
+    fontWeight: '700'
   },
   mediaItem: {
-    minHeight: size.listItemMinHeight,
+    minHeight: 104,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius.thumbnail,
-    paddingHorizontal: spacing.smallGap,
-    paddingVertical: spacing.tinyGap,
-    gap: spacing.tinyGap
-  },
-  mediaPreviewPress: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    borderWidth: 1.5,
+    borderRadius: radius.card,
+    padding: spacing.gap,
     gap: spacing.gap,
-    minWidth: 0
   },
   mediaText: {
     flex: 1,
     minWidth: 0,
-    gap: 0
+    gap: 4
+  },
+  mediaMainLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.smallGap
   },
   mediaTitle: {
     fontWeight: '700'
   },
   mediaImage: {
-    width: 48,
-    height: 48,
+    width: 78,
+    height: 78,
     borderRadius: radius.thumbnail
   },
   mediaIcon: {
-    width: 48,
-    height: 48,
+    width: 78,
+    height: 78,
     borderRadius: radius.thumbnail,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  checkboxBox: {
-    width: size.touchTarget,
-    height: size.touchTarget,
     alignItems: 'center',
     justifyContent: 'center'
   },
   tabular: {
     fontVariant: ['tabular-nums'],
     fontWeight: '700'
+  },
+  flex: {
+    flex: 1,
+    minWidth: 0
   }
   });
 }

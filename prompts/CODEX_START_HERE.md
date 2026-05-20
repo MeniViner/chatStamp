@@ -1,6 +1,6 @@
 # Prompt for Codex — Start Here
 
-You are working in the `whatsapp-media-timefixer` repository.
+You are working in the `chatstamp` repository.
 
 First read:
 

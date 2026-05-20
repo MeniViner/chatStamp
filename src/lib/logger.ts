@@ -1,4 +1,4 @@
-const prefix = '[WhatsAppTimeFixer]';
+const prefix = '[ChatStamp]';
 let debugEnabled = false;
 
 export const logger = {

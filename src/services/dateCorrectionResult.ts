@@ -1,4 +1,4 @@
-import type { NativeSavedMediaFileResult } from '../native/timeFixerNativeModule';
+import type { NativeSavedMediaFileResult } from '../native/chatStampNativeModule';
 
 export type DateCorrectionStatus =
   | 'verified'

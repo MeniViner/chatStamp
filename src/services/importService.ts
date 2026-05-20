@@ -37,7 +37,7 @@ export async function importWhatsAppZip({
     throw new Error('App cache directory is not available.');
   }
 
-  const workingDirectory = `${cacheDirectory}whatsapp-media-timefixer/${Date.now()}/`;
+  const workingDirectory = `${cacheDirectory}chatstamp/${Date.now()}/`;
   const extractionDirectory = `${workingDirectory}extracted/`;
   const copiedZipUri = `${workingDirectory}${sanitizeFileName(zipName || 'whatsapp-export.zip')}`;
 

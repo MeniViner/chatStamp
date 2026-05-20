@@ -1,22 +1,32 @@
 import React from 'react';
 import { BackHandler, ScrollView, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Button, Divider, List, Snackbar, Surface, Text } from 'react-native-paper';
+import { Snackbar, Surface, Text } from 'react-native-paper';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { FolderFallbackSheet } from '../components/FolderFallbackSheet';
-import { BottomSheet } from '../components/BottomSheet';
+import { PremiumBottomSheet } from '../components/BottomSheet';
 import { usePipelineStore } from '../store/pipelineStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { clearWorkingDirectory } from '../services/importService';
 import { buildTermuxParityOutputPath, sanitizePathSegment } from '../lib/termuxParityOutput';
 import { openFolderBestEffort, openGalleryBestEffort, shouldShowOpenGallery } from '../native/androidIntents';
 import { useAppTheme } from '../theme/useAppTheme';
-import { FooterActions, MetricCard, WizardScreen } from './WizardScreen';
+import { FooterActions, WizardScreen } from './WizardScreen';
 import type { MediaType, SaveFileResult } from '../types/media';
 import { shareOutputFiles } from '../native/outputFiles';
 import { useTranslation } from 'react-i18next';
 import { getResultStatusKey, getResultsHeadlineKey, shouldShowTechnicalResults } from './resultsLogic';
-import { textStyles } from '../components/AppUi';
+import {
+  ExpandableTechnicalDetails,
+  FilePathText,
+  PremiumCard,
+  PrimaryButton,
+  SecondaryButton,
+  SectionHeader,
+  SummaryMetricCard,
+  textStyles
+} from '../components/AppUi';
+import { spacing } from '../theme/designTokens';
 
 export function DoneScreen() {
   const { t } = useTranslation();
@@ -82,80 +92,74 @@ export function DoneScreen() {
       onBack={() => setRestartDialogOpen(true)}
       footer={
         <FooterActions>
-          <Button mode="contained" icon="folder-open-outline" onPress={() => void openFolder()}>
+          <PrimaryButton icon="folder-open-outline" onPress={() => void openFolder()}>
             {t('results.openFolder')}
-          </Button>
-          {shouldShowOpenGallery(completion?.results) ? (
-            <Button mode="contained-tonal" icon="image-multiple-outline" onPress={() => void openFirstSavedItem()}>
-              {t('results.openFirstSavedItem')}
-            </Button>
-          ) : null}
-          <Button mode="outlined" icon="share-variant-outline" disabled={!completion?.results?.some((result) => result.ok)} onPress={() => setShareSheetOpen(true)}>
-            {t('results.shareOutputFiles')}
-          </Button>
-          <View style={styles.footerRow}>
-            <Button mode="outlined" style={styles.footerButton} onPress={() => setRestartDialogOpen(true)}>
-              {t('results.importAnotherZip')}
-            </Button>
-            <Button mode="text" style={styles.footerButton} onPress={() => openOverlayStage('history')}>
-              {t('settings.history')}
-            </Button>
-          </View>
+          </PrimaryButton>
         </FooterActions>
       }
     >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Surface
-          elevation={0}
-          style={[
-            styles.successBanner,
-            {
-              backgroundColor: completion?.failed ? theme.colors.errorContainer : theme.colors.primaryContainer,
-              borderColor: completion?.failed ? theme.colors.error : theme.colors.primary
-            }
-          ]}
-        >
-          <MaterialCommunityIcons
-            name={completion?.failed ? 'alert-circle-outline' : 'check-circle-outline'}
-            size={34}
-            color={completion?.failed ? theme.colors.error : theme.colors.primary}
-          />
-          <View style={styles.flex}>
-            <Text variant="headlineSmall" style={textStyles.start}>{completion?.failed ? t('results.savedWithIssues') : t('results.successTitle')}</Text>
-            <Text variant="bodySmall" numberOfLines={2} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-              {outputFolder}
-            </Text>
+        <PremiumCard style={styles.successCard}>
+          <View style={[styles.successIcon, { backgroundColor: completion?.failed ? theme.colors.errorContainer : theme.colors.primaryContainer }]}>
+            <MaterialCommunityIcons
+              name={completion?.failed ? 'alert-circle-outline' : 'check-circle-outline'}
+              size={48}
+              color={completion?.failed ? theme.colors.error : theme.colors.primary}
+            />
           </View>
-        </Surface>
+          <Text variant="headlineSmall" style={[styles.successTitle, textStyles.start]}>
+            {completion?.failed ? t('results.savedWithIssues') : t('results.successTitle')}
+          </Text>
+          <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+            {t(getResultsHeadlineKey(completion))}
+          </Text>
+          <View style={styles.metricsRow}>
+            <SummaryMetricCard label={t('results.filesSaved')} value={completion?.saved ?? 0} />
+            <SummaryMetricCard label={t('results.datesFixed')} value={completion?.dateCorrected ?? 0} />
+            <SummaryMetricCard label={t('results.failed')} value={completion?.failed ?? 0} />
+          </View>
+          <SummaryRow icon="folder-outline" label={t('results.outputFolder')} value={getFriendlyFolderName(outputFolder)} />
+          <ExpandableTechnicalDetails collapsedTitle={t('outputOptions.showFullPath')} expandedTitle={t('common.hideTechnicalDetails')}>
+            <FilePathText value={outputFolder} maxLines={3} />
+          </ExpandableTechnicalDetails>
+        </PremiumCard>
 
-        <View style={styles.metricsRow}>
-          <MetricCard label={t('results.filesSaved')} value={completion?.saved ?? 0} />
-          <MetricCard label={t('results.datesFixed')} value={completion?.dateCorrected ?? 0} />
-          <MetricCard label={t('results.failed')} value={completion?.failed ?? 0} />
+        <View style={styles.actionGrid}>
+          <SecondaryButton icon="share-variant-outline" disabled={!completion?.results?.some((result) => result.ok)} style={styles.actionButton} onPress={() => setShareSheetOpen(true)}>
+            {t('results.shareOutputFiles')}
+          </SecondaryButton>
+          <SecondaryButton icon="history" style={styles.actionButton} onPress={() => openOverlayStage('history')}>
+            {t('settings.history')}
+          </SecondaryButton>
+          {shouldShowOpenGallery(completion?.results) ? (
+            <SecondaryButton icon="image-multiple-outline" style={styles.actionButton} onPress={() => void openFirstSavedItem()}>
+              {t('results.openFirstSavedItem')}
+            </SecondaryButton>
+          ) : null}
+          <SecondaryButton icon="refresh" style={styles.actionButton} onPress={() => setRestartDialogOpen(true)}>
+            {t('results.importAnotherZip')}
+          </SecondaryButton>
         </View>
 
-        <Section title={t('results.summaryTitle')}>
-          <SummaryRow icon="calendar-clock-outline" label={t('results.folderReady')} value={completion?.mayShowImportTime ? t('results.someNeedReview') : t('results.allReady')} />
-          <SummaryRow icon="folder-outline" label={t('results.outputFolder')} value={outputFolder} />
-          <SummaryRow icon="image-check-outline" label={t('results.galleryItems')} value={String(completion?.scanned ?? 0)} />
-        </Section>
-
-        <Section title={t('results.savedFiles')}>
+        <Section title={t('results.savedFiles')} icon="file-check-outline">
+          <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+            {t('results.savedFilesCount', { count: completion?.results?.length ?? 0 })}
+          </Text>
           {completion?.results?.map((result) => (
             <ResultCard key={`${result.filename}-${result.outputPath ?? result.failureReason}`} result={result} developerMode={developerMode} />
           ))}
         </Section>
 
         {shouldShowTechnicalResults(developerMode) ? (
-          <List.Accordion title={t('common.showTechnicalDetails')} left={(props) => <List.Icon {...props} icon="information-outline" />}>
-            <View style={[styles.technicalDetails, { borderColor: theme.colors.outlineVariant }]}>
+          <ExpandableTechnicalDetails collapsedTitle={t('common.showTechnicalDetails')} expandedTitle={t('common.hideTechnicalDetails')}>
+            <View style={styles.technicalDetails}>
               <Text variant="bodySmall">{t('results.technical.copied', { count: completion?.copied ?? completion?.saved ?? 0 })}</Text>
               <Text variant="bodySmall">{t('results.technical.filesystemTimestampFixed', { count: completion?.filesystemTimestampFixed ?? completion?.dateCorrected ?? 0 })}</Text>
               <Text variant="bodySmall">{t('results.technical.scanned', { count: completion?.scanned ?? 0 })}</Text>
               <Text variant="bodySmall">{t('results.technical.importTimeRisk', { count: completion?.mayShowImportTime ?? 0 })}</Text>
               <Text variant="bodySmall">{t('results.technical.cacheCleared', { value: completion?.cacheCleared ? t('common.yes') : t('results.notYetVerified') })}</Text>
             </View>
-          </List.Accordion>
+          </ExpandableTechnicalDetails>
         ) : null}
       </ScrollView>
 
@@ -202,13 +206,20 @@ export function DoneScreen() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  const theme = useAppTheme();
+function Section({
+  title,
+  icon,
+  children
+}: {
+  title: string;
+  icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+  children: React.ReactNode;
+}) {
   return (
-    <Surface elevation={0} style={[styles.section, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}>
-      <Text variant="titleMedium" style={textStyles.start}>{title}</Text>
-      {children}
-    </Surface>
+    <View style={styles.section}>
+      <SectionHeader icon={icon} label={title} />
+      <PremiumCard>{children}</PremiumCard>
+    </View>
   );
 }
 
@@ -243,6 +254,13 @@ function ShareOutputSheet({
     const types = Array.from(new Set(results.filter((result) => result.ok && result.mediaType).map((result) => result.mediaType as MediaType)));
     return types;
   }, [results]);
+  const counts = React.useMemo(() => {
+    const next = new Map<MediaType, number>();
+    results.forEach((result) => {
+      if (result.ok && result.mediaType) next.set(result.mediaType, (next.get(result.mediaType) ?? 0) + 1);
+    });
+    return next;
+  }, [results]);
   const [selected, setSelected] = React.useState<MediaType[]>([]);
 
   React.useEffect(() => {
@@ -255,16 +273,22 @@ function ShareOutputSheet({
   }
 
   return (
-    <BottomSheet visible={visible} title={t('results.shareOutputFiles')} subtitle={t('results.shareOutputFilesBody')} onDismiss={onDismiss}>
+    <PremiumBottomSheet
+      visible={visible}
+      title={t('results.shareSheetTitle')}
+      subtitle={t('results.shareOutputFilesBody')}
+      onDismiss={onDismiss}
+      footer={<PrimaryButton disabled={selected.length === 0} onPress={() => onShare(selected)}>{t('results.shareAction')}</PrimaryButton>}
+    >
+      <SecondaryButton selected={selected.length === available.length && available.length > 0} onPress={() => setSelected(available)}>
+        {t('results.shareAll', { count: available.reduce((sum, type) => sum + (counts.get(type) ?? 0), 0) })}
+      </SecondaryButton>
       {available.map((type) => (
-        <Button key={type} mode={selected.includes(type) ? 'contained-tonal' : 'outlined'} onPress={() => toggle(type)}>
-          {t(`media.plural.${type}`)}
-        </Button>
+        <SecondaryButton key={type} selected={selected.includes(type)} onPress={() => toggle(type)}>
+          {t('results.shareCategory', { label: t(`media.plural.${type}`), count: counts.get(type) ?? 0 })}
+        </SecondaryButton>
       ))}
-      <Button mode="contained" disabled={selected.length === 0} onPress={() => onShare(selected)}>
-        {t('results.shareOutputFiles')}
-      </Button>
-    </BottomSheet>
+    </PremiumBottomSheet>
   );
 }
 
@@ -289,17 +313,16 @@ function ResultCard({ result, developerMode }: { result: SaveFileResult; develop
           </Text>
         </View>
       </View>
-      <Divider />
       <Text variant="labelLarge" style={[textStyles.start, { color: ok ? theme.colors.primary : theme.colors.error }]}>
         {result.failureReason
           ? t(getResultStatusKey(result), { reason: result.failureReason })
           : t(getResultStatusKey(result))}
       </Text>
-      <Text variant="bodySmall" numberOfLines={2} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-        {result.outputPath ?? t('common.none')}
-      </Text>
+      <ExpandableTechnicalDetails collapsedTitle={t('outputOptions.showFullPath')} expandedTitle={t('common.hideTechnicalDetails')}>
+        <FilePathText value={result.outputPath ?? t('common.none')} maxLines={3} />
+      </ExpandableTechnicalDetails>
       {shouldShowTechnicalResults(developerMode) ? (
-        <List.Accordion title={t('common.technicalDetails')} titleStyle={styles.smallAccordionTitle}>
+        <ExpandableTechnicalDetails collapsedTitle={t('common.technicalDetails')} expandedTitle={t('common.hideTechnicalDetails')}>
           <View style={styles.resultTechnical}>
             <Text variant="bodySmall">{t('results.technical.setLastModified', { value: result.setLastModifiedReturned ? t('common.true') : t('common.false') })}</Text>
             <Text variant="bodySmall">{t('results.technical.actualLastModified', { value: formatDate(result.actualLastModifiedMillis, t) })}</Text>
@@ -308,7 +331,7 @@ function ResultCard({ result, developerMode }: { result: SaveFileResult; develop
             <Text variant="bodySmall">{t('results.technical.scannedUri', { value: result.scannedUri ?? result.insertedUri ?? t('common.none') })}</Text>
             {result.failureReason ? <Text variant="bodySmall">{t('results.technical.failure', { value: result.failureReason })}</Text> : null}
           </View>
-        </List.Accordion>
+        </ExpandableTechnicalDetails>
       ) : null}
     </Surface>
   );
@@ -321,33 +344,51 @@ function formatDate(value: string | number | null | undefined, t: (key: string) 
   return date.toLocaleString();
 }
 
+function getFriendlyFolderName(path: string): string {
+  const normalized = path.replace(/\\/g, '/');
+  return normalized.split('/').filter(Boolean).pop() ?? path;
+}
+
 const styles = StyleSheet.create({
   content: {
-    gap: 16,
-    paddingBottom: 24
+    gap: spacing.section,
+    paddingBottom: 144
   },
-  successBanner: {
-    borderRadius: 24,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 18,
-    flexDirection: 'row',
-    gap: 14
+  successCard: {
+    alignItems: 'stretch'
+  },
+  successIcon: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'flex-start'
+  },
+  successTitle: {
+    fontWeight: '800'
   },
   section: {
-    borderRadius: 24,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 16,
-    gap: 12
+    gap: spacing.smallGap
   },
   metricsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10
+    gap: spacing.smallGap
+  },
+  actionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.smallGap
+  },
+  actionButton: {
+    minWidth: 150,
+    flexGrow: 1
   },
   summaryRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10
+    gap: spacing.smallGap
   },
   flex: {
     flex: 1,
@@ -369,19 +410,6 @@ const styles = StyleSheet.create({
     paddingBottom: 8
   },
   technicalDetails: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 12,
-    padding: 12,
     gap: 4
-  },
-  smallAccordionTitle: {
-    fontSize: 13
-  },
-  footerRow: {
-    flexDirection: 'row',
-    gap: 10
-  },
-  footerButton: {
-    flex: 1
   }
 });

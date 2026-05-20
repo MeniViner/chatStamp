@@ -148,7 +148,7 @@ export type NativeSharedZipResult = {
 export type NativeShareIntentDebugStatus = Record<string, unknown>;
 export type NativeMp4DebugResult = Record<string, unknown>;
 
-type WhatsAppTimeFixerNativeModule = {
+type ChatStampNativeModule = {
   extractSupportedZipEntriesAsync: (
     zipUri: string,
     outputDirectoryUri: string
@@ -193,12 +193,12 @@ type WhatsAppTimeFixerNativeModule = {
   ) => Promise<NativeDateWriteResult>;
 };
 
-const nativeModule = requireOptionalNativeModule<WhatsAppTimeFixerNativeModule>('WhatsAppTimeFixerNative');
+const nativeModule = requireOptionalNativeModule<ChatStampNativeModule>('ChatStampNative');
 
-export function getTimeFixerNativeModule(): WhatsAppTimeFixerNativeModule {
+export function getChatStampNativeModule(): ChatStampNativeModule {
   if (!nativeModule) {
     throw new Error(
-      'WhatsAppTimeFixerNative is not available. Build and run an Android development build so selective ZIP extraction and Gallery date writes can use the native module.'
+      'ChatStampNative is not available. Build and run an Android development build so selective ZIP extraction and Gallery date writes can use the native module.'
     );
   }
 

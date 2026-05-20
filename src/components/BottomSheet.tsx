@@ -13,9 +13,10 @@ type BottomSheetProps = {
   subtitle?: string;
   onDismiss: () => void;
   children: React.ReactNode;
+  footer?: React.ReactNode;
 };
 
-export function BottomSheet({ visible, title, subtitle, onDismiss, children }: BottomSheetProps) {
+export function PremiumBottomSheet({ visible, title, subtitle, onDismiss, children, footer }: BottomSheetProps) {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
@@ -34,9 +35,10 @@ export function BottomSheet({ visible, title, subtitle, onDismiss, children }: B
               }
             ]}
           >
+            <View style={[styles.handle, { backgroundColor: theme.colors.outlineVariant }]} />
             <View style={styles.header}>
               <View style={styles.headerText}>
-                <Text variant="titleMedium" numberOfLines={2} ellipsizeMode="tail" style={[styles.title, textStyles.start]}>
+                <Text variant="headlineSmall" numberOfLines={3} ellipsizeMode="tail" style={[styles.title, textStyles.start]}>
                   {title}
                 </Text>
                 {subtitle ? (
@@ -62,11 +64,16 @@ export function BottomSheet({ visible, title, subtitle, onDismiss, children }: B
                 {children}
               </ScrollView>
             </View>
+            {footer ? <View style={styles.footer}>{footer}</View> : null}
           </Surface>
         </Pressable>
       </Pressable>
     </Modal>
   );
+}
+
+export function BottomSheet(props: BottomSheetProps) {
+  return <PremiumBottomSheet {...props} />;
 }
 
 const styles = StyleSheet.create({
@@ -81,12 +88,19 @@ const styles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: radius.largeCard,
     borderTopRightRadius: radius.largeCard,
-    paddingHorizontal: spacing.compactInner,
-    paddingTop: 10,
+    paddingHorizontal: spacing.screenHorizontal,
+    paddingTop: 12,
     gap: spacing.gap,
-    maxHeight: '86%'
+    maxHeight: '88%'
+  },
+  handle: {
+    alignSelf: 'center',
+    width: 46,
+    height: 5,
+    borderRadius: 999
   },
   bodyWrap: {
+    flexShrink: 1,
     maxHeight: '72%'
   },
   scroll: {
@@ -95,7 +109,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 8
+    gap: spacing.smallGap
   },
   headerText: {
     flex: 1,
@@ -103,10 +117,15 @@ const styles = StyleSheet.create({
     paddingTop: 8
   },
   title: {
-    fontWeight: '700'
+    fontWeight: '800',
+    letterSpacing: 0
   },
   scrollContent: {
     gap: spacing.gap,
-    paddingBottom: spacing.smallGap
+    paddingBottom: spacing.section
+  },
+  footer: {
+    gap: spacing.smallGap,
+    paddingTop: spacing.smallGap
   }
 });

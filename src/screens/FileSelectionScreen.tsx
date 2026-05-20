@@ -1,11 +1,11 @@
 import React from 'react';
-import { BackHandler, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { BackHandler, FlatList, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { VideoView, useVideoPlayer } from 'expo-video';
-import { BottomSheet } from '../components/BottomSheet';
-import { Button, Chip, IconButton, ProgressBar, RadioButton, Searchbar, Surface, Switch, Text } from 'react-native-paper';
+import { PremiumBottomSheet } from '../components/BottomSheet';
+import { Button, Chip, ProgressBar, Searchbar, Surface, Switch, Text } from 'react-native-paper';
 import { usePipelineStore } from '../store/pipelineStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { countSelectedSaveableFiles } from '../store/selectionLogic';
@@ -24,7 +24,17 @@ import {
   toggleCategoryFilter,
   type SortMode
 } from './fileSelectionUi';
-import { MediaFileListItem, MetricTile, PrimaryButton, textStyles } from '../components/AppUi';
+import {
+  FilterChipGroup,
+  MediaFileListItem,
+  OptionCard,
+  PremiumCard,
+  PrimaryButton,
+  SecondaryButton,
+  SectionHeader,
+  StatusBadge,
+  textStyles
+} from '../components/AppUi';
 import { spacing } from '../theme/designTokens';
 
 export function FileSelectionScreen() {
@@ -79,6 +89,10 @@ export function FileSelectionScreen() {
 
   const visibleSaveableFileIds = React.useMemo(() => getVisibleSaveableFileIds(visibleFiles), [visibleFiles]);
   const selectedCount = countSelectedSaveableFiles(mediaFiles, selectedSenders, selectedMediaTypes, selectedFileIds);
+  const foundCount = importSummary?.matchedMedia ?? mediaFiles.length;
+  const otherFoundCount =
+    (importSummary?.voice ?? 0) + (importSummary?.stickers ?? 0) + (importSummary?.documents ?? 0) + (importSummary?.unknown ?? 0);
+  const filtersActive = selectedSenders.length < senders.length || categoryFilters.length > 0 || !saveableOnly;
   const selectedByType = React.useMemo(
     () => ({
       photos: mediaFiles.filter((file) => selectedFileIds.includes(file.id) && file.mediaType === 'photo').length,
@@ -126,19 +140,28 @@ export function FileSelectionScreen() {
     clearFiles(visibleSaveableFileIds);
   }
 
+  function resetFilters() {
+    senders.forEach((sender) => {
+      if (!selectedSenders.includes(sender)) toggleSender(sender);
+    });
+    setCategoryFilters([]);
+    setSaveableOnly(true);
+  }
+
   return (
     <WizardScreen
       stage="selectFiles"
       title={t('fileSelection.title')}
-      subtitle={t('fileSelection.subtitle', {
-        matched: importSummary?.matchedMedia ?? mediaFiles.length,
-        selectedSenders: selectedSenders.length,
-        totalSenders: senders.length
-      })}
+      subtitle={t('fileSelection.subtitle')}
       onBack={() => setStage('welcome')}
       footer={
         filterSheetOpen || sortSheetOpen || previewFile ? undefined :
         <FooterActions>
+          {selectedCount === 0 ? (
+            <Text variant="bodySmall" numberOfLines={2} style={[textStyles.start, { color: theme.colors.error }]}>
+              {t('fileSelection.disabledNoSelection')}
+            </Text>
+          ) : null}
           <Text variant="labelLarge" numberOfLines={2} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
             {t('fileSelection.footerSelected', {
               selected: selectedCount,
@@ -154,22 +177,38 @@ export function FileSelectionScreen() {
       }
     >
       <View style={styles.toolbarBlock}>
-        <View style={styles.metricRow}>
-          <CompactMetric label={t('fileSelection.photos')} value={importSummary?.photos ?? 0} />
-          <CompactMetric label={t('fileSelection.videos')} value={importSummary?.videos ?? 0} />
-          <CompactMetric
-            label={t('fileSelection.other')}
-            value={(importSummary?.voice ?? 0) + (importSummary?.stickers ?? 0) + (importSummary?.documents ?? 0) + (importSummary?.unknown ?? 0)}
-          />
-        </View>
+        <PremiumCard>
+          <View style={styles.summaryHeader}>
+            <View style={styles.flex}>
+              <Text variant="displaySmall" style={styles.summaryNumber}>
+                {t('fileSelection.selectedCount', { count: selectedCount })}
+              </Text>
+              <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+                {t('fileSelection.foundCount', { count: foundCount })}
+              </Text>
+            </View>
+            {filtersActive ? <StatusBadge label={t('fileSelection.filtersActive')} selected /> : null}
+          </View>
+          <View style={styles.metricRow}>
+            <StatusBadge label={t('fileSelection.photoCounter', { count: importSummary?.photos ?? 0 })} />
+            <StatusBadge label={t('fileSelection.videoCounter', { count: importSummary?.videos ?? 0 })} />
+            <StatusBadge label={t('fileSelection.otherCounter', { count: otherFoundCount })} />
+          </View>
+          <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+            {t('fileSelection.otherExplanation')}
+          </Text>
+        </PremiumCard>
 
         <View style={styles.toolbarRow}>
-          <Text variant="bodySmall" numberOfLines={2} style={[styles.flex, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {t('fileSelection.totalShown', { count: visibleFiles.length })}
-          </Text>
-          <IconButton mode="contained-tonal" icon={searchOpen ? 'close' : 'magnify'} size={20} style={styles.iconButton} accessibilityLabel={t('fileSelection.searchPlaceholder')} onPress={() => setSearchOpen((value) => !value)} />
-          <IconButton mode="contained-tonal" icon="sort" size={20} style={styles.iconButton} accessibilityLabel={t('fileSelection.sortTitle')} onPress={() => setSortSheetOpen(true)} />
-          <IconButton mode="contained-tonal" icon="filter-variant" size={20} style={styles.iconButton} accessibilityLabel={t('fileSelection.filterTitle')} onPress={() => setFilterSheetOpen(true)} />
+          <SecondaryButton icon="filter-variant" selected={filtersActive} style={styles.controlButton} onPress={() => setFilterSheetOpen(true)}>
+            {filtersActive ? t('fileSelection.filtersActive') : t('fileSelection.filter')}
+          </SecondaryButton>
+          <SecondaryButton icon="sort" style={styles.controlButton} onPress={() => setSortSheetOpen(true)}>
+            {t('fileSelection.sort')}
+          </SecondaryButton>
+          <SecondaryButton icon={searchOpen ? 'close' : 'magnify'} selected={searchOpen} style={styles.controlButton} onPress={() => setSearchOpen((value) => !value)}>
+            {t('fileSelection.search')}
+          </SecondaryButton>
         </View>
 
         {searchOpen ? (
@@ -184,10 +223,13 @@ export function FileSelectionScreen() {
         ) : null}
 
         <View style={styles.quickActions}>
-          <Button compact mode="text" onPress={selectVisibleFiles}>
+          <Text variant="bodySmall" numberOfLines={1} style={[styles.flex, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+            {t('fileSelection.totalShown', { count: visibleFiles.length })}
+          </Text>
+          <Button mode="text" onPress={selectVisibleFiles}>
             {t('fileSelection.selectAll')}
           </Button>
-          <Button compact mode="text" onPress={clearVisibleSelections}>
+          <Button mode="text" onPress={clearVisibleSelections}>
             {t('fileSelection.clear')}
           </Button>
         </View>
@@ -249,7 +291,8 @@ export function FileSelectionScreen() {
         onToggleCategory={(mediaType) =>
           setCategoryFilters((current) => toggleCategoryFilter(current, mediaType))
         }
-        onClearCategories={() => setCategoryFilters([])}
+        onReset={resetFilters}
+        onApply={() => setFilterSheetOpen(false)}
         onSaveableOnly={setSaveableOnly}
       />
       <SortSheet visible={sortSheetOpen} sortMode={sortMode} onDismiss={() => setSortSheetOpen(false)} onSortMode={setSortMode} />
@@ -267,7 +310,8 @@ function FilterSheet({
   onDismiss,
   onToggleSender,
   onToggleCategory,
-  onClearCategories,
+  onReset,
+  onApply,
   onSaveableOnly
 }: {
   visible: boolean;
@@ -279,46 +323,39 @@ function FilterSheet({
   onDismiss: () => void;
   onToggleSender: (sender: string) => void;
   onToggleCategory: (mediaType: MediaType) => void;
-  onClearCategories: () => void;
+  onReset: () => void;
+  onApply: () => void;
   onSaveableOnly: (value: boolean) => void;
 }) {
   const { t } = useTranslation();
   const theme = useAppTheme();
   return (
-    <BottomSheet visible={visible} title={t('fileSelection.filterTitle')} subtitle={t('fileSelection.filterSubtitle')} onDismiss={onDismiss}>
-      <Text variant="labelLarge">{t('fileSelection.senders')}</Text>
-      <View style={styles.chipWrap}>
-        {senders.map((sender) => (
-          <Chip
-            key={sender}
-            compact
-            selected={selectedSenders.includes(sender)}
-            showSelectedCheck
-            onPress={() => onToggleSender(sender)}
-          >
-            {sender}
-          </Chip>
-        ))}
-      </View>
-      <View style={styles.sheetSectionHeader}>
-        <Text variant="labelLarge">{t('fileSelection.categories')}</Text>
-        <Button compact mode="text" onPress={onClearCategories}>
-          {t('fileSelection.all')}
-        </Button>
-      </View>
-      <View style={styles.chipWrap}>
-        {visibleMediaTypes.map((mediaType) => (
-          <Chip
-            key={mediaType}
-            compact
-            selected={categoryFilters.includes(mediaType)}
-            showSelectedCheck
-            onPress={() => onToggleCategory(mediaType)}
-          >
-            {t(`media.plural.${mediaType}`)}
-          </Chip>
-        ))}
-      </View>
+    <PremiumBottomSheet
+      visible={visible}
+      title={t('fileSelection.filterTitle')}
+      subtitle={t('fileSelection.filterSubtitle')}
+      onDismiss={onDismiss}
+      footer={
+        <View style={styles.sheetFooter}>
+          <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+            {t('fileSelection.willShow', { count: totalShown })}
+          </Text>
+          <View style={styles.sheetFooterActions}>
+            <PrimaryButton style={styles.sheetPrimaryAction} onPress={onApply}>{t('fileSelection.applyFilter')}</PrimaryButton>
+            <SecondaryButton style={styles.sheetSecondaryAction} onPress={onReset}>{t('fileSelection.resetFilter')}</SecondaryButton>
+          </View>
+        </View>
+      }
+    >
+      <SectionHeader icon="account-outline" label={t('fileSelection.bySender')} />
+      <FilterChipGroup values={senders} selectedValues={selectedSenders} getLabel={(sender) => sender} onToggle={onToggleSender} />
+      <SectionHeader icon="file-multiple-outline" label={t('fileSelection.byFileType')} />
+      <FilterChipGroup
+        values={visibleMediaTypes}
+        selectedValues={categoryFilters}
+        getLabel={(mediaType) => t(`media.plural.${mediaType}`)}
+        onToggle={onToggleCategory}
+      />
       <View style={styles.switchRow}>
         <View style={styles.flex}>
           <Text variant="titleSmall">{t('fileSelection.saveableOnly')}</Text>
@@ -328,10 +365,7 @@ function FilterSheet({
         </View>
         <Switch value={saveableOnly} onValueChange={onSaveableOnly} />
       </View>
-      <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-        {t('fileSelection.totalShown', { count: totalShown })}
-      </Text>
-    </BottomSheet>
+    </PremiumBottomSheet>
   );
 }
 
@@ -349,25 +383,25 @@ function SortSheet({
   const { t } = useTranslation();
   const options: SortMode[] = ['date-desc', 'date-asc', 'name', 'sender', 'type'];
   return (
-    <BottomSheet visible={visible} title={t('fileSelection.sortTitle')} subtitle={t('fileSelection.sortSubtitle')} onDismiss={onDismiss}>
-      <RadioButton.Group value={sortMode} onValueChange={(value) => onSortMode(value as SortMode)}>
-        <View style={styles.selectableList}>
-          {options.map((option) => (
-            <Pressable key={option} onPress={() => onSortMode(option)} style={styles.selectableRow}>
-              <Text variant="bodyMedium" numberOfLines={1} style={[styles.flex, textStyles.start]}>
-                {t(`fileSelection.sortModes.${option}`)}
-              </Text>
-              <RadioButton value={option} />
-            </Pressable>
-          ))}
-        </View>
-      </RadioButton.Group>
-    </BottomSheet>
+    <PremiumBottomSheet
+      visible={visible}
+      title={t('fileSelection.sortTitle')}
+      subtitle={t('fileSelection.sortSubtitle')}
+      onDismiss={onDismiss}
+      footer={<PrimaryButton onPress={onDismiss}>{t('common.ok')}</PrimaryButton>}
+    >
+      <View style={styles.selectableList}>
+        {options.map((option) => (
+          <OptionCard
+            key={option}
+            title={t(`fileSelection.sortModes.${option}`)}
+            selected={sortMode === option}
+            onPress={() => onSortMode(option)}
+          />
+        ))}
+      </View>
+    </PremiumBottomSheet>
   );
-}
-
-function CompactMetric({ label, value }: { label: string; value: number }) {
-  return <MetricTile label={label} value={value} />;
 }
 
 function MediaPreviewSheet({
@@ -387,7 +421,7 @@ function MediaPreviewSheet({
   if (!file) return null;
 
   return (
-    <BottomSheet visible title={file.filename} subtitle={file.matchedRecord?.sender ?? t('fileSelection.unknownSender')} onDismiss={onDismiss}>
+    <PremiumBottomSheet visible title={file.filename} subtitle={file.matchedRecord?.sender ?? t('fileSelection.unknownSender')} onDismiss={onDismiss}>
       <Surface elevation={0} style={[styles.previewPanel, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]}>
         {file.mediaType === 'photo' || file.mediaType === 'sticker' ? (
           <ExpoImage source={file.thumbnailUri ?? file.uri} contentFit="contain" style={styles.previewMedia} />
@@ -408,7 +442,7 @@ function MediaPreviewSheet({
       <Button mode={selected ? 'contained' : 'outlined'} onPress={onToggle}>
         {selected ? t('fileSelection.selected') : t('fileSelection.selectFile')}
       </Button>
-    </BottomSheet>
+    </PremiumBottomSheet>
   );
 }
 
@@ -533,38 +567,47 @@ function formatSeconds(value: number): string {
 
 const styles = StyleSheet.create({
   toolbarBlock: {
-    gap: 8,
-    paddingBottom: 6
+    gap: spacing.gap,
+    paddingBottom: spacing.smallGap
+  },
+  summaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.gap
+  },
+  summaryNumber: {
+    fontWeight: '800',
+    letterSpacing: 0
   },
   metricRow: {
     flexDirection: 'row',
-    gap: 8
+    flexWrap: 'wrap',
+    gap: spacing.smallGap
   },
   toolbarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: spacing.smallGap
   },
-  iconButton: {
-    width: 40,
-    height: 40,
-    margin: 0
+  controlButton: {
+    flex: 1
   },
   search: {
-    height: 44,
-    borderRadius: 14
+    minHeight: 48,
+    borderRadius: 24
   },
   searchInput: {
-    minHeight: 44
+    minHeight: 48
   },
   quickActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4
+    flexWrap: 'wrap',
+    gap: spacing.tinyGap
   },
   listContent: {
-    paddingBottom: spacing.section,
-    gap: 6
+    paddingBottom: 144,
+    gap: spacing.smallGap
   },
   emptyState: {
     alignItems: 'center',
@@ -576,31 +619,27 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     gap: 8
   },
-  chipWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4
-  },
-  sheetSectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8
-  },
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: spacing.gap
   },
   selectableList: {
-    gap: spacing.tinyGap
+    gap: spacing.smallGap
   },
-  selectableRow: {
-    minHeight: 40,
+  sheetFooter: {
+    gap: spacing.smallGap
+  },
+  sheetFooterActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.smallGap,
-    paddingVertical: 2
+    gap: spacing.smallGap
+  },
+  sheetPrimaryAction: {
+    flex: 1.4
+  },
+  sheetSecondaryAction: {
+    flex: 1
   },
   previewPanel: {
     minHeight: 220,

@@ -3,11 +3,11 @@ import { isShareImportUri, shouldIgnoreShareIntentUri } from '../src/native/shar
 
 describe('shareIntentFilter', () => {
   it('ignores Expo development client URLs', () => {
-    expect(shouldIgnoreShareIntentUri('watimefixer://expo-development-client/?url=http://localhost:8081')).toBe(true);
+    expect(shouldIgnoreShareIntentUri('chatstamp://expo-development-client/?url=http://localhost:8081')).toBe(true);
     expect(shouldIgnoreShareIntentUri('exp://192.168.1.20:8081')).toBe(true);
     expect(shouldIgnoreShareIntentUri('http://localhost:8081/index.bundle?platform=android')).toBe(true);
     expect(shouldIgnoreShareIntentUri('http://192.168.1.20:8081/index.bundle?platform=android')).toBe(true);
-    expect(isShareImportUri('watimefixer://expo-development-client/?url=http://localhost:8081')).toBe(false);
+    expect(isShareImportUri('chatstamp://expo-development-client/?url=http://localhost:8081')).toBe(false);
   });
 
   it('accepts content and file URIs for import', () => {

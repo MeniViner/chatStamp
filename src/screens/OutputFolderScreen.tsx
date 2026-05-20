@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppState, BackHandler, ScrollView, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { RadioButton, Snackbar, Text } from 'react-native-paper';
+import { Snackbar, Text } from 'react-native-paper';
 import { FooterActions, WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
 import { usePipelineStore } from '../store/pipelineStore';
@@ -19,14 +19,17 @@ import {
 } from '../lib/termuxParityOutput';
 import type { DuplicateHandlingMode, OutputOrganizationMode } from '../types/media';
 import {
+  ExpandableTechnicalDetails,
+  FilePathText,
   InfoRow,
-  MetricTile,
+  OptionCard,
+  PremiumCard,
   PrimaryButton,
   SecondaryButton,
-  SelectableOptionCard,
-  SettingsSectionCard,
   SettingRow,
-  StatusBadge,
+  SummaryMetricCard,
+  StatusBanner,
+  SectionHeader,
   textStyles
 } from '../components/AppUi';
 import { spacing } from '../theme/designTokens';
@@ -121,6 +124,19 @@ export function OutputFolderScreen() {
     (settings.saveDestinationMode === 'custom-folder'
       ? Boolean(settings.customFolder?.treeUri)
       : allFilesAccessGranted && !checking);
+  const disabledReason = getSaveDisabledReason({
+    selectedCount,
+    checking,
+    allFilesAccessGranted,
+    customFolderSelected: settings.saveDestinationMode === 'custom-folder',
+    hasCustomFolder: Boolean(settings.customFolder?.treeUri),
+    t
+  });
+  const ready = canSave;
+  const destinationName =
+    settings.saveDestinationMode === 'custom-folder'
+      ? settings.customFolder?.displayName ?? settings.customFolder?.readablePathLabel ?? t('outputOptions.selectedFolder')
+      : getFriendlyFolderName(settings.baseFolder);
 
   return (
     <WizardScreen
@@ -130,6 +146,15 @@ export function OutputFolderScreen() {
       onBack={() => setStage('selectFiles')}
       footer={
         <FooterActions>
+          {!canSave && disabledReason ? (
+            <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.error }]}>
+              {disabledReason}
+            </Text>
+          ) : (
+            <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+              {t('outputOptions.footerReadyCount', { count: selectedCount })}
+            </Text>
+          )}
           <PrimaryButton icon="content-save-check-outline" disabled={!canSave} onPress={() => setStage('saving')}>
             {t('outputOptions.save')}
           </PrimaryButton>
@@ -137,53 +162,75 @@ export function OutputFolderScreen() {
       }
     >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <StatusBanner
+          tone={ready ? 'success' : 'warning'}
+          icon={ready ? 'check-circle-outline' : 'alert-circle-outline'}
+          title={ready ? t('outputOptions.readyTitle') : disabledReason ?? t('outputOptions.notReadyTitle')}
+        />
+
         <Section title={t('outputOptions.destinationTitle')} icon="folder-cog-outline">
-          <ChoiceCard
-            title={t('outputOptions.defaultAccurateFolder')}
-            body={t('outputOptions.defaultAccurateFolderBody')}
-            selected={settings.saveDestinationMode === 'default-accurate-folder'}
-            badge={t('outputOptions.recommended')}
-            onPress={() =>
-              void updateSettings({
-                saveDestinationMode: 'default-accurate-folder',
-                useDefaultFolder: true
-              })
-            }
-          />
-          <ChoiceCard
-            title={t('outputOptions.customFolder')}
-            body={
-              settings.customFolder?.readablePathLabel ??
-              settings.customFolder?.displayName ??
-              t('outputOptions.customFolderBody')
-            }
-            selected={settings.saveDestinationMode === 'custom-folder'}
-            onPress={() =>
-              void updateSettings({
-                saveDestinationMode: 'custom-folder',
-                useDefaultFolder: false
-              })
-            }
-          />
-          <View style={styles.buttonRow}>
-            <SecondaryButton icon="folder-plus-outline" onPress={() => void chooseFolder()}>
-              {t('outputOptions.chooseFolder')}
-            </SecondaryButton>
-            <SecondaryButton onPress={() => void resetSaveLocation()}>
-              {t('outputOptions.resetFolder')}
-            </SecondaryButton>
-          </View>
+          <PremiumCard>
+            <View style={styles.destinationHeader}>
+              <View style={[styles.destinationIcon, { backgroundColor: theme.colors.secondaryContainer }]}>
+                <MaterialCommunityIcons name="folder-heart-outline" size={28} color={theme.colors.primary} />
+              </View>
+              <View style={styles.flex}>
+                <Text variant="titleMedium" style={[textStyles.start, styles.strongText]}>
+                  {settings.saveDestinationMode === 'custom-folder' && !settings.customFolder
+                    ? t('outputOptions.noFolderSelected')
+                    : destinationName}
+                </Text>
+                <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+                  {settings.saveDestinationMode === 'custom-folder'
+                    ? t('outputOptions.customFolderBody')
+                    : t('outputOptions.defaultAccurateFolderBody')}
+                </Text>
+              </View>
+            </View>
+
+            {settings.saveDestinationMode === 'default-accurate-folder' && !allFilesAccessGranted ? (
+              <StatusBanner tone="warning" title={t('settings.permissionMissingTitle')} body={disabledReason ?? t('outputOptions.needed')} />
+            ) : null}
+
+            <View style={styles.buttonRow}>
+              <SecondaryButton icon="folder-plus-outline" onPress={() => void chooseFolder()}>
+                {settings.customFolder ? t('outputOptions.changeFolder') : t('outputOptions.chooseFolder')}
+              </SecondaryButton>
+              {settings.saveDestinationMode !== 'default-accurate-folder' ? (
+                <SecondaryButton
+                  icon="folder-outline"
+                  onPress={() =>
+                    void updateSettings({
+                      saveDestinationMode: 'default-accurate-folder',
+                      useDefaultFolder: true
+                    })
+                  }
+                >
+                  {t('outputOptions.useDefaultFolder')}
+                </SecondaryButton>
+              ) : null}
+              {settings.saveDestinationMode === 'default-accurate-folder' && !allFilesAccessGranted ? (
+                <SecondaryButton icon="cog-outline" onPress={() => void openAllFilesAccessSettings()}>
+                  {t('outputOptions.grantAccess')}
+                </SecondaryButton>
+              ) : null}
+            </View>
+
+            <ExpandableTechnicalDetails collapsedTitle={t('outputOptions.showFullPath')} expandedTitle={t('common.hideTechnicalDetails')}>
+              <FilePathText value={outputRoot} maxLines={4} />
+            </ExpandableTechnicalDetails>
+          </PremiumCard>
         </Section>
 
         <Section title={t('outputOptions.organizationTitle')} icon="folder-multiple-outline">
           <View style={styles.modeList}>
             {organizationModes.map((mode) => (
-              <ChoiceCard
+              <OptionCard
                 key={mode}
                 title={t(`outputOptions.organizationModes.${mode}.title`)}
-                body={t(`outputOptions.organizationModes.${mode}.body`)}
-                example={t(`outputOptions.organizationModes.${mode}.example`)}
+                description={t(`outputOptions.organizationModes.${mode}.body`)}
                 selected={settings.outputOrganization.mode === mode}
+                badge={mode === 'by-type' ? t('outputOptions.recommended') : undefined}
                 onPress={() =>
                   void updateSettings({
                     outputOrganization: {
@@ -195,82 +242,80 @@ export function OutputFolderScreen() {
               />
             ))}
           </View>
-          <SettingRow
-            icon="calendar-clock-outline"
-            title={t('outputOptions.createExportTimestampFolder')}
-            description={t('outputOptions.createExportTimestampFolderBody')}
-            value={settings.outputOrganization.createExportTimestampFolder}
-            onValueChange={(value) =>
-              void updateSettings({
-                outputOrganization: { ...settings.outputOrganization, createExportTimestampFolder: value }
-              })
-            }
-          />
-          <Text variant="labelLarge">{t('outputOptions.duplicateHandling')}</Text>
-          <RadioButton.Group
-            value={settings.outputOrganization.duplicateHandling}
-            onValueChange={(value) =>
-              void updateSettings({
-                outputOrganization: {
-                  ...settings.outputOrganization,
-                  duplicateHandling: normalizeDuplicateMode(value)
-                }
-              })
-            }
-          >
-            {duplicateModes.map((mode) => (
-              <RadioItem key={mode} label={t(`outputOptions.duplicateModes.${mode}`)} value={mode} />
-            ))}
-          </RadioButton.Group>
-          <StatusBadge label={t(`outputOptions.organizationModes.${settings.outputOrganization.mode}.title`)} selected />
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-            {getOrganizationSummaryText(t, settings.outputOrganization)}
-          </Text>
         </Section>
 
-        <Section title={t('outputOptions.accessTitle')} icon="shield-outline">
-          {settings.saveDestinationMode === 'default-accurate-folder' ? (
-            <>
+        <Section title={t('outputOptions.duplicateHandling')} icon="content-copy">
+          <View style={styles.modeList}>
+            {duplicateModes.map((mode) => (
+              <OptionCard
+                key={mode}
+                title={t(`outputOptions.duplicateModes.${mode}.title`)}
+                description={t(`outputOptions.duplicateModes.${mode}.body`)}
+                selected={settings.outputOrganization.duplicateHandling === mode}
+                caution={mode === 'replace-existing'}
+                onPress={() =>
+                  void updateSettings({
+                    outputOrganization: {
+                      ...settings.outputOrganization,
+                      duplicateHandling: mode
+                    }
+                  })
+                }
+              />
+            ))}
+          </View>
+        </Section>
+
+        <Section title={t('outputOptions.advancedTitle')} icon="tune-variant">
+          <ExpandableTechnicalDetails collapsedTitle={t('common.showTechnicalDetails')} expandedTitle={t('common.hideTechnicalDetails')}>
+            <SettingRow
+              icon="calendar-clock-outline"
+              title={t('outputOptions.createExportTimestampFolder')}
+              description={t('outputOptions.createExportTimestampFolderBody')}
+              value={settings.outputOrganization.createExportTimestampFolder}
+              onValueChange={(value) =>
+                void updateSettings({
+                  outputOrganization: { ...settings.outputOrganization, createExportTimestampFolder: value }
+                })
+              }
+            />
+            {settings.saveDestinationMode === 'default-accurate-folder' ? (
               <StatusRow
                 icon={allFilesAccessGranted ? 'shield-check-outline' : 'shield-alert-outline'}
                 label={t('outputOptions.allFilesAccess')}
                 value={checking ? t('outputOptions.checkingPermission') : allFilesAccessGranted ? t('outputOptions.granted') : t('outputOptions.needed')}
               />
-              {!allFilesAccessGranted ? (
-                <SecondaryButton icon="cog-outline" onPress={() => void openAllFilesAccessSettings()}>
-                  {t('outputOptions.grantAccess')}
-                </SecondaryButton>
-              ) : null}
-            </>
-          ) : (
-            <StatusRow
-              icon={settings.customFolderTimestampSupport?.timestampVerified ? 'calendar-check-outline' : 'calendar-alert-outline'}
-              label={t('outputOptions.customFolderSupport')}
-              value={
-                settings.customFolderTimestampSupport?.timestampVerified
-                  ? t('outputOptions.customFolderSupportReady')
-                  : t('outputOptions.customFolderSupportLimited')
-              }
-            />
-          )}
+            ) : (
+              <StatusRow
+                icon={settings.customFolderTimestampSupport?.timestampVerified ? 'calendar-check-outline' : 'calendar-alert-outline'}
+                label={t('outputOptions.customFolderSupport')}
+                value={
+                  settings.customFolderTimestampSupport?.timestampVerified
+                    ? t('outputOptions.customFolderSupportReady')
+                    : t('outputOptions.customFolderSupportLimited')
+                }
+              />
+            )}
+            <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+              {getOrganizationSummaryText(t, settings.outputOrganization)}
+            </Text>
+            <FolderTreePreview paths={[outputRoot, ...previewPaths]} />
+            <SecondaryButton onPress={() => void resetSaveLocation()}>
+              {t('outputOptions.resetFolder')}
+            </SecondaryButton>
+          </ExpandableTechnicalDetails>
         </Section>
 
-        <Section title={t('outputOptions.summaryTitle')} icon="image-multiple-outline">
+        <Section title={t('outputOptions.summaryTitle')} icon="clipboard-check-outline">
           <View style={styles.metricRow}>
-            <MetricPill label={t('outputOptions.selectedItems')} value={String(selectedCount)} />
-            <MetricPill label={t('outputOptions.selectedSenders')} value={String(new Set(preview.selectedFiles.map((file) => file.sender)).size)} />
-            <MetricPill label={t('outputOptions.other')} value={String(preview.selectedOther)} />
+            <SummaryMetricCard icon="check-circle-outline" label={t('outputOptions.selectedItems')} value={selectedCount} />
+            <SummaryMetricCard icon="image-outline" label={t('outputOptions.photos')} value={preview.selectedPhotos} />
+            <SummaryMetricCard icon="video-outline" label={t('outputOptions.videos')} value={preview.selectedVideos} />
+            <SummaryMetricCard icon="file-outline" label={t('outputOptions.other')} value={preview.selectedOther} />
           </View>
-          <StatusRow icon="image-outline" label={t('outputOptions.photos')} value={String(preview.selectedPhotos)} />
-          <StatusRow icon="video-outline" label={t('outputOptions.videos')} value={String(preview.selectedVideos)} />
-          <StatusRow icon="archive-outline" label={t('outputOptions.outputFolder')} value={outputRoot} />
-        </Section>
-
-        <Section title={t('outputOptions.previewTitle')} icon="file-tree-outline">
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-            {t('outputOptions.previewBody')}
-          </Text>
-          <FolderTreePreview paths={[outputRoot, ...previewPaths]} />
+          <StatusRow icon="folder-outline" label={t('outputOptions.destinationFriendly')} value={destinationName} />
+          <StatusRow icon="folder-multiple-outline" label={t('outputOptions.organization')} value={t(`outputOptions.organizationModes.${settings.outputOrganization.mode}.title`)} />
+          <StatusRow icon="content-copy" label={t('outputOptions.duplicateHandling')} value={t(`outputOptions.duplicateModes.${settings.outputOrganization.duplicateHandling}.title`)} />
         </Section>
       </ScrollView>
       <Snackbar visible={Boolean(snackbar)} onDismiss={() => setSnackbar(undefined)} duration={3200}>
@@ -281,32 +326,11 @@ export function OutputFolderScreen() {
 }
 
 function Section({ title, icon, children }: { title: string; icon: React.ComponentProps<typeof MaterialCommunityIcons>['name']; children: React.ReactNode }) {
-  return <SettingsSectionCard title={title} icon={icon}>{children}</SettingsSectionCard>;
-}
-
-function ChoiceCard({
-  title,
-  body,
-  selected,
-  onPress,
-  badge,
-  example
-}: {
-  title: string;
-  body: string;
-  selected: boolean;
-  onPress: () => void;
-  badge?: string;
-  example?: string;
-}) {
   return (
-    <SelectableOptionCard title={title} description={body} selected={selected} badge={badge} example={example} onPress={onPress} />
-  );
-}
-
-function MetricPill({ label, value }: { label: string; value: string }) {
-  return (
-    <MetricTile label={label} value={value} />
+    <View style={styles.section}>
+      <SectionHeader icon={icon} label={title} />
+      <View style={styles.sectionBody}>{children}</View>
+    </View>
   );
 }
 
@@ -364,22 +388,6 @@ function buildTreeRows(paths: string[]): { key: string; label: string; level: nu
   return rows.slice(0, 18);
 }
 
-function RadioItem({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.radioRow}>
-      <Text variant="bodyMedium" numberOfLines={2} style={[styles.flex, textStyles.start]}>
-        {label}
-      </Text>
-      <RadioButton value={value} />
-    </View>
-  );
-}
-
-function normalizeDuplicateMode(value: string): DuplicateHandlingMode {
-  if (value === 'skip-existing' || value === 'replace-existing') return value;
-  return 'keep-both';
-}
-
 function getOrganizationSummaryText(
   t: (key: string) => string,
   organization: { mode: OutputOrganizationMode; createExportTimestampFolder: boolean; duplicateHandling: DuplicateHandlingMode }
@@ -390,20 +398,69 @@ function getOrganizationSummaryText(
       ? t('outputOptions.createExportTimestampFolder')
       : t('settings.noExportTimestampFolder')
   );
-  parts.push(t(`outputOptions.duplicateModes.${organization.duplicateHandling}`));
+  parts.push(t(`outputOptions.duplicateModes.${organization.duplicateHandling}.title`));
   return parts.join(' • ');
+}
+
+function getFriendlyFolderName(path: string): string {
+  const normalized = path.replace(/\\/g, '/');
+  return normalized.split('/').filter(Boolean).pop() ?? path;
+}
+
+function getSaveDisabledReason({
+  selectedCount,
+  checking,
+  allFilesAccessGranted,
+  customFolderSelected,
+  hasCustomFolder,
+  t
+}: {
+  selectedCount: number;
+  checking: boolean;
+  allFilesAccessGranted: boolean;
+  customFolderSelected: boolean;
+  hasCustomFolder: boolean;
+  t: (key: string, options?: Record<string, unknown>) => string;
+}): string | undefined {
+  if (selectedCount === 0) return t('outputOptions.disabledNoSelection');
+  if (customFolderSelected && !hasCustomFolder) return t('outputOptions.disabledChooseFolder');
+  if (!customFolderSelected && checking) return t('outputOptions.disabledCheckingPermission');
+  if (!customFolderSelected && !allFilesAccessGranted) return t('outputOptions.disabledPermission');
+  return undefined;
 }
 
 const styles = StyleSheet.create({
   content: {
-    gap: spacing.card,
-    paddingBottom: spacing.section
+    gap: spacing.section,
+    paddingBottom: 144
+  },
+  section: {
+    gap: spacing.smallGap
+  },
+  sectionBody: {
+    gap: spacing.gap
+  },
+  destinationHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.gap
+  },
+  destinationIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  strongText: {
+    fontWeight: '800'
   },
   modeList: {
-    gap: 8
+    gap: spacing.gap
   },
   treePreview: {
-    gap: spacing.tinyGap
+    gap: spacing.tinyGap,
+    marginTop: spacing.smallGap
   },
   treeRow: {
     minHeight: 24,
@@ -414,27 +471,15 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6
-  },
-  radioRow: {
-    minHeight: 40,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
+    gap: spacing.smallGap
   },
   metricRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8
-  },
-  metricPill: {
-    minWidth: 92,
-    borderRadius: 18,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 2
+    gap: spacing.smallGap
   },
   flex: {
-    flex: 1
+    flex: 1,
+    minWidth: 0
   }
 });

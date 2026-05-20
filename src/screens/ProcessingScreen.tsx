@@ -10,7 +10,7 @@ import { useSettingsStore } from '../store/settingsStore';
 import { useAppTheme } from '../theme/useAppTheme';
 import { WizardScreen, wizardStyles } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
-import { textStyles } from '../components/AppUi';
+import { PremiumCard, StatusBanner, textStyles } from '../components/AppUi';
 
 const analyzeStepKeys = [
   'processing.analyzeSteps.receivingZip',
@@ -130,34 +130,39 @@ export function ProcessingScreen() {
       backDisabled
       contentStyle={styles.content}
     >
-      <View style={styles.centerPanel}>
+      <PremiumCard style={styles.progressCard} contentStyle={styles.centerPanel}>
         <ActivityIndicator size="large" />
+        <Text variant="displaySmall" style={styles.percentText}>{Math.round(progressValue * 100)}%</Text>
         <Text variant="titleMedium" style={textStyles.start}>{stageLabel}</Text>
         <ProgressBar progress={progressValue} color={theme.colors.primary} style={styles.progressBar} />
         <Text variant="bodyMedium" style={[wizardStyles.tabular, { color: theme.colors.onSurfaceVariant }]}>
           {t('processing.progressCount', {
-            processed: isSaving ? Math.min(processed + (progressValue < 1 ? 1 : 0), total) : processed,
+            processed,
             total,
             failed: progress?.failed ?? 0
           })}
         </Text>
-      </View>
+      </PremiumCard>
 
       {isSaving ? (
-        <View style={wizardStyles.section}>
+        <PremiumCard>
           {saveOperationKeys.map((operationKey, index) => {
             const activeIndex = progressValue >= 1 ? saveOperationKeys.length - 1 : Math.min(saveOperationKeys.length - 2, Math.floor(progressValue * 3));
             return <ChecklistRow key={operationKey} label={t(operationKey)} state={index < activeIndex ? 'completed' : index === activeIndex ? 'active' : 'pending'} />;
           })}
-        </View>
+        </PremiumCard>
       ) : (
-        <View style={wizardStyles.section}>
+        <PremiumCard>
           {analyzeStepKeys.map((stepKey, index) => {
             const state = index < processed ? 'completed' : index === processed ? 'active' : 'pending';
             return <ChecklistRow key={stepKey} label={t(stepKey)} state={state} />;
           })}
-        </View>
+        </PremiumCard>
       )}
+
+      {isSaving ? (
+        <StatusBanner tone="info" icon="shield-check-outline" title={t('processing.keepOpenTitle')} body={t('processing.keepOpenBody')} />
+      ) : null}
 
       <Snackbar visible={backNoticeVisible} onDismiss={() => setBackNoticeVisible(false)} duration={2200}>
         {t('processing.waitUntilDone')}
@@ -196,7 +201,14 @@ function ChecklistRow({ label, state }: { label: string; state: 'pending' | 'act
           : theme.colors.outline;
 
   return (
-    <View style={styles.checkRow}>
+    <View
+      style={[
+        styles.checkRow,
+        {
+          backgroundColor: state === 'active' ? theme.colors.primaryContainer : 'transparent'
+        }
+      ]}
+    >
       <MaterialCommunityIcons name={icon} size={24} color={color} />
       <Text variant="bodyLarge" style={[styles.flex, textStyles.start, { color: state === 'pending' ? theme.colors.onSurfaceVariant : theme.colors.onSurface }]}>
         {label}
@@ -209,10 +221,16 @@ const styles = StyleSheet.create({
   content: {
     gap: 20
   },
+  progressCard: {
+    paddingVertical: 22
+  },
   centerPanel: {
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 18
+    gap: 12
+  },
+  percentText: {
+    fontWeight: '800',
+    letterSpacing: 0
   },
   progressBar: {
     width: '100%',
@@ -223,7 +241,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    minHeight: 38
+    minHeight: 48,
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 6
   },
   flex: {
     flex: 1

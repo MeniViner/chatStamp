@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { logger } from '../lib/logger';
 import type { PickedFolderResult, SaveFileResult } from '../types/media';
-import { getTimeFixerNativeModule } from './timeFixerNativeModule';
+import { getChatStampNativeModule } from './chatStampNativeModule';
 export { shouldShowOpenFolder, shouldShowOpenGallery } from './openTargetLogic';
 
 export type OpenTargetOutcome = 'opened' | 'manual-fallback';
@@ -16,7 +16,7 @@ export async function openGalleryBestEffort(outputPath?: string | null, results?
   const firstMedia = results?.find((result) => result.ok && result.scannedUri && (result.mediaType === 'photo' || result.mediaType === 'video'));
   if (firstMedia?.scannedUri) {
     try {
-      const opened = await getTimeFixerNativeModule().openScannedMediaAsync(firstMedia.scannedUri, mimeTypeForResult(firstMedia));
+      const opened = await getChatStampNativeModule().openScannedMediaAsync(firstMedia.scannedUri, mimeTypeForResult(firstMedia));
       if (opened.opened) return 'opened';
       logger.warn('Open scanned media URI had no resolved activity', opened);
     } catch (error) {
@@ -31,7 +31,7 @@ export async function openGalleryBestEffort(outputPath?: string | null, results?
 export async function openFolderBestEffort(outputPath?: string | null, customFolder?: PickedFolderResult | null): Promise<OpenTargetOutcome> {
   if (Platform.OS === 'android') {
     try {
-      const result = await getTimeFixerNativeModule().openFolderTargetAsync({
+      const result = await getChatStampNativeModule().openFolderTargetAsync({
         treeUri: customFolder?.treeUri ?? null,
         path: outputPath ?? null
       });

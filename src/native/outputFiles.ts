@@ -1,5 +1,5 @@
 import type { MediaType, SaveFileResult } from '../types/media';
-import { getTimeFixerNativeModule } from './timeFixerNativeModule';
+import { getChatStampNativeModule } from './chatStampNativeModule';
 
 export type ShareableOutputFile = {
   uri?: string | null;
@@ -24,11 +24,11 @@ export async function shareOutputFiles(results: SaveFileResult[], categories: Me
   const files = results
     .filter((result) => result.ok && result.mediaType && selected.has(result.mediaType))
     .map(outputFileToShareTarget);
-  return getTimeFixerNativeModule().shareOutputFilesAsync(files);
+  return getChatStampNativeModule().shareOutputFilesAsync(files);
 }
 
 export async function deleteOutputFiles(results: SaveFileResult[]) {
-  return getTimeFixerNativeModule().deleteOutputFilesAsync(
+  return getChatStampNativeModule().deleteOutputFilesAsync(
     results
       .filter((result) => result.outputPath || result.scannedUri || result.insertedUri)
       .map((result) => ({

@@ -1,16 +1,17 @@
 import React, { useCallback, useEffect } from 'react';
 import { AppState, ScrollView, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Appbar, Button, Surface, Text } from 'react-native-paper';
+import { Appbar, Text } from 'react-native-paper';
 import * as DocumentPicker from 'expo-document-picker';
 import { usePipelineStore } from '../store/pipelineStore';
 import { importWhatsAppZip } from '../services/importService';
 import { logger } from '../lib/logger';
 import { hasAllFilesAccess } from '../native/allFilesAccess';
 import { useAppTheme } from '../theme/useAppTheme';
-import { FooterActions, WizardScreen, wizardStyles } from './WizardScreen';
+import { FooterActions, WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
-import { textStyles } from '../components/AppUi';
+import { PremiumCard, PrimaryButton, SectionHeader, StatusBanner, textStyles } from '../components/AppUi';
+import { radius, spacing } from '../theme/designTokens';
 
 export function ImportScreen() {
   const { t } = useTranslation();
@@ -93,38 +94,40 @@ export function ImportScreen() {
       }
       footer={
         <FooterActions>
-          <Button mode="contained" icon="folder-zip-outline" onPress={pickZip}>
+          <PrimaryButton icon="folder-zip-outline" onPress={pickZip}>
             {t('import.chooseZip')}
-          </Button>
+          </PrimaryButton>
         </FooterActions>
       }
     >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Surface
-          elevation={0}
-          style={[
-            styles.hero,
-            {
-              backgroundColor: theme.colors.primaryContainer,
-              borderColor: theme.colors.outlineVariant
-            }
-          ]}
-        >
-          <View style={[styles.iconBubble, { backgroundColor: theme.colors.surface }]}>
-            <MaterialCommunityIcons name="calendar-clock" size={34} color={theme.colors.primary} />
+        <PremiumCard style={[styles.hero, { backgroundColor: theme.colors.primaryContainer, borderColor: theme.colors.primary }]}>
+          <View style={styles.heroTop}>
+            <View style={[styles.iconBubble, { backgroundColor: theme.colors.surface }]}>
+              <MaterialCommunityIcons name="calendar-clock" size={38} color={theme.colors.primary} />
+            </View>
+            <Text variant="headlineMedium" style={[styles.heroTitle, textStyles.start, { color: theme.colors.onPrimaryContainer }]}>
+              {t('import.heroTitle')}
+            </Text>
           </View>
-          <Text variant="headlineMedium" style={[styles.heroTitle, textStyles.start, { color: theme.colors.onPrimaryContainer }]}>
-            {t('import.heroTitle')}
-          </Text>
-          <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.onPrimaryContainer }]}>
+          <Text variant="bodyLarge" style={[textStyles.start, { color: theme.colors.onPrimaryContainer }]}>
             {t('import.heroBody')}
           </Text>
-        </Surface>
+        </PremiumCard>
 
-        <View style={wizardStyles.section}>
+        <PremiumCard>
+          <SectionHeader icon="folder-zip-outline" label={t('import.instructionTitle')} />
+          <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+            {t('import.instructionBody')}
+          </Text>
+        </PremiumCard>
+
+        <PremiumCard>
+          <SectionHeader icon="shield-check-outline" label={t('import.trustTitle')} />
           <InfoRow icon="cellphone-lock" title={t('import.infoLocalTitle')} body={t('import.infoLocalBody')} />
           <InfoRow icon="share-variant" title={t('import.infoShareTitle')} body={t('import.infoShareBody')} />
-          <InfoRow
+          <StatusBanner
+            tone={allFilesAccessGranted ? 'success' : 'info'}
             icon={allFilesAccessGranted ? 'check-circle-outline' : 'shield-outline'}
             title={allFilesAccessGranted ? t('import.infoPermReadyTitle') : t('import.infoPermLaterTitle')}
             body={
@@ -133,23 +136,7 @@ export function ImportScreen() {
                 : t('import.infoPermLaterBody')
             }
           />
-        </View>
-
-        <Surface
-          elevation={0}
-          style={[
-            styles.instructionCard,
-            {
-              backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant,
-              borderColor: theme.colors.outlineVariant
-            }
-          ]}
-        >
-          <Text variant="titleMedium" style={textStyles.start}>{t('import.instructionTitle')}</Text>
-          <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {t('import.instructionBody')}
-          </Text>
-        </Surface>
+        </PremiumCard>
       </ScrollView>
     </WizardScreen>
   );
@@ -172,19 +159,20 @@ function InfoRow({ icon, title, body }: { icon: React.ComponentProps<typeof Mate
 
 const styles = StyleSheet.create({
   content: {
-    gap: 18,
-    paddingBottom: 24
+    gap: spacing.section,
+    paddingBottom: spacing.section
   },
   hero: {
-    borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 20,
-    gap: 14
+    borderRadius: radius.largeCard,
+    borderWidth: StyleSheet.hairlineWidth
+  },
+  heroTop: {
+    gap: spacing.gap
   },
   iconBubble: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 72,
+    height: 72,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -194,17 +182,11 @@ const styles = StyleSheet.create({
   },
   infoRow: {
     flexDirection: 'row',
-    gap: 14,
+    gap: spacing.gap,
     alignItems: 'flex-start'
   },
   infoText: {
     flex: 1,
     gap: 2
-  },
-  instructionCard: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 8,
-    padding: 16,
-    gap: 6
   }
 });

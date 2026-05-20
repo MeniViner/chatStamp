@@ -1,11 +1,11 @@
 import type { PickedFolderResult, PickedFolderTimestampSupportResult } from '../types/media';
-import { getTimeFixerNativeModule } from './timeFixerNativeModule';
+import { getChatStampNativeModule } from './chatStampNativeModule';
 
 export async function openOutputFolderPicker(): Promise<PickedFolderResult> {
-  return getTimeFixerNativeModule().openOutputFolderPickerAsync();
+  return getChatStampNativeModule().openOutputFolderPickerAsync();
 }
 
 export async function testPickedFolderTimestampSupport(treeUri: string): Promise<PickedFolderTimestampSupportResult> {
-  return getTimeFixerNativeModule().testPickedFolderTimestampSupportAsync(treeUri);
+  return getChatStampNativeModule().testPickedFolderTimestampSupportAsync(treeUri);
 }
 

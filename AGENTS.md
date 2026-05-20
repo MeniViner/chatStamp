@@ -1,4 +1,4 @@
-# AGENTS.md — WhatsApp Media TimeFixer
+# AGENTS.md — chatStamp
 
 These are repository-level instructions for Codex and other coding agents.
 

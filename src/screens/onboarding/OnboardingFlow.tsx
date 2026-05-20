@@ -18,7 +18,8 @@ import { useOnboardingStore } from '../../store/onboardingStore';
 import { syncI18nLanguage } from '../../i18n';
 import type { AppLanguagePreference } from '../../types/media';
 import { useAppTheme } from '../../theme/useAppTheme';
-import { textStyles } from '../../components/AppUi';
+import { PrimaryButton, SecondaryButton, textStyles } from '../../components/AppUi';
+import { radius, spacing } from '../../theme/designTokens';
 import { OnboardingPage } from './OnboardingPage';
 import { getOnboardingPermissionVisualState } from './onboardingLogic';
 
@@ -390,31 +391,26 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
         ) : null}
         <View style={[styles.footerRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
           {showBack ? (
-            <Button mode="text" onPress={goBack} style={styles.flexButton}>
+            <SecondaryButton onPress={goBack} style={styles.flexButton}>
               {t('common.back')}
-            </Button>
+            </SecondaryButton>
           ) : (
             <View style={styles.flexButton} />
           )}
           {isPermissionPage ? (
             permissionState === 'granted' ? (
-              <Button mode="contained" onPress={() => void completeOnboarding()} style={styles.flexButton}>
+              <PrimaryButton onPress={() => void completeOnboarding()} style={styles.flexButton}>
                 {t('common.start')}
-              </Button>
+              </PrimaryButton>
             ) : (
-              <Button mode="contained" onPress={() => void grantAccess()} style={styles.flexButton}>
+              <PrimaryButton onPress={() => void grantAccess()} style={styles.flexButton}>
                 {t('onboarding.permission.grantAccess')}
-              </Button>
+              </PrimaryButton>
             )
           ) : (
-            <Button
-              mode="contained"
-              onPress={goNext}
-              style={styles.flexButton}
-              contentStyle={pageIndex === 0 ? styles.primaryContent : undefined}
-            >
+            <PrimaryButton onPress={goNext} style={styles.flexButton}>
               {pageIndex === 0 ? t('common.getStarted') : t('common.next')}
-            </Button>
+            </PrimaryButton>
           )}
         </View>
       </Surface>
@@ -523,24 +519,24 @@ const styles = StyleSheet.create({
   headerRow: {
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 10
+    paddingHorizontal: spacing.screenHorizontal,
+    paddingTop: spacing.smallGap
   },
   brandBlock: {
     gap: 2
   },
   skipButton: {
     borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 8
+    paddingHorizontal: spacing.gap,
+    paddingVertical: spacing.smallGap
   },
   indicatorRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingTop: 18,
-    paddingBottom: 10
+    gap: spacing.smallGap,
+    paddingTop: spacing.card,
+    paddingBottom: spacing.smallGap
   },
   indicator: {
     height: 8,
@@ -548,43 +544,40 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 18
+    paddingHorizontal: spacing.screenHorizontal,
+    paddingTop: spacing.smallGap,
+    paddingBottom: spacing.card
   },
   languageCard: {
-    borderRadius: 16,
+    borderRadius: radius.card,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 10,
-    gap: 6
+    padding: spacing.compactInner,
+    gap: spacing.smallGap
   },
   languageRow: {
-    minHeight: 42,
-    borderRadius: 12,
+    minHeight: 48,
+    borderRadius: radius.smallButton,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6
+    gap: spacing.smallGap,
+    paddingHorizontal: spacing.compactInner,
+    paddingVertical: spacing.smallGap
   },
   footer: {
-    gap: 10,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 14
+    gap: spacing.smallGap,
+    paddingHorizontal: spacing.screenHorizontal,
+    paddingTop: spacing.compactInner,
+    paddingBottom: spacing.compactInner
   },
   footerRow: {
     alignItems: 'center',
-    gap: 12
+    gap: spacing.gap
   },
   flexButton: {
     flex: 1
   },
   flex: {
     flex: 1
-  },
-  primaryContent: {
-    minHeight: 48
   }
 });

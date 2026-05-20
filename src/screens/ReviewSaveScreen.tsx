@@ -1,20 +1,18 @@
 import React from 'react';
 import { BackHandler, ScrollView, StyleSheet, View } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Divider, Surface, Text } from 'react-native-paper';
+import { List, Text } from 'react-native-paper';
 import { usePipelineStore } from '../store/pipelineStore';
 import { buildSelectedPreview } from '../store/selectedPreview';
 import { buildTermuxParityOutputPath, sanitizePathSegment } from '../lib/termuxParityOutput';
 import { useSettingsStore } from '../store/settingsStore';
 import { useAppTheme } from '../theme/useAppTheme';
-import { FooterActions, MetricCard, WizardScreen, wizardStyles } from './WizardScreen';
+import { FooterActions, WizardScreen, wizardStyles } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
-import { FilePathText, PrimaryButton, SecondaryButton, textStyles } from '../components/AppUi';
-import { radius, spacing } from '../theme/designTokens';
+import { FilePathText, MetricTile, PremiumCard, PrimaryButton, SecondaryButton, SectionHeader, StatusBanner, textStyles } from '../components/AppUi';
+import { spacing } from '../theme/designTokens';
 
 export function ReviewSaveScreen() {
   const { t } = useTranslation();
-  const theme = useAppTheme();
   const mediaFiles = usePipelineStore((state) => state.mediaFiles);
   const selectedSenders = usePipelineStore((state) => state.selectedSenders);
   const selectedMediaTypes = usePipelineStore((state) => state.selectedMediaTypes);
@@ -58,28 +56,18 @@ export function ReviewSaveScreen() {
     >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={wizardStyles.rowWrap}>
-            <MetricCard label={t('reviewSave.photos')} value={preview.selectedPhotos} />
-            <MetricCard label={t('reviewSave.videos')} value={preview.selectedVideos} />
-            <MetricCard label={t('reviewSave.other')} value={other.length} />
+          <MetricTile label={t('reviewSave.photos')} value={preview.selectedPhotos} />
+          <MetricTile label={t('reviewSave.videos')} value={preview.selectedVideos} />
+          <MetricTile label={t('reviewSave.other')} value={other.length} />
         </View>
 
-        <Surface elevation={0} style={[styles.confidenceCard, { backgroundColor: theme.colors.secondaryContainer, borderColor: theme.colors.secondary }]}>
-          <MaterialCommunityIcons name="calendar-check-outline" size={28} color={theme.colors.secondary} />
-          <View style={styles.flex}>
-            <Text variant="titleMedium" numberOfLines={2} style={[textStyles.start, { color: theme.colors.onSecondaryContainer }]}>
-              {t('reviewSave.originalDates')}
-            </Text>
-            <Text variant="bodyMedium" numberOfLines={4} style={[textStyles.start, { color: theme.colors.onSecondaryContainer }]}>
-              {t('reviewSave.appWillUse')}
-            </Text>
-          </View>
-        </Surface>
+        <StatusBanner tone="success" icon="calendar-check-outline" title={t('reviewSave.originalDates')} body={t('reviewSave.appWillUse')} />
 
-        <View style={wizardStyles.section}>
-      <Text variant="titleMedium" style={textStyles.start}>{t('reviewSave.saveDetails')}</Text>
+        <PremiumCard>
+          <SectionHeader icon="clipboard-check-outline" label={t('reviewSave.saveDetails')} />
           <Detail label={t('reviewSave.outputFolder')} value={outputPath} />
           <Detail label={t('reviewSave.saveMethod')} value={t('reviewSave.accurateMode')} />
-        </View>
+        </PremiumCard>
 
         <GroupedPreview title={t('reviewSave.photos')} files={photos} />
         <GroupedPreview title={t('reviewSave.videos')} files={videos} />
@@ -90,12 +78,15 @@ export function ReviewSaveScreen() {
 }
 
 function Detail({ label, value }: { label: string; value: string }) {
+  const { t } = useTranslation();
   const theme = useAppTheme();
   return (
     <View style={styles.detail}>
       <Text variant="labelLarge" style={textStyles.start}>{label}</Text>
       {value.includes('/') || value.includes('\\') ? (
-        <FilePathText value={value} maxLines={2} />
+        <List.Accordion title={t('outputOptions.showFullPath')} titleStyle={styles.accordionTitle}>
+          <FilePathText value={value} maxLines={3} />
+        </List.Accordion>
       ) : (
         <Text variant="bodyMedium" numberOfLines={3} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
           {value}
@@ -110,11 +101,10 @@ function GroupedPreview({ title, files }: { title: string; files: ReturnType<typ
   const theme = useAppTheme();
   if (files.length === 0) return null;
   return (
-    <Surface elevation={0} style={[styles.group, { borderColor: theme.colors.outlineVariant }]}>
+    <PremiumCard>
       <Text variant="titleMedium" style={[wizardStyles.tabular, styles.groupTitle, textStyles.start]}>
         {title} ({files.length})
       </Text>
-      <Divider />
       {files.slice(0, 8).map((file) => (
         <View key={file.id} style={styles.fileLine}>
         <Text variant="bodyMedium" numberOfLines={2} style={[styles.flex, textStyles.start]}>
@@ -130,7 +120,7 @@ function GroupedPreview({ title, files }: { title: string; files: ReturnType<typ
           {t('reviewSave.andXMore', { count: files.length - 8 })}
         </Text>
       ) : null}
-    </Surface>
+    </PremiumCard>
   );
 }
 
@@ -139,24 +129,11 @@ const styles = StyleSheet.create({
     gap: spacing.card,
     paddingBottom: spacing.section
   },
-  confidenceCard: {
-    borderRadius: radius.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 20,
-    flexDirection: 'row',
-    gap: 12
-  },
   flex: {
     flex: 1
   },
   detail: {
-    gap: 2
-  },
-  group: {
-    borderRadius: radius.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 20,
-    gap: 12
+    gap: spacing.tinyGap
   },
   groupTitle: {
     fontWeight: '700'
@@ -164,6 +141,10 @@ const styles = StyleSheet.create({
   fileLine: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12
+    gap: spacing.gap
+  },
+  accordionTitle: {
+    fontSize: 13,
+    fontWeight: '700'
   }
 });

@@ -1,5 +1,5 @@
 {
-  "name": "whatsapp-media-timefixer",
+  "name": "chatstamp",
   "version": "0.1.0",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
@@ -35,7 +35,7 @@
     "react-native-paper": "^5.15.1",
     "react-native-safe-area-context": "~5.6.2",
     "react-native-screens": "~4.23.0",
-    "whatsapp-timefixer-native": "file:./modules/whatsapp-timefixer-native",
+    "chatstamp-native": "file:./modules/chatstamp-native",
     "zustand": "^5.0.12"
   },
   "devDependencies": {

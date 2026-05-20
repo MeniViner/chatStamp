@@ -65,7 +65,7 @@ export async function runSavePipeline({
       mimeType: getMimeTypeForMedia(file.filename, file.mediaType),
       originalTimestampMillis: new Date(file.matchedRecord?.messageDateIso ?? '').getTime(),
       sender: file.matchedRecord?.sender ?? 'Unknown',
-      albumName: 'WhatsApp TimeFixer',
+      albumName: 'chatStamp',
       relativeFolder: relativeOutputFolderForFile(file, settings?.outputOrganization ?? defaultOutputOrganization)
     }));
   const nativeResult = destinationMode === 'custom-folder' && settings?.customFolder?.treeUri

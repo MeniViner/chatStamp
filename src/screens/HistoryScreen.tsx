@@ -1,8 +1,8 @@
 import React from 'react';
 import { BackHandler, FlatList, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Button, IconButton, Menu, Snackbar, Surface, Text } from 'react-native-paper';
-import { BottomSheet } from '../components/BottomSheet';
+import { IconButton, Menu, Snackbar, Text } from 'react-native-paper';
+import { PremiumBottomSheet } from '../components/BottomSheet';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { FolderFallbackSheet } from '../components/FolderFallbackSheet';
 import { openFolderBestEffort, openGalleryBestEffort, shouldShowOpenGallery } from '../native/androidIntents';
@@ -13,7 +13,7 @@ import type { ExportHistoryItem, MediaType } from '../types/media';
 import { useAppTheme } from '../theme/useAppTheme';
 import { WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
-import { FilePathText, StatusBadge, textStyles } from '../components/AppUi';
+import { ExpandableTechnicalDetails, FilePathText, PremiumCard, PrimaryButton, SecondaryButton, StatusBadge, textStyles } from '../components/AppUi';
 import { spacing } from '../theme/designTokens';
 
 export function HistoryScreen() {
@@ -153,19 +153,18 @@ function HistoryCard({
     }
   }
 
+  const completed = item.counts.failed === 0;
+
   return (
-    <Surface elevation={0} style={[styles.card, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}>
+    <PremiumCard style={styles.card}>
       <View style={styles.header}>
         <View style={styles.flex}>
           <Text variant="titleMedium" numberOfLines={2} style={[styles.cardTitle, textStyles.start]}>
-            {item.chatName}
-          </Text>
-          <Text variant="bodySmall" numberOfLines={1} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {new Date(item.exportTimestampIso).toLocaleString()}
+            {t('history.saveFrom', { date: new Date(item.exportTimestampIso).toLocaleString() })}
           </Text>
         </View>
         <View style={styles.headerActions}>
-          <StatusBadge label={item.allFilesHadTimestampsFixed ? t('history.dateReady') : t('history.needsCheck')} selected={item.allFilesHadTimestampsFixed} />
+          <StatusBadge label={completed ? t('history.completed') : t('history.needsCheck')} selected={completed} danger={!completed} />
           <Menu
             visible={menuOpen}
             onDismiss={() => setMenuOpen(false)}
@@ -191,34 +190,41 @@ function HistoryCard({
           </Menu>
         </View>
       </View>
-      <FilePathText value={item.outputFolderPath} maxLines={1} ellipsizeMode="tail" />
-      <Text variant="labelMedium">
-        {t('history.counts', {
-          saved: item.counts.totalSaved,
+      <Text variant="labelLarge" style={textStyles.start}>
+        {t('history.summaryCounts', { saved: item.counts.totalSaved, failed: item.counts.failed })}
+      </Text>
+      <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+        {t('history.mediaCounts', {
           photos: item.counts.photos,
           videos: item.counts.videos,
-          other: item.counts.voice + item.counts.stickers + item.counts.documents,
-          failed: item.counts.failed
+          other: item.counts.voice + item.counts.stickers + item.counts.documents
         })}
       </Text>
+      <Text variant="bodySmall" numberOfLines={1} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+        {getFriendlyFolderName(item.outputFolderPath)}
+      </Text>
+      <ExpandableTechnicalDetails collapsedTitle={t('history.details')} expandedTitle={t('common.hideTechnicalDetails')}>
+        <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+          {item.chatName}
+        </Text>
+        <FilePathText value={item.outputFolderPath} maxLines={3} />
+      </ExpandableTechnicalDetails>
       <View style={styles.actions}>
-        <IconButton
-          mode="contained-tonal"
+        <SecondaryButton
           icon="folder-open-outline"
-          size={18}
-          style={styles.iconButton}
-          accessibilityLabel={t('history.openFolder')}
+          style={styles.actionButton}
           onPress={() => void openFolder()}
-        />
-        <IconButton
-          mode="contained-tonal"
+        >
+          {t('history.openFolder')}
+        </SecondaryButton>
+        <SecondaryButton
           icon="share-variant-outline"
-          size={18}
-          style={styles.iconButton}
-          accessibilityLabel={t('history.shareFiles')}
+          style={styles.actionButton}
           disabled={!item.savedFiles?.length}
           onPress={() => setShareOpen(true)}
-        />
+        >
+          {t('history.shareFiles')}
+        </SecondaryButton>
       </View>
       <HistoryShareSheet
         visible={shareOpen}
@@ -229,7 +235,7 @@ function HistoryCard({
           void shareOutputFiles(item.savedFiles ?? [], categories);
         }}
       />
-    </Surface>
+    </PremiumCard>
   );
 }
 
@@ -249,6 +255,13 @@ function HistoryShareSheet({
     () => Array.from(new Set((item.savedFiles ?? []).filter((result) => result.ok && result.mediaType).map((result) => result.mediaType as MediaType))),
     [item.savedFiles]
   );
+  const counts = React.useMemo(() => {
+    const next = new Map<MediaType, number>();
+    (item.savedFiles ?? []).forEach((result) => {
+      if (result.ok && result.mediaType) next.set(result.mediaType, (next.get(result.mediaType) ?? 0) + 1);
+    });
+    return next;
+  }, [item.savedFiles]);
   const [selected, setSelected] = React.useState<MediaType[]>([]);
 
   React.useEffect(() => {
@@ -261,25 +274,38 @@ function HistoryShareSheet({
   }
 
   return (
-    <BottomSheet visible={visible} title={t('history.shareFiles')} subtitle={t('history.shareFilesBody')} onDismiss={onDismiss}>
-      <View style={styles.shareChipRow}>
-        {available.map((type) => (
-          <Button key={type} compact mode={selected.includes(type) ? 'contained-tonal' : 'outlined'} onPress={() => toggle(type)}>
-            {t(`media.plural.${type}`)}
-          </Button>
-        ))}
-      </View>
-      <Button mode="contained" disabled={selected.length === 0} onPress={() => onShare(selected)}>
-        {t('history.shareFiles')}
-      </Button>
-    </BottomSheet>
+    <PremiumBottomSheet
+      visible={visible}
+      title={t('results.shareSheetTitle')}
+      subtitle={t('history.shareFilesBody')}
+      onDismiss={onDismiss}
+      footer={
+        <PrimaryButton disabled={selected.length === 0} onPress={() => onShare(selected)}>
+          {t('results.shareAction')}
+        </PrimaryButton>
+      }
+    >
+      <SecondaryButton selected={selected.length === available.length && available.length > 0} onPress={() => setSelected(available)}>
+        {t('results.shareAll', { count: available.reduce((sum, type) => sum + (counts.get(type) ?? 0), 0) })}
+      </SecondaryButton>
+      {available.map((type) => (
+        <SecondaryButton key={type} selected={selected.includes(type)} onPress={() => toggle(type)}>
+          {t('results.shareCategory', { label: t(`media.plural.${type}`), count: counts.get(type) ?? 0 })}
+        </SecondaryButton>
+      ))}
+    </PremiumBottomSheet>
   );
+}
+
+function getFriendlyFolderName(path: string): string {
+  const normalized = path.replace(/\\/g, '/');
+  return normalized.split('/').filter(Boolean).pop() ?? path;
 }
 
 const styles = StyleSheet.create({
   content: {
-    gap: spacing.gap,
-    paddingBottom: spacing.section
+    gap: spacing.card,
+    paddingBottom: 144
   },
   emptyContent: {
     flexGrow: 1,
@@ -291,11 +317,7 @@ const styles = StyleSheet.create({
     padding: 20
   },
   card: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 12,
-    paddingHorizontal: spacing.compactInner,
-    paddingVertical: spacing.smallGap,
-    gap: spacing.tinyGap
+    gap: spacing.smallGap
   },
   header: {
     flexDirection: 'row',
@@ -310,7 +332,12 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.tinyGap
+    flexWrap: 'wrap',
+    gap: spacing.smallGap
+  },
+  actionButton: {
+    alignSelf: 'flex-start',
+    minWidth: 116
   },
   iconButton: {
     width: 36,

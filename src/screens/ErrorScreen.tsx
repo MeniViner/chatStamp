@@ -1,7 +1,6 @@
 import React from 'react';
-import { AppState, ScrollView, StyleSheet, View } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Button, List, Surface, Text } from 'react-native-paper';
+import { AppState, ScrollView, StyleSheet } from 'react-native';
+import { List, Surface, Text } from 'react-native-paper';
 import { usePipelineStore } from '../store/pipelineStore';
 import { clearWorkingDirectory } from '../services/importService';
 import { hasAllFilesAccess, openAllFilesAccessSettings } from '../native/allFilesAccess';
@@ -9,7 +8,8 @@ import { logger } from '../lib/logger';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
-import { textStyles } from '../components/AppUi';
+import { PremiumCard, PrimaryButton, SecondaryButton, StatusBanner, textStyles } from '../components/AppUi';
+import { radius, spacing } from '../theme/designTokens';
 
 export function ErrorScreen() {
   const { t } = useTranslation();
@@ -78,36 +78,31 @@ export function ErrorScreen() {
       footer={
         <FooterActions>
           {isPermissionError ? (
-            <Button mode="contained" icon="shield-key-outline" onPress={() => void grantPermission()}>
+            <PrimaryButton icon="shield-key-outline" onPress={() => void grantPermission()}>
               {t('error.grantAllFilesAccess')}
-            </Button>
+            </PrimaryButton>
           ) : null}
-          <Button mode="contained" onPress={() => void resetAndCleanUp()}>
+          <PrimaryButton onPress={() => void resetAndCleanUp()}>
             {t('error.tryAnotherZip')}
-          </Button>
-          <Button mode="text" onPress={() => void resetAndCleanUp()}>
+          </PrimaryButton>
+          <SecondaryButton onPress={() => void resetAndCleanUp()}>
             {t('results.startOver')}
-          </Button>
+          </SecondaryButton>
         </FooterActions>
       }
     >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Surface elevation={0} style={[styles.errorCard, { backgroundColor: theme.colors.errorContainer, borderColor: theme.colors.error }]}>
-          <MaterialCommunityIcons name="alert-circle-outline" size={32} color={theme.colors.error} />
-          <View style={styles.flex}>
-            <Text variant="titleMedium" style={[textStyles.start, { color: theme.colors.onErrorContainer }]}>
-              {friendly.title}
-            </Text>
-            <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.onErrorContainer }]}>
-              {friendly.action}
-            </Text>
-          </View>
-        </Surface>
-        <List.Accordion title={t('error.showDetails')} left={(props) => <List.Icon {...props} icon="text-box-search-outline" />}>
-          <Surface elevation={0} style={[styles.details, { borderColor: theme.colors.outlineVariant }]}>
-            <Text variant="bodySmall" style={textStyles.start}>{error ?? t('error.unknownError')}</Text>
-          </Surface>
-        </List.Accordion>
+        <StatusBanner tone="error" icon="alert-circle-outline" title={friendly.title} body={friendly.action} />
+        <PremiumCard>
+          <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+            {friendly.reason}
+          </Text>
+          <List.Accordion title={t('error.showDetails')} titleStyle={styles.accordionTitle} left={(props) => <List.Icon {...props} icon="text-box-search-outline" />}>
+            <Surface elevation={0} style={[styles.details, { borderColor: theme.colors.outlineVariant }]}>
+              <Text variant="bodySmall" style={textStyles.start}>{error ?? t('error.unknownError')}</Text>
+            </Surface>
+          </List.Accordion>
+        </PremiumCard>
       </ScrollView>
     </WizardScreen>
   );
@@ -159,22 +154,19 @@ function getFriendlyError(t: (key: string) => string, error: string | undefined,
 
 const styles = StyleSheet.create({
   content: {
-    gap: 18,
-    paddingBottom: 24
-  },
-  errorCard: {
-    borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 16,
-    flexDirection: 'row',
-    gap: 12
+    gap: spacing.section,
+    paddingBottom: spacing.section
   },
   flex: {
     flex: 1
   },
   details: {
-    borderRadius: 8,
+    borderRadius: radius.card,
     borderWidth: StyleSheet.hairlineWidth,
     padding: 12
+  },
+  accordionTitle: {
+    fontSize: 14,
+    fontWeight: '700'
   }
 });

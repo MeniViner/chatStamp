@@ -3,7 +3,7 @@ import { AppState, BackHandler, ScrollView, StyleSheet, View } from 'react-nativ
 import * as Application from 'expo-application';
 import { Directory, Paths } from 'expo-file-system';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Button, RadioButton, Snackbar, Text } from 'react-native-paper';
+import { Snackbar, Text } from 'react-native-paper';
 import { BottomSheet } from '../components/BottomSheet';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { hasAllFilesAccess, openAllFilesAccessSettings } from '../native/allFilesAccess';
@@ -20,10 +20,12 @@ import { useTranslation } from 'react-i18next';
 import type { AppLanguagePreference, AppSettings, DuplicateHandlingMode, OutputOrganizationMode } from '../types/media';
 import {
   InfoRow,
+  OptionChoiceCard,
+  PrimaryButton,
   SecondaryButton,
-  SelectableOptionCard,
   SettingsSectionCard,
   SettingRow as UiSettingRow,
+  StatusBanner,
   textStyles
 } from '../components/AppUi';
 import { spacing } from '../theme/designTokens';
@@ -123,6 +125,12 @@ export function SettingsScreen() {
     >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Section title={t('settings.saveLocation')} icon="folder-cog-outline">
+          <StatusBanner
+            tone={allFilesAccessGranted ? 'success' : 'warning'}
+            icon={allFilesAccessGranted ? 'shield-check-outline' : 'shield-alert-outline'}
+            title={allFilesAccessGranted ? t('settings.permissionReadyTitle') : t('settings.permissionMissingTitle')}
+            body={allFilesAccessGranted ? t('settings.granted') : t('settings.notGranted')}
+          />
           <DestinationCard
             title={t('settings.defaultAccurateFolder')}
             description={t('settings.defaultAccurateFolderBody')}
@@ -184,9 +192,9 @@ export function SettingsScreen() {
             <Text variant="titleSmall" numberOfLines={2} style={[styles.flex, textStyles.start]}>
               {t(`settings.organizationModes.${settings.outputOrganization.mode}.title`)}
             </Text>
-            <Button compact mode="contained-tonal" onPress={() => setOrganizationSheetOpen(true)}>
+            <SecondaryButton style={styles.compactAction} onPress={() => setOrganizationSheetOpen(true)}>
               {t('settings.change')}
-            </Button>
+            </SecondaryButton>
           </View>
           <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
             {getOrganizationSummaryText(t, settings.outputOrganization)}
@@ -201,32 +209,43 @@ export function SettingsScreen() {
             }
           />
           <Text variant="labelLarge">{t('settings.duplicateHandling')}</Text>
-          <RadioButton.Group
-            value={settings.outputOrganization.duplicateHandling}
-            onValueChange={(value) =>
-              void updateSettings({
-                outputOrganization: {
-                  ...settings.outputOrganization,
-                  duplicateHandling: normalizeDuplicateMode(value)
-                }
-              })
-            }
-          >
+          <View style={styles.choiceList}>
             {duplicateModes.map((mode) => (
-              <RadioItem key={mode} label={t(`settings.duplicateModes.${mode}`)} value={mode} />
+              <OptionChoiceCard
+                key={mode}
+                title={t(`settings.duplicateModes.${mode}`)}
+                description={t(`outputOptions.duplicateModes.${mode}.body`)}
+                selected={settings.outputOrganization.duplicateHandling === mode}
+                caution={mode === 'replace-existing'}
+                onPress={() =>
+                  void updateSettings({
+                    outputOrganization: {
+                      ...settings.outputOrganization,
+                      duplicateHandling: mode
+                    }
+                  })
+                }
+              />
             ))}
-          </RadioButton.Group>
+          </View>
         </Section>
 
         <Section title={t('settings.language')} icon="translate">
           <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
             {t('settings.languageInfo')}
           </Text>
-          <RadioButton.Group value={settings.languagePreference} onValueChange={(value) => void applyLanguagePreference(normalizeLanguage(value))}>
+          <View style={styles.choiceList}>
             {languageOptions.map((languagePreference) => (
-              <RadioItem key={languagePreference} label={t(`settings.languageOptions.${languagePreference}`)} value={languagePreference} disabled={languageBusy} />
+              <OptionChoiceCard
+                key={languagePreference}
+                title={t(`settings.languageOptions.${languagePreference}`)}
+                description={t(`settings.languageBodies.${languagePreference}`)}
+                selected={settings.languagePreference === languagePreference}
+                disabled={languageBusy}
+                onPress={() => void applyLanguagePreference(languagePreference)}
+              />
             ))}
-          </RadioButton.Group>
+          </View>
           <SecondaryButton
             icon="android"
             onPress={async () => {
@@ -243,16 +262,29 @@ export function SettingsScreen() {
         </Section>
 
         <Section title={t('settings.appearance')} icon="theme-light-dark">
-          <RadioButton.Group
-            value={settings.appearance}
-            onValueChange={(value) => void updateSettings({ appearance: value === 'dark' ? 'dark' : value === 'light' ? 'light' : 'system' })}
-          >
-            <RadioItem label={t('settings.systemDefault')} value="system" />
-            <RadioItem label={t('settings.light')} value="light" />
-            <RadioItem label={t('settings.dark')} value="dark" />
-          </RadioButton.Group>
+          <View style={styles.choiceList}>
+            <OptionChoiceCard
+              title={t('settings.systemDefault')}
+              description={t('settings.appearanceBodies.system')}
+              selected={settings.appearance === 'system'}
+              onPress={() => void updateSettings({ appearance: 'system' })}
+            />
+            <OptionChoiceCard
+              title={t('settings.light')}
+              description={t('settings.appearanceBodies.light')}
+              selected={settings.appearance === 'light'}
+              onPress={() => void updateSettings({ appearance: 'light' })}
+            />
+            <OptionChoiceCard
+              title={t('settings.dark')}
+              description={t('settings.appearanceBodies.dark')}
+              selected={settings.appearance === 'dark'}
+              onPress={() => void updateSettings({ appearance: 'dark' })}
+            />
+          </View>
           <UiSettingRow
             title={t('settings.dynamicColors')}
+            description={t('settings.dynamicColorsBody')}
             value={settings.useDynamicColors}
             onValueChange={(value) => void updateSettings({ useDynamicColors: value })}
           />
@@ -271,6 +303,7 @@ export function SettingsScreen() {
           </SecondaryButton>
           <UiSettingRow
             title={t('settings.developerModeToggle')}
+            description={t('settings.developerModeBody')}
             value={settings.developerMode}
             onValueChange={(value) => void updateSettings({ developerMode: value, showTechnicalLogs: value ? settings.showTechnicalLogs : false })}
           />
@@ -351,7 +384,13 @@ function OutputOrganizationSheet({
   const theme = useAppTheme();
 
   return (
-    <BottomSheet visible={visible} title={t('settings.outputOrg')} subtitle={t('settings.outputOrgSubtitle')} onDismiss={onDismiss}>
+    <BottomSheet
+      visible={visible}
+      title={t('settings.outputOrg')}
+      subtitle={t('settings.outputOrgSubtitle')}
+      onDismiss={onDismiss}
+      footer={<PrimaryButton onPress={onDismiss}>{t('common.ok')}</PrimaryButton>}
+    >
       {organizationModes.map((mode) => (
         <PressCard
           key={mode}
@@ -387,14 +426,14 @@ function DestinationCard({
   badge?: string;
 }) {
   return (
-    <SelectableOptionCard
+    <OptionChoiceCard
       title={title}
       description={description}
       selected={selected}
       badge={badge}
       showRadio={false}
       onPress={onPress}
-      example={description.includes('/') || description.includes('\\') ? description : undefined}
+      technicalDetail={description.includes('/') || description.includes('\\') ? description : undefined}
     />
   );
 }
@@ -413,33 +452,12 @@ function PressCard({
   onPress: () => void;
 }) {
   return (
-    <SelectableOptionCard title={title} description={body} example={example} selected={selected} onPress={onPress} />
-  );
-}
-
-function RadioItem({ label, value, disabled = false }: { label: string; value: string; disabled?: boolean }) {
-  return (
-    <View style={styles.row}>
-      <Text variant="bodyMedium" numberOfLines={2} style={[styles.flex, textStyles.start]}>
-        {label}
-      </Text>
-      <RadioButton value={value} disabled={disabled} />
-    </View>
+    <OptionChoiceCard title={title} description={body} technicalDetail={example} selected={selected} onPress={onPress} />
   );
 }
 
 function Detail({ icon, label, value, path = false }: { icon: React.ComponentProps<typeof MaterialCommunityIcons>['name']; label: string; value: string; path?: boolean }) {
   return <InfoRow icon={icon} label={label} value={value} path={path} />;
-}
-
-function normalizeDuplicateMode(value: string): DuplicateHandlingMode {
-  if (value === 'skip-existing' || value === 'replace-existing') return value;
-  return 'keep-both';
-}
-
-function normalizeLanguage(value: string): AppLanguagePreference {
-  if (value === 'en' || value === 'he') return value;
-  return 'system';
 }
 
 function getOrganizationSummaryText(
@@ -461,22 +479,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    gap: 8
-  },
-  row: {
-    minHeight: 48,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12
+    gap: spacing.smallGap
   },
   buttonRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10
+    gap: spacing.smallGap
+  },
+  choiceList: {
+    gap: spacing.smallGap
   },
   compactButtonRow: {
     flexDirection: 'row',
     gap: spacing.smallGap
+  },
+  compactAction: {
+    alignSelf: 'flex-start'
   },
   compactButton: {
     flex: 1

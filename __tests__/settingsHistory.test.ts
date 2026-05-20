@@ -87,7 +87,7 @@ describe('settings and history helpers', () => {
       selectedMediaTypes: selectedTypes,
       selectedSenders: ['Dana'],
       chatName: 'Chat',
-      outputFolderPath: '/storage/emulated/0/Pictures/WhatsApp Media TimeFixer/Chat',
+      outputFolderPath: '/storage/emulated/0/Pictures/chatStamp/Chat',
       now: new Date('2026-05-02T12:00:00.000Z')
     });
 

@@ -1,6 +1,6 @@
 import type { ExtractedMediaFile, MediaType, OutputOrganizationMode, OutputOrganizationSettings } from '../types/media';
 
-export const TERMUX_PARITY_BASE_FOLDER = '/storage/emulated/0/Pictures/WhatsApp Media TimeFixer';
+export const TERMUX_PARITY_BASE_FOLDER = '/storage/emulated/0/Pictures/chatStamp';
 
 export const defaultOutputOrganization: OutputOrganizationSettings = {
   mode: 'by-type',

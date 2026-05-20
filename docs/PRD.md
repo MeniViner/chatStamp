@@ -1,4 +1,4 @@
-# Product Requirements Document — WhatsApp Media TimeFixer
+# Product Requirements Document — chatStamp
 
 ## 1. Problem
 

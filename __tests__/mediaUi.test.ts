@@ -35,6 +35,6 @@ describe('mediaUi', () => {
 
   it('uses concise result headlines and shortened paths', () => {
     expect(getSavedHeadline({ saved: 2, dateCorrected: 2, failed: 0 })).toContain('original WhatsApp dates');
-    expect(shortenPath('/storage/emulated/0/Pictures/WhatsApp Media TimeFixer/Chat/IMG-1.jpg', 24)).toBe('...eFixer/Chat/IMG-1.jpg');
+    expect(shortenPath('/storage/emulated/0/Pictures/chatStamp/Chat/IMG-1.jpg', 24)).toBe('...tStamp/Chat/IMG-1.jpg');
   });
 });

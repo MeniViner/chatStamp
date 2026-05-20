@@ -1,6 +1,6 @@
 import { Directory, File, Paths } from 'expo-file-system';
 
-const storageDirectoryName = 'watimefixer-store';
+const storageDirectoryName = 'chatstamp-store';
 
 function storageFile(name: string): File {
   const directory = new Directory(Paths.document, storageDirectoryName);
