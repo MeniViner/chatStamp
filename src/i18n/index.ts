@@ -16,9 +16,11 @@ const resources = {
 };
 
 export type SupportedAppLanguage = 'en' | 'he';
+export type AppLayoutDirection = 'ltr' | 'rtl';
 
 const initialLanguage = resolveAppLanguage('system');
-applyRtlPreference(initialLanguage);
+let currentIsRtl = initialLanguage === 'he';
+applyNativeRtlPreference(currentIsRtl);
 
 void i18n.use(initReactI18next).init({
   resources,
@@ -48,17 +50,23 @@ export function resolveAppLanguage(preference: AppLanguagePreference = 'system')
 export async function syncI18nLanguage(preference: AppLanguagePreference = 'system'): Promise<boolean> {
   const language = resolveAppLanguage(preference);
   const shouldUseRtl = language === 'he';
-  const rtlChanged = applyRtlPreference(language);
+  const rtlChanged = currentIsRtl !== shouldUseRtl;
+  applyNativeRtlPreference(shouldUseRtl);
 
   if (i18n.language !== language) {
     await i18n.changeLanguage(language);
   }
 
   if (rtlChanged) {
+    currentIsRtl = shouldUseRtl;
     notifyRtlChanged(shouldUseRtl);
   }
 
   return rtlChanged;
+}
+
+export function getCurrentLayoutDirection(): AppLayoutDirection {
+  return currentIsRtl ? 'rtl' : 'ltr';
 }
 
 export function onRtlLayoutChange(listener: (isRtl: boolean) => void): () => void {
@@ -70,13 +78,9 @@ function notifyRtlChanged(isRtl: boolean) {
   rtlChangeListeners.forEach((listener) => listener(isRtl));
 }
 
-function applyRtlPreference(language: SupportedAppLanguage): boolean {
-  const shouldUseRtl = language === 'he';
-  if (I18nManager.isRTL === shouldUseRtl) return false;
-  
+function applyNativeRtlPreference(shouldUseRtl: boolean) {
   I18nManager.allowRTL(shouldUseRtl);
   I18nManager.forceRTL(shouldUseRtl);
-  return true;
 }
 
 export default i18n;

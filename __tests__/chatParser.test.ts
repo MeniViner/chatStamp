@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseWhatsAppChatText } from '../src/lib/chatParser';
+import { getLatestWhatsAppMessageDateIso, parseWhatsAppChatText, parseWhatsAppChatPreview } from '../src/lib/chatParser';
 import { classifyMedia } from '../src/lib/mediaClassifier';
 import { attachChatRecordsToMedia } from '../src/lib/matcher';
 import type { ExtractedMediaFile } from '../src/types/media';
@@ -69,6 +69,25 @@ IMG-20241231-WA0001.jpg attached below
 
     expect(result.records).toHaveLength(0);
     expect(result.skippedLines).toHaveLength(1);
+  });
+
+  it('reads the latest message date even when the chat has no media', () => {
+    const latest = getLatestWhatsAppMessageDateIso(`01/01/2025, 09:00 - Sender: hello
+02/01/2025, 10:30 - Sender: still text only`);
+
+    expect(latest).toContain('2025-01-02');
+  });
+
+  it('builds conversation preview messages for text-only exports', () => {
+    const preview = parseWhatsAppChatPreview(`01/01/2025, 09:00 - Sender: hello
+this continues on another line
+02/01/2025, 10:30 - Dana: still text only`, 1);
+
+    expect(preview.totalMessages).toBe(2);
+    expect(preview.truncated).toBe(true);
+    expect(preview.messages).toHaveLength(1);
+    expect(preview.messages[0].sender).toBe('Sender');
+    expect(preview.messages[0].body).toContain('continues');
   });
 });
 

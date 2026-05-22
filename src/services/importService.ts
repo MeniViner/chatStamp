@@ -1,11 +1,13 @@
 import * as FileSystem from 'expo-file-system/legacy';
-import { parseWhatsAppChatText } from '../lib/chatParser';
+import { getLatestWhatsAppMessageDateIso, parseWhatsAppChatText } from '../lib/chatParser';
 import { classifyMedia, isSupportedForMvp } from '../lib/mediaClassifier';
 import { attachChatRecordsToMedia } from '../lib/matcher';
 import { normalizeFilename } from '../lib/filename';
 import { logger } from '../lib/logger';
 import { extractSupportedZipEntries } from '../native/zipExtractor';
 import type { ChatMediaRecord, ExtractedMediaFile, ImportSummary, ProcessingProgress } from '../types/media';
+
+export const CHAT_TRANSCRIPT_SENDER = 'Chat transcript';
 
 export type ImportPipelineResult = {
   workingDirectory: string;
@@ -69,6 +71,7 @@ export async function importWhatsAppZip({
     onProgress?.({ stageLabel: 'Finding transcript and parsing messages', processed: 4, total: 7, failed: 0 });
     const chatText = await FileSystem.readAsStringAsync(extraction.chatFileUri);
     const parsedChat = parseWhatsAppChatText(chatText);
+    const transcriptDateIso = getLatestWhatsAppMessageDateIso(chatText);
     logger.debug('Number of parsed messages', parsedChat.records.length);
 
     const extractedMediaFiles = extraction.mediaFiles
@@ -79,6 +82,7 @@ export async function importWhatsAppZip({
         normalizedFilename: normalizeFilename(file.filename),
         uri: file.uri,
         mediaType: classifyMedia(file.filename),
+        sourceKind: 'zip-media',
         matchedRecord: undefined
       }));
     if (extractedMediaFiles.length === 0) {
@@ -86,11 +90,17 @@ export async function importWhatsAppZip({
         txtFiles: extraction.txtFiles,
         chatRecords: parsedChat.records.length
       });
-      throw new Error('This WhatsApp export contains no media. Export chat with media included.');
     }
 
     onProgress?.({ stageLabel: 'Matching and classifying media', processed: 5, total: 7, failed: 0 });
-    const mediaFiles = attachChatRecordsToMedia(extractedMediaFiles, parsedChat.records);
+    const matchedMediaFiles = attachChatRecordsToMedia(extractedMediaFiles, parsedChat.records);
+    const transcriptFile = buildTranscriptFile({
+      chatFileUri: extraction.chatFileUri,
+      chatFilename: extraction.chatFilename,
+      transcriptDateIso,
+      chatRecords: parsedChat.records
+    });
+    const mediaFiles = transcriptFile ? [transcriptFile, ...matchedMediaFiles] : matchedMediaFiles;
     logger.debug('Number of media references matched', mediaFiles.filter((file) => file.matchedRecord).length);
     const importSummary = buildImportSummary(mediaFiles, parsedChat.records.length, parsedChat.skippedLines.length, {
       extractedCount: extraction.extractedCount,
@@ -126,13 +136,55 @@ export async function importWhatsAppZip({
   }
 }
 
+function buildTranscriptFile({
+  chatFileUri,
+  chatFilename,
+  transcriptDateIso,
+  chatRecords
+}: {
+  chatFileUri: string;
+  chatFilename?: string | null;
+  transcriptDateIso?: string | null;
+  chatRecords: ChatMediaRecord[];
+}): ExtractedMediaFile {
+  const filename = chatFilename?.trim() || '_chat.txt';
+  const timestampIso = transcriptDateIso ?? getTranscriptTimestampIso(chatRecords);
+  const record: ChatMediaRecord = {
+    id: `chat-transcript:${normalizeFilename(filename)}`,
+    filename,
+    normalizedFilename: normalizeFilename(filename),
+    sender: CHAT_TRANSCRIPT_SENDER,
+    messageDateIso: timestampIso,
+    rawLine: ''
+  };
+
+  return {
+    id: `chat-transcript:${normalizeFilename(filename)}`,
+    filename,
+    normalizedFilename: normalizeFilename(filename),
+    uri: chatFileUri,
+    mediaType: 'document',
+    sourceKind: 'chat-transcript',
+    matchedRecord: record
+  };
+}
+
+function getTranscriptTimestampIso(chatRecords: ChatMediaRecord[], now = new Date()): string {
+  const timestamps = chatRecords
+    .map((record) => new Date(record.messageDateIso).getTime())
+    .filter(Number.isFinite);
+  if (timestamps.length === 0) return now.toISOString();
+  return new Date(Math.max(...timestamps)).toISOString();
+}
+
 function buildImportSummary(
   mediaFiles: ExtractedMediaFile[],
   chatRecords: number,
   skippedChatLines: number,
   extraction: { extractedCount: number; skippedCount: number; extractionMode: 'native-selective' }
 ): ImportSummary {
-  const matchedMedia = mediaFiles.filter((file) => file.matchedRecord).length;
+  const exportedMediaFiles = mediaFiles.filter((file) => file.sourceKind !== 'chat-transcript');
+  const matchedMedia = exportedMediaFiles.filter((file) => file.matchedRecord).length;
   const senders = new Set(mediaFiles.map((file) => file.matchedRecord?.sender).filter(Boolean)).size;
   const count = (type: string) => mediaFiles.filter((file) => file.mediaType === type).length;
 
@@ -142,7 +194,7 @@ function buildImportSummary(
     extractedEntries: extraction.extractedCount,
     skippedZipEntries: extraction.skippedCount,
     matchedMedia,
-    unmatchedMedia: mediaFiles.length - matchedMedia,
+    unmatchedMedia: exportedMediaFiles.length - matchedMedia,
     senders,
     photos: count('photo'),
     videos: count('video'),

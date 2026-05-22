@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classifyMedia } from '../src/lib/mediaClassifier';
+import { classifyMedia, getMimeTypeForMedia } from '../src/lib/mediaClassifier';
 
 describe('classifyMedia', () => {
   it.each([
@@ -12,8 +12,13 @@ describe('classifyMedia', () => {
     ['STK-20260429-WA0001.webp', 'sticker'],
     ['anything.webp', 'sticker'],
     ['סמל2.pdf', 'document'],
-    ['contact.vcf', 'document']
+    ['contact.vcf', 'document'],
+    ['_chat.txt', 'document']
   ] as const)('%s => %s', (filename, expected) => {
     expect(classifyMedia(filename)).toBe(expected);
+  });
+
+  it('shares the chat transcript as text/plain', () => {
+    expect(getMimeTypeForMedia('_chat.txt')).toBe('text/plain');
   });
 });

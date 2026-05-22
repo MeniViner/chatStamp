@@ -27,6 +27,7 @@ export type ExtractedMediaFile = {
   normalizedFilename: string;
   uri: string;
   mediaType: MediaType;
+  sourceKind?: 'zip-media' | 'chat-transcript';
   thumbnailUri?: string;
   matchedRecord?: ChatMediaRecord;
 };

@@ -2,8 +2,9 @@ node_modules/
 .expo/
 dist/
 coverage/
-android/
-ios/
+/android/
+/ios/
+modules/*/android/build/
 *.jks
 *.keystore
 .env

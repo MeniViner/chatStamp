@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../theme/useAppTheme';
 import { spacing, radius } from '../theme/designTokens';
 import { textStyles } from './AppUi';
+import { useAppLayoutDirection } from '../i18n/AppLayoutDirectionContext';
 
 type BottomSheetProps = {
   visible: boolean;
@@ -20,10 +21,11 @@ export function PremiumBottomSheet({ visible, title, subtitle, onDismiss, childr
   const { t } = useTranslation();
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
+  const layoutDirection = useAppLayoutDirection();
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onDismiss}>
-      <Pressable style={styles.backdrop} onPress={onDismiss}>
+      <Pressable style={[styles.backdrop, layoutDirection === 'rtl' ? styles.rtl : styles.ltr]} onPress={onDismiss}>
         <Pressable style={styles.pressableSheet}>
           <Surface
             elevation={3}
@@ -56,6 +58,7 @@ export function PremiumBottomSheet({ visible, title, subtitle, onDismiss, childr
             </View>
             <View style={styles.bodyWrap}>
               <ScrollView
+                nestedScrollEnabled
                 style={styles.scroll}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
@@ -81,6 +84,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(15, 23, 42, 0.32)'
+  },
+  ltr: {
+    direction: 'ltr'
+  },
+  rtl: {
+    direction: 'rtl'
   },
   pressableSheet: {
     width: '100%'

@@ -11,7 +11,8 @@ import { useSettingsStore } from './src/store/settingsStore';
 import { useHistoryStore } from './src/store/historyStore';
 import { useOnboardingStore } from './src/store/onboardingStore';
 import { useTranslation } from 'react-i18next';
-import { onRtlLayoutChange, syncI18nLanguage } from './src/i18n';
+import { getCurrentLayoutDirection, onRtlLayoutChange, syncI18nLanguage, type AppLayoutDirection } from './src/i18n';
+import { AppLayoutDirectionProvider } from './src/i18n/AppLayoutDirectionContext';
 
 type AppAssetState = 'loading' | 'ready' | 'failed';
 
@@ -24,7 +25,7 @@ export default function App() {
   const developerMode = useSettingsStore((state) => state.settings.developerMode);
   const loadHistory = useHistoryStore((state) => state.loadHistory);
   const replayRequested = useOnboardingStore((state) => state.replayRequested);
-  const [rtlRefreshKey, setRtlRefreshKey] = React.useState(0);
+  const [layoutDirection, setLayoutDirection] = React.useState<AppLayoutDirection>(() => getCurrentLayoutDirection());
 
   useEffect(() => {
     logger.setDebugEnabled(developerMode);
@@ -73,8 +74,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    return onRtlLayoutChange(() => {
-      setRtlRefreshKey((current) => current + 1);
+    return onRtlLayoutChange((isRtl) => {
+      setLayoutDirection(isRtl ? 'rtl' : 'ltr');
     });
   }, []);
 
@@ -106,10 +107,12 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <View key={`rtl-layout-${rtlRefreshKey}`} style={styles.appRoot}>
-        <AppThemeProvider>
-          {!onboardingCompleted || replayRequested ? <OnboardingFlow /> : <AppNavigator />}
-        </AppThemeProvider>
+      <View key={`layout-${layoutDirection}`} style={[styles.appRoot, layoutDirection === 'rtl' ? styles.rtlRoot : styles.ltrRoot]}>
+        <AppLayoutDirectionProvider direction={layoutDirection}>
+          <AppThemeProvider>
+            {!onboardingCompleted || replayRequested ? <OnboardingFlow /> : <AppNavigator />}
+          </AppThemeProvider>
+        </AppLayoutDirectionProvider>
       </View>
     </SafeAreaProvider>
   );
@@ -118,6 +121,12 @@ export default function App() {
 const styles = StyleSheet.create({
   appRoot: {
     flex: 1
+  },
+  ltrRoot: {
+    direction: 'ltr'
+  },
+  rtlRoot: {
+    direction: 'rtl'
   },
   container: {
     flex: 1,

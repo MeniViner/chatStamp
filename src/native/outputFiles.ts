@@ -1,4 +1,5 @@
 import type { MediaType, SaveFileResult } from '../types/media';
+import { getMimeTypeForMedia } from '../lib/mediaClassifier';
 import { getChatStampNativeModule } from './chatStampNativeModule';
 
 export type ShareableOutputFile = {
@@ -43,7 +44,6 @@ function mimeTypeForResult(result: SaveFileResult): string {
   if (result.mediaType === 'video') return 'video/*';
   if (result.mediaType === 'sticker' || result.mediaType === 'gif') return 'image/*';
   if (result.mediaType === 'voice' || result.mediaType === 'audio') return 'audio/*';
-  if (result.mediaType === 'document') return 'application/octet-stream';
+  if (result.mediaType === 'document') return getMimeTypeForMedia(result.filename, 'document');
   return '*/*';
 }
-

@@ -45,6 +45,7 @@ export function getMimeTypeForMedia(filename: string, mediaType = classifyMedia(
     if (extension === 'aac') return 'audio/aac';
     return 'audio/mpeg';
   }
+  if (mediaType === 'document' && extension === 'txt') return 'text/plain';
   return 'application/octet-stream';
 }
 

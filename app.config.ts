@@ -31,9 +31,7 @@ const config = {
         category: ['DEFAULT'],
         data: [
           { mimeType: 'application/zip' },
-          { mimeType: 'application/x-zip-compressed' },
-          { mimeType: 'application/octet-stream' },
-          { mimeType: '*/*' }
+          { mimeType: 'application/x-zip-compressed' }
         ]
       },
       {
@@ -41,9 +39,7 @@ const config = {
         category: ['DEFAULT'],
         data: [
           { mimeType: 'application/zip' },
-          { mimeType: 'application/x-zip-compressed' },
-          { mimeType: 'application/octet-stream' },
-          { mimeType: '*/*' }
+          { mimeType: 'application/x-zip-compressed' }
         ]
       },
       {
@@ -52,12 +48,8 @@ const config = {
         data: [
           { scheme: 'content', mimeType: 'application/zip' },
           { scheme: 'content', mimeType: 'application/x-zip-compressed' },
-          { scheme: 'content', mimeType: 'application/octet-stream' },
-          { scheme: 'content', mimeType: '*/*' },
           { scheme: 'file', mimeType: 'application/zip' },
-          { scheme: 'file', mimeType: 'application/x-zip-compressed' },
-          { scheme: 'file', mimeType: 'application/octet-stream' },
-          { scheme: 'file', mimeType: '*/*' }
+          { scheme: 'file', mimeType: 'application/x-zip-compressed' }
         ]
       }
     ]

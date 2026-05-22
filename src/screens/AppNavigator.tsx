@@ -39,6 +39,8 @@ function useGlobalSharedZipImport() {
   const setImportResult = usePipelineStore((state) => state.setImportResult);
   const setError = usePipelineStore((state) => state.setError);
   const importingRef = React.useRef(false);
+  const sharePollingDisabledRef = React.useRef(false);
+  const lastInvalidShareKeyRef = React.useRef<string | null>(null);
   const stageRef = React.useRef(stage);
 
   React.useEffect(() => {
@@ -46,6 +48,7 @@ function useGlobalSharedZipImport() {
   }, [stage]);
 
   const consumePendingShare = React.useCallback(async (reason: string) => {
+    if (sharePollingDisabledRef.current) return;
     if (importingRef.current || stageRef.current === 'analyzing' || stageRef.current === 'saving') return;
     importingRef.current = true;
     try {
@@ -60,10 +63,20 @@ function useGlobalSharedZipImport() {
 
       if (!sharedZip.copiedUri) {
         logger.warn('shareIntentReceivedButInvalid', sharedZip);
+        const invalidShareKey = [
+          sharedZip.sourceAction,
+          sharedZip.sourceUri,
+          sharedZip.filename,
+          sharedZip.mimeType,
+          sharedZip.error
+        ].join('|');
+        if (lastInvalidShareKeyRef.current === invalidShareKey) return;
+        lastInvalidShareKeyRef.current = invalidShareKey;
         setError(sharedZip.error ?? i18n.t('import.sharedFileCouldNotOpen'));
         return;
       }
 
+      lastInvalidShareKeyRef.current = null;
       logger.debug('shareIntentConsumedByJS', sharedZip);
       const name = sharedZip.filename ?? 'shared-whatsapp-export.zip';
       setZip({ uri: sharedZip.copiedUri, name });
@@ -81,6 +94,11 @@ function useGlobalSharedZipImport() {
       });
     } catch (error) {
       logger.error('Share intent handling failed', error);
+      if (error instanceof Error && error.message.includes('ChatStampNative is not available')) {
+        sharePollingDisabledRef.current = true;
+        logger.warn('Share intent polling disabled because the native module is unavailable.');
+        return;
+      }
       setError(error instanceof Error ? error.message : i18n.t('import.sharedZipFailed'));
     } finally {
       importingRef.current = false;

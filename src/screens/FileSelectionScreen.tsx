@@ -1,9 +1,10 @@
 import React from 'react';
-import { BackHandler, FlatList, StyleSheet, View } from 'react-native';
+import { BackHandler, FlatList, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { VideoView, useVideoPlayer } from 'expo-video';
+import * as FileSystem from 'expo-file-system/legacy';
 import { PremiumBottomSheet } from '../components/BottomSheet';
 import { Button, Chip, ProgressBar, Searchbar, Surface, Switch, Text } from 'react-native-paper';
 import { usePipelineStore } from '../store/pipelineStore';
@@ -12,6 +13,8 @@ import { countSelectedSaveableFiles } from '../store/selectionLogic';
 import { filterVisibleFiles, getVisibleSaveableFileIds } from '../store/fileFiltering';
 import type { ExtractedMediaFile, MediaType } from '../types/media';
 import { visibleMediaTypes } from '../lib/mediaUi';
+import { parseWhatsAppChatPreview, type ChatPreviewMessage } from '../lib/chatParser';
+import { formatShortChatTimestamp } from '../lib/previewDateFormat';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, WizardScreen } from './WizardScreen';
 import { runMp4RewriteDiagnosticsNative } from '../native/nativeMediaSaver';
@@ -28,7 +31,6 @@ import {
   FilterChipGroup,
   MediaFileListItem,
   OptionCard,
-  PremiumCard,
   PrimaryButton,
   SecondaryButton,
   SectionHeader,
@@ -89,7 +91,7 @@ export function FileSelectionScreen() {
 
   const visibleSaveableFileIds = React.useMemo(() => getVisibleSaveableFileIds(visibleFiles), [visibleFiles]);
   const selectedCount = countSelectedSaveableFiles(mediaFiles, selectedSenders, selectedMediaTypes, selectedFileIds);
-  const foundCount = importSummary?.matchedMedia ?? mediaFiles.length;
+  const foundCount = mediaFiles.length;
   const otherFoundCount =
     (importSummary?.voice ?? 0) + (importSummary?.stickers ?? 0) + (importSummary?.documents ?? 0) + (importSummary?.unknown ?? 0);
   const filtersActive = selectedSenders.length < senders.length || categoryFilters.length > 0 || !saveableOnly;
@@ -177,27 +179,17 @@ export function FileSelectionScreen() {
       }
     >
       <View style={styles.toolbarBlock}>
-        <PremiumCard>
-          <View style={styles.summaryHeader}>
-            <View style={styles.flex}>
-              <Text variant="displaySmall" style={styles.summaryNumber}>
-                {t('fileSelection.selectedCount', { count: selectedCount })}
-              </Text>
-              <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-                {t('fileSelection.foundCount', { count: foundCount })}
-              </Text>
-            </View>
-            {filtersActive ? <StatusBadge label={t('fileSelection.filtersActive')} selected /> : null}
-          </View>
-          <View style={styles.metricRow}>
+        <View style={[styles.compactSummaryBar, { borderColor: theme.colors.outlineVariant }]}>
+          <Text variant="labelMedium" numberOfLines={1} style={[styles.compactSummaryText, textStyles.start, { color: theme.colors.onSurface }]}>
+            {t('fileSelection.compactSummary', { selected: selectedCount, total: foundCount })}
+          </Text>
+          <View style={styles.compactBadges}>
             <StatusBadge label={t('fileSelection.photoCounter', { count: importSummary?.photos ?? 0 })} />
             <StatusBadge label={t('fileSelection.videoCounter', { count: importSummary?.videos ?? 0 })} />
             <StatusBadge label={t('fileSelection.otherCounter', { count: otherFoundCount })} />
+            {filtersActive ? <StatusBadge label={t('fileSelection.filtersActive')} selected /> : null}
           </View>
-          <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {t('fileSelection.otherExplanation')}
-          </Text>
-        </PremiumCard>
+        </View>
 
         <View style={styles.toolbarRow}>
           <SecondaryButton icon="filter-variant" selected={filtersActive} style={styles.controlButton} onPress={() => setFilterSheetOpen(true)}>
@@ -226,10 +218,10 @@ export function FileSelectionScreen() {
           <Text variant="bodySmall" numberOfLines={1} style={[styles.flex, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
             {t('fileSelection.totalShown', { count: visibleFiles.length })}
           </Text>
-          <Button mode="text" onPress={selectVisibleFiles}>
+          <Button mode="text" compact onPress={selectVisibleFiles}>
             {t('fileSelection.selectAll')}
           </Button>
-          <Button mode="text" onPress={clearVisibleSelections}>
+          <Button mode="text" compact onPress={clearVisibleSelections}>
             {t('fileSelection.clear')}
           </Button>
         </View>
@@ -348,7 +340,12 @@ function FilterSheet({
       }
     >
       <SectionHeader icon="account-outline" label={t('fileSelection.bySender')} />
-      <FilterChipGroup values={senders} selectedValues={selectedSenders} getLabel={(sender) => sender} onToggle={onToggleSender} />
+      <FilterChipGroup
+        values={senders}
+        selectedValues={selectedSenders}
+        getLabel={(sender) => (sender === 'Chat transcript' ? t('fileSelection.chatTranscript') : sender)}
+        onToggle={onToggleSender}
+      />
       <SectionHeader icon="file-multiple-outline" label={t('fileSelection.byFileType')} />
       <FilterChipGroup
         values={visibleMediaTypes}
@@ -417,13 +414,22 @@ function MediaPreviewSheet({
 }) {
   const { t } = useTranslation();
   const theme = useAppTheme();
+  const { height } = useWindowDimensions();
+  const previewScrollMaxHeight = Math.max(220, Math.min(420, Math.round(height * 0.42)));
 
   if (!file) return null;
 
   return (
-    <PremiumBottomSheet visible title={file.filename} subtitle={file.matchedRecord?.sender ?? t('fileSelection.unknownSender')} onDismiss={onDismiss}>
+    <PremiumBottomSheet
+      visible
+      title={file.filename}
+      subtitle={file.sourceKind === 'chat-transcript' ? t('fileSelection.chatTranscript') : file.matchedRecord?.sender ?? t('fileSelection.unknownSender')}
+      onDismiss={onDismiss}
+    >
       <Surface elevation={0} style={[styles.previewPanel, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]}>
-        {file.mediaType === 'photo' || file.mediaType === 'sticker' ? (
+        {isTextTranscript(file) ? (
+          <TextTranscriptPreview uri={file.uri} maxScrollHeight={previewScrollMaxHeight} />
+        ) : file.mediaType === 'photo' || file.mediaType === 'sticker' ? (
           <ExpoImage source={file.thumbnailUri ?? file.uri} contentFit="contain" style={styles.previewMedia} />
         ) : file.mediaType === 'video' ? (
           <VideoPreview uri={file.uri} />
@@ -443,6 +449,149 @@ function MediaPreviewSheet({
         {selected ? t('fileSelection.selected') : t('fileSelection.selectFile')}
       </Button>
     </PremiumBottomSheet>
+  );
+}
+
+function TextTranscriptPreview({ uri, maxScrollHeight }: { uri: string; maxScrollHeight: number }) {
+  const { t } = useTranslation();
+  const theme = useAppTheme();
+  const [state, setState] = React.useState<
+    | { status: 'loading' }
+    | { status: 'ready'; messages: ChatPreviewMessage[]; totalMessages: number; rawFallback?: string; truncated: boolean }
+    | { status: 'error'; error: string }
+  >({ status: 'loading' });
+
+  React.useEffect(() => {
+    let cancelled = false;
+    setState({ status: 'loading' });
+    FileSystem.readAsStringAsync(uri)
+      .then((text) => {
+        if (cancelled) return;
+        const parsed = parseWhatsAppChatPreview(text, 160);
+        setState({
+          status: 'ready',
+          messages: parsed.messages,
+          totalMessages: parsed.totalMessages,
+          rawFallback: parsed.messages.length === 0 ? text.slice(0, 12000) : undefined,
+          truncated: parsed.truncated
+        });
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setState({
+          status: 'error',
+          error: error instanceof Error ? error.message : t('fileSelection.transcriptPreviewFailed')
+        });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [t, uri]);
+
+  if (state.status === 'loading') {
+    return (
+      <View style={styles.transcriptLoading}>
+        <MaterialCommunityIcons name="file-document-outline" size={40} color={theme.colors.primary} />
+        <Text variant="bodyMedium">{t('fileSelection.loadingTranscript')}</Text>
+        <ProgressBar indeterminate style={styles.transcriptProgress} />
+      </View>
+    );
+  }
+
+  if (state.status === 'error') {
+    return (
+      <View style={styles.fallbackPreview}>
+        <MaterialCommunityIcons name="alert-circle-outline" size={48} color={theme.colors.error} />
+        <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.error }]}>
+          {state.error}
+        </Text>
+      </View>
+    );
+  }
+
+  if (state.rawFallback !== undefined) {
+    return (
+      <View style={styles.transcriptPreview}>
+        <View style={styles.transcriptHeader}>
+          <MaterialCommunityIcons name="text-box-outline" size={24} color={theme.colors.primary} />
+          <View style={styles.flex}>
+            <Text variant="titleSmall" style={textStyles.start}>{t('fileSelection.rawTranscriptTitle')}</Text>
+            <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+              {t('fileSelection.rawTranscriptBody')}
+            </Text>
+          </View>
+        </View>
+        <ScrollView
+          nestedScrollEnabled
+          showsVerticalScrollIndicator
+          style={[styles.transcriptScroll, { maxHeight: maxScrollHeight }]}
+          contentContainerStyle={[styles.rawTranscriptCard, { backgroundColor: theme.colors.surface }]}
+        >
+          <Text variant="bodySmall" style={[styles.rawTranscriptText, { color: theme.colors.onSurface }]}>
+            {state.rawFallback}
+          </Text>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.transcriptPreview}>
+      <View style={styles.transcriptHeader}>
+        <MaterialCommunityIcons name="message-text-outline" size={24} color={theme.colors.primary} />
+        <View style={styles.flex}>
+          <Text variant="titleSmall" style={textStyles.start}>{t('fileSelection.transcriptPreviewTitle')}</Text>
+          <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+            {state.truncated
+              ? t('fileSelection.transcriptPreviewLimited', { shown: state.messages.length, total: state.totalMessages })
+              : t('fileSelection.transcriptPreviewCount', { count: state.totalMessages })}
+          </Text>
+        </View>
+      </View>
+      <ScrollView
+        nestedScrollEnabled
+        showsVerticalScrollIndicator
+        style={[styles.transcriptScroll, { maxHeight: maxScrollHeight }]}
+        contentContainerStyle={styles.transcriptThread}
+      >
+        {state.messages.map((message, index) => (
+          <TranscriptBubble key={message.id} message={message} tone={index % 3} />
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+function TranscriptBubble({ message, tone }: { message: ChatPreviewMessage; tone: number }) {
+  const theme = useAppTheme();
+  const backgroundColor =
+    tone === 0
+      ? theme.colors.primaryContainer
+      : tone === 1
+        ? theme.colors.secondaryContainer
+        : theme.colors.surface;
+  const foregroundColor =
+    tone === 0
+      ? theme.colors.onPrimaryContainer
+      : tone === 1
+        ? theme.colors.onSecondaryContainer
+        : theme.colors.onSurface;
+
+  return (
+    <Surface elevation={0} style={[styles.transcriptBubble, { backgroundColor, borderColor: theme.colors.outlineVariant }]}>
+      <View style={styles.transcriptBubbleMeta}>
+        <Text variant="labelLarge" numberOfLines={1} ellipsizeMode="tail" style={[styles.flex, textStyles.start, { color: foregroundColor }]}>
+          {message.sender}
+        </Text>
+        <Text variant="labelSmall" style={{ color: foregroundColor }}>
+          {formatShortChatTimestamp(message.messageDateIso)}
+        </Text>
+      </View>
+      <Text variant="bodyMedium" style={[styles.transcriptMessageBody, textStyles.start, { color: foregroundColor }]}>
+        {message.body}
+      </Text>
+    </Surface>
   );
 }
 
@@ -558,6 +707,10 @@ function getPreviewIcon(mediaType: MediaType): React.ComponentProps<typeof Mater
   return 'file-question-outline';
 }
 
+function isTextTranscript(file: ExtractedMediaFile): boolean {
+  return file.sourceKind === 'chat-transcript' || file.filename.toLowerCase().endsWith('.txt');
+}
+
 function formatSeconds(value: number): string {
   const totalSeconds = Math.max(0, Math.floor(value || 0));
   const minutes = Math.floor(totalSeconds / 60);
@@ -567,22 +720,26 @@ function formatSeconds(value: number): string {
 
 const styles = StyleSheet.create({
   toolbarBlock: {
-    gap: spacing.gap,
-    paddingBottom: spacing.smallGap
+    gap: spacing.smallGap,
+    paddingBottom: spacing.tinyGap
   },
-  summaryHeader: {
+  compactSummaryBar: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.gap
+    alignItems: 'center',
+    gap: spacing.smallGap,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingBottom: spacing.tinyGap
   },
-  summaryNumber: {
-    fontWeight: '800',
-    letterSpacing: 0
+  compactSummaryText: {
+    flex: 1,
+    fontWeight: '800'
   },
-  metricRow: {
+  compactBadges: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.smallGap
+    justifyContent: 'flex-end',
+    gap: spacing.tinyGap,
+    flexShrink: 1
   },
   toolbarRow: {
     flexDirection: 'row',
@@ -659,6 +816,62 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     padding: 16
+  },
+  transcriptLoading: {
+    width: '100%',
+    minHeight: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.smallGap,
+    padding: spacing.gap
+  },
+  transcriptProgress: {
+    width: '86%',
+    height: 6,
+    borderRadius: 999
+  },
+  transcriptPreview: {
+    width: '100%',
+    alignSelf: 'stretch',
+    padding: spacing.gap,
+    gap: spacing.gap
+  },
+  transcriptHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.smallGap
+  },
+  transcriptThread: {
+    gap: spacing.smallGap,
+    paddingBottom: spacing.tinyGap
+  },
+  transcriptScroll: {
+    alignSelf: 'stretch',
+    width: '100%'
+  },
+  transcriptBubble: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 14,
+    padding: spacing.gap,
+    gap: spacing.tinyGap
+  },
+  transcriptBubbleMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.smallGap
+  },
+  transcriptMessageBody: {
+    lineHeight: 21
+  },
+  rawTranscriptCard: {
+    borderRadius: 14,
+    padding: spacing.gap
+  },
+  rawTranscriptText: {
+    fontFamily: 'monospace',
+    lineHeight: 20,
+    writingDirection: 'auto',
+    textAlign: 'auto'
   },
   voicePreview: {
     width: '100%',

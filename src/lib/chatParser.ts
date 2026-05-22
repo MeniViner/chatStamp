@@ -7,6 +7,21 @@ export type ChatParseResult = {
   skippedLines: string[];
 };
 
+export type ChatPreviewMessage = {
+  id: string;
+  sender: string;
+  messageDateIso: string;
+  body: string;
+  rawText: string;
+};
+
+export type ChatPreviewParseResult = {
+  messages: ChatPreviewMessage[];
+  totalMessages: number;
+  skippedLines: string[];
+  truncated: boolean;
+};
+
 type ParsedChatMessage = {
   date: string;
   time: string;
@@ -44,6 +59,45 @@ export function parseWhatsAppChatText(text: string): ChatParseResult {
   }
 
   return { records, skippedLines };
+}
+
+export function getLatestWhatsAppMessageDateIso(text: string): string | null {
+  const messages = groupLinesIntoMessages(text, []);
+  const timestamps = messages
+    .map((message) => parseWhatsAppDateToIso(message.date, message.time))
+    .filter((value): value is string => Boolean(value))
+    .map((value) => new Date(value).getTime())
+    .filter(Number.isFinite);
+
+  if (timestamps.length === 0) return null;
+  return new Date(Math.max(...timestamps)).toISOString();
+}
+
+export function parseWhatsAppChatPreview(text: string, maxMessages = 160): ChatPreviewParseResult {
+  const skippedLines: string[] = [];
+  const groupedMessages = groupLinesIntoMessages(text, skippedLines);
+  const messages = groupedMessages
+    .map((message, index) => {
+      const messageDateIso = parseWhatsAppDateToIso(message.date, message.time);
+      const sender = message.sender.trim();
+      if (!messageDateIso || !sender) return null;
+
+      return {
+        id: `${messageDateIso}:${sender}:${index}`,
+        sender,
+        messageDateIso,
+        body: message.message.trim(),
+        rawText: message.rawText
+      };
+    })
+    .filter((message): message is ChatPreviewMessage => Boolean(message));
+
+  return {
+    messages: messages.slice(0, maxMessages),
+    totalMessages: messages.length,
+    skippedLines,
+    truncated: messages.length > maxMessages
+  };
 }
 
 function groupLinesIntoMessages(text: string, skippedLines: string[]): ParsedChatMessage[] {

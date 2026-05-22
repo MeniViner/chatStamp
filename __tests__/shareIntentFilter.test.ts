@@ -18,4 +18,9 @@ describe('shareIntentFilter', () => {
   it('rejects non-file navigation URLs', () => {
     expect(isShareImportUri('https://example.com/export.zip')).toBe(false);
   });
+
+  it('rejects non-ZIP content and file URIs', () => {
+    expect(isShareImportUri('content://com.android.providers.media/photo.jpg')).toBe(false);
+    expect(isShareImportUri('file:///cache/notes.txt')).toBe(false);
+  });
 });

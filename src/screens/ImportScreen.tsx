@@ -66,7 +66,7 @@ export function ImportScreen() {
   async function pickZip() {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/zip', 'application/x-zip-compressed', 'application/octet-stream'],
+        type: ['application/zip', 'application/x-zip-compressed'],
         copyToCacheDirectory: true,
         multiple: false
       });

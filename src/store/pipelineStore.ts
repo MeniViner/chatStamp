@@ -84,15 +84,30 @@ export const usePipelineStore = create<PipelineState>((set) => ({
     }),
   setZip: (zip) => set({ zipUri: zip.uri, zipName: zip.name }),
   setImportResult: ({ workingDirectory, mediaFiles, importSummary }) =>
-    set({
-      workingDirectory,
-      mediaFiles,
-      importSummary,
-      selectedSenders: Array.from(new Set(mediaFiles.map((file) => file.matchedRecord?.sender).filter(Boolean))) as string[],
-      selectedFileIds: mediaFiles
-        .filter((file) => file.matchedRecord && (file.mediaType === 'photo' || file.mediaType === 'video'))
-        .map((file) => file.id),
-      stage: 'selectFiles'
+    set(() => {
+      const hasDefaultMediaSelection = mediaFiles.some(
+        (file) => file.matchedRecord && (file.mediaType === 'photo' || file.mediaType === 'video')
+      );
+      const shouldSelectTranscriptOnly =
+        !hasDefaultMediaSelection &&
+        mediaFiles.length === 1 &&
+        mediaFiles[0]?.sourceKind === 'chat-transcript';
+      return {
+        workingDirectory,
+        mediaFiles,
+        importSummary,
+        selectedSenders: Array.from(new Set(mediaFiles.map((file) => file.matchedRecord?.sender).filter(Boolean))) as string[],
+        selectedMediaTypes: shouldSelectTranscriptOnly
+          ? { ...defaultMediaTypeSelection, document: true }
+          : defaultMediaTypeSelection,
+        selectedFileIds: mediaFiles
+          .filter((file) =>
+            file.matchedRecord &&
+            (file.mediaType === 'photo' || file.mediaType === 'video' || (shouldSelectTranscriptOnly && file.sourceKind === 'chat-transcript'))
+          )
+          .map((file) => file.id),
+        stage: 'selectFiles'
+      };
     }),
   toggleSender: (sender) =>
     set((state) => {

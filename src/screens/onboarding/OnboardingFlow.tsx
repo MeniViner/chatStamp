@@ -3,7 +3,6 @@ import {
   Animated,
   AppState,
   Easing,
-  I18nManager,
   Pressable,
   StyleSheet,
   View
@@ -19,6 +18,7 @@ import { syncI18nLanguage } from '../../i18n';
 import type { AppLanguagePreference } from '../../types/media';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { PrimaryButton, SecondaryButton, textStyles } from '../../components/AppUi';
+import { useAppLayoutDirection } from '../../i18n/AppLayoutDirectionContext';
 import { radius, spacing } from '../../theme/designTokens';
 import { OnboardingPage } from './OnboardingPage';
 import { getOnboardingPermissionVisualState } from './onboardingLogic';
@@ -50,7 +50,8 @@ type OnboardingFlowProps = {
 export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
   const { t } = useTranslation();
   const theme = useAppTheme();
-  const isRtl = I18nManager.isRTL;
+  const layoutDirection = useAppLayoutDirection();
+  const directionMultiplier = layoutDirection === 'rtl' ? -1 : 1;
   const languagePreference = useSettingsStore((state) => state.settings.languagePreference);
   const onboardingCompleted = useSettingsStore((state) => state.settings.onboardingCompleted);
   const updateSettings = useSettingsStore((state) => state.updateSettings);
@@ -254,7 +255,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
         {
           translateX: transition.interpolate({
             inputRange: [0, 1],
-            outputRange: [transitionDirection * 28, 0]
+            outputRange: [directionMultiplier * transitionDirection * 28, 0]
           })
         },
         {
@@ -265,7 +266,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
         }
       ]
     }),
-    [transition, transitionDirection]
+    [directionMultiplier, transition, transitionDirection]
   );
 
   const copyAnimatedStyle = React.useMemo(
@@ -275,12 +276,12 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
         {
           translateX: transition.interpolate({
             inputRange: [0, 1],
-            outputRange: [transitionDirection * 18, 0]
+            outputRange: [directionMultiplier * transitionDirection * 18, 0]
           })
         }
       ]
     }),
-    [transition, transitionDirection]
+    [directionMultiplier, transition, transitionDirection]
   );
 
   const detailsAnimatedStyle = React.useMemo(
@@ -307,7 +308,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
 
   return (
     <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
-      <View style={[styles.headerRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+      <View style={styles.headerRow}>
         <View style={styles.brandBlock}>
           <Text variant="titleSmall" style={[textStyles.start, { color: theme.colors.onBackground }]}>
             {t('onboarding.appName')}
@@ -329,7 +330,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
         ) : null}
       </View>
 
-      <View style={[styles.indicatorRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+      <View style={styles.indicatorRow}>
         {pages.map((page, index) => {
           const width = indicator.interpolate({
             inputRange: [index - 1, index, index + 1],
@@ -389,7 +390,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
             {t('common.notNow')}
           </Button>
         ) : null}
-        <View style={[styles.footerRow, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
+        <View style={styles.footerRow}>
           {showBack ? (
             <SecondaryButton onPress={goBack} style={styles.flexButton}>
               {t('common.back')}

@@ -1,10 +1,11 @@
 import React from 'react';
-import { I18nManager, Pressable, StatusBar, StyleSheet, View, type ImageStyle, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { Pressable, StatusBar, StyleSheet, View, type ImageStyle, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Appbar, Button, Chip, IconButton, ProgressBar, RadioButton, Surface, Switch, Text } from 'react-native-paper';
 import { Image as ExpoImage } from 'expo-image';
 import { useTranslation } from 'react-i18next';
+import { useAppLayoutDirection } from '../i18n/AppLayoutDirectionContext';
 import { spacing, radius, size, appTypography, appColorTokens } from '../theme/designTokens';
 import { useAppTheme } from '../theme/useAppTheme';
 import type { ExtractedMediaFile, MediaType } from '../types/media';
@@ -46,6 +47,7 @@ export function AppScreenScaffold({
   contentStyle?: StyleProp<ViewStyle>;
 }) {
   const theme = useAppTheme();
+  const layoutDirection = useAppLayoutDirection();
   const statusBarStyle = theme.dark ? 'light-content' : 'dark-content';
 
   return (
@@ -57,7 +59,7 @@ export function AppScreenScaffold({
         {actions}
       </Appbar.Header>
       {showProgress && typeof progress === 'number' ? (
-        <ProgressBar progress={progress} color={theme.colors.primary} style={[styles.scaffoldProgress, I18nManager.isRTL ? styles.rtlProgress : null]} />
+        <ProgressBar progress={progress} color={theme.colors.primary} style={[styles.scaffoldProgress, layoutDirection === 'rtl' ? styles.rtlProgress : null]} />
       ) : null}
       <StepHeader stepLabel={stepLabel} title={title} subtitle={subtitle} />
       <View style={[styles.scaffoldContent, contentStyle]}>{children}</View>
@@ -80,18 +82,20 @@ export function StepHeader({
   const theme = useAppTheme();
   return (
     <View style={[styles.stepHeader, style]}>
-      {stepLabel ? (
-        <View style={[styles.stepPill, { backgroundColor: theme.colors.secondaryContainer }]}>
-          <Text variant="labelMedium" style={[styles.tabular, { color: theme.colors.onSecondaryContainer }]}>
-            {stepLabel}
-          </Text>
-        </View>
-      ) : null}
-      <Text variant="headlineLarge" style={[styles.screenTitle, textStyles.start]}>
-        {title}
-      </Text>
+      <View style={styles.stepHeaderLine}>
+        {stepLabel ? (
+          <View style={[styles.stepPill, { backgroundColor: theme.colors.secondaryContainer }]}>
+            <Text variant="labelSmall" numberOfLines={1} style={[styles.tabular, { color: theme.colors.onSecondaryContainer }]}>
+              {stepLabel}
+            </Text>
+          </View>
+        ) : null}
+        <Text variant="titleSmall" numberOfLines={1} ellipsizeMode="tail" style={[styles.screenTitle, textStyles.start]}>
+          {title}
+        </Text>
+      </View>
       {subtitle ? (
-        <Text variant="bodyMedium" numberOfLines={5} style={[styles.scaffoldSubtitle, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+        <Text variant="bodySmall" numberOfLines={1} ellipsizeMode="tail" style={[styles.scaffoldSubtitle, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
           {subtitle}
         </Text>
       ) : null}
@@ -685,8 +689,12 @@ export function MediaFileListItem({
   const { t } = useTranslation();
   const theme = useAppTheme();
   const colors = semanticColors(theme);
-  const sender = file.matchedRecord?.sender ?? t('fileSelection.unknownSender');
-  const restoredDate = file.matchedRecord?.messageDateIso ? new Date(file.matchedRecord.messageDateIso).toLocaleString() : t('fileSelection.noDate');
+  const sender = file.sourceKind === 'chat-transcript'
+    ? t('fileSelection.chatTranscript')
+    : file.matchedRecord?.sender ?? t('fileSelection.unknownSender');
+  const restoredDate = file.sourceKind === 'chat-transcript'
+    ? t('fileSelection.chatTranscriptFile')
+    : file.matchedRecord?.messageDateIso ? new Date(file.matchedRecord.messageDateIso).toLocaleString() : t('fileSelection.noDate');
   return (
     <Pressable onPress={onToggle} accessibilityRole="button">
       <Surface
@@ -766,22 +774,30 @@ function createStyles() {
   },
   stepHeader: {
     paddingHorizontal: spacing.screenHorizontal,
-    paddingTop: spacing.smallGap,
-    paddingBottom: spacing.card,
+    paddingTop: spacing.tinyGap,
+    paddingBottom: spacing.smallGap,
+    gap: 2
+  },
+  stepHeaderLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.smallGap
   },
   stepPill: {
     alignSelf: 'flex-start',
     borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 6
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    maxWidth: 112
   },
   screenTitle: {
-    ...appTypography.screenTitle,
-    letterSpacing: 0
+    ...appTypography.cardTitle,
+    flex: 1,
+    letterSpacing: 0,
+    fontWeight: '800'
   },
   scaffoldSubtitle: {
-    ...appTypography.secondaryBody
+    ...appTypography.caption
   },
   scaffoldContent: {
     flex: 1,
