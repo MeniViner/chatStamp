@@ -8,7 +8,7 @@ const config = {
   userInterfaceStyle: 'automatic',
   assetBundlePatterns: ['**/*'],
   android: {
-    package: 'menis.chatstamp.com',
+    package: 'com.menis.chatstamp',
     versionCode: 2,
     icon: './assets/icon.png',
     adaptiveIcon: {

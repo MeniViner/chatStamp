@@ -1,98 +1,91 @@
 # chatStamp
 
-Local Android pipeline app for importing WhatsApp chat export ZIP files, filtering media by sender and media type, and fixing gallery ordering by applying original message dates from the WhatsApp chat transcript TXT.
+אפליקציית Android לשחזור, סידור ושמירה של מדיה מתוך ייצוא שיחות WhatsApp.
 
-## MVP goal
+## מה האפליקציה עושה
 
-Build a stateless, local-only React Native + Expo app that:
+chatStamp מיועדת למקרים שבהם מייצאים שיחת WhatsApp ורוצים לשמור את התמונות, הסרטונים והקבצים המצורפים בצורה מסודרת, עם כמה שיותר נאמנות לתאריכים המקוריים של ההודעות.
 
-1. Receives or selects a WhatsApp chat export ZIP.
-2. Copies it into app cache.
-3. Extracts the WhatsApp chat transcript TXT plus supported media files.
-4. Parses the transcript into `{ filename, sender, originalMessageDate }` records.
-5. Lets the user select senders and media types.
-6. Saves selected media to Android Gallery with the original dates applied to metadata / MediaStore where possible.
-7. Deletes cache and resets state.
+- מייבאת קובץ ZIP או TXT של ייצוא שיחת WhatsApp.
+- מזהה תמונות, סרטונים וקבצים מצורפים מתוך הייצוא.
+- מאפשרת סינון, מיון, חיפוש ובחירה של הקבצים לשמירה.
+- שומרת את המדיה בתיקיית יעד מסודרת במכשיר Android.
+- משחזרת תאריכי מדיה כאשר Android וסוג הקובץ מאפשרים זאת.
+- מציגה תוצאות שמירה, תצוגות מקדימות ופרטי קבצים.
 
-## Important technical decision
+## תהליך העבודה
 
-This app cannot rely only on `mtime`, `ctime`, or JavaScript file timestamps. Android Gallery often sorts from MediaStore fields and/or EXIF metadata. The implementation must verify real Gallery behavior on an Android device.
+1. בחירת ייצוא שיחה מ-WhatsApp.
+2. קריאת קובץ השיחה והמדיה המצורפת.
+3. בחירת הקבצים שרוצים לשמור.
+4. הגדרת אפשרויות שמירה.
+5. שמירת המדיה במכשיר.
+6. צפייה בתוצאות ופתיחת תיקיית היעד.
 
-For production-grade Android behavior, Codex should implement or wire a native Android bridge if Expo APIs cannot update the fields needed by the target Gallery app.
+## דרישות Android
 
-## Recommended start
+האפליקציה מיועדת ל-Android ופועלת עם מנגנוני האחסון המודרניים של המערכת.
+
+במהלך השימוש Android עשוי לבקש הרשאה לבחירת תיקיית יעד או לגישה לקבצים שנבחרו. הבחירה נעשית דרך מסך מערכת של Android, והאפליקציה משתמשת בהרשאה הזאת כדי לשמור את הקבצים בתיקייה שבחרתם.
+
+התנהגות פתיחת תיקיית היעד עשויה להשתנות בין מכשירים, גרסאות Android ואפליקציות ניהול קבצים שונות.
+
+## התקנה
+
+1. נכנסים לעמוד **Releases** של הפרויקט ב-GitHub.
+2. מורידים את קובץ ה-APK של הגרסה הרצויה.
+3. פותחים את הקובץ במכשיר Android ומתקינים.
+4. אם Android מבקש לאפשר התקנה מהדפדפן או ממנהל הקבצים, מאשרים זאת עבור מקור ההתקנה.
+
+האפליקציה אינה מופצת כרגע דרך Google Play.
+
+## סטטוס הגרסה הנוכחית
+
+- גרסה נוכחית: `v0.1.1`
+- Android package id: `com.menis.chatstamp`
+- קובץ APK נבנה ונחתם בהצלחה.
+- בדיקת התקנה והרצה על מכשיר Android או אמולטור עדיין ממתינה.
+
+## פיתוח מקומי
+
+הפרויקט בנוי עם React Native ו-Expo, כולל שכבת Android Native עבור פעולות שאינן זמינות מספיק טוב דרך JavaScript בלבד.
+
+פקודות בדיקה ופיתוח:
 
 ```bash
 npm install
 npm run typecheck
 npm run test
+npm run lint
 ```
 
-For Android testing with native libraries:
+בניית Android:
 
 ```bash
 npx expo prebuild --platform android
+cd android
+./gradlew assembleRelease
+```
+
+הרצה על מכשיר או אמולטור:
+
+```bash
 npx expo run:android
 ```
 
-For live terminal logs while testing on a real Android device:
+כאשר בודקים שיתוף ZIP מ-WhatsApp או פתיחת תיקיית יעד, מומלץ לעקוב גם אחרי לוגים:
 
 ```bash
-npx expo start --dev-client
-adb reverse tcp:8081 tcp:8081
 adb logcat -s ChatStamp ReactNativeJS Expo
 ```
 
-For Android resolver and merged-package share target diagnostics:
+## פרטיות
 
-```bash
-adb shell cmd package query-intent-activities -a android.intent.action.SEND -t application/zip
-adb shell dumpsys package menis.chatstamp.com
-adb logcat -s ChatStamp ReactNativeJS Expo
-```
+עיבוד קבצי הייצוא מתבצע מקומית במכשיר. לפי מבנה הפרויקט הנוכחי, אין שרת, אין חשבון משתמש, ואין העלאה יזומה של קובצי השיחה או המדיה לענן.
 
-The installed package must show `MainActivity` as a ZIP share target for `SEND` and `SEND_MULTIPLE`. A real WhatsApp share attempt should log `shareIntentRaw`, `shareIntentAccepted`, `shareIntentCopied`, and `shareIntentConsumedByJS` with a `content://` source URI, copied size greater than zero, and `validZip=true`.
+## מגבלות ידועות
 
-If a real Android device shows asset URLs like `http://localhost:8081/assets/...`, the device is trying to reach Metro. Run `adb reverse tcp:8081 tcp:8081` before launching the development build over USB.
-
-When testing WhatsApp share-sheet import, compare the log lines for `sourceSizeBytes`, `copiedSizeBytes`, `validZip`, `zipEntryCount`, and `firstZipEntries`. If the shared ZIP has only the transcript TXT and no media entries, export again from WhatsApp with `Include media`.
-
-The final save path is native Android MediaStore insertion. The app does not use `expo-media-library` to create Gallery assets. New photos/videos are inserted as app-owned MediaStore rows, so Android 10+ does not require broad Gallery read permission for saving selected files.
-
-or use EAS development builds:
-
-```bash
-npx eas build --profile development --platform android
-```
-
-## Why not Expo Go?
-
-The MVP needs native ZIP extraction and probably native Android MediaStore date updates. Treat Expo Go as insufficient for the full MVP. Use a development build.
-
-## Repository layout
-
-```txt
-.
-├── AGENTS.md                         # Codex operating rules
-├── .agent/PLANS.md                   # Execution-plan rules for complex work
-├── .agent/EXECPLAN-MVP.md            # Living implementation plan for this MVP
-├── docs/                             # PRD, architecture, testing, review rules
-├── prompts/                          # Ready-to-paste Codex prompts
-├── src/                              # Starter TypeScript app skeleton
-├── App.tsx                           # App entry
-├── app.config.ts                     # Expo config and Android permissions
-├── package.json                      # Dependencies and scripts
-└── tsconfig.json
-```
-
-## Current status of this starter
-
-This ZIP is not meant to be a finished app. It is a Codex-ready starter repository with:
-
-- A strong product/technical spec.
-- Rules that tell Codex what not to fake.
-- Starter app structure.
-- Pure parsing utilities and tests.
-- Native integration placeholders for ZIP, Share Intent, EXIF, and MediaStore work.
-
-The first real Codex task should be: open `prompts/CODEX_START_HERE.md` and follow it.
+- גרסת `v0.1.1` נבנתה ואומתה ברמת build, אך טרם אומתה בהתקנה והרצה על מכשיר Android או אמולטור.
+- יש עדיין לאמת בפועל ניגון סרטונים, גלילת תצוגת TXT, מיקום Bottom Sheets ופתיחת תיקיית יעד.
+- פתיחת תיקיית יעד תלויה גם בהתנהגות מנהל הקבצים שמותקן במכשיר.
+- שחזור תאריכים תלוי במגבלות Android, בסוג הקובץ ובאופן שבו אפליקציות גלריה קוראות מטא-דאטה.
