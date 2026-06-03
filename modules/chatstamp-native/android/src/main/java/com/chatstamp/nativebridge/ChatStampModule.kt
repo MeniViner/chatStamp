@@ -451,7 +451,7 @@ class ChatStampModule : Module() {
     val results = items.map { item ->
       saveOneFileToSafFolder(item, exportFolder, duplicateHandling)
     }
-    return buildSaveBatchResult(results, mode = "saf-custom-folder", outputDirectory = options.treeUri)
+    return buildSaveBatchResult(results, mode = "saf-custom-folder", outputDirectory = exportFolder.uri.toString())
   }
 
   private fun saveOneFileToSafFolder(item: NativeSaveMediaItem, root: DocumentFile, duplicateHandling: String): Map<String, Any?> {
@@ -556,22 +556,94 @@ class ChatStampModule : Module() {
   }
 
   private fun openFolderTarget(target: FolderTarget): Map<String, Any?> {
-    val uri = target.treeUri?.let { Uri.parse(it) }
-    if (uri != null) {
-      val opened = tryStartActivity(Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(uri, DocumentsContract.Document.MIME_TYPE_DIR)
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-      })
-      if (opened) return mapOf("opened" to true, "activity" to "ACTION_VIEW_TREE", "attempted" to uri.toString())
+    val exactUris = buildFolderViewUris(target)
+    for (uri in exactUris) {
+      if (tryOpenDirectoryUri(uri)) {
+        return mapOf("opened" to true, "activity" to "ACTION_VIEW", "attempted" to uri.toString())
+      }
+    }
+
+    val initialUri = exactUris.firstOrNull()
+    if (initialUri != null && tryOpenDocumentNavigator(initialUri)) {
+      return mapOf(
+        "opened" to false,
+        "reason" to "Android did not allow direct folder opening, so the folder navigator was opened at the closest location.",
+        "activity" to "ACTION_OPEN_DOCUMENT_TREE",
+        "attempted" to initialUri.toString(),
+        "fallbackUsed" to true
+      )
     }
 
     return mapOf(
       "opened" to false,
-      "reason" to "Android does not guarantee opening arbitrary public folders.",
-      "attempted" to (target.treeUri ?: target.path),
+      "reason" to "Android does not guarantee opening arbitrary folders directly.",
+      "attempted" to (target.documentUri ?: target.treeUri ?: target.path),
       "fallbackUsed" to true
     )
+  }
+
+  private fun buildFolderViewUris(target: FolderTarget): List<Uri> {
+    val uris = mutableListOf<Uri>()
+    target.documentUri?.takeIf { it.isNotBlank() }?.let { value ->
+      runCatching { Uri.parse(value) }.getOrNull()?.let { uris.add(it) }
+    }
+
+    val treeUri = target.treeUri?.takeIf { it.isNotBlank() }?.let { value ->
+      runCatching { Uri.parse(value) }.getOrNull()
+    }
+    val documentId = target.documentId?.takeIf { it.isNotBlank() }
+      ?: target.relativeFolderDocumentId?.takeIf { it.isNotBlank() }
+    if (treeUri != null && documentId != null) {
+      runCatching { DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId) }
+        .getOrNull()
+        ?.let { uris.add(it) }
+    }
+
+    target.path?.let { publicFolderDocumentUri(it) }?.let { uris.add(it) }
+    return uris.distinctBy { it.toString() }
+  }
+
+  private fun tryOpenDirectoryUri(uri: Uri): Boolean {
+    val attempts = listOf(
+      Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(uri, DocumentsContract.Document.MIME_TYPE_DIR)
+        addDirectoryIntentFlags()
+      },
+      Intent(Intent.ACTION_VIEW).apply {
+        data = uri
+        addDirectoryIntentFlags()
+      }
+    )
+    return attempts.any { tryStartActivity(it) }
+  }
+
+  private fun tryOpenDocumentNavigator(initialUri: Uri): Boolean {
+    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+      putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri)
+      addDirectoryIntentFlags()
+    }
+    return tryStartActivity(intent)
+  }
+
+  private fun Intent.addDirectoryIntentFlags() {
+    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+    addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
+  }
+
+  private fun publicFolderDocumentUri(path: String): Uri? {
+    val normalized = path.replace('\\', '/').trimEnd('/')
+    val prefixes = listOf(
+      "/storage/emulated/0/",
+      "${Environment.getExternalStorageDirectory().absolutePath.trimEnd('/')}/",
+      "/sdcard/"
+    )
+    val prefix = prefixes.firstOrNull { normalized.startsWith(it) } ?: return null
+    val relativePath = normalized.removePrefix(prefix).trim('/')
+    val documentId = if (relativePath.isBlank()) "primary:" else "primary:$relativePath"
+    return runCatching {
+      DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", documentId)
+    }.getOrNull()
   }
 
   private fun shareOutputFiles(files: List<ShareOutputFile>): Map<String, Any?> {
@@ -984,6 +1056,7 @@ class ChatStampModule : Module() {
   private fun tryStartActivity(intent: Intent): Boolean {
     return try {
       val launchIntent = intent.apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+      if (launchIntent.resolveActivity(context.packageManager) == null) return false
       context.startActivity(launchIntent)
       true
     } catch (_: Throwable) {
@@ -1065,6 +1138,10 @@ data class SafCustomFolderSaveOptions(
 
 data class FolderTarget(
   @Field val treeUri: String? = null,
+  @Field val documentUri: String? = null,
+  @Field val documentId: String? = null,
+  @Field val relativeFolderDocumentId: String? = null,
+  @Field val displayName: String? = null,
   @Field val path: String? = null
 ) : Record
 

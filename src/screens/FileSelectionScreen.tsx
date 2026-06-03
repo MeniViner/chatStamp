@@ -1,5 +1,5 @@
 import React from 'react';
-import { BackHandler, FlatList, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { BackHandler, FlatList, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
@@ -21,6 +21,7 @@ import { runMp4RewriteDiagnosticsNative } from '../native/nativeMediaSaver';
 import { useTranslation } from 'react-i18next';
 import {
   defaultFileSelectionUiState,
+  getFilteredSelectionCount,
   getVideoPreviewMode,
   getVoicePreviewProgress,
   shouldShowDeveloperDiagnostics,
@@ -29,12 +30,15 @@ import {
 } from './fileSelectionUi';
 import {
   FilterChipGroup,
+  FilteredSelectionCountBadge,
+  getCachedVideoThumbnail,
+  IconOnlyActionButton,
   MediaFileListItem,
   OptionCard,
   PrimaryButton,
+  rememberVideoThumbnail,
   SecondaryButton,
   SectionHeader,
-  StatusBadge,
   textStyles
 } from '../components/AppUi';
 import { spacing } from '../theme/designTokens';
@@ -90,8 +94,11 @@ export function FileSelectionScreen() {
   }, [categoryFilters, mediaFiles, query, saveableOnly, selectedMediaTypes, selectedSenders, sortMode]);
 
   const visibleSaveableFileIds = React.useMemo(() => getVisibleSaveableFileIds(visibleFiles), [visibleFiles]);
+  const visibleSelectionCount = React.useMemo(
+    () => getFilteredSelectionCount(visibleSaveableFileIds, selectedFileIds),
+    [selectedFileIds, visibleSaveableFileIds]
+  );
   const selectedCount = countSelectedSaveableFiles(mediaFiles, selectedSenders, selectedMediaTypes, selectedFileIds);
-  const foundCount = mediaFiles.length;
   const otherFoundCount =
     (importSummary?.voice ?? 0) + (importSummary?.stickers ?? 0) + (importSummary?.documents ?? 0) + (importSummary?.unknown ?? 0);
   const filtersActive = selectedSenders.length < senders.length || categoryFilters.length > 0 || !saveableOnly;
@@ -154,7 +161,6 @@ export function FileSelectionScreen() {
     <WizardScreen
       stage="selectFiles"
       title={t('fileSelection.title')}
-      subtitle={t('fileSelection.subtitle')}
       onBack={() => setStage('welcome')}
       footer={
         filterSheetOpen || sortSheetOpen || previewFile ? undefined :
@@ -179,52 +185,66 @@ export function FileSelectionScreen() {
       }
     >
       <View style={styles.toolbarBlock}>
-        <View style={[styles.compactSummaryBar, { borderColor: theme.colors.outlineVariant }]}>
-          <Text variant="labelMedium" numberOfLines={1} style={[styles.compactSummaryText, textStyles.start, { color: theme.colors.onSurface }]}>
-            {t('fileSelection.compactSummary', { selected: selectedCount, total: foundCount })}
-          </Text>
-          <View style={styles.compactBadges}>
-            <StatusBadge label={t('fileSelection.photoCounter', { count: importSummary?.photos ?? 0 })} />
-            <StatusBadge label={t('fileSelection.videoCounter', { count: importSummary?.videos ?? 0 })} />
-            <StatusBadge label={t('fileSelection.otherCounter', { count: otherFoundCount })} />
-            {filtersActive ? <StatusBadge label={t('fileSelection.filtersActive')} selected /> : null}
-          </View>
-        </View>
-
-        <View style={styles.toolbarRow}>
-          <SecondaryButton icon="filter-variant" selected={filtersActive} style={styles.controlButton} onPress={() => setFilterSheetOpen(true)}>
-            {filtersActive ? t('fileSelection.filtersActive') : t('fileSelection.filter')}
-          </SecondaryButton>
-          <SecondaryButton icon="sort" style={styles.controlButton} onPress={() => setSortSheetOpen(true)}>
-            {t('fileSelection.sort')}
-          </SecondaryButton>
-          <SecondaryButton icon={searchOpen ? 'close' : 'magnify'} selected={searchOpen} style={styles.controlButton} onPress={() => setSearchOpen((value) => !value)}>
-            {t('fileSelection.search')}
-          </SecondaryButton>
-        </View>
-
         {searchOpen ? (
-          <Searchbar
-            placeholder={t('fileSelection.searchPlaceholder')}
-            value={query}
-            onChangeText={setQuery}
-            style={styles.search}
-            inputStyle={styles.searchInput}
-            autoFocus
-          />
+          <View style={styles.searchToolbar}>
+            <Searchbar
+              placeholder={t('fileSelection.searchPlaceholder')}
+              value={query}
+              onChangeText={setQuery}
+              style={styles.search}
+              inputStyle={styles.searchInput}
+              autoFocus
+            />
+            <IconOnlyActionButton
+              icon="close"
+              accessibilityLabel={t('fileSelection.closeSearch')}
+              onPress={() => {
+                setQuery('');
+                setSearchOpen(false);
+              }}
+            />
+          </View>
         ) : null}
 
-        <View style={styles.quickActions}>
-          <Text variant="bodySmall" numberOfLines={1} style={[styles.flex, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {t('fileSelection.totalShown', { count: visibleFiles.length })}
-          </Text>
-          <Button mode="text" compact onPress={selectVisibleFiles}>
-            {t('fileSelection.selectAll')}
-          </Button>
-          <Button mode="text" compact onPress={clearVisibleSelections}>
-            {t('fileSelection.clear')}
-          </Button>
-        </View>
+        {!searchOpen ? (
+          <View style={styles.toolbarRow}>
+            <IconOnlyActionButton
+              icon="filter-variant"
+              selected={filtersActive}
+              accessibilityLabel={filtersActive ? t('fileSelection.filtersActive') : t('fileSelection.filter')}
+              onPress={() => setFilterSheetOpen(true)}
+            />
+            <IconOnlyActionButton
+              icon="sort"
+              accessibilityLabel={t('fileSelection.sort')}
+              onPress={() => setSortSheetOpen(true)}
+            />
+            <IconOnlyActionButton
+              icon="magnify"
+              selected={query.trim().length > 0}
+              accessibilityLabel={t('fileSelection.search')}
+              onPress={() => setSearchOpen(true)}
+            />
+            <IconOnlyActionButton
+              icon="select-all"
+              accessibilityLabel={t('fileSelection.selectAll')}
+              disabled={visibleSelectionCount.total === 0}
+              onPress={selectVisibleFiles}
+            />
+            <IconOnlyActionButton
+              icon="selection-remove"
+              accessibilityLabel={t('fileSelection.clear')}
+              disabled={visibleSelectionCount.selected === 0}
+              onPress={clearVisibleSelections}
+            />
+            <FilteredSelectionCountBadge
+              selected={visibleSelectionCount.selected}
+              total={visibleSelectionCount.total}
+              accessibilityLabel={t('fileSelection.filteredCountA11y', visibleSelectionCount)}
+              style={styles.countBadge}
+            />
+          </View>
+        ) : null}
       </View>
 
       <FlatList
@@ -277,12 +297,16 @@ export function FileSelectionScreen() {
         selectedSenders={selectedSenders}
         categoryFilters={categoryFilters}
         saveableOnly={saveableOnly}
+        counts={{
+          all: mediaFiles.length,
+          photos: importSummary?.photos ?? mediaFiles.filter((file) => file.mediaType === 'photo').length,
+          videos: importSummary?.videos ?? mediaFiles.filter((file) => file.mediaType === 'video').length,
+          other: otherFoundCount
+        }}
         totalShown={visibleFiles.length}
         onDismiss={() => setFilterSheetOpen(false)}
         onToggleSender={toggleSender}
-        onToggleCategory={(mediaType) =>
-          setCategoryFilters((current) => toggleCategoryFilter(current, mediaType))
-        }
+        onSetCategoryFilters={setCategoryFilters}
         onReset={resetFilters}
         onApply={() => setFilterSheetOpen(false)}
         onSaveableOnly={setSaveableOnly}
@@ -298,10 +322,11 @@ function FilterSheet({
   selectedSenders,
   categoryFilters,
   saveableOnly,
+  counts,
   totalShown,
   onDismiss,
   onToggleSender,
-  onToggleCategory,
+  onSetCategoryFilters,
   onReset,
   onApply,
   onSaveableOnly
@@ -311,21 +336,37 @@ function FilterSheet({
   selectedSenders: string[];
   categoryFilters: MediaType[];
   saveableOnly: boolean;
+  counts: { all: number; photos: number; videos: number; other: number };
   totalShown: number;
   onDismiss: () => void;
   onToggleSender: (sender: string) => void;
-  onToggleCategory: (mediaType: MediaType) => void;
+  onSetCategoryFilters: React.Dispatch<React.SetStateAction<MediaType[]>>;
   onReset: () => void;
   onApply: () => void;
   onSaveableOnly: (value: boolean) => void;
 }) {
   const { t } = useTranslation();
   const theme = useAppTheme();
+  const otherTypes: MediaType[] = visibleMediaTypes.filter((mediaType) => mediaType !== 'photo' && mediaType !== 'video');
+  const otherSelected = otherTypes.some((mediaType) => categoryFilters.includes(mediaType));
+
+  function toggleSingleType(mediaType: MediaType) {
+    onSetCategoryFilters((current) => toggleCategoryFilter(current, mediaType));
+  }
+
+  function toggleOtherTypes() {
+    onSetCategoryFilters((current) => {
+      const currentSet = new Set(current);
+      const allOtherSelected = otherTypes.every((mediaType) => currentSet.has(mediaType));
+      if (allOtherSelected) return current.filter((mediaType) => !otherTypes.includes(mediaType));
+      return Array.from(new Set([...current, ...otherTypes]));
+    });
+  }
+
   return (
     <PremiumBottomSheet
       visible={visible}
       title={t('fileSelection.filterTitle')}
-      subtitle={t('fileSelection.filterSubtitle')}
       onDismiss={onDismiss}
       footer={
         <View style={styles.sheetFooter}>
@@ -339,19 +380,43 @@ function FilterSheet({
         </View>
       }
     >
+      <SectionHeader icon="file-multiple-outline" label={t('fileSelection.byFileType')} />
+      <View style={styles.filterTypeGrid}>
+        <FilterTypeOption
+          icon="file-multiple-outline"
+          label={t('fileSelection.all')}
+          count={counts.all}
+          selected={categoryFilters.length === 0}
+          onPress={() => onSetCategoryFilters([])}
+        />
+        <FilterTypeOption
+          icon="image-outline"
+          label={t('fileSelection.photos')}
+          count={counts.photos}
+          selected={categoryFilters.includes('photo')}
+          onPress={() => toggleSingleType('photo')}
+        />
+        <FilterTypeOption
+          icon="video-outline"
+          label={t('fileSelection.videos')}
+          count={counts.videos}
+          selected={categoryFilters.includes('video')}
+          onPress={() => toggleSingleType('video')}
+        />
+        <FilterTypeOption
+          icon="file-outline"
+          label={t('fileSelection.other')}
+          count={counts.other}
+          selected={otherSelected}
+          onPress={toggleOtherTypes}
+        />
+      </View>
       <SectionHeader icon="account-outline" label={t('fileSelection.bySender')} />
       <FilterChipGroup
         values={senders}
         selectedValues={selectedSenders}
         getLabel={(sender) => (sender === 'Chat transcript' ? t('fileSelection.chatTranscript') : sender)}
         onToggle={onToggleSender}
-      />
-      <SectionHeader icon="file-multiple-outline" label={t('fileSelection.byFileType')} />
-      <FilterChipGroup
-        values={visibleMediaTypes}
-        selectedValues={categoryFilters}
-        getLabel={(mediaType) => t(`media.plural.${mediaType}`)}
-        onToggle={onToggleCategory}
       />
       <View style={styles.switchRow}>
         <View style={styles.flex}>
@@ -363,6 +428,49 @@ function FilterSheet({
         <Switch value={saveableOnly} onValueChange={onSaveableOnly} />
       </View>
     </PremiumBottomSheet>
+  );
+}
+
+function FilterTypeOption({
+  icon,
+  label,
+  count,
+  selected,
+  onPress
+}: {
+  icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+  label: string;
+  count: number;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const theme = useAppTheme();
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityState={{ selected }}>
+      <Surface
+        elevation={0}
+        style={[
+          styles.filterTypeOption,
+          {
+            backgroundColor: selected ? theme.colors.primaryContainer : theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant,
+            borderColor: selected ? theme.colors.primary : theme.colors.outlineVariant
+          }
+        ]}
+      >
+        <View style={[styles.filterTypeIcon, { backgroundColor: selected ? theme.colors.surface : theme.colors.secondaryContainer }]}>
+          <MaterialCommunityIcons name={icon} size={20} color={theme.colors.primary} />
+        </View>
+        <View style={styles.flex}>
+          <Text variant="labelLarge" numberOfLines={1} style={[textStyles.start, styles.filterTypeLabel]}>
+            {label}
+          </Text>
+          <Text variant="labelSmall" numberOfLines={1} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+            {count}
+          </Text>
+        </View>
+        {selected ? <MaterialCommunityIcons name="check-circle" size={20} color={theme.colors.primary} /> : null}
+      </Surface>
+    </Pressable>
   );
 }
 
@@ -425,6 +533,7 @@ function MediaPreviewSheet({
       title={file.filename}
       subtitle={file.sourceKind === 'chat-transcript' ? t('fileSelection.chatTranscript') : file.matchedRecord?.sender ?? t('fileSelection.unknownSender')}
       onDismiss={onDismiss}
+      scrollable={false}
     >
       <Surface elevation={0} style={[styles.previewPanel, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]}>
         {isTextTranscript(file) ? (
@@ -630,7 +739,7 @@ function VoicePreview({ uri }: { uri: string }) {
 function VideoPreview({ uri }: { uri: string }) {
   const { t } = useTranslation();
   const isMounted = React.useRef(true);
-  const [thumbnail, setThumbnail] = React.useState<unknown>();
+  const [thumbnail, setThumbnail] = React.useState<unknown>(() => getCachedVideoThumbnail(uri));
   const [error, setError] = React.useState<string | undefined>();
   
   const player = useVideoPlayer({ uri }, (videoPlayer) => {
@@ -639,15 +748,22 @@ function VideoPreview({ uri }: { uri: string }) {
 
   React.useEffect(() => {
     isMounted.current = true;
-    
-    player
-      .generateThumbnailsAsync([0], { maxWidth: 1280, maxHeight: 720 })
-      .then((thumbs) => {
-        if (isMounted.current) setThumbnail(thumbs[0]);
-      })
-      .catch((thumbnailError) => {
-        if (isMounted.current) setError(thumbnailError instanceof Error ? thumbnailError.message : t('fileSelection.videoPreviewFailed'));
-      });
+    setError(undefined);
+    const cachedThumbnail = getCachedVideoThumbnail(uri);
+    if (cachedThumbnail) {
+      setThumbnail(cachedThumbnail);
+    } else {
+      setThumbnail(undefined);
+      player
+        .generateThumbnailsAsync([0], { maxWidth: 1280, maxHeight: 720 })
+        .then((thumbs) => {
+          if (thumbs[0]) rememberVideoThumbnail(uri, thumbs[0]);
+          if (isMounted.current) setThumbnail(thumbs[0]);
+        })
+        .catch((thumbnailError) => {
+          if (isMounted.current) setError(thumbnailError instanceof Error ? thumbnailError.message : t('fileSelection.videoPreviewFailed'));
+        });
+    }
 
     const subscription = player.addListener('statusChange', ({ status, error: playerError }) => {
       if (isMounted.current && status === 'error') {
@@ -661,7 +777,7 @@ function VideoPreview({ uri }: { uri: string }) {
       // No need to call player.pause() here as useVideoPlayer handles disposal
       // and calling it during unmount can cause the shared object rejection error
     };
-  }, [player, t]);
+  }, [player, t, uri]);
 
   if (getVideoPreviewMode(error) === 'fallback') {
     return (
@@ -674,12 +790,14 @@ function VideoPreview({ uri }: { uri: string }) {
 
   return (
     <View style={styles.videoPreview}>
-      {thumbnail && !error ? <ExpoImage source={thumbnail} contentFit="cover" style={styles.videoPoster} /> : null}
+      {thumbnail && !error ? <ExpoImage pointerEvents="none" source={thumbnail} contentFit="cover" style={styles.videoPoster} /> : null}
       <VideoView
         player={player}
         style={styles.previewMedia}
         contentFit="contain"
         nativeControls
+        fullscreenOptions={{ enable: false }}
+        buttonOptions={{ showSettings: false, showSeekBackward: true, showSeekForward: true, showPlayPause: true }}
         surfaceType="textureView"
         useExoShutter={false}
       />
@@ -723,44 +841,26 @@ const styles = StyleSheet.create({
     gap: spacing.smallGap,
     paddingBottom: spacing.tinyGap
   },
-  compactSummaryBar: {
+  toolbarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.smallGap,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    paddingBottom: spacing.tinyGap
+    gap: spacing.tinyGap
   },
-  compactSummaryText: {
-    flex: 1,
-    fontWeight: '800'
-  },
-  compactBadges: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-end',
-    gap: spacing.tinyGap,
-    flexShrink: 1
-  },
-  toolbarRow: {
+  searchToolbar: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.smallGap
   },
-  controlButton: {
-    flex: 1
-  },
   search: {
+    flex: 1,
     minHeight: 48,
     borderRadius: 24
   },
   searchInput: {
     minHeight: 48
   },
-  quickActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: spacing.tinyGap
+  countBadge: {
+    marginStart: 'auto'
   },
   listContent: {
     paddingBottom: 144,
@@ -783,6 +883,32 @@ const styles = StyleSheet.create({
   },
   selectableList: {
     gap: spacing.smallGap
+  },
+  filterTypeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.smallGap
+  },
+  filterTypeOption: {
+    width: '48%',
+    minHeight: 58,
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.smallGap
+  },
+  filterTypeIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  filterTypeLabel: {
+    fontWeight: '800'
   },
   sheetFooter: {
     gap: spacing.smallGap

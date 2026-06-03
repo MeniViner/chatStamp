@@ -22,3 +22,22 @@ export function getResultStatusKey(result: SaveFileResult): string {
 export function shouldShowTechnicalResults(developerMode: boolean): boolean {
   return developerMode;
 }
+
+export function getResultRowKey(result: Pick<SaveFileResult, 'filename' | 'outputPath' | 'insertedUri' | 'failureReason'>, index: number): string {
+  return `${result.filename}-${result.outputPath ?? result.insertedUri ?? result.failureReason ?? index}`;
+}
+
+export function expandAllResultRows(rowKeys: string[]): string[] {
+  return Array.from(new Set(rowKeys));
+}
+
+export function collapseAllResultRows(): string[] {
+  return [];
+}
+
+export function setResultRowExpanded(currentKeys: string[], rowKey: string, expanded: boolean): string[] {
+  const next = new Set(currentKeys);
+  if (expanded) next.add(rowKey);
+  else next.delete(rowKey);
+  return Array.from(next);
+}

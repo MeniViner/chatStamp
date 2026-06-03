@@ -69,6 +69,22 @@ describe('fileFiltering', () => {
     expect(selected).toEqual(['1', '2']);
   });
 
+  it('select all and clear apply to the active sender, category, and search filters only', () => {
+    const visible = filterVisibleFiles({
+      files,
+      selectedSenders: ['Avi'],
+      selectedMediaTypes: selectedTypes,
+      query: 'VID',
+      categoryFilters: ['video'],
+      saveableOnly: true
+    });
+    const visibleIds = getVisibleSaveableFileIds(visible);
+
+    expect(visibleIds).toEqual(['2']);
+    expect(selectAllVisibleFiles(['1', '4'], visibleIds)).toEqual(['1', '4', '2']);
+    expect(clearVisibleFiles(['1', '2', '4'], visibleIds)).toEqual(['1', '4']);
+  });
+
   it('keeps categories visible even when they are not selected for saving by default', () => {
     const visible = filterVisibleFiles({
       files,

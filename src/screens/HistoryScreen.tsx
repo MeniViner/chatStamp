@@ -147,7 +147,7 @@ function HistoryCard({
   const [menuOpen, setMenuOpen] = React.useState(false);
 
   async function openFolder() {
-    const outcome = await openFolderBestEffort(item.outputFolderPath);
+    const outcome = await openFolderBestEffort(item.outputFolderPath, null, item.outputDirectory ?? item.outputFolderPath);
     if (outcome === 'manual-fallback') {
       onFallbackNotice();
     }

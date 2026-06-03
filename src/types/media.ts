@@ -80,6 +80,8 @@ export type CompletionSummary = {
   dateCorrectionFailed: number;
   mayShowImportTime: number;
   cacheCleared: boolean;
+  saveMethod?: SaveMethod;
+  outputDirectory?: string | null;
   results?: SaveFileResult[];
 };
 
@@ -149,6 +151,8 @@ export type ExportHistoryItem = {
     failed: number;
   };
   saveMethod: SaveMethod;
+  outputDirectory?: string | null;
+  folderTreeUri?: string | null;
   allFilesHadTimestampsFixed: boolean;
   savedFiles?: SaveFileResult[];
 };

@@ -1,13 +1,21 @@
 const config = {
   name: 'chatStamp',
   slug: 'chatstamp',
-  version: '0.1.0',
+  version: '0.1.1',
   orientation: 'portrait',
+  icon: './assets/icon.png',
   scheme: 'chatstamp',
   userInterfaceStyle: 'automatic',
   assetBundlePatterns: ['**/*'],
   android: {
-    package: 'com.local.chatstamp',
+    package: 'menis.chatstamp.com',
+    versionCode: 2,
+    icon: './assets/icon.png',
+    adaptiveIcon: {
+      foregroundImage: './assets/adaptive-icon.png',
+      monochromeImage: './assets/monochrome-icon.png',
+      backgroundColor: '#FFFFFF'
+    },
     locales: {
       en: './android/app/src/main/res/values/strings.xml',
       he: './android/app/src/main/res/values-he/strings.xml'
@@ -55,6 +63,7 @@ const config = {
     ]
   },
   plugins: [
+    './plugins/withChatStampAndroidRelease',
     'expo-video',
     'expo-audio',
     'expo-image',

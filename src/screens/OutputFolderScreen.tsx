@@ -142,7 +142,6 @@ export function OutputFolderScreen() {
     <WizardScreen
       stage="outputOptions"
       title={t('outputOptions.title')}
-      subtitle={t('outputOptions.subtitle')}
       onBack={() => setStage('selectFiles')}
       footer={
         <FooterActions>
@@ -162,6 +161,15 @@ export function OutputFolderScreen() {
       }
     >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Section title={t('outputOptions.summaryTitle')} icon="clipboard-check-outline">
+          <View style={styles.metricRow}>
+            <SummaryMetricCard icon="check-circle-outline" label={t('outputOptions.selectedItems')} value={selectedCount} />
+            <SummaryMetricCard icon="image-outline" label={t('outputOptions.photos')} value={preview.selectedPhotos} />
+            <SummaryMetricCard icon="video-outline" label={t('outputOptions.videos')} value={preview.selectedVideos} />
+            <SummaryMetricCard icon="file-outline" label={t('outputOptions.other')} value={preview.selectedOther} />
+          </View>
+        </Section>
+
         <StatusBanner
           tone={ready ? 'success' : 'warning'}
           icon={ready ? 'check-circle-outline' : 'alert-circle-outline'}
@@ -306,17 +314,6 @@ export function OutputFolderScreen() {
           </ExpandableTechnicalDetails>
         </Section>
 
-        <Section title={t('outputOptions.summaryTitle')} icon="clipboard-check-outline">
-          <View style={styles.metricRow}>
-            <SummaryMetricCard icon="check-circle-outline" label={t('outputOptions.selectedItems')} value={selectedCount} />
-            <SummaryMetricCard icon="image-outline" label={t('outputOptions.photos')} value={preview.selectedPhotos} />
-            <SummaryMetricCard icon="video-outline" label={t('outputOptions.videos')} value={preview.selectedVideos} />
-            <SummaryMetricCard icon="file-outline" label={t('outputOptions.other')} value={preview.selectedOther} />
-          </View>
-          <StatusRow icon="folder-outline" label={t('outputOptions.destinationFriendly')} value={destinationName} />
-          <StatusRow icon="folder-multiple-outline" label={t('outputOptions.organization')} value={t(`outputOptions.organizationModes.${settings.outputOrganization.mode}.title`)} />
-          <StatusRow icon="content-copy" label={t('outputOptions.duplicateHandling')} value={t(`outputOptions.duplicateModes.${settings.outputOrganization.duplicateHandling}.title`)} />
-        </Section>
       </ScrollView>
       <Snackbar visible={Boolean(snackbar)} onDismiss={() => setSnackbar(undefined)} duration={3200}>
         {snackbar}

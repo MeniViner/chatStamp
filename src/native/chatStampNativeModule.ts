@@ -178,7 +178,14 @@ type ChatStampNativeModule = {
   ) => Promise<NativeSaveMediaResult>;
   openOutputFolderPickerAsync: () => Promise<PickedFolderResult>;
   testPickedFolderTimestampSupportAsync: (treeUri: string) => Promise<PickedFolderTimestampSupportResult>;
-  openFolderTargetAsync: (target: { treeUri?: string | null; path?: string | null }) => Promise<{ opened?: boolean; reason?: string; activity?: string | null; attempted?: string; fallbackUsed?: boolean }>;
+  openFolderTargetAsync: (target: {
+    treeUri?: string | null;
+    documentUri?: string | null;
+    documentId?: string | null;
+    relativeFolderDocumentId?: string | null;
+    path?: string | null;
+    displayName?: string | null;
+  }) => Promise<{ opened?: boolean; reason?: string; activity?: string | null; attempted?: string; fallbackUsed?: boolean }>;
   shareOutputFilesAsync: (files: { uri?: string | null; path?: string | null; mimeType?: string | null; mediaType?: MediaType | null; filename?: string | null }[]) => Promise<{ opened?: boolean; shared?: number; reason?: string; activity?: string | null }>;
   deleteOutputFilesAsync: (files: { uri?: string | null; path?: string | null }[]) => Promise<{ deleted: number; failed: number; results: { target?: string | null; deleted: boolean; reason?: string | null }[] }>;
   isExternalStorageManagerAsync: () => Promise<boolean>;

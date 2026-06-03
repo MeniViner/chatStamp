@@ -31,6 +31,7 @@ export function FolderFallbackSheet({
   onCopied
 }: FolderFallbackSheetProps) {
   const { t } = useTranslation();
+  const canCopyFolderPath = !outputFolder.startsWith('content://');
 
   async function copyPath() {
     await Clipboard.setStringAsync(outputFolder);
@@ -47,11 +48,15 @@ export function FolderFallbackSheet({
           {t('results.openFirstSavedItem')}
         </SecondaryButton>
       ) : null}
-      <SecondaryButton icon="content-copy" onPress={() => void copyPath()}>
-        {t('results.copyFolderPath')}
-      </SecondaryButton>
-      <Text variant="labelLarge">{t('results.outputFolder')}</Text>
-      <FilePathText value={outputFolder} maxLines={3} />
+      {canCopyFolderPath ? (
+        <>
+          <SecondaryButton icon="content-copy" onPress={() => void copyPath()}>
+            {t('results.copyFolderPath')}
+          </SecondaryButton>
+          <Text variant="labelLarge">{t('results.outputFolder')}</Text>
+          <FilePathText value={outputFolder} maxLines={3} />
+        </>
+      ) : null}
       <Text variant="bodySmall" style={textStyles.start}>{helperText}</Text>
     </BottomSheet>
   );

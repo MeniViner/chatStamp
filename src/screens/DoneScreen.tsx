@@ -15,10 +15,20 @@ import { FooterActions, WizardScreen } from './WizardScreen';
 import type { MediaType, SaveFileResult } from '../types/media';
 import { shareOutputFiles } from '../native/outputFiles';
 import { useTranslation } from 'react-i18next';
-import { getResultStatusKey, getResultsHeadlineKey, shouldShowTechnicalResults } from './resultsLogic';
+import {
+  collapseAllResultRows,
+  expandAllResultRows,
+  getResultRowKey,
+  getResultStatusKey,
+  getResultsHeadlineKey,
+  setResultRowExpanded,
+  shouldShowTechnicalResults
+} from './resultsLogic';
 import {
   ExpandableTechnicalDetails,
   FilePathText,
+  IconOnlyActionButton,
+  MediaThumbnail,
   PremiumCard,
   PrimaryButton,
   SecondaryButton,
@@ -35,7 +45,6 @@ export function DoneScreen() {
   const workingDirectory = usePipelineStore((state) => state.workingDirectory);
   const zipName = usePipelineStore((state) => state.zipName);
   const reset = usePipelineStore((state) => state.reset);
-  const openOverlayStage = usePipelineStore((state) => state.openOverlayStage);
   const developerMode = useSettingsStore((state) => state.settings.developerMode);
   const saveDestinationMode = useSettingsStore((state) => state.settings.saveDestinationMode);
   const customFolder = useSettingsStore((state) => state.settings.customFolder);
@@ -43,10 +52,22 @@ export function DoneScreen() {
   const [shareSheetOpen, setShareSheetOpen] = React.useState(false);
   const [restartDialogOpen, setRestartDialogOpen] = React.useState(false);
   const [folderFallbackOpen, setFolderFallbackOpen] = React.useState(false);
+  const [expandedResultKeys, setExpandedResultKeys] = React.useState<string[]>([]);
+  const results = React.useMemo(() => completion?.results ?? [], [completion?.results]);
+  const resultKeys = React.useMemo(() => results.map((result, index) => getResultRowKey(result, index)), [results]);
 
   const outputFolder =
-    completion?.results?.find((result) => result.outputPath)?.outputPath?.replace(/[\\/][^\\/]+$/, '') ??
+    completion?.outputDirectory ??
+    results.find((result) => result.outputPath)?.outputPath?.replace(/[\\/][^\\/]+$/, '') ??
     buildTermuxParityOutputPath(sanitizePathSegment(zipName?.replace(/\.zip$/i, '') ?? t('common.importedChat')));
+  const outputFolderDisplayName =
+    saveDestinationMode === 'custom-folder'
+      ? customFolder?.displayName ?? customFolder?.readablePathLabel ?? t('outputOptions.selectedFolder')
+      : getFriendlyFolderName(outputFolder);
+
+  React.useEffect(() => {
+    setExpandedResultKeys([]);
+  }, [completion]);
 
   async function startOver() {
     if (!completion?.cacheCleared) {
@@ -57,14 +78,14 @@ export function DoneScreen() {
 
   async function openFolder() {
     const folderTarget = saveDestinationMode === 'custom-folder' ? customFolder : null;
-    const outcome = await openFolderBestEffort(outputFolder, folderTarget);
+    const outcome = await openFolderBestEffort(outputFolder, folderTarget, completion?.outputDirectory);
     if (outcome === 'manual-fallback') {
       setFolderFallbackOpen(true);
     }
   }
 
   async function openFirstSavedItem() {
-    const outcome = await openGalleryBestEffort(outputFolder, completion?.results);
+    const outcome = await openGalleryBestEffort(outputFolder, results);
     if (outcome === 'manual-fallback') {
       setSnackbar(t('results.openGalleryFallback'));
     }
@@ -74,6 +95,18 @@ export function DoneScreen() {
     const result = await shareOutputFiles(completion?.results ?? [], categories);
     setShareSheetOpen(false);
     if (!result.opened) setSnackbar(result.reason ?? t('results.shareFailed'));
+  }
+
+  function expandAllResultDetails() {
+    setExpandedResultKeys(expandAllResultRows(resultKeys));
+  }
+
+  function collapseAllResultDetails() {
+    setExpandedResultKeys(collapseAllResultRows());
+  }
+
+  function setResultExpanded(key: string, expanded: boolean) {
+    setExpandedResultKeys((current) => setResultRowExpanded(current, key, expanded));
   }
 
   React.useEffect(() => {
@@ -118,36 +151,53 @@ export function DoneScreen() {
             <SummaryMetricCard label={t('results.datesFixed')} value={completion?.dateCorrected ?? 0} />
             <SummaryMetricCard label={t('results.failed')} value={completion?.failed ?? 0} />
           </View>
-          <SummaryRow icon="folder-outline" label={t('results.outputFolder')} value={getFriendlyFolderName(outputFolder)} />
+          <SummaryRow icon="folder-outline" label={t('results.outputFolder')} value={outputFolderDisplayName} />
           <ExpandableTechnicalDetails collapsedTitle={t('outputOptions.showFullPath')} expandedTitle={t('common.hideTechnicalDetails')}>
             <FilePathText value={outputFolder} maxLines={3} />
           </ExpandableTechnicalDetails>
         </PremiumCard>
 
         <View style={styles.actionGrid}>
-          <SecondaryButton icon="share-variant-outline" disabled={!completion?.results?.some((result) => result.ok)} style={styles.actionButton} onPress={() => setShareSheetOpen(true)}>
+          <SecondaryButton icon="share-variant-outline" disabled={!results.some((result) => result.ok)} style={styles.actionButton} onPress={() => setShareSheetOpen(true)}>
             {t('results.shareOutputFiles')}
           </SecondaryButton>
-          <SecondaryButton icon="history" style={styles.actionButton} onPress={() => openOverlayStage('history')}>
-            {t('settings.history')}
-          </SecondaryButton>
-          {shouldShowOpenGallery(completion?.results) ? (
+          {shouldShowOpenGallery(results) ? (
             <SecondaryButton icon="image-multiple-outline" style={styles.actionButton} onPress={() => void openFirstSavedItem()}>
               {t('results.openFirstSavedItem')}
             </SecondaryButton>
           ) : null}
-          <SecondaryButton icon="refresh" style={styles.actionButton} onPress={() => setRestartDialogOpen(true)}>
-            {t('results.importAnotherZip')}
-          </SecondaryButton>
         </View>
 
         <Section title={t('results.savedFiles')} icon="file-check-outline">
-          <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {t('results.savedFilesCount', { count: completion?.results?.length ?? 0 })}
-          </Text>
-          {completion?.results?.map((result) => (
-            <ResultCard key={`${result.filename}-${result.outputPath ?? result.failureReason}`} result={result} developerMode={developerMode} />
-          ))}
+          <View style={styles.savedFilesToolbar}>
+            <Text variant="bodySmall" style={[styles.flex, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+              {t('results.savedFilesCount', { count: results.length })}
+            </Text>
+            <IconOnlyActionButton
+              icon="chevron-down"
+              accessibilityLabel={t('results.expandAllDetails')}
+              disabled={results.length === 0}
+              onPress={expandAllResultDetails}
+            />
+            <IconOnlyActionButton
+              icon="chevron-up"
+              accessibilityLabel={t('results.collapseAllDetails')}
+              disabled={expandedResultKeys.length === 0}
+              onPress={collapseAllResultDetails}
+            />
+          </View>
+          {results.map((result, index) => {
+            const key = getResultRowKey(result, index);
+            return (
+              <ResultCard
+                key={key}
+                result={result}
+                developerMode={developerMode}
+                detailsExpanded={expandedResultKeys.includes(key)}
+                onDetailsExpandedChange={(expanded) => setResultExpanded(key, expanded)}
+              />
+            );
+          })}
         </Section>
 
         {shouldShowTechnicalResults(developerMode) ? (
@@ -179,12 +229,12 @@ export function DoneScreen() {
         subtitle={t('results.openFolderFallbackTitle')}
         helperText={t('results.openFolderFallback')}
         outputFolder={outputFolder}
-        canOpenFirstSavedItem={shouldShowOpenGallery(completion?.results)}
+        canOpenFirstSavedItem={shouldShowOpenGallery(results)}
         onDismiss={() => setFolderFallbackOpen(false)}
         onOpenFirstSavedItem={() => void openFirstSavedItem()}
         onRetryOpenFolder={async () => {
           const folderTarget = saveDestinationMode === 'custom-folder' ? customFolder : null;
-          const outcome = await openFolderBestEffort(outputFolder, folderTarget);
+          const outcome = await openFolderBestEffort(outputFolder, folderTarget, completion?.outputDirectory);
           if (outcome === 'manual-fallback') {
             setSnackbar(t('results.openFolderFallback'));
           } else {
@@ -195,7 +245,7 @@ export function DoneScreen() {
       />
       <ShareOutputSheet
         visible={shareSheetOpen}
-        results={completion?.results ?? []}
+        results={results}
         onDismiss={() => setShareSheetOpen(false)}
         onShare={(categories) => void shareSelectedCategories(categories)}
       />
@@ -292,13 +342,25 @@ function ShareOutputSheet({
   );
 }
 
-function ResultCard({ result, developerMode }: { result: SaveFileResult; developerMode: boolean }) {
+function ResultCard({
+  result,
+  developerMode,
+  detailsExpanded,
+  onDetailsExpandedChange
+}: {
+  result: SaveFileResult;
+  developerMode: boolean;
+  detailsExpanded: boolean;
+  onDetailsExpandedChange: (expanded: boolean) => void;
+}) {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const ok = result.ok && !result.galleryMaySortByImportTime;
+  const previewUri = getResultPreviewUri(result);
   return (
     <Surface elevation={0} style={[styles.resultCard, { borderColor: ok ? theme.colors.outlineVariant : theme.colors.error }]}>
       <View style={styles.resultHeader}>
+        <MediaThumbnail mediaType={result.mediaType ?? 'unknown'} uri={previewUri} size={62} />
         <MaterialCommunityIcons
           name={ok ? 'check-circle-outline' : result.ok ? 'clock-alert-outline' : 'alert-circle-outline'}
           size={22}
@@ -318,11 +380,21 @@ function ResultCard({ result, developerMode }: { result: SaveFileResult; develop
           ? t(getResultStatusKey(result), { reason: result.failureReason })
           : t(getResultStatusKey(result))}
       </Text>
-      <ExpandableTechnicalDetails collapsedTitle={t('outputOptions.showFullPath')} expandedTitle={t('common.hideTechnicalDetails')}>
+      <ExpandableTechnicalDetails
+        collapsedTitle={t('outputOptions.showFullPath')}
+        expandedTitle={t('common.hideTechnicalDetails')}
+        expanded={detailsExpanded}
+        onExpandedChange={onDetailsExpandedChange}
+      >
         <FilePathText value={result.outputPath ?? t('common.none')} maxLines={3} />
       </ExpandableTechnicalDetails>
       {shouldShowTechnicalResults(developerMode) ? (
-        <ExpandableTechnicalDetails collapsedTitle={t('common.technicalDetails')} expandedTitle={t('common.hideTechnicalDetails')}>
+        <ExpandableTechnicalDetails
+          collapsedTitle={t('common.technicalDetails')}
+          expandedTitle={t('common.hideTechnicalDetails')}
+          expanded={detailsExpanded}
+          onExpandedChange={onDetailsExpandedChange}
+        >
           <View style={styles.resultTechnical}>
             <Text variant="bodySmall">{t('results.technical.setLastModified', { value: result.setLastModifiedReturned ? t('common.true') : t('common.false') })}</Text>
             <Text variant="bodySmall">{t('results.technical.actualLastModified', { value: formatDate(result.actualLastModifiedMillis, t) })}</Text>
@@ -335,6 +407,14 @@ function ResultCard({ result, developerMode }: { result: SaveFileResult; develop
       ) : null}
     </Surface>
   );
+}
+
+function getResultPreviewUri(result: SaveFileResult): string | undefined {
+  const candidate = result.scannedUri ?? result.insertedUri ?? result.outputPath;
+  if (!candidate) return undefined;
+  if (candidate.startsWith('content://') || candidate.startsWith('file://')) return candidate;
+  if (candidate.startsWith('/')) return `file://${candidate}`;
+  return candidate;
 }
 
 function formatDate(value: string | number | null | undefined, t: (key: string) => string): string {
@@ -385,6 +465,12 @@ const styles = StyleSheet.create({
     minWidth: 150,
     flexGrow: 1
   },
+  savedFilesToolbar: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.tinyGap
+  },
   summaryRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -402,7 +488,7 @@ const styles = StyleSheet.create({
   },
   resultHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 10
   },
   resultTechnical: {

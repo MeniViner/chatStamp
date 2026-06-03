@@ -62,6 +62,7 @@ export function ProcessingScreen() {
           onProgress: setProgress
         });
         const outputFolderPath =
+          completion.outputDirectory ??
           completion.results?.find((result) => result.outputPath)?.outputPath?.replace(/[\\/][^\\/]+$/, '') ??
           buildTermuxParityOutputPath(sanitizePathSegment(zipName?.replace(/\.zip$/i, '') ?? t('common.importedChat')), {
             baseFolder: settings.baseFolder,

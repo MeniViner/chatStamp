@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   defaultFileSelectionUiState,
+  getFilteredSelectionCount,
   getVideoPreviewMode,
   getVoicePreviewProgress,
   shouldShowDeveloperDiagnostics,
@@ -23,6 +24,12 @@ describe('fileSelectionUi', () => {
   it('exposes voice preview progress safely', () => {
     expect(getVoicePreviewProgress(15, 60)).toBe(0.25);
     expect(getVoicePreviewProgress(15, 0)).toBe(0);
+  });
+
+  it('counts selected files only inside the current visible set', () => {
+    expect(getFilteredSelectionCount(['1', '2', '3', '4'], ['2', '4', 'hidden'])).toEqual({ selected: 2, total: 4 });
+    expect(getFilteredSelectionCount(['1', '2'], ['1', '2'])).toEqual({ selected: 2, total: 2 });
+    expect(getFilteredSelectionCount([], ['1'])).toEqual({ selected: 0, total: 0 });
   });
 
   it('falls back gracefully when video preview reports an error', () => {

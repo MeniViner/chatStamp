@@ -17,6 +17,14 @@ export function toggleCategoryFilter(categoryFilters: MediaType[], mediaType: Me
     : [...categoryFilters, mediaType];
 }
 
+export function getFilteredSelectionCount(visibleFileIds: string[], selectedFileIds: string[]): { selected: number; total: number } {
+  const selectedSet = new Set(selectedFileIds);
+  return {
+    selected: visibleFileIds.filter((id) => selectedSet.has(id)).length,
+    total: visibleFileIds.length
+  };
+}
+
 export function getVoicePreviewProgress(currentTime: number, duration: number): number {
   if (!Number.isFinite(currentTime) || !Number.isFinite(duration) || duration <= 0) return 0;
   return Math.min(1, Math.max(0, currentTime / duration));

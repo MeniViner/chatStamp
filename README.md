@@ -47,7 +47,7 @@ For Android resolver and merged-package share target diagnostics:
 
 ```bash
 adb shell cmd package query-intent-activities -a android.intent.action.SEND -t application/zip
-adb shell dumpsys package com.local.chatstamp
+adb shell dumpsys package menis.chatstamp.com
 adb logcat -s ChatStamp ReactNativeJS Expo
 ```
 

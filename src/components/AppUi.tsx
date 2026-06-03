@@ -4,6 +4,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Appbar, Button, Chip, IconButton, ProgressBar, RadioButton, Surface, Switch, Text } from 'react-native-paper';
 import { Image as ExpoImage } from 'expo-image';
+import { useVideoPlayer } from 'expo-video';
 import { useTranslation } from 'react-i18next';
 import { useAppLayoutDirection } from '../i18n/AppLayoutDirectionContext';
 import { spacing, radius, size, appTypography, appColorTokens } from '../theme/designTokens';
@@ -55,16 +56,34 @@ export function AppScreenScaffold({
       <StatusBar translucent backgroundColor="transparent" barStyle={statusBarStyle} />
       <Appbar.Header mode="small" elevated={false} statusBarHeight={0} style={[styles.scaffoldAppbar, { backgroundColor: theme.colors.background }]}>
         {onBack ? <Appbar.BackAction disabled={backDisabled} onPress={onBack} /> : null}
-        <View style={styles.flex} />
+        <CompactStepHeader stepLabel={stepLabel} title={title} />
         {actions}
       </Appbar.Header>
       {showProgress && typeof progress === 'number' ? (
         <ProgressBar progress={progress} color={theme.colors.primary} style={[styles.scaffoldProgress, layoutDirection === 'rtl' ? styles.rtlProgress : null]} />
       ) : null}
-      <StepHeader stepLabel={stepLabel} title={title} subtitle={subtitle} />
+      {subtitle ? <StepHeader title="" subtitle={subtitle} compact /> : null}
       <View style={[styles.scaffoldContent, contentStyle]}>{children}</View>
       {footer ? <PrimaryBottomActionBar>{footer}</PrimaryBottomActionBar> : null}
     </SafeAreaView>
+  );
+}
+
+export function CompactStepHeader({ stepLabel, title }: { stepLabel?: string; title: string }) {
+  const theme = useAppTheme();
+  return (
+    <View style={styles.compactStepHeader}>
+      <Text variant="titleMedium" numberOfLines={1} ellipsizeMode="tail" style={[styles.compactAppbarTitle, textStyles.start]}>
+        {title}
+      </Text>
+      {stepLabel ? (
+        <View style={[styles.compactStepPill, { backgroundColor: theme.colors.secondaryContainer }]}>
+          <Text variant="labelSmall" numberOfLines={1} style={[styles.tabular, { color: theme.colors.onSecondaryContainer }]}>
+            {stepLabel}
+          </Text>
+        </View>
+      ) : null}
+    </View>
   );
 }
 
@@ -72,28 +91,32 @@ export function StepHeader({
   stepLabel,
   title,
   subtitle,
-  style
+  style,
+  compact
 }: {
   stepLabel?: string;
   title: string;
   subtitle?: string;
   style?: StyleProp<ViewStyle>;
+  compact?: boolean;
 }) {
   const theme = useAppTheme();
   return (
-    <View style={[styles.stepHeader, style]}>
-      <View style={styles.stepHeaderLine}>
-        {stepLabel ? (
-          <View style={[styles.stepPill, { backgroundColor: theme.colors.secondaryContainer }]}>
-            <Text variant="labelSmall" numberOfLines={1} style={[styles.tabular, { color: theme.colors.onSecondaryContainer }]}>
-              {stepLabel}
-            </Text>
-          </View>
-        ) : null}
-        <Text variant="titleSmall" numberOfLines={1} ellipsizeMode="tail" style={[styles.screenTitle, textStyles.start]}>
-          {title}
-        </Text>
-      </View>
+    <View style={[compact ? styles.stepSubtitleOnly : styles.stepHeader, style]}>
+      {!compact ? (
+        <View style={styles.stepHeaderLine}>
+          {stepLabel ? (
+            <View style={[styles.stepPill, { backgroundColor: theme.colors.secondaryContainer }]}>
+              <Text variant="labelSmall" numberOfLines={1} style={[styles.tabular, { color: theme.colors.onSecondaryContainer }]}>
+                {stepLabel}
+              </Text>
+            </View>
+          ) : null}
+          <Text variant="titleSmall" numberOfLines={1} ellipsizeMode="tail" style={[styles.screenTitle, textStyles.start]}>
+            {title}
+          </Text>
+        </View>
+      ) : null}
       {subtitle ? (
         <Text variant="bodySmall" numberOfLines={1} ellipsizeMode="tail" style={[styles.scaffoldSubtitle, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
           {subtitle}
@@ -297,6 +320,78 @@ export function SecondaryButton({
     >
       {children}
     </Button>
+  );
+}
+
+export function IconOnlyActionButton({
+  icon,
+  accessibilityLabel,
+  onPress,
+  selected,
+  disabled,
+  style
+}: {
+  icon: IconName;
+  accessibilityLabel: string;
+  onPress?: () => void;
+  selected?: boolean;
+  disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const theme = useAppTheme();
+  const colors = semanticColors(theme);
+  return (
+    <IconButton
+      icon={icon}
+      mode={selected ? 'contained-tonal' : 'outlined'}
+      size={22}
+      disabled={disabled}
+      onPress={onPress}
+      accessibilityLabel={accessibilityLabel}
+      hitSlop={10}
+      style={[
+        styles.iconOnlyButton,
+        {
+          backgroundColor: selected ? colors.peachSelected : colors.surface,
+          borderColor: selected ? colors.primaryBrown : colors.borderSubtle
+        },
+        style
+      ]}
+    />
+  );
+}
+
+export function FilteredSelectionCountBadge({
+  selected,
+  total,
+  accessibilityLabel,
+  style
+}: {
+  selected: number;
+  total: number;
+  accessibilityLabel: string;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const theme = useAppTheme();
+  return (
+    <Surface
+      elevation={0}
+      accessibilityRole="text"
+      accessibilityLabel={accessibilityLabel}
+      style={[
+        styles.filteredCountBadge,
+        {
+          backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant,
+          borderColor: theme.colors.outlineVariant
+        },
+        style
+      ]}
+    >
+      <MaterialCommunityIcons name="file-check-outline" size={20} color={theme.colors.primary} />
+      <Text variant="labelLarge" numberOfLines={1} style={styles.tabular}>
+        {selected}/{total}
+      </Text>
+    </Surface>
   );
 }
 
@@ -645,6 +740,8 @@ export function ExpandableTechnicalDetails({
   expandedTitle,
   children,
   initiallyExpanded = false,
+  expanded,
+  onExpandedChange,
   style
 }: {
   title?: string;
@@ -652,15 +749,23 @@ export function ExpandableTechnicalDetails({
   expandedTitle?: string;
   children: React.ReactNode;
   initiallyExpanded?: boolean;
+  expanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
   style?: StyleProp<ViewStyle>;
 }) {
   const { t } = useTranslation();
   const theme = useAppTheme();
-  const [open, setOpen] = React.useState(initiallyExpanded);
+  const [internalOpen, setInternalOpen] = React.useState(initiallyExpanded);
+  const open = expanded ?? internalOpen;
   const label = title ?? (open ? expandedTitle ?? t('common.hideTechnicalDetails') : collapsedTitle ?? t('common.showTechnicalDetails'));
+  function toggleOpen() {
+    const nextOpen = !open;
+    if (expanded === undefined) setInternalOpen(nextOpen);
+    onExpandedChange?.(nextOpen);
+  }
   return (
     <View style={[styles.expandableDetails, style]}>
-      <Pressable onPress={() => setOpen((value) => !value)} style={styles.expandableHeader}>
+      <Pressable onPress={toggleOpen} style={styles.expandableHeader}>
         <Text variant="labelLarge" style={[styles.flex, textStyles.start, { color: theme.colors.primary }]}>
           {label}
         </Text>
@@ -707,7 +812,7 @@ export function MediaFileListItem({
           }
         ]}
       >
-        <MediaThumb file={file} />
+        <MediaThumbnail mediaType={file.mediaType} uri={file.uri} thumbnailUri={file.thumbnailUri} />
         <View style={styles.mediaText}>
           <View style={styles.mediaMainLine}>
             <StatusBadge label={t(`media.singular.${file.mediaType}`)} selected={selected} />
@@ -737,16 +842,99 @@ export function MediaFileListItem({
   );
 }
 
-function MediaThumb({ file }: { file: ExtractedMediaFile }) {
+const videoThumbnailCache = new Map<string, unknown>();
+const videoThumbnailFailures = new Set<string>();
+
+export function MediaThumbnail({
+  mediaType,
+  uri,
+  thumbnailUri,
+  size = 78,
+  style
+}: {
+  mediaType?: MediaType;
+  uri?: string | null;
+  thumbnailUri?: string | null;
+  size?: number;
+  style?: StyleProp<ViewStyle | ImageStyle>;
+}) {
   const theme = useAppTheme();
-  if (file.mediaType === 'photo' || file.mediaType === 'sticker') {
-    return <ExpoImage source={file.thumbnailUri ?? file.uri} contentFit="cover" style={styles.mediaImage as StyleProp<ImageStyle>} />;
+  const normalizedType = mediaType ?? 'unknown';
+  const thumbStyle = [styles.mediaImage, { width: size, height: size }, style] as StyleProp<ImageStyle>;
+  const iconStyle = [
+    styles.mediaIcon,
+    { width: size, height: size, backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant },
+    style
+  ] as StyleProp<ViewStyle>;
+
+  if ((normalizedType === 'photo' || normalizedType === 'sticker' || normalizedType === 'gif') && (thumbnailUri || uri)) {
+    return <ExpoImage source={thumbnailUri ?? uri ?? undefined} contentFit="cover" style={thumbStyle} />;
   }
+  if (normalizedType === 'video' && (thumbnailUri || uri)) {
+    return <VideoThumbnail uri={(thumbnailUri ?? uri) as string} imageStyle={thumbStyle} fallbackStyle={iconStyle} />;
+  }
+
   return (
-    <View style={[styles.mediaIcon, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]}>
-        <MaterialCommunityIcons name={getMediaIcon(file.mediaType)} size={22} color={theme.colors.primary} />
+    <View style={iconStyle}>
+      <MaterialCommunityIcons name={getMediaIcon(normalizedType)} size={Math.max(20, Math.round(size * 0.28))} color={theme.colors.primary} />
     </View>
   );
+}
+
+function VideoThumbnail({
+  uri,
+  imageStyle,
+  fallbackStyle
+}: {
+  uri: string;
+  imageStyle: StyleProp<ImageStyle>;
+  fallbackStyle: StyleProp<ViewStyle>;
+}) {
+  const theme = useAppTheme();
+  const cached = videoThumbnailCache.get(uri);
+  const [thumbnail, setThumbnail] = React.useState<unknown>(cached);
+  const [failed, setFailed] = React.useState(videoThumbnailFailures.has(uri));
+  const player = useVideoPlayer({ uri }, () => undefined);
+
+  React.useEffect(() => {
+    if (thumbnail || failed) return;
+    let cancelled = false;
+    player
+      .generateThumbnailsAsync([0], { maxWidth: 360, maxHeight: 360 })
+      .then((thumbs) => {
+        const nextThumbnail = thumbs[0];
+        if (nextThumbnail) videoThumbnailCache.set(uri, nextThumbnail);
+        if (!cancelled) {
+          if (nextThumbnail) setThumbnail(nextThumbnail);
+          else setFailed(true);
+        }
+      })
+      .catch(() => {
+        videoThumbnailFailures.add(uri);
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [failed, player, thumbnail, uri]);
+
+  if (thumbnail) {
+    return <ExpoImage source={thumbnail} contentFit="cover" style={imageStyle} />;
+  }
+
+  return (
+    <View style={fallbackStyle}>
+      <MaterialCommunityIcons name={failed ? 'video-off-outline' : 'video-outline'} size={24} color={theme.colors.primary} />
+    </View>
+  );
+}
+
+export function rememberVideoThumbnail(uri: string, thumbnail: unknown) {
+  videoThumbnailCache.set(uri, thumbnail);
+}
+
+export function getCachedVideoThumbnail(uri: string): unknown {
+  return videoThumbnailCache.get(uri);
 }
 
 function getMediaIcon(mediaType: MediaType): IconName {
@@ -764,7 +952,8 @@ function createStyles() {
   },
   scaffoldAppbar: {
     height: 48,
-    paddingHorizontal: 8
+    paddingHorizontal: 8,
+    gap: 4
   },
   scaffoldProgress: {
     height: 3
@@ -777,6 +966,32 @@ function createStyles() {
     paddingTop: spacing.tinyGap,
     paddingBottom: spacing.smallGap,
     gap: 2
+  },
+  stepSubtitleOnly: {
+    paddingHorizontal: spacing.screenHorizontal,
+    paddingTop: spacing.tinyGap,
+    paddingBottom: spacing.tinyGap
+  },
+  compactStepHeader: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: spacing.smallGap
+  },
+  compactAppbarTitle: {
+    flexShrink: 1,
+    minWidth: 0,
+    fontWeight: '800',
+    letterSpacing: 0
+  },
+  compactStepPill: {
+    flexShrink: 0,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    maxWidth: 116
   },
   stepHeaderLine: {
     flexDirection: 'row',
@@ -847,6 +1062,24 @@ function createStyles() {
     fontSize: 16,
     lineHeight: 21,
     fontWeight: '700'
+  },
+  iconOnlyButton: {
+    width: 44,
+    height: 44,
+    margin: 0,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 22
+  },
+  filteredCountBadge: {
+    height: 44,
+    minWidth: 74,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 22,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6
   },
   sectionCard: {
     borderWidth: StyleSheet.hairlineWidth,

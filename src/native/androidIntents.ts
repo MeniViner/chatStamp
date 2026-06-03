@@ -3,6 +3,7 @@ import * as Clipboard from 'expo-clipboard';
 import { logger } from '../lib/logger';
 import type { PickedFolderResult, SaveFileResult } from '../types/media';
 import { getChatStampNativeModule } from './chatStampNativeModule';
+import { buildOpenFolderTarget } from './openDirectoryLogic';
 export { shouldShowOpenFolder, shouldShowOpenGallery } from './openTargetLogic';
 
 export type OpenTargetOutcome = 'opened' | 'manual-fallback';
@@ -24,17 +25,20 @@ export async function openGalleryBestEffort(outputPath?: string | null, results?
     }
   }
 
-  if (outputPath) await Clipboard.setStringAsync(outputPath);
+  if (outputPath && !outputPath.startsWith('content://')) await Clipboard.setStringAsync(outputPath);
   return 'manual-fallback';
 }
 
-export async function openFolderBestEffort(outputPath?: string | null, customFolder?: PickedFolderResult | null): Promise<OpenTargetOutcome> {
+export async function openFolderBestEffort(
+  outputPath?: string | null,
+  customFolder?: PickedFolderResult | null,
+  outputDirectory?: string | null
+): Promise<OpenTargetOutcome> {
   if (Platform.OS === 'android') {
     try {
-      const result = await getChatStampNativeModule().openFolderTargetAsync({
-        treeUri: customFolder?.treeUri ?? null,
-        path: outputPath ?? null
-      });
+      const result = await getChatStampNativeModule().openFolderTargetAsync(
+        buildOpenFolderTarget({ outputDirectory, outputPath, customFolder })
+      );
       logger.info('openFolderTargetResult', result);
       if (result.opened) return 'opened';
     } catch (error) {

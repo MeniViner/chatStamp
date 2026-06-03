@@ -1,4 +1,4 @@
-import type { CompletionSummary, SaveFileResult } from '../types/media';
+import type { CompletionSummary, SaveFileResult, SaveMethod } from '../types/media';
 
 export type SaveSummaryInput = {
   totalFiles: number;
@@ -12,6 +12,8 @@ export type SaveSummaryInput = {
   scanned?: number;
   dateCorrected: number;
   cacheCleared: boolean;
+  saveMethod?: SaveMethod;
+  outputDirectory?: string | null;
   results?: SaveFileResult[];
 };
 
@@ -30,6 +32,8 @@ export function buildSaveSummary(input: SaveSummaryInput): CompletionSummary {
     dateCorrectionFailed,
     mayShowImportTime: dateCorrectionFailed,
     cacheCleared: input.cacheCleared,
+    saveMethod: input.saveMethod,
+    outputDirectory: input.outputDirectory,
     results: input.results
   };
 }

@@ -35,7 +35,8 @@ export function createExportHistoryItem(params: {
       documents: count('document'),
       failed: params.completion.failed
     },
-    saveMethod: 'termux-parity',
+    saveMethod: params.completion.saveMethod ?? 'termux-parity',
+    outputDirectory: params.completion.outputDirectory,
     allFilesHadTimestampsFixed: params.completion.saved > 0 && fixed >= params.completion.saved,
     savedFiles: params.completion.results
   };

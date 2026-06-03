@@ -137,6 +137,8 @@ export async function runSavePipeline({
     scanned: nativeResult.scanned,
     dateCorrected: nativeResult.filesystemTimestampFixed ?? nativeResult.dateCorrected,
     cacheCleared,
+    saveMethod: destinationMode === 'custom-folder' && settings?.customFolder?.treeUri ? 'saf-custom-folder' : 'termux-parity',
+    outputDirectory: nativeResult.outputDirectory ?? outputFolder,
     results: nativeResult.results.map((result) => ({
       filename: result.filename,
       ok: result.ok,

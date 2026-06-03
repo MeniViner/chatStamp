@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { getResultStatusKey, getResultsHeadlineKey, shouldShowTechnicalResults } from '../src/screens/resultsLogic';
+import {
+  collapseAllResultRows,
+  expandAllResultRows,
+  getResultRowKey,
+  getResultStatusKey,
+  getResultsHeadlineKey,
+  setResultRowExpanded,
+  shouldShowTechnicalResults
+} from '../src/screens/resultsLogic';
 import type { CompletionSummary, SaveFileResult } from '../src/types/media';
 
 describe('resultsLogic', () => {
@@ -52,5 +60,18 @@ describe('resultsLogic', () => {
   it('keeps technical details out of production mode', () => {
     expect(shouldShowTechnicalResults(false)).toBe(false);
     expect(shouldShowTechnicalResults(true)).toBe(true);
+  });
+
+  it('builds stable saved-row expansion state for expand and collapse all', () => {
+    const rows: SaveFileResult[] = [
+      { filename: 'a.jpg', ok: true, outputPath: '/Pictures/chat/a.jpg', dateCorrectionVerified: true, galleryMaySortByImportTime: false },
+      { filename: 'b.mp4', ok: true, insertedUri: 'content://media/video/1', dateCorrectionVerified: true, galleryMaySortByImportTime: false }
+    ];
+    const keys = rows.map(getResultRowKey);
+
+    expect(expandAllResultRows(keys)).toEqual(keys);
+    expect(collapseAllResultRows()).toEqual([]);
+    expect(setResultRowExpanded([], keys[0], true)).toEqual([keys[0]]);
+    expect(setResultRowExpanded(keys, keys[0], false)).toEqual([keys[1]]);
   });
 });
