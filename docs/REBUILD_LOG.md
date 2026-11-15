@@ -16,6 +16,7 @@ Branch `fix/core-rebuild` starts at `2a76514` (0.1.1). The stage order is 0, A, 
 - Review checked the import, selection, preview, and save entry points against `docs/CODE_REVIEW.md`. The Kotlin transcript discovery and extraction remain in use until Stage C. A year-first transcript that fails the legacy discovery heuristic can still be rejected before TypeScript sees it. Date-less files remain visible and selectable. The existing save flow skips them until Stage B can save without a target timestamp.
 - Host smoke passed `npm ci`, typecheck, 129 tests, lint, clean Expo prebuild, and arm64 debug assembly. The final reviewed code also passed typecheck, tests, lint, and a rebuilt APK. Manifest inspection confirmed QA identity `com.menis.chatstamp.qa`, min SDK 24 and target SDK 36. The baseline storage grants remain declared at this stage.
 - Device smoke is `UNVERIFIED`. The Samsung was detected during Stage 0. The SDK ADB device list was empty during Stage A verification, including after reconnect and mDNS checks. The SDK has emulator tools but no provisioned AVD or complete local system image. The QA APK and logs are in `dist/android-verification/stage-a/`.
+- The Gradle connected runner preflight resolved all 13 registered Unified Test Platform configurations, including the core that failed at baseline. The [tracked prefetch command](../scripts/android-verification/README.md) also passed with `--offline` after warming the cache. The device assertions remain pending.
 
 ### Resume the physical smoke test
 

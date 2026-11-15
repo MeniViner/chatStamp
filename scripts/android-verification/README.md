@@ -25,3 +25,9 @@ python scripts/android-verification/device.py dump qa-selection
 Use `prepare` with `text-only`, `no-transcript`, `invalid`, or `large` for the other generated ZIPs. `fixtures.py --skip-large` omits the 128 MiB fixture. A baseline app requires a cold share or the system ZIP picker. Complete or skip onboarding before verifying the selection screen.
 
 Run `media-evidence.py` after saving the mixed fixture to read back the dates for the five baseline media files. Run `large-import.py` while the system picker shows the large ZIP to record sampled memory. Run `cleanup-device.py` after collecting evidence from the synthetic run.
+
+After prebuild, prefetch the current AGP connected runner dependencies without a device.
+
+```powershell
+.\android\gradlew.bat -p android --console=plain --max-workers=2 '-Dorg.gradle.internal.http.connectionTimeout=12000' '-Dorg.gradle.internal.http.socketTimeout=12000' -I "$PWD\scripts\android-verification\connected-runner.init.gradle" :chatstamp-native:prepareChatStampConnectedRunner
+```
