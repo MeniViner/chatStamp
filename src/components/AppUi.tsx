@@ -10,6 +10,7 @@ import { useAppLayoutDirection } from '../i18n/AppLayoutDirectionContext';
 import { spacing, radius, size, appTypography, appColorTokens } from '../theme/designTokens';
 import { useAppTheme } from '../theme/useAppTheme';
 import type { ExtractedMediaFile, MediaType } from '../types/media';
+import { getMediaDateIso, isApproximateDate } from '../lib/mediaMetadata';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -791,15 +792,18 @@ export function MediaFileListItem({
   onToggle: () => void;
   onPreview: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useAppTheme();
   const colors = semanticColors(theme);
   const sender = file.sourceKind === 'chat-transcript'
     ? t('fileSelection.chatTranscript')
     : file.matchedRecord?.sender ?? t('fileSelection.unknownSender');
-  const restoredDate = file.sourceKind === 'chat-transcript'
+  const dateIso = getMediaDateIso(file);
+  const date = dateIso && new Date(dateIso).toLocaleString(i18n.language, { timeZone: file.timeZone });
+  const dateLabel = date && isApproximateDate(file) ? t('fileSelection.approximateDate', { date }) : date;
+  const subtitle = file.sourceKind === 'chat-transcript'
     ? t('fileSelection.chatTranscriptFile')
-    : file.matchedRecord?.messageDateIso ? new Date(file.matchedRecord.messageDateIso).toLocaleString() : t('fileSelection.noDate');
+    : dateLabel ?? t('fileSelection.noDate');
   return (
     <Pressable onPress={onToggle} accessibilityRole="button">
       <Surface
@@ -822,7 +826,7 @@ export function MediaFileListItem({
             {sender}
           </Text>
           <Text variant="bodySmall" numberOfLines={1} style={[textStyles.start, { color: colors.textSecondary }]}>
-            {restoredDate}
+            {subtitle}
           </Text>
           <Text variant="bodySmall" numberOfLines={1} ellipsizeMode="middle" style={[textStyles.start, { color: colors.textSecondary }]}>
             {file.filename}

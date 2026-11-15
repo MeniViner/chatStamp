@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getLatestWhatsAppMessageDateIso, parseWhatsAppChatText, parseWhatsAppChatPreview } from '../src/lib/chatParser';
+import { parseWhatsAppChatText } from '../src/lib/chatParser';
 import { classifyMedia } from '../src/lib/mediaClassifier';
 import { attachChatRecordsToMedia } from '../src/lib/matcher';
 import type { ExtractedMediaFile } from '../src/types/media';
@@ -8,9 +8,13 @@ const sample = `31/12/2024, 18:42 - Avi Cohen: <attached: IMG-20241231-WA0001.jp
 01/01/2025, 09:15 - משה לוי: VID-20250101-WA0002.mp4
 02/01/2025, 10:00 - System message without media`;
 
+function parse(text: string, filenames: string[] = [], previewLimit?: number) {
+  return parseWhatsAppChatText(text, filenames.map((filename) => ({ id: filename, filename })), { timeZone: 'UTC', previewLimit });
+}
+
 describe('parseWhatsAppChatText', () => {
   it('extracts media records from common WhatsApp lines', () => {
-    const result = parseWhatsAppChatText(sample);
+    const result = parse(sample, ['IMG-20241231-WA0001.jpg', 'VID-20250101-WA0002.mp4']);
 
     expect(result.records).toHaveLength(2);
     expect(result.records[0].filename).toBe('IMG-20241231-WA0001.jpg');
@@ -20,13 +24,13 @@ describe('parseWhatsAppChatText', () => {
   });
 
   it('normalizes filename lookup casing', () => {
-    const result = parseWhatsAppChatText('31/12/2024, 18:42 - Sender: <attached: IMG-ABC.JPG>');
+    const result = parse('31/12/2024, 18:42 - Sender: <attached: IMG-ABC.JPG>', ['img-abc.jpg']);
     expect(result.records[0].normalizedFilename).toBe('img-abc.jpg');
   });
 
   it('ignores Unicode direction marks in dates, senders, and filenames', () => {
-    const result = parseWhatsAppChatText(
-      '\u200f31/12/2024, 18:42 - \u200fמשה לוי: <attached: \u200eIMG-ABC.JPG>'
+    const result = parse(
+      '\u200f31/12/2024, 18:42 - \u200fמשה לוי: <attached: \u200eIMG-ABC.JPG>', ['IMG-ABC.JPG']
     );
 
     expect(result.records).toHaveLength(1);
@@ -35,8 +39,8 @@ describe('parseWhatsAppChatText', () => {
   });
 
   it('supports bracketed exports with seconds', () => {
-    const result = parseWhatsAppChatText(
-      '[31/12/2024, 18:42:01] Avi Cohen: IMG-20241231-WA0001.jpg (file attached)'
+    const result = parse(
+      '[31/12/2024, 18:42:01] Avi Cohen: IMG-20241231-WA0001.jpg (file attached)', ['IMG-20241231-WA0001.jpg']
     );
 
     expect(result.records).toHaveLength(1);
@@ -44,8 +48,8 @@ describe('parseWhatsAppChatText', () => {
   });
 
   it('supports 12-hour timestamps', () => {
-    const result = parseWhatsAppChatText(
-      '12/31/2024, 6:42 PM - Sender: <attached: VID-20241231-WA0002.mp4>'
+    const result = parse(
+      '12/31/2024, 6:42 PM - Sender: <attached: VID-20241231-WA0002.mp4>', ['VID-20241231-WA0002.mp4']
     );
 
     expect(result.records).toHaveLength(1);
@@ -53,10 +57,10 @@ describe('parseWhatsAppChatText', () => {
   });
 
   it('treats multiline messages as one WhatsApp entry', () => {
-    const result = parseWhatsAppChatText(
+    const result = parse(
       `31/12/2024, 18:42 - Sender: Album note
-IMG-20241231-WA0001.jpg attached below
-01/01/2025, 09:15 - Sender: no media here`
+IMG-20241231-WA0001.jpg (file attached)
+01/01/2025, 09:15 - Sender: no media here`, ['IMG-20241231-WA0001.jpg']
     );
 
     expect(result.records).toHaveLength(1);
@@ -65,23 +69,23 @@ IMG-20241231-WA0001.jpg attached below
   });
 
   it('skips media omitted lines without throwing', () => {
-    const result = parseWhatsAppChatText('31/12/2024, 18:42 - Sender: image omitted');
+    const result = parse('31/12/2024, 18:42 - Sender: image omitted');
 
     expect(result.records).toHaveLength(0);
     expect(result.skippedLines).toHaveLength(1);
   });
 
   it('reads the latest message date even when the chat has no media', () => {
-    const latest = getLatestWhatsAppMessageDateIso(`01/01/2025, 09:00 - Sender: hello
+    const { latestMessageDateIso } = parse(`01/01/2025, 09:00 - Sender: hello
 02/01/2025, 10:30 - Sender: still text only`);
 
-    expect(latest).toContain('2025-01-02');
+    expect(latestMessageDateIso).toContain('2025-01-02');
   });
 
   it('builds conversation preview messages for text-only exports', () => {
-    const preview = parseWhatsAppChatPreview(`01/01/2025, 09:00 - Sender: hello
+    const { preview } = parse(`01/01/2025, 09:00 - Sender: hello
 this continues on another line
-02/01/2025, 10:30 - Dana: still text only`, 1);
+02/01/2025, 10:30 - Dana: still text only`, [], 1);
 
     expect(preview.totalMessages).toBe(2);
     expect(preview.truncated).toBe(true);
@@ -103,9 +107,7 @@ describe('classifyMedia', () => {
 });
 
 describe('attachChatRecordsToMedia', () => {
-  it('matches duplicate filenames in sequence', () => {
-    const parsed = parseWhatsAppChatText(`31/12/2024, 18:42 - Sender A: <attached: IMG-0001.jpg>
-01/01/2025, 09:15 - Sender B: <attached: IMG-0001.jpg>`);
+  it('keeps ambiguous duplicate filenames unmatched', () => {
     const files: ExtractedMediaFile[] = [
       {
         id: '1',
@@ -123,9 +125,11 @@ describe('attachChatRecordsToMedia', () => {
       }
     ];
 
-    const matched = attachChatRecordsToMedia(files, parsed.records);
+    const parsed = parseWhatsAppChatText(`31/12/2024, 18:42 - Sender A: <attached: IMG-0001.jpg>
+01/01/2025, 09:15 - Sender B: <attached: IMG-0001.jpg>`, files, { timeZone: 'UTC' });
+    const matched = attachChatRecordsToMedia(files, parsed.records, 'UTC');
 
-    expect(matched[0].matchedRecord?.sender).toBe('Sender A');
-    expect(matched[1].matchedRecord?.sender).toBe('Sender B');
+    expect(matched).toHaveLength(2);
+    expect(matched.every((file) => file.matchedRecord === undefined)).toBe(true);
   });
 });

@@ -1,10 +1,9 @@
 import type { ExtractedMediaFile, MediaType, SaveFileResult } from '../types/media';
 
-export const saveableMediaTypes: MediaType[] = ['photo', 'video', 'voice', 'sticker', 'document', 'unknown'];
-export const visibleMediaTypes: MediaType[] = ['photo', 'video', 'voice', 'sticker', 'document', 'unknown'];
+export const visibleMediaTypes: MediaType[] = ['photo', 'video', 'voice', 'audio', 'sticker', 'gif', 'document'];
 
 export function isSaveableMediaType(mediaType: MediaType): boolean {
-  return saveableMediaTypes.includes(mediaType);
+  return visibleMediaTypes.includes(mediaType);
 }
 
 export function getMediaTypeLabel(mediaType: MediaType): string {
@@ -42,10 +41,8 @@ export function getDateFixCapabilityLabel(file: Pick<ExtractedMediaFile, 'mediaT
 
 export function getResultStatusLabel(result: SaveFileResult): string {
   if (!result.ok) return `Failed${result.failureReason ? `: ${result.failureReason}` : ''}`;
-  if (result.filesystemTimestampFixed && result.mediaScannerCompleted && !result.galleryMaySortByImportTime) {
-    return 'Date fixed';
-  }
-  if (result.filesystemTimestampFixed) return 'Saved, scan pending';
+  if (result.dateCorrectionVerified) return 'Date fixed';
+  if (result.filesystemTimestampFixed && !result.mediaScannerCompleted) return 'Saved, scan pending';
   if (result.galleryMaySortByImportTime) return 'Saved, may show import time';
   return 'Saved';
 }

@@ -1,4 +1,20 @@
 export type MediaType = 'photo' | 'video' | 'voice' | 'audio' | 'sticker' | 'gif' | 'document' | 'unknown';
+export type DateSource = 'chat' | 'filename' | 'zip-entry' | 'none';
+export type DatePrecision = 'day' | 'minute' | 'second';
+
+export type ChatPreviewMessage = {
+  id: string;
+  sender: string;
+  messageDateIso: string;
+  body: string;
+};
+
+export type ChatPreview = {
+  messages: ChatPreviewMessage[];
+  totalMessages: number;
+  truncated: boolean;
+  rawFallback?: string;
+};
 
 export type PipelineStage =
   | 'welcome'
@@ -19,6 +35,10 @@ export type ChatMediaRecord = {
   sender: string;
   messageDateIso: string;
   rawLine: string;
+  archiveEntryId?: string;
+  messageIndex?: number;
+  datePrecision?: Exclude<DatePrecision, 'day'>;
+  dateAmbiguous?: boolean;
 };
 
 export type ExtractedMediaFile = {
@@ -28,8 +48,18 @@ export type ExtractedMediaFile = {
   uri: string;
   mediaType: MediaType;
   sourceKind?: 'zip-media' | 'chat-transcript';
+  sourcePath?: string;
+  modificationTime?: string;
   thumbnailUri?: string;
   matchedRecord?: ChatMediaRecord;
+  dateSource?: DateSource;
+  dateIso?: string;
+  saveDateIso?: string;
+  datePrecision?: DatePrecision;
+  dateAmbiguous?: boolean;
+  timeZone?: string;
+  timeZoneAssumed?: boolean;
+  transcriptPreview?: ChatPreview;
 };
 
 export type SenderSummary = {
@@ -52,7 +82,9 @@ export type ImportSummary = {
   photos: number;
   videos: number;
   voice: number;
+  audio?: number;
   stickers: number;
+  gifs?: number;
   documents: number;
   unknown: number;
   extractionMode: 'native-selective';

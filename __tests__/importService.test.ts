@@ -52,4 +52,16 @@ describe('importWhatsAppZip', () => {
     expect(result.importSummary.documents).toBe(1);
     expect(result.importSummary.matchedMedia).toBe(0);
   });
+
+  it('leaves an undated transcript selectable without using the current time', async () => {
+    vi.mocked(FileSystem.readAsStringAsync).mockResolvedValue('Raw transcript with no timestamp');
+    const result = await importWhatsAppZip({ zipUri: 'content://exports/chat.zip', zipName: 'chat.zip' });
+
+    expect(result.mediaFiles[0]).toMatchObject({
+      dateSource: 'none',
+      transcriptPreview: { rawFallback: 'Raw transcript with no timestamp' }
+    });
+    expect(result.mediaFiles[0].dateIso).toBeUndefined();
+    expect(result.mediaFiles[0].matchedRecord).toBeUndefined();
+  });
 });

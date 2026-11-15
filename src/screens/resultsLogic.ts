@@ -11,10 +11,8 @@ export function getResultsHeadlineKey(completion?: CompletionSummary): string {
 
 export function getResultStatusKey(result: SaveFileResult): string {
   if (!result.ok) return result.failureReason ? 'results.status.failedWithReason' : 'results.status.failed';
-  if (result.filesystemTimestampFixed && result.mediaScannerCompleted && !result.galleryMaySortByImportTime) {
-    return 'results.status.dateFixed';
-  }
-  if (result.filesystemTimestampFixed) return 'results.status.scanPending';
+  if (result.dateCorrectionVerified) return 'results.status.dateFixed';
+  if (result.filesystemTimestampFixed && !result.mediaScannerCompleted) return 'results.status.scanPending';
   if (result.galleryMaySortByImportTime) return 'results.status.mayShowImportTime';
   return 'results.status.saved';
 }

@@ -1,204 +1,187 @@
-import type { ChatMediaRecord } from '../types/media';
-import { normalizeFilename } from './filename';
-import { parseWhatsAppDateToIso, stripDirectionMarks } from './whatsappDate';
+import type { ChatMediaRecord, ChatPreview, ExtractedMediaFile } from '../types/media';
+import { normalizeArchivePath, normalizeFilename } from './filename';
+import {
+  chooseDateOrder, createLocalDateResolver, DATE_PART_PATTERN, getWallTime, normalizeChatText,
+  readLocalChatTime, TIME_PART_PATTERN, type DateOrder, type LocalChatTime
+} from './whatsappDate';
+
+type ArchiveEntry = Pick<ExtractedMediaFile, 'id' | 'filename' | 'sourcePath'>;
+type ParseOptions = { timeZone?: string; previewLimit?: number };
 
 export type ChatParseResult = {
   records: ChatMediaRecord[];
   skippedLines: string[];
+  dateOrder: DateOrder;
+  timeZone: string;
+  timeZoneAssumed: boolean;
+  latestMessageDateIso: string | null;
+  preview: ChatPreview;
 };
 
-export type ChatPreviewMessage = {
-  id: string;
-  sender: string;
-  messageDateIso: string;
-  body: string;
-  rawText: string;
-};
+type Header = { date: string; time: string; body: string };
+type Group = { header: Header; local?: LocalChatTime; rawLines: string[]; continuation: string[] };
 
-export type ChatPreviewParseResult = {
-  messages: ChatPreviewMessage[];
-  totalMessages: number;
-  skippedLines: string[];
-  truncated: boolean;
-};
-
-type ParsedChatMessage = {
-  date: string;
-  time: string;
-  sender: string;
-  message: string;
-  rawText: string;
-};
-
-const HEADER_PATTERNS = [
-  // Example: 31/12/2024, 18:42 - Sender Name: <attached: IMG-20241231-WA0001.jpg>
-  /^(?<date>\d{1,2}[./-]\d{1,2}[./-]\d{2,4}),?\s*(?<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[AP]M)?)\s*-\s*(?<sender>.*?):\s*(?<message>.*)$/i,
-  // Example: [31/12/2024, 18:42:01] Sender Name: IMG-20241231-WA0001.jpg (file attached)
-  /^\[(?<date>\d{1,2}[./-]\d{1,2}[./-]\d{2,4}),?\s*(?<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[AP]M)?)\]\s*(?:-\s*)?(?<sender>.*?):\s*(?<message>.*)$/i
+const headerDate = `(?<date>${DATE_PART_PATTERN}),?\\s*(?<time>${TIME_PART_PATTERN})`;
+const headers = [
+  new RegExp(`^${headerDate}\\s*-\\s*(?<body>.*)$`, 'i'),
+  new RegExp(`^\\[${headerDate}\\]\\s*(?:-\\s*)?(?<body>.*)$`, 'i')
 ];
+const iosAttachment = /^<attached:\s*([^>]+)>\s*$/i;
+const androidAttachment = /\s+\((?:file attached|הקובץ מצורף|מצורף קובץ)\)\s*$/i;
+const linesPerSlice = 512;
 
-const MEDIA_EXTENSION_PATTERN = 'jpe?g|png|heic|webp|mp4|mov|m4v|3gp|opus|ogg';
-const FILENAME_PATTERNS = [
-  /<attached:\s*(?<filename>[^>]+)>/i,
-  new RegExp(`(?<filename>[\\p{L}\\p{N}_ .()[\\]-]+\\.(?:${MEDIA_EXTENSION_PATTERN}))`, 'iu')
-];
+export function parseWhatsAppChatText(
+  text: string, files: readonly ArchiveEntry[] = [], options: ParseOptions = {}
+): ChatParseResult {
+  const work = parseChat(text, files, options);
+  let result = work.next();
+  while (!result.done) result = work.next();
+  return result.value;
+}
 
-export function parseWhatsAppChatText(text: string): ChatParseResult {
-  const records: ChatMediaRecord[] = [];
-  const skippedLines: string[] = [];
-  const messages = groupLinesIntoMessages(text, skippedLines);
-
-  for (const message of messages) {
-    const parsed = parseMessage(message);
-    if (!parsed) {
-      skippedLines.push(message.rawText);
-      continue;
-    }
-
-    records.push(parsed);
+export async function parseWhatsAppChatTextAsync(
+  text: string, files: readonly ArchiveEntry[], options: ParseOptions = {}
+): Promise<ChatParseResult> {
+  const work = parseChat(text, files, options);
+  let result = work.next();
+  while (!result.done) {
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    result = work.next();
   }
-
-  return { records, skippedLines };
+  return result.value;
 }
 
-export function getLatestWhatsAppMessageDateIso(text: string): string | null {
-  const messages = groupLinesIntoMessages(text, []);
-  const timestamps = messages
-    .map((message) => parseWhatsAppDateToIso(message.date, message.time))
-    .filter((value): value is string => Boolean(value))
-    .map((value) => new Date(value).getTime())
-    .filter(Number.isFinite);
-
-  if (timestamps.length === 0) return null;
-  return new Date(Math.max(...timestamps)).toISOString();
+export function isWhatsAppMessageLine(line: string): boolean {
+  const header = parseHeader(normalizeChatText(line).trim());
+  return !!header && header.body.indexOf(':') > 0;
 }
 
-export function parseWhatsAppChatPreview(text: string, maxMessages = 160): ChatPreviewParseResult {
-  const skippedLines: string[] = [];
-  const groupedMessages = groupLinesIntoMessages(text, skippedLines);
-  const messages = groupedMessages
-    .map((message, index) => {
-      const messageDateIso = parseWhatsAppDateToIso(message.date, message.time);
-      const sender = message.sender.trim();
-      if (!messageDateIso || !sender) return null;
+function parseHeader(line: string): Header | undefined {
+  for (const pattern of headers) {
+    const groups = pattern.exec(line)?.groups;
+    if (groups) return { date: groups.date, time: groups.time, body: groups.body };
+  }
+  return undefined;
+}
 
-      return {
-        id: `${messageDateIso}:${sender}:${index}`,
-        sender,
-        messageDateIso,
-        body: message.message.trim(),
-        rawText: message.rawText
-      };
-    })
-    .filter((message): message is ChatPreviewMessage => Boolean(message));
-
-  return {
-    messages: messages.slice(0, maxMessages),
-    totalMessages: messages.length,
-    skippedLines,
-    truncated: messages.length > maxMessages
+function indexArchive(files: readonly ArchiveEntry[]) {
+  const paths = new Map<string, ArchiveEntry | null>();
+  const names = new Map<string, ArchiveEntry | null>();
+  for (const file of files) {
+    const path = normalizeArchivePath(file.sourcePath ?? file.filename);
+    const name = normalizeFilename(file.filename);
+    paths.set(path, paths.has(path) ? null : file);
+    names.set(name, names.has(name) ? null : file);
+  }
+  return (body: string, allowBare: boolean): ArchiveEntry | undefined => {
+    const tagged = iosAttachment.exec(body)?.[1];
+    const suffix = androidAttachment.exec(body);
+    const name = tagged ?? (suffix ? body.slice(0, suffix.index) : allowBare ? body : '');
+    if (!name) return undefined;
+    const path = normalizeArchivePath(name);
+    return (path.includes('/') ? paths.get(path) : names.get(path)) ?? undefined;
   };
 }
 
-function groupLinesIntoMessages(text: string, skippedLines: string[]): ParsedChatMessage[] {
-  const messages: ParsedChatMessage[] = [];
-  const lines = text.split(/\r?\n/);
-  let current:
-    | {
-        date: string;
-        time: string;
-        sender: string;
-        messageLines: string[];
-        rawLines: string[];
-      }
-    | undefined;
+function readMessage(group: Group, findFile: ReturnType<typeof indexArchive>) {
+  const line = group.header.body;
+  const firstColon = line.indexOf(':');
+  if (firstColon < 1) return undefined;
 
-  function flushCurrent() {
-    if (!current) return;
-    messages.push({
-      date: current.date,
-      time: current.time,
-      sender: current.sender,
-      message: current.messageLines.join('\n'),
-      rawText: current.rawLines.join('\n')
-    });
-    current = undefined;
+  let separator = firstColon;
+  let file: ArchiveEntry | undefined;
+  for (let colon = firstColon; colon >= 0; colon = line.indexOf(':', colon + 1)) {
+    file = findFile(line.slice(colon + 1).trim(), true);
+    if (file) {
+      separator = colon;
+      break;
+    }
   }
 
-  for (const rawLine of lines) {
-    const line = stripDirectionMarks(rawLine).trim();
-    if (!line) continue;
+  const sender = line.slice(0, separator).trim();
+  if (!sender) return undefined;
+  for (const continuation of group.continuation) {
+    file ??= findFile(continuation, false);
+  }
+  const body = [line.slice(separator + 1).trim(), ...group.continuation].join('\n').trim();
+  return { sender, body, file };
+}
 
+function* parseChat(text: string, files: readonly ArchiveEntry[], options: ParseOptions): Generator<void, ChatParseResult> {
+  const skippedLines: string[] = [];
+  const groups: Group[] = [];
+  const dateFields: LocalChatTime[] = [];
+  let current: Group | undefined;
+  const lines = text.split(/\r\n?|\n/);
+  for (let index = 0; index < lines.length; index += 1) {
+    if (index > 0 && index % linesPerSlice === 0) yield;
+    const rawLine = lines[index];
+    const line = normalizeChatText(rawLine).trim();
+    if (!line) continue;
     const header = parseHeader(line);
     if (header) {
-      flushCurrent();
-      current = {
-        date: header.date,
-        time: header.time,
-        sender: header.sender,
-        messageLines: [header.message],
-        rawLines: [rawLine]
-      };
-      continue;
-    }
-
-    if (current) {
-      current.messageLines.push(line);
+      const local = readLocalChatTime(header.date, header.time);
+      current = { header, local, rawLines: [rawLine], continuation: [] };
+      groups.push(current);
+      if (local && header.body.indexOf(':') > 0) dateFields.push(local);
+    } else if (current) {
       current.rawLines.push(rawLine);
+      current.continuation.push(line);
     } else {
       skippedLines.push(rawLine);
     }
   }
 
-  flushCurrent();
-  return messages;
-}
+  const { order, ambiguous } = chooseDateOrder(dateFields);
+  const timeZone = options.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC';
+  const resolveDate = createLocalDateResolver(timeZone);
+  const findFile = indexArchive(files);
+  const matchedIds = new Set<string>();
+  const records: ChatMediaRecord[] = [];
+  const preview: ChatPreview = { messages: [], totalMessages: 0, truncated: false };
+  let latestMessageDateIso: string | null = null;
+  for (let index = 0; index < groups.length; index += 1) {
+    if (index > 0 && index % linesPerSlice === 0) yield;
+    const group = groups[index];
+    const message = readMessage(group, findFile);
+    const local = group.local;
+    const wallTime = local ? getWallTime(local, order) : undefined;
+    const date = wallTime === undefined ? undefined : resolveDate(wallTime);
+    if (!message || !date || !local) {
+      skippedLines.push(group.rawLines.join('\n'));
+      continue;
+    }
+    if (latestMessageDateIso === null || date.iso > latestMessageDateIso) latestMessageDateIso = date.iso;
+    preview.totalMessages += 1;
+    if (preview.messages.length < (options.previewLimit ?? 160)) {
+      preview.messages.push({
+        id: `${date.iso}:${index}`,
+        sender: message.sender,
+        messageDateIso: date.iso,
+        body: message.body
+      });
+    }
 
-function parseHeader(line: string): ParsedChatMessage | null {
-  for (const pattern of HEADER_PATTERNS) {
-    const match = line.match(pattern);
-    const groups = match?.groups;
-    if (!groups) continue;
-
-    return {
-      date: groups.date,
-      time: groups.time,
-      sender: groups.sender,
-      message: groups.message,
-      rawText: line
-    };
+    const file = message.file;
+    if (!file || matchedIds.has(file.id)) {
+      skippedLines.push(group.rawLines.join('\n'));
+      continue;
+    }
+    matchedIds.add(file.id);
+    records.push({
+      id: `${date.iso}:${file.id}`,
+      archiveEntryId: file.id,
+      messageIndex: index,
+      filename: file.filename,
+      normalizedFilename: normalizeFilename(file.filename),
+      sender: message.sender,
+      messageDateIso: date.iso,
+      datePrecision: local.precision,
+      dateAmbiguous: date.ambiguous || (ambiguous && !local.yearFirst && local.parts[0] !== local.parts[1]),
+      rawLine: group.rawLines.join('\n')
+    });
   }
-
-  return null;
-}
-
-function parseMessage(message: ParsedChatMessage): ChatMediaRecord | null {
-  const messageDateIso = parseWhatsAppDateToIso(message.date, message.time);
-  if (!messageDateIso) return null;
-
-  const filename = extractFilename(message.message);
-  if (!filename) return null;
-
-  const sender = message.sender.trim();
-  if (!sender) return null;
-
-  const normalizedFilename = normalizeFilename(filename);
-
-  return {
-    id: `${messageDateIso}:${sender}:${normalizedFilename}`,
-    filename,
-    normalizedFilename,
-    sender,
-    messageDateIso,
-    rawLine: message.rawText
-  };
-}
-
-function extractFilename(message: string): string | null {
-  for (const pattern of FILENAME_PATTERNS) {
-    const match = message.match(pattern);
-    const filename = match?.groups?.filename?.trim();
-    if (filename) return filename;
-  }
-  return null;
+  preview.truncated = preview.messages.length < preview.totalMessages;
+  if (preview.totalMessages === 0) preview.rawFallback = text.slice(0, 12_000);
+  return { records, skippedLines, dateOrder: order, timeZone, timeZoneAssumed: !options.timeZone, latestMessageDateIso, preview };
 }

@@ -4,16 +4,16 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { VideoView, useVideoPlayer } from 'expo-video';
-import * as FileSystem from 'expo-file-system/legacy';
 import { PremiumBottomSheet } from '../components/BottomSheet';
 import { Button, Chip, ProgressBar, Searchbar, Surface, Switch, Text } from 'react-native-paper';
 import { usePipelineStore } from '../store/pipelineStore';
 import { useSettingsStore } from '../store/settingsStore';
-import { countSelectedSaveableFiles } from '../store/selectionLogic';
+import { getSelectedSaveCandidates } from '../store/selectionLogic';
 import { filterVisibleFiles, getVisibleSaveableFileIds } from '../store/fileFiltering';
-import type { ExtractedMediaFile, MediaType } from '../types/media';
+import type { ChatPreview, ChatPreviewMessage, ExtractedMediaFile, MediaType } from '../types/media';
 import { visibleMediaTypes } from '../lib/mediaUi';
-import { parseWhatsAppChatPreview, type ChatPreviewMessage } from '../lib/chatParser';
+import { CHAT_TRANSCRIPT_SENDER, getMediaDateIso, getMediaSaveTime, getMediaSender, isApproximateDate, UNKNOWN_SENDER } from '../lib/mediaMetadata';
+import { loadTranscriptPreview } from '../services/importService';
 import { formatShortChatTimestamp } from '../lib/previewDateFormat';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, WizardScreen } from './WizardScreen';
@@ -77,7 +77,7 @@ export function FileSelectionScreen() {
   }, [setStage]);
 
   const senders = React.useMemo(
-    () => Array.from(new Set(mediaFiles.map((file) => file.matchedRecord?.sender).filter(Boolean))) as string[],
+    () => Array.from(new Set(mediaFiles.map(getMediaSender))),
     [mediaFiles]
   );
 
@@ -98,29 +98,34 @@ export function FileSelectionScreen() {
     () => getFilteredSelectionCount(visibleSaveableFileIds, selectedFileIds),
     [selectedFileIds, visibleSaveableFileIds]
   );
-  const selectedCount = countSelectedSaveableFiles(mediaFiles, selectedSenders, selectedMediaTypes, selectedFileIds);
-  const otherFoundCount =
-    (importSummary?.voice ?? 0) + (importSummary?.stickers ?? 0) + (importSummary?.documents ?? 0) + (importSummary?.unknown ?? 0);
-  const filtersActive = selectedSenders.length < senders.length || categoryFilters.length > 0 || !saveableOnly;
-  const selectedByType = React.useMemo(
-    () => ({
-      photos: mediaFiles.filter((file) => selectedFileIds.includes(file.id) && file.mediaType === 'photo').length,
-      videos: mediaFiles.filter((file) => selectedFileIds.includes(file.id) && file.mediaType === 'video').length,
-      other: mediaFiles.filter((file) => selectedFileIds.includes(file.id) && file.mediaType !== 'photo' && file.mediaType !== 'video').length
-    }),
-    [mediaFiles, selectedFileIds]
+  const selectedFiles = React.useMemo(
+    () => getSelectedSaveCandidates(mediaFiles, selectedSenders, selectedMediaTypes, selectedFileIds).map(({ file }) => file),
+    [mediaFiles, selectedSenders, selectedMediaTypes, selectedFileIds]
   );
+  const selectedCount = selectedFiles.length;
+  const selectedPhotos = selectedFiles.filter((file) => file.mediaType === 'photo').length;
+  const selectedVideos = selectedFiles.filter((file) => file.mediaType === 'video').length;
+  const selectedIdSet = new Set(selectedFileIds);
+  const selectedSenderSet = new Set(selectedSenders);
+  const hasSelectedUndatedFiles = mediaFiles.some((file) =>
+    selectedIdSet.has(file.id) && selectedSenderSet.has(getMediaSender(file)) && getMediaSaveTime(file) === undefined
+  );
+  const otherFoundCount =
+    mediaFiles.length - (importSummary?.photos ?? 0) - (importSummary?.videos ?? 0);
+  const filtersActive = selectedSenders.length < senders.length || categoryFilters.length > 0 || !saveableOnly;
   const selectedMp4 = mediaFiles.find(
     (file) => selectedFileIds.includes(file.id) && file.mediaType === 'video' && file.filename.toLowerCase().endsWith('.mp4')
   );
 
   async function runMp4Diagnostics() {
-    if (!selectedMp4?.matchedRecord) return;
+    if (!selectedMp4) return;
+    const timestamp = getMediaSaveTime(selectedMp4);
+    if (timestamp === undefined) return;
     setMp4Diagnostic(t('fileSelection.runningDiagnostics'));
     try {
       const result = await runMp4RewriteDiagnosticsNative(
         selectedMp4.uri,
-        new Date(selectedMp4.matchedRecord.messageDateIso).getTime()
+        timestamp
       );
       setMp4Diagnostic(JSON.stringify(result, null, 2));
     } catch (error) {
@@ -165,6 +170,9 @@ export function FileSelectionScreen() {
       footer={
         filterSheetOpen || sortSheetOpen || previewFile ? undefined :
         <FooterActions>
+          {hasSelectedUndatedFiles ? (
+            <Text variant="bodySmall" style={textStyles.start}>{t('fileSelection.undatedSkipped')}</Text>
+          ) : null}
           {selectedCount === 0 ? (
             <Text variant="bodySmall" numberOfLines={2} style={[textStyles.start, { color: theme.colors.error }]}>
               {t('fileSelection.disabledNoSelection')}
@@ -173,9 +181,9 @@ export function FileSelectionScreen() {
           <Text variant="labelLarge" numberOfLines={2} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
             {t('fileSelection.footerSelected', {
               selected: selectedCount,
-              photos: selectedByType.photos,
-              videos: selectedByType.videos,
-              other: selectedByType.other
+              photos: selectedPhotos,
+              videos: selectedVideos,
+              other: selectedCount - selectedPhotos - selectedVideos
             })}
           </Text>
           <PrimaryButton disabled={selectedCount === 0} onPress={() => setStage('outputOptions')}>
@@ -415,7 +423,10 @@ function FilterSheet({
       <FilterChipGroup
         values={senders}
         selectedValues={selectedSenders}
-        getLabel={(sender) => (sender === 'Chat transcript' ? t('fileSelection.chatTranscript') : sender)}
+        getLabel={(sender) => {
+          if (sender === UNKNOWN_SENDER) return t('fileSelection.unknownSender');
+          return sender === CHAT_TRANSCRIPT_SENDER ? t('fileSelection.chatTranscript') : sender;
+        }}
         onToggle={onToggleSender}
       />
       <View style={styles.switchRow}>
@@ -520,12 +531,15 @@ function MediaPreviewSheet({
   onDismiss: () => void;
   onToggle: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useAppTheme();
   const { height } = useWindowDimensions();
   const previewScrollMaxHeight = Math.max(220, Math.min(420, Math.round(height * 0.42)));
 
   if (!file) return null;
+  const dateIso = getMediaDateIso(file);
+  const date = dateIso && new Date(dateIso).toLocaleString(i18n.language, { timeZone: file.timeZone });
+  const dateLabel = date && isApproximateDate(file) ? t('fileSelection.approximateDate', { date }) : date;
 
   return (
     <PremiumBottomSheet
@@ -537,8 +551,8 @@ function MediaPreviewSheet({
     >
       <Surface elevation={0} style={[styles.previewPanel, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]}>
         {isTextTranscript(file) ? (
-          <TextTranscriptPreview uri={file.uri} maxScrollHeight={previewScrollMaxHeight} />
-        ) : file.mediaType === 'photo' || file.mediaType === 'sticker' ? (
+          <TextTranscriptPreview file={file} maxScrollHeight={previewScrollMaxHeight} />
+        ) : file.mediaType === 'photo' || file.mediaType === 'sticker' || file.mediaType === 'gif' ? (
           <ExpoImage source={file.thumbnailUri ?? file.uri} contentFit="contain" style={styles.previewMedia} />
         ) : file.mediaType === 'video' ? (
           <VideoPreview uri={file.uri} />
@@ -552,7 +566,7 @@ function MediaPreviewSheet({
       </Surface>
       <Chip compact>{t(`media.singular.${file.mediaType}`)}</Chip>
       <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-        {file.matchedRecord?.messageDateIso ? new Date(file.matchedRecord.messageDateIso).toLocaleString() : t('fileSelection.noDate')}
+        {dateLabel ?? t('fileSelection.noDate')}
       </Text>
       <Button mode={selected ? 'contained' : 'outlined'} onPress={onToggle}>
         {selected ? t('fileSelection.selected') : t('fileSelection.selectFile')}
@@ -561,29 +575,26 @@ function MediaPreviewSheet({
   );
 }
 
-function TextTranscriptPreview({ uri, maxScrollHeight }: { uri: string; maxScrollHeight: number }) {
+function TextTranscriptPreview({ file, maxScrollHeight }: { file: ExtractedMediaFile; maxScrollHeight: number }) {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const [state, setState] = React.useState<
     | { status: 'loading' }
-    | { status: 'ready'; messages: ChatPreviewMessage[]; totalMessages: number; rawFallback?: string; truncated: boolean }
+    | ({ status: 'ready' } & ChatPreview)
     | { status: 'error'; error: string }
-  >({ status: 'loading' });
+  >(file.transcriptPreview ? { status: 'ready', ...file.transcriptPreview } : { status: 'loading' });
 
   React.useEffect(() => {
     let cancelled = false;
+    if (file.transcriptPreview) {
+      setState({ status: 'ready', ...file.transcriptPreview });
+      return;
+    }
     setState({ status: 'loading' });
-    FileSystem.readAsStringAsync(uri)
-      .then((text) => {
+    loadTranscriptPreview(file.uri)
+      .then((preview) => {
         if (cancelled) return;
-        const parsed = parseWhatsAppChatPreview(text, 160);
-        setState({
-          status: 'ready',
-          messages: parsed.messages,
-          totalMessages: parsed.totalMessages,
-          rawFallback: parsed.messages.length === 0 ? text.slice(0, 12000) : undefined,
-          truncated: parsed.truncated
-        });
+        setState({ status: 'ready', ...preview });
       })
       .catch((error) => {
         if (cancelled) return;
@@ -596,7 +607,7 @@ function TextTranscriptPreview({ uri, maxScrollHeight }: { uri: string; maxScrol
     return () => {
       cancelled = true;
     };
-  }, [t, uri]);
+  }, [t, file.transcriptPreview, file.uri]);
 
   if (state.status === 'loading') {
     return (
@@ -807,13 +818,14 @@ function VideoPreview({ uri }: { uri: string }) {
 
 function createSortComparator(sortMode: SortMode) {
   return (a: ExtractedMediaFile, b: ExtractedMediaFile) => {
-    const aDate = new Date(a.matchedRecord?.messageDateIso ?? 0).getTime();
-    const bDate = new Date(b.matchedRecord?.messageDateIso ?? 0).getTime();
     if (sortMode === 'name') return a.filename.localeCompare(b.filename);
-    if (sortMode === 'sender') return (a.matchedRecord?.sender ?? '').localeCompare(b.matchedRecord?.sender ?? '');
+    if (sortMode === 'sender') return getMediaSender(a).localeCompare(getMediaSender(b));
     if (sortMode === 'type') return a.mediaType.localeCompare(b.mediaType) || a.filename.localeCompare(b.filename);
-    if (sortMode === 'date-asc') return aDate - bDate;
-    return bDate - aDate;
+    const aDate = getMediaDateIso(a);
+    const bDate = getMediaDateIso(b);
+    if (!aDate || !bDate) return Number(!aDate) - Number(!bDate);
+    const byDate = sortMode === 'date-asc' ? aDate.localeCompare(bDate) : bDate.localeCompare(aDate);
+    return byDate || (a.matchedRecord?.messageIndex ?? Infinity) - (b.matchedRecord?.messageIndex ?? Infinity) || 0;
   };
 }
 

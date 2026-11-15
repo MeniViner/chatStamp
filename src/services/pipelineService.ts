@@ -1,6 +1,8 @@
-import type { AppSettings, CompletionSummary, ExtractedMediaFile, MediaTypeSelection, ProcessingProgress } from '../types/media';
+import type { AppSettings, CompletionSummary, ExtractedMediaFile, MediaTypeSelection, ProcessingProgress, SaveFileResult } from '../types/media';
 import { logger } from '../lib/logger';
 import { getMimeTypeForMedia } from '../lib/mediaClassifier';
+import { getMediaSender, UNKNOWN_SENDER } from '../lib/mediaMetadata';
+import { getSelectedSaveCandidates } from '../store/selectionLogic';
 import { buildTermuxParityOutputPath, defaultOutputOrganization, formatExportTimestamp, relativeOutputFolderForFile, sanitizePathSegment } from '../lib/termuxParityOutput';
 import { clearWorkingDirectory } from './importService';
 import { buildSaveSummary } from './saveSummary';
@@ -27,19 +29,9 @@ export async function runSavePipeline({
   settings,
   onProgress
 }: RunSavePipelineParams): Promise<CompletionSummary> {
-  const senderSet = new Set(selectedSenders);
-  const selectedFileSet = new Set(selectedFileIds);
   logger.debug('Selected senders', selectedSenders);
   logger.debug('Selected media types', selectedMediaTypes);
-  const selected = files.filter((file) => {
-    const sender = file.matchedRecord?.sender;
-    return Boolean(
-      sender &&
-        senderSet.has(sender) &&
-        selectedMediaTypes[file.mediaType] &&
-        selectedFileSet.has(file.id)
-    );
-  });
+  const selected = getSelectedSaveCandidates(files, selectedSenders, selectedMediaTypes, selectedFileIds);
 
   const safeChatName = sanitizePathSegment(chatName ?? 'Imported Chat');
   const exportTimestamp = formatExportTimestamp();
@@ -58,13 +50,13 @@ export async function runSavePipeline({
   });
   onProgress?.({ stageLabel: 'Copying files, setting filesystem timestamps, then scanning', processed: 0, total: selected.length, failed: 0 });
 
-  const nativeItems = selected.map((file) => ({
+  const nativeItems = selected.map(({ file, timestampMillis }) => ({
       sourceUri: file.uri,
       filename: file.filename,
       mediaType: file.mediaType,
       mimeType: getMimeTypeForMedia(file.filename, file.mediaType),
-      originalTimestampMillis: new Date(file.matchedRecord?.messageDateIso ?? '').getTime(),
-      sender: file.matchedRecord?.sender ?? 'Unknown',
+      originalTimestampMillis: timestampMillis,
+      sender: getMediaSender(file) === UNKNOWN_SENDER ? 'Unknown sender' : getMediaSender(file),
       albumName: 'chatStamp',
       relativeFolder: relativeOutputFolderForFile(file, settings?.outputOrganization ?? defaultOutputOrganization)
     }));
@@ -106,7 +98,26 @@ export async function runSavePipeline({
   });
 
   const cacheCleared = await clearWorkingDirectory(workingDirectory);
-  const mayShowImportTime = nativeResult.dateCorrectionFailed;
+  const results = nativeResult.results.map<SaveFileResult>((result, index) => {
+    const candidate = selected[index];
+    const mediaType = result.mediaType ?? candidate?.file.mediaType;
+    const chatDateIso = candidate?.file.matchedRecord?.messageDateIso ?? null;
+    const indexedDate = result.mediaStoreValues?.dateTaken;
+    const dateCorrectionVerified = result.ok && chatDateIso !== null && candidate !== undefined && !candidate.file.dateAmbiguous
+      && typeof indexedDate === 'number' && Math.abs(indexedDate - candidate.timestampMillis) <= 2000;
+    const galleryMaySortByImportTime = result.ok && !dateCorrectionVerified
+      && (mediaType === 'photo' || mediaType === 'video' || mediaType === 'sticker' || mediaType === 'gif');
+    return {
+      ...result,
+      mediaType,
+      dateCorrectionVerified,
+      galleryMaySortByImportTime,
+      whatsAppDateIso: chatDateIso,
+      failureReason: result.failureReason ?? result.error
+    };
+  });
+  const dateCorrected = results.filter((result) => result.dateCorrectionVerified).length;
+  const mayShowImportTime = results.filter((result) => result.galleryMaySortByImportTime).length;
   logger.info('Save completed', {
     saved: nativeResult.saved,
     copied: nativeResult.copied,
@@ -119,8 +130,8 @@ export async function runSavePipeline({
     saved: nativeResult.saved,
     failed: nativeResult.failed,
     skipped: files.length - selected.length,
-    dateCorrected: nativeResult.dateCorrected,
-    dateCorrectionFailed: nativeResult.dateCorrectionFailed,
+    dateCorrected,
+    dateCorrectionFailed: nativeResult.saved - dateCorrected,
     mayShowImportTime,
     cacheCleared
   });
@@ -135,44 +146,10 @@ export async function runSavePipeline({
     exifFixed: nativeResult.exifFixed,
     mp4MetadataFixed: nativeResult.mp4MetadataFixed,
     scanned: nativeResult.scanned,
-    dateCorrected: nativeResult.filesystemTimestampFixed ?? nativeResult.dateCorrected,
+    dateCorrected,
     cacheCleared,
     saveMethod: destinationMode === 'custom-folder' && settings?.customFolder?.treeUri ? 'saf-custom-folder' : 'termux-parity',
     outputDirectory: nativeResult.outputDirectory ?? outputFolder,
-    results: nativeResult.results.map((result) => ({
-      filename: result.filename,
-      ok: result.ok,
-      insertedUri: result.insertedUri,
-      outputPath: result.outputPath,
-      displayName: result.displayName,
-      mediaType: result.mediaType ?? selected.find((file) => file.filename === result.filename)?.mediaType,
-      dateCorrectionVerified: result.dateCorrectionVerified,
-      galleryMaySortByImportTime: result.galleryMaySortByImportTime,
-      failureReason: result.failureReason ?? result.error,
-      originalTimestampMillis: result.originalTimestampMillis,
-      whatsAppDateIso: result.whatsAppDateIso,
-      copied: result.copied,
-      setLastModifiedReturned: result.setLastModifiedReturned,
-      actualLastModifiedMillis: result.actualLastModifiedMillis,
-      filesystemTimestampFixed: result.filesystemTimestampFixed,
-      mediaScannerCompleted: result.mediaScannerCompleted,
-      scannedUri: result.scannedUri,
-      exifWritten: result.exifWritten,
-      mp4MetadataFixed: result.mp4MetadataFixed,
-      mediaStoreIndexedExpectedDate: result.mediaStoreIndexedExpectedDate,
-      retrieverDateBefore: result.retrieverDateBefore,
-      retrieverDateAfterRewrite: result.retrieverDateAfterRewrite,
-      retrieverDateAfterInsert: result.retrieverDateAfterInsert,
-      mediaStoreDateTaken: result.mediaStoreDateTaken,
-      mediaStoreDateModified: result.mediaStoreDateModified,
-      mediaStoreDateAdded: result.mediaStoreDateAdded,
-      mediaStoreValues: result.mediaStoreValues,
-      boxesVerified: result.boxesVerified,
-      sourcePath: result.sourcePath,
-      insertedSourcePath: result.insertedSourcePath,
-      mp4RewriteFailureCode: result.mp4RewriteFailureCode,
-      debugOriginalPath: result.debugOriginalPath,
-      debugRewrittenPath: result.debugRewrittenPath
-    }))
+    results
   });
 }

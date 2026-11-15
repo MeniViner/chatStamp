@@ -9,6 +9,7 @@ import type {
   ProcessingProgress
 } from '../types/media';
 import { logger } from '../lib/logger';
+import { getMediaSaveTime, getMediaSender } from '../lib/mediaMetadata';
 import { toggleMediaTypeSelection, toggleSenderSelection } from './selectionLogic';
 
 export type PipelineState = {
@@ -86,7 +87,7 @@ export const usePipelineStore = create<PipelineState>((set) => ({
   setImportResult: ({ workingDirectory, mediaFiles, importSummary }) =>
     set(() => {
       const hasDefaultMediaSelection = mediaFiles.some(
-        (file) => file.matchedRecord && (file.mediaType === 'photo' || file.mediaType === 'video')
+        (file) => getMediaSaveTime(file) !== undefined && (file.mediaType === 'photo' || file.mediaType === 'video')
       );
       const shouldSelectTranscriptOnly =
         !hasDefaultMediaSelection &&
@@ -96,13 +97,13 @@ export const usePipelineStore = create<PipelineState>((set) => ({
         workingDirectory,
         mediaFiles,
         importSummary,
-        selectedSenders: Array.from(new Set(mediaFiles.map((file) => file.matchedRecord?.sender).filter(Boolean))) as string[],
+        selectedSenders: Array.from(new Set(mediaFiles.map(getMediaSender))),
         selectedMediaTypes: shouldSelectTranscriptOnly
           ? { ...defaultMediaTypeSelection, document: true }
           : defaultMediaTypeSelection,
         selectedFileIds: mediaFiles
           .filter((file) =>
-            file.matchedRecord &&
+            getMediaSaveTime(file) !== undefined &&
             (file.mediaType === 'photo' || file.mediaType === 'video' || (shouldSelectTranscriptOnly && file.sourceKind === 'chat-transcript'))
           )
           .map((file) => file.id),

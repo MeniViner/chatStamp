@@ -1,5 +1,7 @@
 import type { ExtractedMediaFile, MediaType, MediaTypeSelection } from '../types/media';
 import { getDateCorrectionCapability } from '../lib/mediaClassifier';
+import { getMediaDateIso, getMediaSender, UNKNOWN_SENDER } from '../lib/mediaMetadata';
+import { getSelectedSaveCandidates } from './selectionLogic';
 
 export type SelectedFilePreview = {
   id: string;
@@ -24,25 +26,16 @@ export function buildSelectedPreview(
   selectedMediaTypes: MediaTypeSelection,
   selectedFileIds?: string[]
 ): SelectedPreviewSummary {
-  const senderSet = new Set(selectedSenders.filter(Boolean));
-  const fileSet = selectedFileIds ? new Set(selectedFileIds) : undefined;
   const matchedFiles = files.filter((file) => file.matchedRecord).length;
-  const selectedFiles: SelectedFilePreview[] = [];
-
-  for (const file of files) {
-    const record = file.matchedRecord;
-    if (!record || !senderSet.has(record.sender) || !selectedMediaTypes[file.mediaType]) continue;
-    if (fileSet && !fileSet.has(file.id)) continue;
-
-    selectedFiles.push({
+  const selectedFiles: SelectedFilePreview[] = getSelectedSaveCandidates(files, selectedSenders, selectedMediaTypes, selectedFileIds)
+    .map(({ file, timestampMillis }) => ({
       id: file.id,
       filename: file.filename,
-      sender: record.sender,
+      sender: getMediaSender(file) === UNKNOWN_SENDER ? 'Unknown sender' : getMediaSender(file),
       mediaType: file.mediaType,
-      originalDateIso: record.messageDateIso,
+      originalDateIso: getMediaDateIso(file) ?? new Date(timestampMillis).toISOString(),
       dateCorrectionCapability: getDateCorrectionCapability(file.mediaType, file.filename)
-    });
-  }
+    }));
 
   return {
     matchedFiles,

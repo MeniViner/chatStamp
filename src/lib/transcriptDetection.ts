@@ -1,4 +1,4 @@
-import { stripDirectionMarks } from './whatsappDate';
+import { isWhatsAppMessageLine } from './chatParser';
 
 export type TranscriptCandidateInput = {
   filename: string;
@@ -20,11 +20,6 @@ const OBVIOUS_NON_CHAT_PATTERNS = [
   /privacy/i,
   /metadata/i,
   /manifest/i
-];
-
-const WHATSAPP_MESSAGE_LINE_PATTERNS = [
-  /^\s*\d{1,2}[./-]\d{1,2}[./-]\d{2,4},?\s+\d{1,2}:\d{2}(?::\d{2})?(?:\s*[AP]M)?\s+-\s+.+?:\s+.+/i,
-  /^\s*\[\d{1,2}[./-]\d{1,2}[./-]\d{2,4},?\s+\d{1,2}:\d{2}(?::\d{2})?(?:\s*[AP]M)?\]\s+(?:-\s*)?.+?:\s+.+/i
 ];
 
 export function chooseBestTranscriptCandidate(
@@ -61,9 +56,8 @@ export function scoreTranscriptCandidates(candidates: TranscriptCandidateInput[]
 
 export function countWhatsAppMessageLines(sample: string): number {
   return sample
-    .split(/\r?\n/)
-    .map((line) => stripDirectionMarks(line).trim())
-    .filter((line) => WHATSAPP_MESSAGE_LINE_PATTERNS.some((pattern) => pattern.test(line))).length;
+    .split(/\r\n?|\n/)
+    .filter(isWhatsAppMessageLine).length;
 }
 
 export function normalizeZipTextFilename(filename: string): string {

@@ -1,5 +1,6 @@
 import type { ExtractedMediaFile, MediaType, MediaTypeSelection } from '../types/media';
 import { isSaveableMediaType } from '../lib/mediaUi';
+import { getMediaSender } from '../lib/mediaMetadata';
 
 export type FileFilterInput = {
   files: ExtractedMediaFile[];
@@ -26,23 +27,17 @@ export function filterVisibleFiles({
   const categorySet = new Set(categoryFilters);
 
   return files.filter((file) => {
-    const sender = file.matchedRecord?.sender;
+    const sender = getMediaSender(file);
     const matchesCategory =
       (category === 'all' || file.mediaType === category) &&
       (categorySet.size === 0 || categorySet.has(file.mediaType));
     const matchesQuery =
       normalizedQuery.length === 0 ||
       file.filename.toLowerCase().includes(normalizedQuery) ||
-      sender?.toLowerCase().includes(normalizedQuery);
+      sender.toLowerCase().includes(normalizedQuery);
     const matchesSaveable = !saveableOnly || isSaveableMediaType(file.mediaType);
 
-    return Boolean(
-      sender &&
-        senderSet.has(sender) &&
-        matchesCategory &&
-        matchesQuery &&
-        matchesSaveable
-    );
+    return senderSet.has(sender) && matchesCategory && matchesQuery && matchesSaveable;
   });
 }
 

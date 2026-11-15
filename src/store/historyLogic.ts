@@ -1,4 +1,5 @@
 import type { CompletionSummary, ExportHistoryItem, ExtractedMediaFile, MediaTypeSelection } from '../types/media';
+import { getSelectedSaveCandidates } from './selectionLogic';
 
 export function createExportHistoryItem(params: {
   completion: CompletionSummary;
@@ -10,15 +11,12 @@ export function createExportHistoryItem(params: {
   outputFolderPath: string;
   now?: Date;
 }): ExportHistoryItem {
-  const selectedIdSet = new Set(params.selectedFileIds);
-  const selectedSenderSet = new Set(params.selectedSenders);
-  const selectedFiles = params.files.filter((file) => {
-    const sender = file.matchedRecord?.sender;
-    return Boolean(sender && selectedSenderSet.has(sender) && selectedIdSet.has(file.id) && params.selectedMediaTypes[file.mediaType]);
-  });
+  const selectedFiles = getSelectedSaveCandidates(
+    params.files, params.selectedSenders, params.selectedMediaTypes, params.selectedFileIds
+  ).map(({ file }) => file);
   const count = (type: string) => selectedFiles.filter((file) => file.mediaType === type).length;
   const timestamp = params.now ?? new Date();
-  const fixed = params.completion.filesystemTimestampFixed ?? 0;
+  const fixed = params.completion.dateCorrected;
 
   return {
     id: `${timestamp.toISOString()}-${Math.random().toString(36).slice(2, 8)}`,

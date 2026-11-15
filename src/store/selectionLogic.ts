@@ -1,4 +1,6 @@
 import type { ExtractedMediaFile, MediaType, MediaTypeSelection } from '../types/media';
+import { getMediaSaveTime, getMediaSender } from '../lib/mediaMetadata';
+import { isSaveableMediaType } from '../lib/mediaUi';
 
 export function toggleSenderSelection(selectedSenders: string[], sender: string): string[] {
   if (!sender) return selectedSenders;
@@ -23,17 +25,25 @@ export function countSelectedSaveableFiles(
   selectedMediaTypes: MediaTypeSelection,
   selectedFileIds?: string[]
 ): number {
-  const senderSet = new Set(selectedSenders.filter(Boolean));
+  return getSelectedSaveCandidates(files, selectedSenders, selectedMediaTypes, selectedFileIds).length;
+}
+
+export function getSelectedSaveCandidates(
+  files: ExtractedMediaFile[],
+  selectedSenders: string[],
+  selectedMediaTypes: MediaTypeSelection,
+  selectedFileIds?: string[]
+): { file: ExtractedMediaFile; timestampMillis: number }[] {
+  const senderSet = new Set(selectedSenders);
   const fileSet = selectedFileIds ? new Set(selectedFileIds) : undefined;
-  return files.filter((file) => {
-    const sender = file.matchedRecord?.sender;
-    return Boolean(
-      sender &&
-        senderSet.has(sender) &&
-        selectedMediaTypes[file.mediaType] &&
-        (!fileSet || fileSet.has(file.id))
-    );
-  }).length;
+  const selected: { file: ExtractedMediaFile; timestampMillis: number }[] = [];
+  for (const file of files) {
+    if (!senderSet.has(getMediaSender(file)) || !selectedMediaTypes[file.mediaType] || !isSaveableMediaType(file.mediaType)) continue;
+    if (fileSet && !fileSet.has(file.id)) continue;
+    const timestampMillis = getMediaSaveTime(file);
+    if (timestampMillis !== undefined) selected.push({ file, timestampMillis });
+  }
+  return selected;
 }
 
 export function toggleFileSelection(selectedFileIds: string[], fileId: string): string[] {

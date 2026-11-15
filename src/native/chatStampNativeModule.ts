@@ -5,6 +5,7 @@ export type NativeExtractedMediaFile = {
   filename: string;
   uri: string;
   sourcePath: string;
+  modificationTime?: string;
 };
 
 export type NativeTranscriptCandidate = {

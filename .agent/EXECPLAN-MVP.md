@@ -8,6 +8,8 @@ Deliver an Android-first MVP that imports a WhatsApp chat export ZIP, extracts m
 
 The 0.1.1 baseline builds and runs on the connected Galaxy Note20 Ultra (Android 13 / API 33). Typecheck, lint and the 111 existing tests pass. A physical device run verified ZIP import, permission gating, saving and JPEG date indexing. Samsung Gallery's default creation-date sort and sharing into an already open app failed. See [the 0.1.1 verification report](../docs/VERIFICATION.md) for the observed dates, cache findings and remaining checks.
 
+The rebuild branch contains Stage 0 and the Stage A implementation. Stage A host verification passed 129 tests and produced a standalone arm64 QA APK. ADB lost the physical phone connection before the new build could be installed. Stage A physical smoke and the Stage P storage gate remain pending. See the [rebuild log](../docs/REBUILD_LOG.md) for the exact device steps.
+
 ## Decisions already made
 
 - App is local-only and stateless.
@@ -103,6 +105,8 @@ Manual Android verification:
 7. Delete app cache from the app and verify no temporary files remain.
 
 ## Progress log
+
+- 2026-11-16: Captured the baseline and tracked QA tooling in Stage 0. Stage A implemented archive-aware matching, file-wide date order, DST and date provenance, and visible supported files without a chat match. Legacy date success now requires MediaStore readback. Host checks and the QA build pass. The physical smoke test is unverified after the phone disconnected from ADB.
 
 - 2026-11-15: Tested baseline `2a76514` on a physical Samsung with an isolated debug package, following `docs/CODE_REVIEW.md`. Five selected media files were saved. JPEGs indexed the chat instant, the PNG indexed only modification time, and both MP4s retained their internal creation dates. Samsung Gallery sorted the videos incorrectly by creation date. Sorting the test album by modification date matched all five chat timestamps. Warm sharing failed with the same content URI that imported after a cold launch. A 128 MiB ZIP completed on the same process and left two private ZIP copies and the extracted video in cache after Back and restart. The gallery acceptance criterion remains failed. See `docs/VERIFICATION.md`.
 - 2026-06-04: Blocking QA/build pass changed Android identity from the previously requested reversed form to `com.menis.chatstamp`. Source-of-truth files now use `com.menis.chatstamp`, while native module providers stay placeholder/runtime-package based. `npx expo prebuild --platform android` regenerated ignored Android files with `namespace`/`applicationId`/Kotlin package `com.menis.chatstamp`. Initial `assembleDebug` exposed stale ignored React Native autolinking output still pointing at `menis.chatstamp.com`; deleting `android/build/generated/autolinking` and `android/app/build/generated/autolinking` allowed Gradle to regenerate the entrypoint with `com.menis.chatstamp`. Verified `npm run typecheck`, `npm run test`, `npm run lint`, `./gradlew assembleDebug`, `./gradlew assembleRelease`, `apksigner verify`, and APK metadata for `com.menis.chatstamp`. `adb devices` showed no attached Android device/emulator, so the requested manual QA checklist, direct folder-opening proof, video-control proof, bottom-sheet safe-area proof, and Gallery save/date proof remain blocked.
