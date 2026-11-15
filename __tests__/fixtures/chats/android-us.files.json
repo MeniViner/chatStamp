@@ -1,0 +1,54 @@
+{
+  "zone": "America/New_York",
+  "order": "mdy",
+  "entries": [
+    {
+      "path": "IMG-20240105-WA0000.jpg",
+      "expected": {
+        "sender": "John",
+        "dateSource": "chat",
+        "date": "2024-01-06T03:30:00.000Z"
+      }
+    },
+    {
+      "path": "IMG-20240113-WA0001.jpg",
+      "expected": {
+        "sender": "John",
+        "dateSource": "chat",
+        "date": "2024-01-14T03:30:00.000Z"
+      }
+    },
+    {
+      "path": "IMG-20240203-WA0002.jpg",
+      "expected": {
+        "sender": "John",
+        "dateSource": "chat",
+        "date": "2024-02-04T03:30:00.000Z"
+      }
+    },
+    {
+      "path": "IMG-20240302-WA0003.jpg",
+      "expected": {
+        "sender": "John",
+        "dateSource": "chat",
+        "date": "2024-03-03T03:30:00.000Z"
+      }
+    },
+    {
+      "path": "extra.opus",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "none",
+        "date": null
+      }
+    },
+    {
+      "path": "contact.vcf",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "none",
+        "date": null
+      }
+    }
+  ]
+}

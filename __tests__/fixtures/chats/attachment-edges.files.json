@@ -1,0 +1,79 @@
+{
+  "zone": "UTC",
+  "order": "dmy",
+  "entries": [
+    {
+      "path": "name.pdf",
+      "expected": {
+        "sender": "Dana: Team",
+        "dateSource": "chat",
+        "date": "2024-01-15T10:30:00.000Z"
+      }
+    },
+    {
+      "path": "name.pdf.jpg",
+      "expected": {
+        "sender": "Eli",
+        "dateSource": "chat",
+        "date": "2024-01-15T10:30:00.000Z",
+        "saveDate": "2024-01-15T10:30:01.000Z"
+      }
+    },
+    {
+      "path": "folder-a/dup.jpg",
+      "expected": {
+        "sender": "Eli",
+        "dateSource": "chat",
+        "date": "2024-01-15T10:31:00.000Z"
+      }
+    },
+    {
+      "path": "folder-b/dup.jpg",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "none",
+        "date": null
+      }
+    },
+    {
+      "path": "mention.jpg",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "none",
+        "date": null
+      }
+    },
+    {
+      "path": "explicit-a.jpg",
+      "expected": {
+        "sender": "Dana",
+        "dateSource": "chat",
+        "date": "2024-01-15T10:35:59.000Z"
+      }
+    },
+    {
+      "path": "explicit-b.jpg",
+      "expected": {
+        "sender": "Dana",
+        "dateSource": "chat",
+        "date": "2024-01-15T10:35:59.000Z"
+      }
+    },
+    {
+      "path": "extra.mp3",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "none",
+        "date": null
+      }
+    },
+    {
+      "path": "other.docx",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "none",
+        "date": null
+      }
+    }
+  ]
+}

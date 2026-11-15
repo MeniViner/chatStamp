@@ -1,6 +1,7 @@
 node_modules/
 .expo/
 dist/
+scripts/android-verification/**/__pycache__/
 coverage/
 /android/
 /ios/

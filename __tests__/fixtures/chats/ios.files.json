@@ -1,0 +1,33 @@
+{
+  "zone": "Asia/Jerusalem",
+  "order": "dmy",
+  "entries": [
+    {
+      "path": "00000012-PHOTO-2024-01-15-10-30-45.jpg",
+      "expected": {
+        "sender": "Dana",
+        "dateSource": "chat",
+        "date": "2024-01-15T08:30:45.000Z"
+      }
+    },
+    {
+      "path": "00000013-VIDEO-2024-01-15-10-31-20.mp4",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "filename",
+        "date": "2024-01-15T08:31:20.000Z"
+      }
+    },
+    {
+      "path": "extra.vcf",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "none",
+        "date": null
+      }
+    }
+  ],
+  "captions": [
+    "caption from iOS"
+  ]
+}

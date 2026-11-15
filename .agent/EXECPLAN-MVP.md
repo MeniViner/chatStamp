@@ -6,7 +6,7 @@ Deliver an Android-first MVP that imports a WhatsApp chat export ZIP, extracts m
 
 ## Current state
 
-This repository is a starter prepared for Codex. It now has the TypeScript MVP pipeline wired through import, review, processing, and completion screens. Milestones 1 and 2 pass typecheck, tests, and lint. Android native module source exists for selective ZIP extraction and MediaStore/EXIF date writes, but it has not been compiled or verified on a real Android device yet.
+The 0.1.1 baseline builds and runs on the connected Galaxy Note20 Ultra (Android 13 / API 33). Typecheck, lint and the 111 existing tests pass. A physical device run verified ZIP import, permission gating, saving and JPEG date indexing. Samsung Gallery's default creation-date sort and sharing into an already open app failed. See [the 0.1.1 verification report](../docs/VERIFICATION.md) for the observed dates, cache findings and remaining checks.
 
 ## Decisions already made
 
@@ -19,13 +19,24 @@ This repository is a starter prepared for Codex. It now has the TypeScript MVP p
 - Android Gallery date correctness is a core acceptance criterion.
 - OPUS voice notes are excluded or handled separately from photo/video export.
 
+## Core rebuild stages
+
+The v3 rebuild runs on `fix/core-rebuild` in the order 0, A, P, B, C, D, E, F. See [the rebuild log](../docs/REBUILD_LOG.md) for per-stage results.
+
+- Stage 0 captures the verified baseline, synthetic fixture pairs, and checked-in QA helpers.
+- Stage A adds archive-aware transcript matching, date source and precision, and visible unmatched attachments while retaining the legacy native save bridge.
+- Stage P proves an owned-storage save on the connected Samsung. Require internal metadata and MediaStore readback plus the default Gallery order. Document working destinations for pictures, videos, audio, and documents before starting B.
+- Stage B implements the proven write path with verified timestamps, safe duplicate handling, and no broad storage permissions.
+- Stage C streams ZIP contents from the source into a bounded cache, delivers cold and warm shares, and adds background save, progress, cancellation, and cleanup.
+- Stages D and E update selection, previews, the three-step flow, accessibility, and English and Hebrew layouts. Stage F finishes CI, audit and release checks, including a real WhatsApp export on the physical phone.
+
 ## Open risks / unknowns
 
 - Whether `expo-media-library` alone can preserve/set the required Android Gallery sort fields for all media types.
 - Whether target Gallery apps sort by `DATE_TAKEN`, `DATE_ADDED`, `DATE_MODIFIED`, EXIF `DateTimeOriginal`, or another field.
 - How WhatsApp export filenames vary by locale, Android version, and chat type.
 - Whether Share Intent payload arrives as `content://`, `file://`, or MIME variants.
-- No Android device/emulator is currently attached for install, launcher-icon visual verification, or real Gallery sorting verification.
+- The device run used synthetic exports on Android 13. A real WhatsApp export, Android 16 layout behavior, and the full English and Hebrew layout pass still need verification.
 
 ## Milestone 1 — Project compiles
 
@@ -93,6 +104,7 @@ Manual Android verification:
 
 ## Progress log
 
+- 2026-11-15: Tested baseline `2a76514` on a physical Samsung with an isolated debug package, following `docs/CODE_REVIEW.md`. Five selected media files were saved. JPEGs indexed the chat instant, the PNG indexed only modification time, and both MP4s retained their internal creation dates. Samsung Gallery sorted the videos incorrectly by creation date. Sorting the test album by modification date matched all five chat timestamps. Warm sharing failed with the same content URI that imported after a cold launch. A 128 MiB ZIP completed on the same process and left two private ZIP copies and the extracted video in cache after Back and restart. The gallery acceptance criterion remains failed. See `docs/VERIFICATION.md`.
 - 2026-06-04: Blocking QA/build pass changed Android identity from the previously requested reversed form to `com.menis.chatstamp`. Source-of-truth files now use `com.menis.chatstamp`, while native module providers stay placeholder/runtime-package based. `npx expo prebuild --platform android` regenerated ignored Android files with `namespace`/`applicationId`/Kotlin package `com.menis.chatstamp`. Initial `assembleDebug` exposed stale ignored React Native autolinking output still pointing at `menis.chatstamp.com`; deleting `android/build/generated/autolinking` and `android/app/build/generated/autolinking` allowed Gradle to regenerate the entrypoint with `com.menis.chatstamp`. Verified `npm run typecheck`, `npm run test`, `npm run lint`, `./gradlew assembleDebug`, `./gradlew assembleRelease`, `apksigner verify`, and APK metadata for `com.menis.chatstamp`. `adb devices` showed no attached Android device/emulator, so the requested manual QA checklist, direct folder-opening proof, video-control proof, bottom-sheet safe-area proof, and Gallery save/date proof remain blocked.
 - 2026-06-04: Completed Android branding and release packaging for v0.1.1. The uploaded 1095x1280 JPEG was cropped to a centered square, had the black outer background removed, and now feeds Expo launcher, adaptive, and monochrome icon assets. Android app identity is `com.menis.chatstamp` with `versionCode` 2. Added an Expo config plugin for local-only release signing configuration and release minify/resource shrinking. Generated a local release keystore outside the repo, built `dist/releases/chatstamp-android-v0.1.1.apk` as a signed universal release APK, and verified package/version metadata plus `apksigner` signature. Verified `npm run typecheck`, `npm run test`, `npm run lint`, `npx expo prebuild --platform android`, and `./gradlew clean assembleRelease` using a local Temurin 17 JDK and Android SDK. No Android device/emulator was attached, so installation, launcher icon visual QA, and the real Gallery save/date smoke test remain pending.
 - 2026-06-04: Implemented the requested Step 3/4/6 UI and Android folder-opening batch without changing ZIP import/parsing/save timestamp semantics. Shared bottom sheets now draw through the Android navigation area while applying safe-area padding internally and support a non-scroll media-preview mode. Step 3 uses a compact top appbar title/pill, no subtitle/media-count chip row, an icon-only toolbar with visible-filtered selection counts, compact filter sheet rows, cached async video thumbnails, working native video-control touch ownership, and internally scrollable TXT previews. Step 4 shows the selected/images/videos/other summary first. Step 6 removes the import-another/history buttons, adds saved-file thumbnails, and adds expand/collapse-all controls for row details. Native folder opening now carries exact output-directory metadata, opens SAF/public folder targets with `ACTION_VIEW` first, and only falls back to the system document navigator with an explicit fallback message. Added focused tests for filtered counts, visible select/clear, result-row expansion, bottom-sheet padding, and folder target helpers. Verified `npm run typecheck`, `npm run test`, and `npm run lint`; Android Gradle assembly could not run because this shell has no Java runtime. Real-device verification remains required for the folder intent behavior, video controls, bottom-sheet nav area, and Gallery date sorting.
