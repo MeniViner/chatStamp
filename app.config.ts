@@ -20,11 +20,9 @@ const config = {
       en: './android/app/src/main/res/values/strings.xml',
       he: './android/app/src/main/res/values-he/strings.xml'
     },
-    permissions: [
-      'MANAGE_EXTERNAL_STORAGE',
-      'WRITE_EXTERNAL_STORAGE'
-    ],
     blockedPermissions: [
+      'android.permission.MANAGE_EXTERNAL_STORAGE',
+      'android.permission.WRITE_EXTERNAL_STORAGE',
       'android.permission.ACCESS_MEDIA_LOCATION',
       'android.permission.READ_EXTERNAL_STORAGE',
       'android.permission.READ_MEDIA_AUDIO',

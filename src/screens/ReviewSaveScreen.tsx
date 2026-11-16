@@ -3,7 +3,6 @@ import { BackHandler, ScrollView, StyleSheet, View } from 'react-native';
 import { List, Text } from 'react-native-paper';
 import { usePipelineStore } from '../store/pipelineStore';
 import { buildSelectedPreview } from '../store/selectedPreview';
-import { buildTermuxParityOutputPath, sanitizePathSegment } from '../lib/termuxParityOutput';
 import { useSettingsStore } from '../store/settingsStore';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, WizardScreen, wizardStyles } from './WizardScreen';
@@ -17,14 +16,12 @@ export function ReviewSaveScreen() {
   const selectedSenders = usePipelineStore((state) => state.selectedSenders);
   const selectedMediaTypes = usePipelineStore((state) => state.selectedMediaTypes);
   const selectedFileIds = usePipelineStore((state) => state.selectedFileIds);
-  const zipName = usePipelineStore((state) => state.zipName);
   const setStage = usePipelineStore((state) => state.setStage);
   const settings = useSettingsStore((state) => state.settings);
   const preview = buildSelectedPreview(mediaFiles, selectedSenders, selectedMediaTypes, selectedFileIds);
-  const outputPath = buildTermuxParityOutputPath(sanitizePathSegment(zipName?.replace(/\.zip$/i, '') ?? 'Imported Chat'), {
-    baseFolder: settings.baseFolder,
-    organization: settings.outputOrganization
-  });
+  const outputPath = settings.saveDestinationMode === 'custom-folder'
+    ? settings.customFolder?.readablePathLabel ?? t('outputOptions.noFolderSelected')
+    : t('outputOptions.defaultAccurateFolder');
   const photos = preview.selectedFiles.filter((file) => file.mediaType === 'photo');
   const videos = preview.selectedFiles.filter((file) => file.mediaType === 'video');
   const other = preview.selectedFiles.filter((file) => file.mediaType !== 'photo' && file.mediaType !== 'video');
@@ -111,7 +108,7 @@ function GroupedPreview({ title, files }: { title: string; files: ReturnType<typ
           {file.filename}
         </Text>
           <Text variant="bodySmall" numberOfLines={1} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {new Date(file.originalDateIso).toLocaleDateString()}
+            {file.originalDateIso ? new Date(file.originalDateIso).toLocaleDateString() : t('fileSelection.noDate')}
           </Text>
         </View>
       ))}

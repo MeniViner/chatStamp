@@ -4,24 +4,30 @@ import { logger } from '../lib/logger';
 import type { PickedFolderResult, SaveFileResult } from '../types/media';
 import { getChatStampNativeModule } from './chatStampNativeModule';
 import { buildOpenFolderTarget } from './openDirectoryLogic';
+import { findGalleryItem } from './openTargetLogic';
+import { getMimeTypeForMedia } from '../lib/mediaClassifier';
 export { shouldShowOpenFolder, shouldShowOpenGallery } from './openTargetLogic';
 
 export type OpenTargetOutcome = 'opened' | 'manual-fallback';
 
 export async function openGalleryBestEffort(outputPath?: string | null, results?: SaveFileResult[]): Promise<OpenTargetOutcome> {
+  return openSavedFileBestEffort(findGalleryItem(results), outputPath);
+}
+
+export async function openSavedFileBestEffort(result?: SaveFileResult, outputPath?: string | null): Promise<OpenTargetOutcome> {
   if (Platform.OS !== 'android') {
     if (outputPath) await Clipboard.setStringAsync(outputPath);
     return 'manual-fallback';
   }
 
-  const firstMedia = results?.find((result) => result.ok && result.scannedUri && (result.mediaType === 'photo' || result.mediaType === 'video'));
-  if (firstMedia?.scannedUri) {
+  const uri = result?.insertedUri ?? result?.scannedUri;
+  if (result?.ok && uri) {
     try {
-      const opened = await getChatStampNativeModule().openScannedMediaAsync(firstMedia.scannedUri, mimeTypeForResult(firstMedia));
+      const opened = await getChatStampNativeModule().openScannedMediaAsync(uri, result.mimeType ?? getMimeTypeForMedia(result.filename, result.mediaType));
       if (opened.opened) return 'opened';
       logger.warn('Open scanned media URI had no resolved activity', opened);
     } catch (error) {
-      logger.warn('Open scanned media URI failed', { uri: firstMedia.scannedUri, error });
+      logger.warn('Open saved media URI failed', { uri, error });
     }
   }
 
@@ -47,11 +53,4 @@ export async function openFolderBestEffort(
   }
   if (outputPath) await Clipboard.setStringAsync(outputPath);
   return 'manual-fallback';
-}
-
-function mimeTypeForResult(result: SaveFileResult): string {
-  if (result.mediaType === 'photo') return 'image/*';
-  if (result.mediaType === 'video') return 'video/*';
-  if (result.mediaType === 'sticker') return 'image/webp';
-  return '*/*';
 }

@@ -1,11 +1,6 @@
-import type { PickedFolderResult, PickedFolderTimestampSupportResult } from '../types/media';
+import type { PickedFolderResult } from '../types/media';
 import { getChatStampNativeModule } from './chatStampNativeModule';
 
-export async function openOutputFolderPicker(): Promise<PickedFolderResult> {
+export function openOutputFolderPicker(): Promise<PickedFolderResult | null> {
   return getChatStampNativeModule().openOutputFolderPickerAsync();
 }
-
-export async function testPickedFolderTimestampSupport(treeUri: string): Promise<PickedFolderTimestampSupportResult> {
-  return getChatStampNativeModule().testPickedFolderTimestampSupportAsync(treeUri);
-}
-

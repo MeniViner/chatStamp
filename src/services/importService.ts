@@ -69,18 +69,24 @@ export async function importWhatsAppZip({
     }
     logger.debug('Selected transcript filename', extraction.chatFilename ?? extraction.chatFileUri);
 
+    const occurrences = new Map<string, number>();
     const extractedMediaFiles = extraction.mediaFiles
       .filter((file) => isSupportedForMvp(file.filename))
-      .map<ExtractedMediaFile>((file, index) => ({
-        id: `${file.sourcePath}:${index}`,
-        filename: file.filename,
-        normalizedFilename: normalizeFilename(file.filename),
-        sourcePath: file.sourcePath,
-        modificationTime: file.modificationTime,
-        uri: file.uri,
-        mediaType: classifyMedia(file.filename),
-        sourceKind: 'zip-media'
-      }));
+      .map<ExtractedMediaFile>((file) => {
+        const sourcePath = file.sourcePath.replace(/\\/g, '/');
+        const occurrence = occurrences.get(sourcePath) ?? 0;
+        occurrences.set(sourcePath, occurrence + 1);
+        return {
+          id: JSON.stringify([sourcePath, occurrence]),
+          filename: file.filename,
+          normalizedFilename: normalizeFilename(file.filename),
+          sourcePath,
+          modificationTime: file.modificationTime,
+          uri: file.uri,
+          mediaType: classifyMedia(file.filename),
+          sourceKind: 'zip-media'
+        };
+      });
     onProgress?.({ stageLabel: 'Finding transcript and parsing messages', processed: 4, total: 7, failed: 0 });
     const chatText = await FileSystem.readAsStringAsync(extraction.chatFileUri);
     const parsedChat = await parseWhatsAppChatTextAsync(chatText, extractedMediaFiles);

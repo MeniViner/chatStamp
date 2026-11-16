@@ -61,7 +61,7 @@ describe('chat archive matching', () => {
     expect(matched.map((file) => file.matchedRecord?.messageIndex)).toEqual(files.map((_, index) => 60 - index));
   });
 
-  it('keeps unmatched supported files visible and only passes dated files to the legacy saver', () => {
+  it('keeps unmatched supported files eligible even when no date is available', () => {
     const files = [makeFile('IMG-20240205-WA0001.jpg', 0), makeFile('unmatched.m4a', 1)];
     const attached = attachChatRecordsToMedia(files, [], 'UTC');
     const selectedSenders = [UNKNOWN_SENDER];
@@ -72,6 +72,9 @@ describe('chat archive matching', () => {
     expect(visible.map((file) => file.id)).toEqual(files.map((file) => file.id));
 
     const eligible = getSelectedSaveCandidates(visible, selectedSenders, selectedMediaTypes, files.map((file) => file.id));
-    expect(eligible).toEqual([{ file: visible[0], timestampMillis: Date.parse('2024-02-05T12:00:00Z') }]);
+    expect(eligible).toEqual([
+      { file: visible[0], timestampMillis: Date.parse('2024-02-05T12:00:00Z') },
+      { file: visible[1], timestampMillis: undefined }
+    ]);
   });
 });

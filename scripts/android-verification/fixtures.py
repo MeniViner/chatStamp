@@ -87,6 +87,7 @@ def main():
     )
     parser.add_argument("--skip-large", action="store_true", help="Skip the 128 MiB ZIP")
     parser.add_argument("--probe", action="store_true", help="Also create storage probe assets and expectations")
+    parser.add_argument("--gallery-five", action="store_true", help="Limit the mixed ZIP to the five Gallery regression files")
     args = parser.parse_args()
     zips.mkdir(parents=True, exist_ok=True)
     assets.mkdir(parents=True, exist_ok=True)
@@ -101,7 +102,7 @@ def main():
     voice = encode("PTT-20200318-WA8817.opus", "-f", "lavfi",
                    "-i", "sine=frequency=440:duration=1", "-c:a", "libopus")
 
-    export("mixed", "\n".join([
+    transcript = "\n".join([
         f"15/02/2019, 10:30 - Dana: \u200e{photo_old.name} (file attached)",
         "The second line is a caption.",
         f"16/02/2019, 11:30 - Dana: {video_old.name} (file attached)",
@@ -112,7 +113,8 @@ def main():
         f"18/03/2020, 12:00 - Eli: {voice.name} (file attached)",
         "19/03/2020, 12:00 - Dana: contact.vcf (file attached)",
         "20/03/2020, 12:00 - Dana: check out my vacation.jpg from last year",
-    ]), {
+    ])
+    mixed_files = {
         f"photos/{photo_old.name}": photo_old,
         f"photos/{photo_new.name}": photo_new,
         preview_png.name: preview_png,
@@ -124,7 +126,11 @@ def main():
         "other/contact.vcf": contact,
         "other/unsupported.bin": b"unsupported test entry\n",
         "notes.txt": notes,
-    })
+    }
+    if args.gallery_five:
+        expected = {photo_old.name, photo_new.name, preview_png.name, video_old.name, video_new.name}
+        mixed_files = {name: data for name, data in mixed_files.items() if name.split("/")[-1] in expected}
+    export("mixed", transcript, mixed_files)
     export("text-only", "15/02/2019, 10:30 - Dana: Text-only import fixture.\n", {})
     export("no-transcript", None, {photo_old.name: photo_old})
     (zips / f"{STEM}-invalid.zip").write_bytes(b"Test data deliberately missing a ZIP header.\n")

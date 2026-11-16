@@ -24,6 +24,9 @@ def remove_saved_media():
         row = adb("shell", f"content query --uri {uri} --projection _display_name:relative_path --where {where}")
         if f"_display_name={name}, " in row:
             adb("shell", "content", "delete", "--uri", uri)
+            remaining = adb("shell", f"content query --uri {uri} --projection _display_name --where {where}")
+            if "_display_name=" in remaining:
+                raise RuntimeError(f"QA Gallery row remains: {uri}")
 
     gallery_path = f"/storage/emulated/0/{GALLERY_FOLDER.rstrip('/')}"
     directories = adb("shell", f"find {shlex.quote(gallery_path)} -depth -type d", check=False)

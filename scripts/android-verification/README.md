@@ -80,3 +80,26 @@ python scripts/android-verification/probe.py cleanup
 ```
 
 Use the result matrix in [the verification log](../../docs/VERIFICATION.md) to record the dates, capabilities, and destination selected for Stage B. The physical Samsung results and cleanup are required for that decision.
+
+## Stage B app save regression
+
+Build and inspect the QA APK using the commands above. Confirm min SDK 30, target SDK 36, and no broad storage permissions. With only the test handset connected, the checked QA binary can also be installed and launched through Expo.
+
+```powershell
+npx expo run:android --binary android/app/build/outputs/apk/debug/app-debug.apk --app-id com.menis.chatstamp.qa --no-bundler
+$env:CHATSTAMP_QA_RUN_ID = 'stage-b'
+python scripts/android-verification/fixtures.py --skip-large --gallery-five
+python scripts/android-verification/device.py prepare mixed
+```
+
+In Settings, enable Always use message date and keep the default Android media folders. Choose the generated mixed ZIP through the Android picker and save all five media attachments. In Results, check the date outcomes and the Open in Gallery action. Verify the actual file timestamps and indexed values.
+
+```powershell
+python scripts/android-verification/media-evidence.py --assert-gallery-five
+```
+
+In Samsung Gallery, open the run album and confirm the same order and red JPEG detail time from Stage P. Import the same ZIP again with Skip existing and confirm that all five results say Already saved and the Gallery row IDs remain unchanged. Keep the media evidence file for the run-scoped cleanup command.
+
+```powershell
+python scripts/android-verification/cleanup-device.py
+```

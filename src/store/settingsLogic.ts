@@ -1,8 +1,8 @@
 import type { AppSettings, OutputOrganizationMode, OutputOrganizationSettings } from '../types/media';
-import { TERMUX_PARITY_BASE_FOLDER, defaultOutputOrganization } from '../lib/termuxParityOutput';
+import { DEFAULT_GALLERY_ROOT, defaultOutputOrganization } from '../lib/outputOrganization';
 
 export const defaultSettings: AppSettings = {
-  baseFolder: TERMUX_PARITY_BASE_FOLDER,
+  baseFolder: DEFAULT_GALLERY_ROOT,
   useDefaultFolder: true,
   saveDestinationMode: 'default-accurate-folder',
   customFolder: null,
@@ -12,6 +12,7 @@ export const defaultSettings: AppSettings = {
   languagePreference: 'system',
   appearance: 'system',
   useDynamicColors: true,
+  alwaysUseMessageDate: false,
   developerMode: false,
   showTechnicalLogs: false,
   keepCacheAfterFailedRun: false,
@@ -23,6 +24,7 @@ export function mergeSettings(value: Partial<AppSettings> | null | undefined): A
   return {
     ...defaultSettings,
     ...value,
+    alwaysUseMessageDate: value?.alwaysUseMessageDate === true,
     outputOrganization,
     saveDestinationMode: value?.saveDestinationMode ?? (value?.useDefaultFolder === false ? 'custom-folder' : defaultSettings.saveDestinationMode)
   };
@@ -39,7 +41,7 @@ function normalizeOutputOrganization(value: Record<string, unknown> | undefined)
       ? value.createExportTimestampFolder
       : defaultOutputOrganization.createExportTimestampFolder,
     duplicateHandling:
-      duplicateHandling === 'skip-existing' || duplicateHandling === 'replace-existing'
+      duplicateHandling === 'keep-both' || duplicateHandling === 'skip-existing' || duplicateHandling === 'replace-existing'
         ? duplicateHandling
         : defaultOutputOrganization.duplicateHandling
   };
@@ -64,6 +66,6 @@ function inferOutputOrganizationMode(value: Record<string, unknown> | undefined)
 
   if (includeSender && separateByType) return 'by-sender-and-type';
   if (includeSender) return 'by-sender';
-  if (everythingTogether) return 'all-in-one';
-  return 'by-type';
+  if (separateByType && !everythingTogether) return 'by-type';
+  return defaultOutputOrganization.mode;
 }

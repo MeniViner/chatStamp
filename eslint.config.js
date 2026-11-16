@@ -8,6 +8,7 @@ module.exports = [
       'android/**',
       'ios/**',
       'coverage/**',
+      'modules/chatstamp-native/android/build/**',
       'scripts/android-verification/probe/build/**',
     ],
   },

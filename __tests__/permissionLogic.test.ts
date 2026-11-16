@@ -1,39 +1,22 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { canContinueWithSaveMethod, getPermissionAction, isAllFilesAccessRequired } from '../src/services/permissionLogic';
-import type { GalleryPermissionStatus } from '../src/services/permissionLogic';
+import config from '../app.config';
 
-function status(overrides: Partial<GalleryPermissionStatus>): GalleryPermissionStatus {
-  return {
-    granted: false,
-    status: 'denied' as GalleryPermissionStatus['status'],
-    canAskAgain: true,
-    platform: 'android',
-    androidVersion: 35,
-    ...overrides
-  };
-}
-
-describe('getPermissionAction', () => {
-  it('returns granted when permission is granted', () => {
-    expect(getPermissionAction(status({ granted: true, status: 'granted' as GalleryPermissionStatus['status'], canAskAgain: false }))).toBe('granted');
+describe('scoped storage permissions', () => {
+  it('blocks broad permissions, including permissions supplied by dependencies', () => {
+    const permissions = [
+      'MANAGE_EXTERNAL_STORAGE', 'READ_EXTERNAL_STORAGE', 'WRITE_EXTERNAL_STORAGE',
+      'READ_MEDIA_IMAGES', 'READ_MEDIA_VIDEO', 'READ_MEDIA_AUDIO', 'READ_MEDIA_VISUAL_USER_SELECTED'
+    ];
+    for (const permission of permissions) {
+      expect(config.android).not.toHaveProperty('permissions', expect.arrayContaining([permission]));
+      expect(config.android?.blockedPermissions).toContain('android.permission.' + permission);
+    }
   });
 
-  it('returns request when denied but Android can ask again', () => {
-    expect(getPermissionAction(status({ granted: false, canAskAgain: true }))).toBe('request');
-  });
-
-  it('returns open-settings when denied permanently', () => {
-    expect(getPermissionAction(status({ granted: false, canAskAgain: false }))).toBe('open-settings');
-  });
-
-  it('requires All Files Access for Termux Parity Mode', () => {
-    expect(isAllFilesAccessRequired('termux-parity')).toBe(true);
-    expect(canContinueWithSaveMethod('termux-parity', false)).toBe(false);
-    expect(canContinueWithSaveMethod('termux-parity', true)).toBe(true);
-  });
-
-  it('does not require All Files Access for the explicit MediaStore fallback', () => {
-    expect(isAllFilesAccessRequired('mediastore-fallback')).toBe(false);
-    expect(canContinueWithSaveMethod('mediastore-fallback', false)).toBe(true);
+  it('exposes only the import cache through the app provider', () => {
+    const provider = readFileSync('modules/chatstamp-native/android/src/main/res/xml/chatstamp_file_provider_paths.xml', 'utf8');
+    expect(provider).toContain('<cache-path name="imports" path="chatstamp/"');
+    expect(provider).not.toMatch(/<external-path|<root-path|<files-path|path="\."/);
   });
 });

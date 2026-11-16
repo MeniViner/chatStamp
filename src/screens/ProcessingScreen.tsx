@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ActivityIndicator, ProgressBar, Snackbar, Text } from 'react-native-paper';
 import { usePipelineStore } from '../store/pipelineStore';
 import { runSavePipeline } from '../services/pipelineService';
-import { buildTermuxParityOutputPath, sanitizePathSegment } from '../lib/termuxParityOutput';
+import { outputChatName } from '../lib/outputOrganization';
 import { createExportHistoryItem, useHistoryStore } from '../store/historyStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { useAppTheme } from '../theme/useAppTheme';
@@ -34,6 +34,7 @@ export function ProcessingScreen() {
   const selectedMediaTypes = usePipelineStore((state) => state.selectedMediaTypes);
   const selectedFileIds = usePipelineStore((state) => state.selectedFileIds);
   const workingDirectory = usePipelineStore((state) => state.workingDirectory);
+  const copiedZipUri = usePipelineStore((state) => state.copiedZipUri);
   const zipName = usePipelineStore((state) => state.zipName);
   const setProgress = usePipelineStore((state) => state.setProgress);
   const setCompletion = usePipelineStore((state) => state.setCompletion);
@@ -51,31 +52,31 @@ export function ProcessingScreen() {
 
     async function saveSelectedMedia() {
       try {
+        if (!copiedZipUri) throw new Error('The imported ZIP is unavailable. Import the ZIP again.');
         const completion = await runSavePipeline({
           files: mediaFiles,
           selectedSenders,
           selectedMediaTypes,
           selectedFileIds,
           workingDirectory,
-          chatName: zipName?.replace(/\.zip$/i, '') ?? t('common.importedChat'),
+          archiveUri: copiedZipUri,
+          chatName: outputChatName(zipName),
           settings,
           onProgress: setProgress
         });
         const outputFolderPath =
           completion.outputDirectory ??
           completion.results?.find((result) => result.outputPath)?.outputPath?.replace(/[\\/][^\\/]+$/, '') ??
-          buildTermuxParityOutputPath(sanitizePathSegment(zipName?.replace(/\.zip$/i, '') ?? t('common.importedChat')), {
-            baseFolder: settings.baseFolder,
-            organization: settings.outputOrganization
-          });
-        await updateSettings({ lastOutputFolder: outputFolderPath });
+          settings.lastOutputFolder ?? '';
+        if (completion.outputDirectory) await updateSettings({ lastOutputFolder: outputFolderPath });
         await addHistoryItem(createExportHistoryItem({
           completion,
           files: mediaFiles,
           selectedFileIds,
           selectedMediaTypes,
           selectedSenders,
-          chatName: sanitizePathSegment(zipName?.replace(/\.zip$/i, '') ?? t('common.importedChat')),
+          chatName: outputChatName(zipName),
+          folderTreeUri: completion.saveMethod === 'saf-custom-folder' ? settings.customFolder?.treeUri : null,
           outputFolderPath
         }));
         setCompletion(completion);
@@ -99,7 +100,8 @@ export function ProcessingScreen() {
     t,
     updateSettings,
     addHistoryItem,
-    workingDirectory
+    workingDirectory,
+    copiedZipUri
   ]);
 
   useEffect(() => {
@@ -181,7 +183,7 @@ function translateProgressLabel(t: (key: string) => string, label?: string): str
     'Finding transcript and parsing messages': 'processing.progressLabels.findingTranscript',
     'Matching and classifying media': 'processing.progressLabels.matchingMedia',
     'Import ready': 'processing.progressLabels.importReady',
-    'Copying files, setting filesystem timestamps, then scanning': 'processing.progressLabels.savingFiles',
+    'Saving selected files': 'processing.progressLabels.savingFiles',
     Done: 'processing.progressLabels.done'
   };
   if (!label) return undefined;

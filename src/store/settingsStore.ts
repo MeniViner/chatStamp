@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { AppAppearance, AppSettings } from '../types/media';
-import { TERMUX_PARITY_BASE_FOLDER } from '../lib/termuxParityOutput';
+import { DEFAULT_GALLERY_ROOT } from '../lib/outputOrganization';
 import { logger } from '../lib/logger';
 import { readJsonFile, writeJsonFile } from './jsonFileStorage';
 import { defaultSettings, mergeSettings } from './settingsLogic';
@@ -40,7 +40,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   resetSaveLocation: async () => {
     const next = mergeSettings({
       ...get().settings,
-      baseFolder: TERMUX_PARITY_BASE_FOLDER,
+      baseFolder: DEFAULT_GALLERY_ROOT,
       useDefaultFolder: true,
       saveDestinationMode: 'default-accurate-folder',
       customFolder: null,

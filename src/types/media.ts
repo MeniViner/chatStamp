@@ -103,6 +103,7 @@ export type CompletionSummary = {
   saved: number;
   copied?: number;
   skipped: number;
+  cancelled?: number;
   failed: number;
   filesystemTimestampFixed?: number;
   exifFixed?: number;
@@ -117,7 +118,7 @@ export type CompletionSummary = {
   results?: SaveFileResult[];
 };
 
-export type SaveMethod = 'termux-parity' | 'saf-custom-folder';
+export type SaveMethod = 'scoped-media-store' | 'saf-custom-folder' | 'termux-parity';
 
 export type SaveDestinationMode = 'default-accurate-folder' | 'custom-folder';
 export type OutputOrganizationMode = 'all-in-one' | 'by-type' | 'by-sender' | 'by-sender-and-type';
@@ -161,6 +162,7 @@ export type AppSettings = {
   languagePreference: AppLanguagePreference;
   appearance: AppAppearance;
   useDynamicColors: boolean;
+  alwaysUseMessageDate: boolean;
   developerMode: boolean;
   showTechnicalLogs: boolean;
   keepCacheAfterFailedRun: boolean;
@@ -192,6 +194,18 @@ export type ExportHistoryItem = {
 export type SaveFileResult = {
   filename: string;
   ok: boolean;
+  entryId?: string;
+  outcome?: 'saved' | 'skipped' | 'failed' | 'cancelled';
+  dateVerification?: 'verified' | 'mtime-only' | 'unverified';
+  targetTimestampMillis?: number | null;
+  timestampSource?: DateSource | 'capture';
+  embeddedTimestampMillis?: number | null;
+  observedModifiedMillis?: number | null;
+  destinationKind?: 'media-store' | 'document-provider' | 'legacy-path';
+  outputDirectory?: string | null;
+  mimeType?: string | null;
+  verificationReason?: string | null;
+  replacementWarning?: string | null;
   insertedUri?: string | null;
   outputPath?: string | null;
   displayName?: string | null;

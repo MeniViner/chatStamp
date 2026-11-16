@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { ExportHistoryItem } from '../types/media';
 import { logger } from '../lib/logger';
 import { deleteJsonFile, readJsonFile, writeJsonFile } from './jsonFileStorage';
-import { createExportHistoryItem } from './historyLogic';
+import { createExportHistoryItem, normalizeHistoryItem } from './historyLogic';
 
 const historyKey = 'export-history.v1.json';
 const historyLimit = 50;
@@ -25,7 +25,8 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
   loaded: false,
   loadHistory: async () => {
     try {
-      set({ items: (await readJsonFile<ExportHistoryItem[]>(historyKey)) ?? [], loaded: true });
+      const stored = await readJsonFile<ExportHistoryItem[]>(historyKey);
+      set({ items: (stored ?? []).map(normalizeHistoryItem), loaded: true });
     } catch (error) {
       logger.warn('historyLoadFailed', error);
       set({ items: [], loaded: true });

@@ -7,7 +7,6 @@ import { VideoView, useVideoPlayer } from 'expo-video';
 import { PremiumBottomSheet } from '../components/BottomSheet';
 import { Button, Chip, ProgressBar, Searchbar, Surface, Switch, Text } from 'react-native-paper';
 import { usePipelineStore } from '../store/pipelineStore';
-import { useSettingsStore } from '../store/settingsStore';
 import { getSelectedSaveCandidates } from '../store/selectionLogic';
 import { filterVisibleFiles, getVisibleSaveableFileIds } from '../store/fileFiltering';
 import type { ChatPreview, ChatPreviewMessage, ExtractedMediaFile, MediaType } from '../types/media';
@@ -17,14 +16,12 @@ import { loadTranscriptPreview } from '../services/importService';
 import { formatShortChatTimestamp } from '../lib/previewDateFormat';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, WizardScreen } from './WizardScreen';
-import { runMp4RewriteDiagnosticsNative } from '../native/nativeMediaSaver';
 import { useTranslation } from 'react-i18next';
 import {
   defaultFileSelectionUiState,
   getFilteredSelectionCount,
   getVideoPreviewMode,
   getVoicePreviewProgress,
-  shouldShowDeveloperDiagnostics,
   toggleCategoryFilter,
   type SortMode
 } from './fileSelectionUi';
@@ -54,8 +51,6 @@ export function FileSelectionScreen() {
   const [sortMode, setSortMode] = React.useState<SortMode>(defaultFileSelectionUiState.sortMode);
   const [categoryFilters, setCategoryFilters] = React.useState<MediaType[]>(defaultFileSelectionUiState.categoryFilters);
   const [previewFile, setPreviewFile] = React.useState<ExtractedMediaFile | undefined>();
-  const [mp4Diagnostic, setMp4Diagnostic] = React.useState<string | undefined>();
-  const developerMode = useSettingsStore((state) => state.settings.developerMode);
   const mediaFiles = usePipelineStore((state) => state.mediaFiles);
   const importSummary = usePipelineStore((state) => state.importSummary);
   const selectedSenders = usePipelineStore((state) => state.selectedSenders);
@@ -113,26 +108,6 @@ export function FileSelectionScreen() {
   const otherFoundCount =
     mediaFiles.length - (importSummary?.photos ?? 0) - (importSummary?.videos ?? 0);
   const filtersActive = selectedSenders.length < senders.length || categoryFilters.length > 0 || !saveableOnly;
-  const selectedMp4 = mediaFiles.find(
-    (file) => selectedFileIds.includes(file.id) && file.mediaType === 'video' && file.filename.toLowerCase().endsWith('.mp4')
-  );
-
-  async function runMp4Diagnostics() {
-    if (!selectedMp4) return;
-    const timestamp = getMediaSaveTime(selectedMp4);
-    if (timestamp === undefined) return;
-    setMp4Diagnostic(t('fileSelection.runningDiagnostics'));
-    try {
-      const result = await runMp4RewriteDiagnosticsNative(
-        selectedMp4.uri,
-        timestamp
-      );
-      setMp4Diagnostic(JSON.stringify(result, null, 2));
-    } catch (error) {
-      setMp4Diagnostic(error instanceof Error ? error.message : t('fileSelection.diagnosticsFailed'));
-    }
-  }
-
   function ensureMediaTypesEnabled(files: ExtractedMediaFile[]) {
     const typesToEnable = new Set(
       files.map((file) => file.mediaType).filter((mediaType) => !selectedMediaTypes[mediaType])
@@ -171,7 +146,7 @@ export function FileSelectionScreen() {
         filterSheetOpen || sortSheetOpen || previewFile ? undefined :
         <FooterActions>
           {hasSelectedUndatedFiles ? (
-            <Text variant="bodySmall" style={textStyles.start}>{t('fileSelection.undatedSkipped')}</Text>
+            <Text variant="bodySmall" style={textStyles.start}>{t('fileSelection.undatedSaved')}</Text>
           ) : null}
           {selectedCount === 0 ? (
             <Text variant="bodySmall" numberOfLines={2} style={[textStyles.start, { color: theme.colors.error }]}>
@@ -281,15 +256,6 @@ export function FileSelectionScreen() {
           </View>
         }
       />
-
-      {shouldShowDeveloperDiagnostics(developerMode) ? (
-        <Surface elevation={0} style={[styles.diagnosticPanel, { borderColor: theme.colors.outlineVariant }]}>
-          <Button mode="outlined" compact disabled={!selectedMp4} onPress={() => void runMp4Diagnostics()}>
-            {t('fileSelection.runDiagnostics')}
-          </Button>
-          {mp4Diagnostic ? <Text variant="bodySmall">{mp4Diagnostic}</Text> : null}
-        </Surface>
-      ) : null}
 
       <MediaPreviewSheet
         file={previewFile}

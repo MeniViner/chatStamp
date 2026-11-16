@@ -9,12 +9,15 @@ export function createExportHistoryItem(params: {
   selectedSenders: string[];
   chatName: string;
   outputFolderPath: string;
+  folderTreeUri?: string | null;
   now?: Date;
 }): ExportHistoryItem {
   const selectedFiles = getSelectedSaveCandidates(
     params.files, params.selectedSenders, params.selectedMediaTypes, params.selectedFileIds
   ).map(({ file }) => file);
-  const count = (type: string) => selectedFiles.filter((file) => file.mediaType === type).length;
+  const savedFiles = params.completion.results
+    ?.filter((file) => file.outcome === 'saved' || (file.outcome === undefined && file.ok));
+  const count = (type: string) => (savedFiles ?? selectedFiles).filter((file) => file.mediaType === type).length;
   const timestamp = params.now ?? new Date();
   const fixed = params.completion.dateCorrected;
 
@@ -35,7 +38,27 @@ export function createExportHistoryItem(params: {
     },
     saveMethod: params.completion.saveMethod ?? 'termux-parity',
     outputDirectory: params.completion.outputDirectory,
+    folderTreeUri: params.folderTreeUri,
     allFilesHadTimestampsFixed: params.completion.saved > 0 && fixed >= params.completion.saved,
     savedFiles: params.completion.results
+  };
+}
+
+export function normalizeHistoryItem(item: ExportHistoryItem): ExportHistoryItem {
+  return {
+    ...item,
+    outputDirectory: item.outputDirectory || item.outputFolderPath,
+    savedFiles: item.savedFiles?.map((result) => {
+      if (result.outcome) return result;
+      const insertedUri = result.insertedUri ?? result.scannedUri
+        ?? (result.outputPath?.startsWith('content://') ? result.outputPath : null);
+      return {
+        ...result,
+        insertedUri,
+        destinationKind: insertedUri?.startsWith('content://media/') ? 'media-store'
+          : insertedUri ? 'document-provider' : 'legacy-path',
+        outcome: result.ok ? 'saved' : 'failed'
+      };
+    })
   };
 }

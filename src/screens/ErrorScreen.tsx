@@ -1,10 +1,8 @@
 import React from 'react';
-import { AppState, ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { List, Surface, Text } from 'react-native-paper';
 import { usePipelineStore } from '../store/pipelineStore';
 import { clearWorkingDirectory } from '../services/importService';
-import { hasAllFilesAccess, openAllFilesAccessSettings } from '../native/allFilesAccess';
-import { logger } from '../lib/logger';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
@@ -16,58 +14,22 @@ export function ErrorScreen() {
   const theme = useAppTheme();
   const error = usePipelineStore((state) => state.error);
   const workingDirectory = usePipelineStore((state) => state.workingDirectory);
-  const mediaFiles = usePipelineStore((state) => state.mediaFiles);
-  const setError = usePipelineStore((state) => state.setError);
   const clearError = usePipelineStore((state) => state.clearError);
   const setStage = usePipelineStore((state) => state.setStage);
   const reset = usePipelineStore((state) => state.reset);
-  const allFilesAccessErrorMessage = 'All Files Access is required for accurate file dates mode.';
-  const isPermissionError = Boolean(error?.includes('All Files Access') || error?.includes('permission is missing'));
-  const friendly = getFriendlyError(t, error, isPermissionError);
-
-  const recheckPermissionAfterResume = React.useCallback(async () => {
-    try {
-      const granted = await hasAllFilesAccess();
-      logger.debug('App resumed and All Files Access rechecked', { granted });
-      if (!granted) {
-        setError(allFilesAccessErrorMessage);
-      }
-    } catch (permissionError) {
-      logger.warn('Permission recheck after settings failed', permissionError);
-    }
-  }, [allFilesAccessErrorMessage, setError]);
-
-  React.useEffect(() => {
-    if (!isPermissionError) return;
-
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState !== 'active') return;
-      void recheckPermissionAfterResume();
-    });
-
-    return () => subscription.remove();
-  }, [isPermissionError, recheckPermissionAfterResume]);
+  const openOverlayStage = usePipelineStore((state) => state.openOverlayStage);
+  const isFolderError = error?.includes('Selected folder access expired') ?? false;
+  const friendly = getFriendlyError(t, error, isFolderError);
 
   async function resetAndCleanUp() {
     await clearWorkingDirectory(workingDirectory);
     reset();
   }
 
-  async function grantPermission() {
-    try {
-      const granted = await hasAllFilesAccess();
-      if (!granted) {
-        logger.debug('All Files Access settings opened', { reason: 'permission error screen' });
-        await openAllFilesAccessSettings();
-        return;
-      }
-
-      clearError();
-      setStage(mediaFiles.length > 0 ? 'outputOptions' : 'welcome');
-    } catch (permissionError) {
-      logger.error('Grant permission retry failed', permissionError);
-      setError(permissionError instanceof Error ? permissionError.message : allFilesAccessErrorMessage);
-    }
+  function chooseFolder() {
+    clearError();
+    setStage('outputOptions');
+    openOverlayStage('settings');
   }
 
   return (
@@ -77,9 +39,9 @@ export function ErrorScreen() {
       subtitle={friendly.reason}
       footer={
         <FooterActions>
-          {isPermissionError ? (
-            <PrimaryButton icon="shield-key-outline" onPress={() => void grantPermission()}>
-              {t('error.grantAllFilesAccess')}
+          {isFolderError ? (
+            <PrimaryButton icon="shield-key-outline" onPress={chooseFolder}>
+              {t('settings.title')}
             </PrimaryButton>
           ) : null}
           <PrimaryButton onPress={() => void resetAndCleanUp()}>
@@ -108,9 +70,9 @@ export function ErrorScreen() {
   );
 }
 
-function getFriendlyError(t: (key: string) => string, error: string | undefined, isPermissionError: boolean): { title: string; reason: string; action: string } {
+function getFriendlyError(t: (key: string) => string, error: string | undefined, isFolderError: boolean): { title: string; reason: string; action: string } {
   const value = error ?? '';
-  if (isPermissionError) {
+  if (isFolderError) {
     return {
       title: t('error.permissionTitle'),
       reason: t('error.permissionReason'),

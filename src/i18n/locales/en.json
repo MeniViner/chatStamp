@@ -62,10 +62,6 @@
     "infoLocalBody": "Files are processed on this device. No accounts, cloud upload, or server APIs.",
     "infoShareTitle": "Share directly from WhatsApp",
     "infoShareBody": "WhatsApp > Export chat > share a ZIP here. Exports with or without media are supported.",
-    "infoPermReadyTitle": "Date-preserving access is ready",
-    "infoPermReadyBody": "All files access is already granted for saving.",
-    "infoPermLaterTitle": "Date-preserving access comes later",
-    "infoPermLaterBody": "When you are ready to save, Android will ask for all files access so file dates can be preserved.",
     "instructionTitle": "Export chat ZIP",
     "instructionBody": "In WhatsApp, open the chat, export it with or without media, then share the ZIP here or choose it manually.",
     "trustTitle": "What happens on this device",
@@ -136,35 +132,6 @@
       "highlightOne": "Keep exported media closer to the order you expect in Gallery.",
       "highlightTwo": "Use the app's date-preserving save path instead of a generic import.",
       "highlightThree": "Leave chats, media, and history on this device only."
-    },
-    "permission": {
-      "eyebrow": "Before You Start",
-      "title": "Grant access so the app can import ZIPs smoothly and save media back with the right dates.",
-      "body": "To save exported media with the original WhatsApp dates, the app needs Android file access right before you enter the main app. Nothing is uploaded anywhere.",
-      "note": "If you continue without access, importing and saving can be limited until you turn it on later in Settings.",
-      "heroLabel": "Access for import and saving",
-      "highlightOne": "Import WhatsApp ZIP files from storage when needed.",
-      "highlightTwo": "Save exported media with the app's date-preserving Android flow.",
-      "highlightThree": "Grant access now or come back later from Settings.",
-      "grantAccess": "Grant access",
-      "states": {
-        "checking": {
-          "title": "Checking current access",
-          "body": "The app is checking whether Android access is already ready."
-        },
-        "pending": {
-          "title": "Access is still needed",
-          "body": "Grant access to import ZIPs from storage more smoothly and save media with the most reliable date-preserving flow."
-        },
-        "granted": {
-          "title": "Access is ready",
-          "body": "You're all set. The main app can use the same Android access flow that preserves saved file dates."
-        },
-        "limited": {
-          "title": "You can continue, with limits",
-          "body": "Some import or save actions may not work fully until access is granted later from Settings."
-        }
-      }
     }
   },
   "settings": {
@@ -175,9 +142,9 @@
     "history": "History",
     "historyCleared": "History cleared.",
     "saveLocation": "Save Location",
-    "defaultAccurateFolder": "Default accurate folder",
-    "defaultAccurateFolderBody": "Best option for preserving WhatsApp dates in the public Pictures folder.",
-    "customFolder": "Custom folder",
+    "defaultAccurateFolder": "Android media folders",
+    "defaultAccurateFolderBody": "Photos and videos go to Pictures. Audio and documents have their own folders.",
+    "customFolder": "Save to another folder",
     "customFolderBody": "Use Android's folder picker to choose a different destination.",
     "useDefaultFolder": "Use this folder by default",
     "chooseFolderTitle": "Choose folder",
@@ -186,16 +153,10 @@
     "chooseChangeFolder": "Choose/change folder",
     "resetToDefault": "Reset to default",
     "copyPath": "Copy path",
-    "allFilesAccess": "All Files Access",
-    "granted": "Granted",
-    "notGranted": "Not granted",
-    "permissionReadyTitle": "Save permissions are ready",
-    "permissionMissingTitle": "Save permission is still needed",
     "folderPickFailed": "Folder selection failed.",
     "customFolderDateAccuracy": "Custom folder date accuracy",
     "customFolderDateAccuracyReady": "Exact file timestamp support was verified for this folder.",
     "customFolderDateAccuracyLimited": "Saving works here, but exact timestamp preservation was not verified by Android SAF.",
-    "openAllFilesAccess": "Open All Files Access settings",
     "outputOrg": "Output Organization",
     "outputOrgSubtitle": "Choose how exported files are arranged inside the destination.",
     "outputOrgFooter": "The same organization mode is used for both the default accurate folder and custom SAF folders.",
@@ -260,7 +221,7 @@
     },
     "appOptions": "App options",
     "welcomeTour": "Welcome tour",
-    "welcomeTourBody": "Replay the polished first-launch introduction and access guidance at any time.",
+    "welcomeTourBody": "Replay the introduction at any time.",
     "showWelcomeTourAgain": "Show welcome tour again",
     "developerMode": "Developer mode",
     "developerModeToggle": "Developer mode",
@@ -284,7 +245,10 @@
     "cacheCleanupFailed": "Cache cleanup failed",
     "couldNotClearCache": "Could not clear cache.",
     "restartRequiredTitle": "Layout updated",
-    "restartRequiredBody": "The app now applies Right-to-Left and Left-to-Right layout changes immediately."
+    "restartRequiredBody": "The app now applies Right-to-Left and Left-to-Right layout changes immediately.",
+    "customFolderDateBody": "Date verification depends on the selected folder.",
+    "alwaysUseMessageDate": "Always use message date",
+    "alwaysUseMessageDateBody": "Use the date from the chat or its best available estimate instead of the date in the file."
   },
   "reviewSave": {
     "title": "Review & Save",
@@ -295,11 +259,11 @@
     "videos": "Videos",
     "other": "Other",
     "originalDates": "Original WhatsApp dates will be restored",
-    "appWillUse": "The app will use file timestamps and Android media scan for photos/videos. Other selected files are copied into organized folders.",
+    "appWillUse": "The app will read back the dates Android records after saving.",
     "saveDetails": "Save details",
     "outputFolder": "Output folder",
     "saveMethod": "Save method",
-    "accurateMode": "Accurate file dates mode",
+    "accurateMode": "Android media storage",
     "otherFiles": "Other files",
     "andXMore": "and {{count}} more"
   },
@@ -313,13 +277,11 @@
     "footerReadyCount": "{{count}} items will be saved",
     "disabledNoSelection": "Select at least one item to save.",
     "disabledChooseFolder": "Choose a destination folder to continue",
-    "disabledCheckingPermission": "Checking save permission...",
-    "disabledPermission": "Save permission is required to continue",
     "destinationTitle": "Save Destination",
-    "defaultAccurateFolder": "Default folder",
-    "defaultAccurateFolderBody": "Save to the phone's public Pictures folder, using the most reliable date-preserving path.",
+    "defaultAccurateFolder": "Android media folders",
+    "defaultAccurateFolderBody": "Photos and videos go to Pictures, audio goes to Music, and documents go to Documents.",
     "customFolder": "Another folder",
-    "customFolderBody": "A destination selected through Android's file manager.",
+    "customFolderBody": "Android will save the selection in the folder you chose in Settings.",
     "chooseFolder": "Choose folder",
     "changeFolder": "Change folder",
     "useDefaultFolder": "Default folder",
@@ -329,7 +291,6 @@
     "selectedFolder": "Selected folder",
     "organizationTitle": "Folder Structure",
     "accurateModeTitle": "Accurate file dates mode",
-    "accurateModeBody": "The app writes real files, sets their original WhatsApp date, then asks Android to scan them.",
     "organizationModes": {
       "all-in-one": {
         "title": "One folder",
@@ -353,7 +314,7 @@
       }
     },
     "createExportTimestampFolder": "Create export timestamp folder",
-    "createExportTimestampFolderBody": "Helps keep separate save runs apart.",
+    "createExportTimestampFolderBody": "Keep each archive in a dated folder that is reused for retries.",
     "duplicateHandling": "Duplicate Files",
     "duplicateModes": {
       "keep-both": {
@@ -370,7 +331,6 @@
       }
     },
     "advancedTitle": "Advanced Options",
-    "accessTitle": "Save Permissions",
     "photos": "Photos",
     "videos": "Videos",
     "other": "Other",
@@ -380,12 +340,6 @@
     "dateRestoration": "Date restoration",
     "photosVideosTogether": "Photos and videos together",
     "separatePhotosVideos": "Separate photos and videos",
-    "dateRestorationValue": "File timestamp + Android media scan",
-    "allFilesAccess": "All files access",
-    "checkingPermission": "Checking permission...",
-    "granted": "Granted. The app can preserve file dates while saving.",
-    "needed": "Needed to write real files and preserve their original WhatsApp dates.",
-    "grantAccess": "Grant All files access",
     "customFolderSupport": "Custom folder support",
     "customFolderSupportReady": "The selected folder was writable and Android reported timestamp support.",
     "customFolderSupportLimited": "Saving works, but Android SAF did not verify exact timestamp preservation here.",
@@ -397,7 +351,10 @@
     "previewBody": "This preview shows how the current destination and folder organization will look when saving starts.",
     "otherFilesTitle": "Other files",
     "otherFilesBody": "Only photos and videos are guaranteed to appear in Gallery. Other files are saved to folders.",
-    "xFiles": "{{count}} files"
+    "xFiles": "{{count}} files",
+    "disabledMissingFolder": "Choose a folder in Settings to continue.",
+    "useMessageDate": "Use the message date when available.",
+    "preserveCaptureDate": "Keep the original capture date when available."
   },
   "fileSelection": {
     "title": "Choose Files",
@@ -449,15 +406,11 @@
     "clear": "Clear",
     "emptyStateTitle": "No files match these filters",
     "emptyStateBody": "Try another search, category, or sender.",
-    "runDiagnostics": "Run MP4 diagnostics",
-    "runningDiagnostics": "Running MP4 diagnostics...",
-    "diagnosticsFailed": "MP4 diagnostics failed.",
     "chatTranscript": "Chat transcript",
     "chatTranscriptFile": "Conversation TXT",
     "unknownSender": "Unknown sender",
     "noDate": "Date unavailable",
     "approximateDate": "Approx. {{date}}",
-    "undatedSkipped": "Selected files without dates will be skipped in this save.",
     "play": "Play voice note",
     "pause": "Pause",
     "videoPreviewFailed": "Video preview could not load on this device.",
@@ -480,7 +433,8 @@
       "file": "File"
     },
     "galleryDateVerified": "Gallery date verified",
-    "savedToFolderWithDate": "Saved to folder with file date"
+    "savedToFolderWithDate": "Saved to folder with file date",
+    "undatedSaved": "Files without a date will still be saved."
   },
   "processing": {
     "analyzeTitle": "Analyze ZIP",
@@ -517,8 +471,11 @@
       "findingTranscript": "Finding transcript and parsing messages",
       "matchingMedia": "Matching and classifying media",
       "importReady": "Import ready",
-      "savingFiles": "Copying files, setting filesystem timestamps, then scanning",
+      "savingFiles": "Saving selected files",
       "done": "Done"
+    },
+    "operations": {
+      "scanningGallery": "Reading back dates"
     }
   },
   "results": {
@@ -570,7 +527,14 @@
       "dateFixed": "Date fixed",
       "scanPending": "Saved, scan pending",
       "mayShowImportTime": "Saved, may show import time",
-      "saved": "Saved"
+      "saved": "Saved",
+      "alreadySaved": "Already saved",
+      "cancelled": "Cancelled",
+      "capturePreserved": "Capture date kept and verified",
+      "modificationTime": "File modification date confirmed",
+      "dateUnavailable": "Saved without a date",
+      "dateVerified": "Saved date verified",
+      "dateUnverified": "Saved, date unverified"
     },
     "technical": {
       "copied": "Copied: {{count}}",
@@ -579,12 +543,18 @@
       "importTimeRisk": "Fallback/import-time risk: {{count}}",
       "cacheCleared": "Cache cleared: {{value}}",
       "setLastModified": "setLastModified: {{value}}",
-      "actualLastModified": "Actual lastModified: {{value}}",
+      "actualLastModified": "Indexed modification time · {{value}}",
       "filesystemTimestamp": "Filesystem timestamp: {{value}}",
       "mediaScan": "Media scan: {{value}}",
-      "scannedUri": "Scanned URI: {{value}}",
-      "failure": "Failure: {{value}}"
-    }
+      "scannedUri": "Saved URI · {{value}}",
+      "failure": "Failure: {{value}}",
+      "dateTaken": "Indexed capture time · {{value}}"
+    },
+    "headlineAlreadySaved": "The selected files were already saved.",
+    "headlineSaved": "The selected files were saved.",
+    "openGallery": "Open in Gallery",
+    "retryFailedFiles": "Retry failed files",
+    "previousFileKept": "The previous file was kept."
   },
   "history": {
     "title": "History",
@@ -672,13 +642,12 @@
     }
   },
   "error": {
-    "grantAllFilesAccess": "Grant All files access",
     "tryAnotherZip": "Try another ZIP",
     "showDetails": "Show details",
     "unknownError": "Unknown error",
-    "permissionTitle": "All files access is needed",
-    "permissionReason": "Android has not granted the storage access needed to preserve file dates.",
-    "permissionAction": "Grant access, then return to the app to continue saving.",
+    "permissionTitle": "Choose the save folder again",
+    "permissionReason": "Android access to your selected folder has expired.",
+    "permissionAction": "Open Settings and choose the folder again.",
     "noTranscriptTitle": "No chat transcript found",
     "noTranscriptReason": "The ZIP does not include the WhatsApp _chat.txt transcript.",
     "noTranscriptAction": "Export the chat again with media included, then try the new ZIP.",

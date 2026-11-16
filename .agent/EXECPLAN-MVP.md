@@ -12,6 +12,8 @@ The rebuild branch contains Stage 0, the Stage A implementation, and the Stage P
 
 Stage A passed its physical smoke on the Samsung with an Android picker import. An ADB share of the shell-created Downloads URI was denied by the provider. Stage P passed on the same handset. Both probe packages and their synthetic output were removed. The [verification matrix](../docs/VERIFICATION.md#stage-p--scoped-storage-feasibility) records the observed timestamps and Gallery order.
 
+Stage B replaces the save bridge with app-owned MediaStore and explicit folder-provider writes. The Android QA build declares min SDK 30 and target SDK 36, the native XML reports five passing JVM tests and three passing tests on the Samsung, and TypeScript, Vitest, and ESLint pass. The physical app and Gallery checks use the Stage B five-file ZIP.
+
 ## Decisions already made
 
 - App is local-only and stateless.
@@ -109,6 +111,8 @@ Manual Android verification:
 7. Delete app cache from the app and verify no temporary files remain.
 
 ## Progress log
+
+- 2026-11-16: Implemented the scoped save pipeline, date preference and readback, and archive-level save records that preserve the chosen folder and completed entries across retries. The QA manifest and native suites pass. Run the regression from the app's ZIP picker through Samsung Gallery before accepting Stage B.
 
 - 2026-11-16: Verified Stage A on the Samsung via the Android ZIP picker. Both the filename-dated unmatched JPEG and matched VCF appeared in selection, with no QA crash. Stage P verified scoped writes, indexed timestamps, and the Samsung Gallery creation-date sort on the same device. Cleanup passed. The Stage B destinations and date checks are listed above.
 

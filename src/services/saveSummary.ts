@@ -11,6 +11,10 @@ export type SaveSummaryInput = {
   mp4MetadataFixed?: number;
   scanned?: number;
   dateCorrected: number;
+  dateCorrectionFailed?: number;
+  mayShowImportTime?: number;
+  skippedExisting?: number;
+  cancelled?: number;
   cacheCleared: boolean;
   saveMethod?: SaveMethod;
   outputDirectory?: string | null;
@@ -18,11 +22,12 @@ export type SaveSummaryInput = {
 };
 
 export function buildSaveSummary(input: SaveSummaryInput): CompletionSummary {
-  const dateCorrectionFailed = Math.max(0, input.saved - input.dateCorrected);
+  const dateCorrectionFailed = input.dateCorrectionFailed ?? Math.max(0, input.saved - input.dateCorrected);
   return {
     saved: input.saved,
     copied: input.copied ?? input.saved,
-    skipped: Math.max(0, input.totalFiles - input.selectedFiles),
+    skipped: Math.max(0, input.totalFiles - input.selectedFiles) + (input.skippedExisting ?? 0),
+    cancelled: input.cancelled,
     failed: input.failed,
     filesystemTimestampFixed: input.filesystemTimestampFixed ?? input.dateCorrected,
     exifFixed: input.exifFixed ?? 0,
@@ -30,7 +35,7 @@ export function buildSaveSummary(input: SaveSummaryInput): CompletionSummary {
     scanned: input.scanned ?? 0,
     dateCorrected: input.dateCorrected,
     dateCorrectionFailed,
-    mayShowImportTime: dateCorrectionFailed,
+    mayShowImportTime: input.mayShowImportTime ?? dateCorrectionFailed,
     cacheCleared: input.cacheCleared,
     saveMethod: input.saveMethod,
     outputDirectory: input.outputDirectory,

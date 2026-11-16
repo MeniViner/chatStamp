@@ -1,14 +1,13 @@
 import React from 'react';
-import { AppState, BackHandler, ScrollView, StyleSheet, View } from 'react-native';
+import { BackHandler, ScrollView, StyleSheet, View } from 'react-native';
 import * as Application from 'expo-application';
 import { Directory, Paths } from 'expo-file-system';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Snackbar, Text } from 'react-native-paper';
 import { BottomSheet } from '../components/BottomSheet';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { hasAllFilesAccess, openAllFilesAccessSettings } from '../native/allFilesAccess';
 import { openAppLanguageSettings } from '../native/appLanguage';
-import { openOutputFolderPicker, testPickedFolderTimestampSupport } from '../native/outputFolderPicker';
+import { openOutputFolderPicker } from '../native/outputFolderPicker';
 import { usePipelineStore } from '../store/pipelineStore';
 import { useHistoryStore } from '../store/historyStore';
 import { useOnboardingStore } from '../store/onboardingStore';
@@ -25,7 +24,6 @@ import {
   SecondaryButton,
   SettingsSectionCard,
   SettingRow as UiSettingRow,
-  StatusBanner,
   textStyles
 } from '../components/AppUi';
 import { spacing } from '../theme/designTokens';
@@ -43,45 +41,35 @@ export function SettingsScreen() {
   const closeOverlayStage = usePipelineStore((state) => state.closeOverlayStage);
   const requestOnboardingReplay = useOnboardingStore((state) => state.requestReplay);
   const clearHistory = useHistoryStore((state) => state.clearHistory);
-  const [allFilesAccessGranted, setAllFilesAccessGranted] = React.useState(false);
   const [snackbar, setSnackbar] = React.useState<string | undefined>();
   const [clearCacheOpen, setClearCacheOpen] = React.useState(false);
   const [clearHistoryOpen, setClearHistoryOpen] = React.useState(false);
   const [languageBusy, setLanguageBusy] = React.useState(false);
   const [organizationSheetOpen, setOrganizationSheetOpen] = React.useState(false);
 
-  const refreshPermissions = React.useCallback(async () => {
-    try {
-      setAllFilesAccessGranted(await hasAllFilesAccess());
-    } catch {
-      setAllFilesAccessGranted(false);
-    }
-  }, []);
-
   React.useEffect(() => {
-    void refreshPermissions();
-    const appStateSubscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') void refreshPermissions();
-    });
     const backSubscription = BackHandler.addEventListener('hardwareBackPress', () => {
       closeOverlayStage('welcome');
       return true;
     });
     return () => {
-      appStateSubscription.remove();
       backSubscription.remove();
     };
-  }, [closeOverlayStage, refreshPermissions]);
+  }, [closeOverlayStage]);
 
   async function chooseFolder() {
     try {
       const folder = await openOutputFolderPicker();
-      const support = await testPickedFolderTimestampSupport(folder.treeUri);
+      if (!folder) return;
+      if (!folder.persistedPermission) {
+        setSnackbar(t('settings.folderPickFailed'));
+        return;
+      }
       await updateSettings({
         saveDestinationMode: 'custom-folder',
         useDefaultFolder: false,
         customFolder: folder,
-        customFolderTimestampSupport: support
+        customFolderTimestampSupport: null
       });
     } catch (error) {
       setSnackbar(error instanceof Error ? error.message : t('settings.folderPickFailed'));
@@ -125,12 +113,6 @@ export function SettingsScreen() {
     >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Section title={t('settings.saveLocation')} icon="folder-cog-outline">
-          <StatusBanner
-            tone={allFilesAccessGranted ? 'success' : 'warning'}
-            icon={allFilesAccessGranted ? 'shield-check-outline' : 'shield-alert-outline'}
-            title={allFilesAccessGranted ? t('settings.permissionReadyTitle') : t('settings.permissionMissingTitle')}
-            body={allFilesAccessGranted ? t('settings.granted') : t('settings.notGranted')}
-          />
           <DestinationCard
             title={t('settings.defaultAccurateFolder')}
             description={t('settings.defaultAccurateFolderBody')}
@@ -151,12 +133,7 @@ export function SettingsScreen() {
               t('settings.customFolderBody')
             }
             selected={settings.saveDestinationMode === 'custom-folder'}
-            onPress={() =>
-              void updateSettings({
-                saveDestinationMode: 'custom-folder',
-                useDefaultFolder: false
-              })
-            }
+            onPress={() => void chooseFolder()}
           />
           <View style={styles.compactButtonRow}>
             <SecondaryButton icon="folder-plus-outline" style={styles.compactButton} onPress={() => void chooseFolder()}>
@@ -166,25 +143,16 @@ export function SettingsScreen() {
               {t('settings.resetToDefault')}
             </SecondaryButton>
           </View>
-          <Detail
-            icon={allFilesAccessGranted ? 'shield-check-outline' : 'shield-alert-outline'}
-            label={t('settings.allFilesAccess')}
-            value={allFilesAccessGranted ? t('settings.granted') : t('settings.notGranted')}
-          />
-          <SecondaryButton icon="cog-outline" onPress={() => void openAllFilesAccessSettings()}>
-            {t('settings.openAllFilesAccess')}
-          </SecondaryButton>
-          {settings.customFolder ? (
-            <Detail
-              icon={settings.customFolderTimestampSupport?.timestampVerified ? 'calendar-check-outline' : 'calendar-alert-outline'}
-              label={t('settings.customFolderDateAccuracy')}
-              value={
-                settings.customFolderTimestampSupport?.timestampVerified
-                  ? t('settings.customFolderDateAccuracyReady')
-                  : t('settings.customFolderDateAccuracyLimited')
-              }
-            />
+          {settings.saveDestinationMode === 'custom-folder' ? (
+            <Detail icon="calendar-outline" label={t('settings.customFolderDateAccuracy')} value={t('settings.customFolderDateBody')} />
           ) : null}
+          <UiSettingRow
+            icon="calendar-sync-outline"
+            title={t('settings.alwaysUseMessageDate')}
+            description={t('settings.alwaysUseMessageDateBody')}
+            value={settings.alwaysUseMessageDate}
+            onValueChange={(alwaysUseMessageDate) => void updateSettings({ alwaysUseMessageDate })}
+          />
         </Section>
 
         <Section title={t('settings.outputOrg')} icon="folder-multiple-outline">

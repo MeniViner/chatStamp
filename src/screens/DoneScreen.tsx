@@ -8,8 +8,7 @@ import { PremiumBottomSheet } from '../components/BottomSheet';
 import { usePipelineStore } from '../store/pipelineStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { clearWorkingDirectory } from '../services/importService';
-import { buildTermuxParityOutputPath, sanitizePathSegment } from '../lib/termuxParityOutput';
-import { openFolderBestEffort, openGalleryBestEffort, shouldShowOpenGallery } from '../native/androidIntents';
+import { openFolderBestEffort, openGalleryBestEffort, openSavedFileBestEffort, shouldShowOpenGallery } from '../native/androidIntents';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, WizardScreen } from './WizardScreen';
 import type { MediaType, SaveFileResult } from '../types/media';
@@ -43,8 +42,9 @@ export function DoneScreen() {
   const theme = useAppTheme();
   const completion = usePipelineStore((state) => state.completion);
   const workingDirectory = usePipelineStore((state) => state.workingDirectory);
-  const zipName = usePipelineStore((state) => state.zipName);
   const reset = usePipelineStore((state) => state.reset);
+  const clearFiles = usePipelineStore((state) => state.clearFiles);
+  const setStage = usePipelineStore((state) => state.setStage);
   const developerMode = useSettingsStore((state) => state.settings.developerMode);
   const saveDestinationMode = useSettingsStore((state) => state.settings.saveDestinationMode);
   const customFolder = useSettingsStore((state) => state.settings.customFolder);
@@ -54,12 +54,14 @@ export function DoneScreen() {
   const [folderFallbackOpen, setFolderFallbackOpen] = React.useState(false);
   const [expandedResultKeys, setExpandedResultKeys] = React.useState<string[]>([]);
   const results = React.useMemo(() => completion?.results ?? [], [completion?.results]);
+  const firstSaved = results.find((result) => result.ok);
+  const hasGalleryItem = shouldShowOpenGallery(results);
   const resultKeys = React.useMemo(() => results.map((result, index) => getResultRowKey(result, index)), [results]);
 
   const outputFolder =
     completion?.outputDirectory ??
     results.find((result) => result.outputPath)?.outputPath?.replace(/[\\/][^\\/]+$/, '') ??
-    buildTermuxParityOutputPath(sanitizePathSegment(zipName?.replace(/\.zip$/i, '') ?? t('common.importedChat')));
+    '';
   const outputFolderDisplayName =
     saveDestinationMode === 'custom-folder'
       ? customFolder?.displayName ?? customFolder?.readablePathLabel ?? t('outputOptions.selectedFolder')
@@ -89,6 +91,15 @@ export function DoneScreen() {
     if (outcome === 'manual-fallback') {
       setSnackbar(t('results.openGalleryFallback'));
     }
+  }
+
+  async function openNonMedia() {
+    if (await openSavedFileBestEffort(firstSaved) === 'manual-fallback') await openFolder();
+  }
+
+  function retryFailedFiles() {
+    clearFiles(results.flatMap((result) => result.ok && result.entryId ? [result.entryId] : []));
+    setStage('saving');
   }
 
   async function shareSelectedCategories(categories: MediaType[]) {
@@ -125,9 +136,19 @@ export function DoneScreen() {
       onBack={() => setRestartDialogOpen(true)}
       footer={
         <FooterActions>
-          <PrimaryButton icon="folder-open-outline" onPress={() => void openFolder()}>
-            {t('results.openFolder')}
-          </PrimaryButton>
+          {hasGalleryItem ? (
+            <PrimaryButton icon="image-multiple-outline" onPress={() => void openFirstSavedItem()}>
+              {t('results.openGallery')}
+            </PrimaryButton>
+          ) : firstSaved ? (
+            <PrimaryButton icon="file-outline" onPress={() => void openNonMedia()}>
+              {t('results.openFirstSavedItem')}
+            </PrimaryButton>
+          ) : (
+            <PrimaryButton icon="restart" onPress={() => setRestartDialogOpen(true)}>
+              {t('results.startOver')}
+            </PrimaryButton>
+          )}
         </FooterActions>
       }
     >
@@ -161,9 +182,14 @@ export function DoneScreen() {
           <SecondaryButton icon="share-variant-outline" disabled={!results.some((result) => result.ok)} style={styles.actionButton} onPress={() => setShareSheetOpen(true)}>
             {t('results.shareOutputFiles')}
           </SecondaryButton>
-          {shouldShowOpenGallery(results) ? (
-            <SecondaryButton icon="image-multiple-outline" style={styles.actionButton} onPress={() => void openFirstSavedItem()}>
-              {t('results.openFirstSavedItem')}
+          {firstSaved && outputFolder ? (
+            <SecondaryButton icon="folder-open-outline" style={styles.actionButton} onPress={() => void openFolder()}>
+              {t('results.openFolder')}
+            </SecondaryButton>
+          ) : null}
+          {completion?.failed && !completion.cacheCleared ? (
+            <SecondaryButton icon="refresh" style={styles.actionButton} onPress={retryFailedFiles}>
+              {t('results.retryFailedFiles')}
             </SecondaryButton>
           ) : null}
         </View>
@@ -229,9 +255,12 @@ export function DoneScreen() {
         subtitle={t('results.openFolderFallbackTitle')}
         helperText={t('results.openFolderFallback')}
         outputFolder={outputFolder}
-        canOpenFirstSavedItem={shouldShowOpenGallery(results)}
+        canOpenFirstSavedItem={Boolean(firstSaved)}
         onDismiss={() => setFolderFallbackOpen(false)}
-        onOpenFirstSavedItem={() => void openFirstSavedItem()}
+        onOpenFirstSavedItem={() => {
+          if (hasGalleryItem) void openFirstSavedItem();
+          else void openSavedFileBestEffort(firstSaved);
+        }}
         onRetryOpenFolder={async () => {
           const folderTarget = saveDestinationMode === 'custom-folder' ? customFolder : null;
           const outcome = await openFolderBestEffort(outputFolder, folderTarget, completion?.outputDirectory);
@@ -368,10 +397,10 @@ function ResultCard({
         />
         <View style={styles.flex}>
           <Text variant="titleSmall" numberOfLines={1} style={textStyles.start}>
-            {result.filename}
+            {result.displayName ?? result.filename}
           </Text>
           <Text variant="bodySmall" numberOfLines={1} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {t(`media.singular.${result.mediaType ?? 'unknown'}`)} • {formatDate(result.whatsAppDateIso ?? result.originalTimestampMillis, t)}
+            {t(`media.singular.${result.mediaType ?? 'unknown'}`)} • {formatDate(result.targetTimestampMillis ?? result.whatsAppDateIso ?? result.originalTimestampMillis, t)}
           </Text>
         </View>
       </View>
@@ -380,6 +409,7 @@ function ResultCard({
           ? t(getResultStatusKey(result), { reason: result.failureReason })
           : t(getResultStatusKey(result))}
       </Text>
+      {result.replacementWarning ? <Text variant="bodySmall" style={textStyles.start}>{t('results.previousFileKept')}</Text> : null}
       <ExpandableTechnicalDetails
         collapsedTitle={t('outputOptions.showFullPath')}
         expandedTitle={t('common.hideTechnicalDetails')}
@@ -396,10 +426,8 @@ function ResultCard({
           onExpandedChange={onDetailsExpandedChange}
         >
           <View style={styles.resultTechnical}>
-            <Text variant="bodySmall">{t('results.technical.setLastModified', { value: result.setLastModifiedReturned ? t('common.true') : t('common.false') })}</Text>
-            <Text variant="bodySmall">{t('results.technical.actualLastModified', { value: formatDate(result.actualLastModifiedMillis, t) })}</Text>
-            <Text variant="bodySmall">{t('results.technical.filesystemTimestamp', { value: result.filesystemTimestampFixed ? t('results.fixed') : t('results.notFixed') })}</Text>
-            <Text variant="bodySmall">{t('results.technical.mediaScan', { value: result.mediaScannerCompleted ? t('results.completed') : t('results.notCompleted') })}</Text>
+            <Text variant="bodySmall">{t('results.technical.actualLastModified', { value: formatDate(result.observedModifiedMillis ?? result.actualLastModifiedMillis, t) })}</Text>
+            <Text variant="bodySmall">{t('results.technical.dateTaken', { value: formatDate(result.mediaStoreDateTaken, t) })}</Text>
             <Text variant="bodySmall">{t('results.technical.scannedUri', { value: result.scannedUri ?? result.insertedUri ?? t('common.none') })}</Text>
             {result.failureReason ? <Text variant="bodySmall">{t('results.technical.failure', { value: result.failureReason })}</Text> : null}
           </View>
@@ -410,7 +438,7 @@ function ResultCard({
 }
 
 function getResultPreviewUri(result: SaveFileResult): string | undefined {
-  const candidate = result.scannedUri ?? result.insertedUri ?? result.outputPath;
+  const candidate = result.insertedUri ?? result.scannedUri ?? result.outputPath;
   if (!candidate) return undefined;
   if (candidate.startsWith('content://') || candidate.startsWith('file://')) return candidate;
   if (candidate.startsWith('/')) return `file://${candidate}`;

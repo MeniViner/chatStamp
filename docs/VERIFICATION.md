@@ -109,3 +109,11 @@ MediaStore `DATE_TAKEN` is expressed in milliseconds and `DATE_MODIFIED` in seco
 The album under `Pictures/chatStamp/chatstamp-qa-stage-p-samsung-01/` accepted both image and video collections. Gallery was set to Date created (descending) and showed purple, yellow, blue, green, red. PNG and WebP used indexed capture dates. Modification-only Gallery sorting and other Gallery apps remain unverified. The music and document cases established byte readback and modification time.
 
 Evidence is under `dist/android-verification/stage-p-samsung-01/`. It includes the connected XML, APK manifests, Android event log, FFprobe output on the reopened MP4s, and the Gallery order, sort preference, and red JPEG detail screen. `ProbeCleanupTest` passed with zero remaining owned rows; the host confirmed that the run directories, on-device UI captures, and both probe packages were removed. Use the paths and readback policy selected in the ExecPlan for Stage B.
+
+## Stage B — App-owned saves · 2026-11-16
+
+The QA APK passed package and permission inspection. It targets API 36, supports API 30 and later, and requests none of the broad external storage or media read permissions. TypeScript, Vitest (112 tests), ESLint, clean prebuild, and arm64 assembly passed.
+
+The Galaxy Note20 Ultra (SM-N986N, API 33) ran three connected tests with zero failures or skips. The connected tests used the app save service and verified original and rewritten JPEG, PNG, and WebP dates in the winter and summer offsets, an undated document, stable resumable entries and colliding names, and retention of a previous MP4 when a replacement date could not be verified. Five JVM tests verified both MP4 header widths, multiple tracks, extended size, the movie after media data, truncated headers, and replacement eligibility.
+
+The [Stage B app regression](../scripts/android-verification/README.md#stage-b-app-save-regression) uses the verified `com.menis.chatstamp.qa` APK. Expo installed it on the connected Samsung and ADB confirmed the QA activity. The handset then locked. The interactive app save, duplicate rerun, and Samsung Gallery order are `UNVERIFIED` until the fixture is imported and saved from the unlocked UI. The APK, manifest, Gradle logs, and fixture are under `dist/android-verification/stage-b/`.

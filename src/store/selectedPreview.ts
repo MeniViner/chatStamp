@@ -1,5 +1,4 @@
 import type { ExtractedMediaFile, MediaType, MediaTypeSelection } from '../types/media';
-import { getDateCorrectionCapability } from '../lib/mediaClassifier';
 import { getMediaDateIso, getMediaSender, UNKNOWN_SENDER } from '../lib/mediaMetadata';
 import { getSelectedSaveCandidates } from './selectionLogic';
 
@@ -8,8 +7,7 @@ export type SelectedFilePreview = {
   filename: string;
   sender: string;
   mediaType: MediaType;
-  originalDateIso: string;
-  dateCorrectionCapability: string;
+  originalDateIso?: string;
 };
 
 export type SelectedPreviewSummary = {
@@ -28,13 +26,12 @@ export function buildSelectedPreview(
 ): SelectedPreviewSummary {
   const matchedFiles = files.filter((file) => file.matchedRecord).length;
   const selectedFiles: SelectedFilePreview[] = getSelectedSaveCandidates(files, selectedSenders, selectedMediaTypes, selectedFileIds)
-    .map(({ file, timestampMillis }) => ({
+    .map(({ file }) => ({
       id: file.id,
       filename: file.filename,
       sender: getMediaSender(file) === UNKNOWN_SENDER ? 'Unknown sender' : getMediaSender(file),
       mediaType: file.mediaType,
-      originalDateIso: getMediaDateIso(file) ?? new Date(timestampMillis).toISOString(),
-      dateCorrectionCapability: getDateCorrectionCapability(file.mediaType, file.filename)
+      originalDateIso: getMediaDateIso(file)
     }));
 
   return {

@@ -1,3 +1,4 @@
+import argparse
 import datetime as dt
 import json
 import re
@@ -24,10 +25,20 @@ def as_utc(seconds):
 
 def exif_dates(path: Path):
     data = path.read_bytes()
-    marker = data.find(b"Exif\0\0")
-    if marker < 0:
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        offset = 8
+        tiff = b""
+        while offset + 12 <= len(data):
+            length, chunk = struct.unpack_from(">I4s", data, offset)
+            if chunk == b"eXIf":
+                tiff = data[offset + 8:offset + 8 + length]
+                break
+            offset += length + 12
+    else:
+        marker = data.find(b"Exif\0\0")
+        tiff = data[marker + 6:] if marker >= 0 else b""
+    if not tiff:
         return {}
-    tiff = data[marker + 6:]
     prefix = "<" if tiff[:2] == b"II" else ">"
     tags = {
         0x0132: "DateTime", 0x9003: "DateTimeOriginal", 0x9004: "DateTimeDigitized",
@@ -68,6 +79,9 @@ def query(collection):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Capture MediaStore and file timestamps for the Gallery fixture")
+    parser.add_argument("--assert-gallery-five", action="store_true", help="Require all five embedded and indexed timestamps")
+    args = parser.parse_args()
     output = ROOT / "saved-files"
     output.mkdir(exist_ok=True)
     saved = []
@@ -102,6 +116,21 @@ def main():
     evidence = json.dumps(saved, indent=2)
     (ROOT / "media-evidence.json").write_text(evidence + "\n", encoding="utf-8")
     print(evidence)
+    if args.assert_gallery_five:
+        if len(saved) != 5 or {item["file"] for item in saved} != set(EXPECTED_LOCAL):
+            raise SystemExit("Expected exactly five Gallery fixture rows.")
+        for item in saved:
+            expected = dt.datetime.fromisoformat(EXPECTED_LOCAL[item["file"]])
+            internal = item["internal_date"]
+            if isinstance(internal, str):
+                decoded = dt.datetime.fromisoformat(internal.replace("Z", "+00:00"))
+            else:
+                decoded = dt.datetime.fromisoformat(
+                    dt.datetime.strptime(internal["DateTimeOriginal"], "%Y:%m:%d %H:%M:%S").isoformat()
+                    + internal["OffsetTimeOriginal"]
+                )
+            if not item["matches_taken"] or not item["matches_modified"] or abs((decoded - expected).total_seconds()) > 2:
+                raise SystemExit(f"Timestamp readback differs for {item['file']}.")
 
 
 if __name__ == "__main__":

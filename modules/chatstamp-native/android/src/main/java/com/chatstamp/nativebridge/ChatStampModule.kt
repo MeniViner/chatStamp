@@ -1,46 +1,37 @@
 package com.chatstamp.nativebridge
 
 import android.app.Activity
+import android.content.ClipData
 import android.content.ContentResolver
-import android.content.ContentValues
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
-import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.os.Parcelable
+import android.provider.BaseColumns
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
-import android.provider.Settings
-import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
-import androidx.documentfile.provider.DocumentFile
-import androidx.exifinterface.media.ExifInterface
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.functions.Coroutine
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.records.Field
 import expo.modules.kotlin.records.Record
-import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
 import java.util.UUID
 import java.util.zip.ZipInputStream
-import kotlin.coroutines.resume
 
 private const val OPEN_DOCUMENT_TREE_REQUEST = 9401
 private const val SHARE_CACHE_FOLDER = "shared-zips"
-private const val TERMUX_BASE_FOLDER = "/storage/emulated/0/Pictures/chatStamp"
 private const val ZIP_SAMPLE_LIMIT = 20
 private const val TRANSCRIPT_SAMPLE_BYTES = 64 * 1024
 
@@ -78,16 +69,8 @@ class ChatStampModule : Module() {
       )
     }
 
-    AsyncFunction("saveMediaWithOriginalDatesAsync") Coroutine { items: List<NativeSaveMediaItem>, options: BasicSaveOptions? ->
-      saveMediaTermuxParity(items, TermuxParitySaveOptions(chatName = options?.albumName ?: "Imported Chat"))
-    }
-
-    AsyncFunction("saveMediaTermuxParityAsync") Coroutine { items: List<NativeSaveMediaItem>, options: TermuxParitySaveOptions? ->
-      saveMediaTermuxParity(items, options ?: TermuxParitySaveOptions())
-    }
-
-    AsyncFunction("saveMediaToSafFolderAsync") Coroutine { items: List<NativeSaveMediaItem>, options: SafCustomFolderSaveOptions ->
-      saveMediaToSafFolder(items, options)
+    AsyncFunction("saveMediaAsync") Coroutine { items: List<ScopedSaveItem>, options: ScopedSaveOptions ->
+      ScopedMediaSaver(context).save(items, options)
     }
 
     AsyncFunction("openOutputFolderPickerAsync") { promise: Promise ->
@@ -105,10 +88,6 @@ class ChatStampModule : Module() {
       appContext.throwingActivity.startActivityForResult(intent, OPEN_DOCUMENT_TREE_REQUEST)
     }
 
-    AsyncFunction("testPickedFolderTimestampSupportAsync") Coroutine { treeUri: String ->
-      testPickedFolderTimestampSupport(treeUri)
-    }
-
     AsyncFunction("openFolderTargetAsync") { target: FolderTarget ->
       openFolderTarget(target)
     }
@@ -121,38 +100,8 @@ class ChatStampModule : Module() {
       deleteOutputFiles(files)
     }
 
-    AsyncFunction("isExternalStorageManagerAsync") {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) Environment.isExternalStorageManager() else true
-    }
-
-    AsyncFunction("openAllFilesAccessSettingsAsync") {
-      openAllFilesAccessSettings()
-    }
-
     AsyncFunction("openScannedMediaAsync") { contentUri: String, mimeType: String? ->
       openScannedMedia(contentUri, mimeType)
-    }
-
-    AsyncFunction("setMediaStoreDatesAsync") Coroutine { assetId: String, localUri: String, mediaType: String, takenAtMillis: Double, displayName: String? ->
-      setMediaStoreDates(assetId, localUri, mediaType, takenAtMillis.toLong(), displayName)
-    }
-
-    AsyncFunction("debugInspectMp4DatesAsync") { fileUriOrPath: String, targetTimestampMillis: Double? ->
-      mapOf(
-        "supported" to false,
-        "fileUriOrPath" to fileUriOrPath,
-        "targetTimestampMillis" to targetTimestampMillis,
-        "reason" to "MP4 box diagnostics are not included in this release build."
-      )
-    }
-
-    AsyncFunction("debugRewriteMp4DateAsync") { inputUriOrPath: String, targetTimestampMillis: Double ->
-      mapOf(
-        "supported" to false,
-        "inputUriOrPath" to inputUriOrPath,
-        "targetTimestampMillis" to targetTimestampMillis,
-        "reason" to "MP4 box rewrite diagnostics are not included in this release build."
-      )
     }
 
     OnActivityResult { _, (requestCode, resultCode, intent) ->
@@ -161,7 +110,7 @@ class ChatStampModule : Module() {
       pendingFolderPromise = null
 
       if (resultCode != Activity.RESULT_OK || intent?.data == null) {
-        promise?.resolve(mapOf("treeUri" to "", "persistedPermission" to false))
+        promise?.resolve(null)
         return@OnActivityResult
       }
 
@@ -358,203 +307,6 @@ class ChatStampModule : Module() {
     }
   }
 
-  private suspend fun saveMediaTermuxParity(items: List<NativeSaveMediaItem>, options: TermuxParitySaveOptions): Map<String, Any?> {
-    val organization = options.organization ?: OutputOrganizationOptions()
-    val baseFolder = options.baseFolder?.trim()?.ifBlank { null } ?: TERMUX_BASE_FOLDER
-    val chatName = sanitizePathSegment(options.chatName?.trim()?.ifBlank { null } ?: "Imported Chat")
-    val root = File(baseFolder, chatName)
-      .let { if (organization.createExportTimestampFolder != false) File(it, "Export ${sanitizePathSegment(options.exportTimestamp ?: timestampFolderName())}") else it }
-    val duplicateHandling = options.duplicateHandling ?: organization.duplicateHandling ?: "keep-both"
-
-    val results = mutableListOf<Map<String, Any?>>()
-    for (item in items) {
-      results.add(saveOneFileToPublicFolder(item, root, duplicateHandling))
-    }
-    return buildSaveBatchResult(results, mode = "termux-parity", outputDirectory = root.absolutePath)
-  }
-
-  private suspend fun saveOneFileToPublicFolder(item: NativeSaveMediaItem, root: File, duplicateHandling: String): Map<String, Any?> {
-    val timestamp = item.originalTimestampMillis.toLong()
-    val mimeType = item.mimeType ?: guessMimeType(item.filename, item.mediaType)
-    val outputDir = item.relativeFolder
-      ?.split("/")
-      ?.filter { it.isNotBlank() }
-      ?.fold(root) { parent, segment -> File(parent, sanitizePathSegment(segment)) }
-      ?: root
-    outputDir.mkdirs()
-
-    val safeName = sanitizeFilename(item.filename).ifBlank { "whatsapp-media" }
-    val outputFile = resolveOutputFile(outputDir, safeName, duplicateHandling)
-      ?: return failedSaveResult(item, "File already exists and duplicate handling is skip-existing.")
-
-    return try {
-      openInputStream(item.sourceUri).use { input ->
-        FileOutputStream(outputFile).use { output -> input.copyTo(output) }
-      }
-
-      val exifWritten = writeExifTimestampIfSupported(outputFile, timestamp, mimeType)
-      val setLastModifiedReturned = outputFile.setLastModified(timestamp)
-      val actualLastModified = outputFile.lastModified()
-      val filesystemTimestampFixed = withinTimestampTolerance(actualLastModified, timestamp)
-      val scannedUri = scanFileBlocking(outputFile.absolutePath, mimeType)
-      val mediaStoreValues = scannedUri?.let { queryMediaStoreValues(Uri.parse(it)) }
-      val dateVerified = filesystemTimestampFixed && scannedUri != null
-
-      mapOf(
-        "filename" to item.filename,
-        "ok" to true,
-        "insertedUri" to scannedUri,
-        "outputPath" to outputFile.absolutePath,
-        "collection" to "public-filesystem",
-        "displayName" to outputFile.name,
-        "mimeType" to mimeType,
-        "mediaType" to item.mediaType,
-        "originalTimestampMillis" to timestamp,
-        "whatsAppTimestampMillis" to timestamp,
-        "whatsAppDateIso" to Date(timestamp).toInstant().toString(),
-        "copied" to true,
-        "setLastModifiedReturned" to setLastModifiedReturned,
-        "actualLastModifiedMillis" to actualLastModified,
-        "filesystemTimestampFixed" to filesystemTimestampFixed,
-        "mediaScannerCompleted" to (scannedUri != null),
-        "scannedUri" to scannedUri,
-        "dateCorrectionSupported" to true,
-        "dateCorrectionVerified" to dateVerified,
-        "galleryMaySortByImportTime" to !dateVerified,
-        "metadataWritten" to filesystemTimestampFixed,
-        "exifWritten" to exifWritten,
-        "mp4MetadataFixed" to false,
-        "mediaStoreIndexedExpectedDate" to (mediaStoreValues?.get("dateModifiedMillis")?.let { withinTimestampTolerance(it as Long, timestamp) } ?: false),
-        "mediaStoreValues" to mediaStoreValues,
-        "sourcePath" to item.sourceUri,
-        "insertedSourcePath" to outputFile.absolutePath
-      )
-    } catch (error: Throwable) {
-      outputFile.delete()
-      failedSaveResult(item, error.message ?: "Could not save file.")
-    }
-  }
-
-  private fun saveMediaToSafFolder(items: List<NativeSaveMediaItem>, options: SafCustomFolderSaveOptions): Map<String, Any?> {
-    val treeUri = Uri.parse(options.treeUri)
-    val root = DocumentFile.fromTreeUri(context, treeUri)
-      ?: return buildSaveBatchResult(items.map { failedSaveResult(it, "Selected folder is not available.") }, "saf-custom-folder", options.treeUri)
-    val organization = options.organization ?: OutputOrganizationOptions()
-    val chatFolder = findOrCreateDirectory(root, sanitizePathSegment(options.chatName ?: "Imported Chat"))
-    val exportFolder = if (organization.createExportTimestampFolder != false) {
-      findOrCreateDirectory(chatFolder, "Export ${sanitizePathSegment(options.exportTimestamp ?: timestampFolderName())}")
-    } else {
-      chatFolder
-    }
-    val duplicateHandling = options.duplicateHandling ?: organization.duplicateHandling ?: "keep-both"
-
-    val results = items.map { item ->
-      saveOneFileToSafFolder(item, exportFolder, duplicateHandling)
-    }
-    return buildSaveBatchResult(results, mode = "saf-custom-folder", outputDirectory = exportFolder.uri.toString())
-  }
-
-  private fun saveOneFileToSafFolder(item: NativeSaveMediaItem, root: DocumentFile, duplicateHandling: String): Map<String, Any?> {
-    return try {
-      val mimeType = item.mimeType ?: guessMimeType(item.filename, item.mediaType)
-      val targetDir = item.relativeFolder
-        ?.split("/")
-        ?.filter { it.isNotBlank() }
-        ?.fold(root) { parent, segment -> findOrCreateDirectory(parent, sanitizePathSegment(segment)) }
-        ?: root
-      val displayName = resolveSafName(targetDir, sanitizeFilename(item.filename), duplicateHandling)
-        ?: return failedSaveResult(item, "File already exists and duplicate handling is skip-existing.")
-      val targetFile = targetDir.createFile(mimeType, displayName)
-        ?: return failedSaveResult(item, "Could not create file in selected folder.")
-
-      context.contentResolver.openOutputStream(targetFile.uri).use { output ->
-        if (output == null) throw IllegalStateException("Could not open selected folder output stream.")
-        openInputStream(item.sourceUri).use { input -> input.copyTo(output) }
-      }
-
-      val timestamp = item.originalTimestampMillis.toLong()
-      mapOf(
-        "filename" to item.filename,
-        "ok" to true,
-        "insertedUri" to targetFile.uri.toString(),
-        "outputPath" to targetFile.uri.toString(),
-        "collection" to "saf",
-        "displayName" to displayName,
-        "mimeType" to mimeType,
-        "mediaType" to item.mediaType,
-        "originalTimestampMillis" to timestamp,
-        "whatsAppTimestampMillis" to timestamp,
-        "whatsAppDateIso" to Date(timestamp).toInstant().toString(),
-        "copied" to true,
-        "setLastModifiedReturned" to false,
-        "actualLastModifiedMillis" to null,
-        "filesystemTimestampFixed" to false,
-        "mediaScannerCompleted" to false,
-        "scannedUri" to null,
-        "dateCorrectionSupported" to false,
-        "dateCorrectionVerified" to false,
-        "galleryMaySortByImportTime" to true,
-        "metadataWritten" to false,
-        "sourcePath" to item.sourceUri,
-        "insertedSourcePath" to targetFile.uri.toString(),
-        "warning" to "Android SAF folders do not expose reliable filesystem timestamp writes."
-      )
-    } catch (error: Throwable) {
-      failedSaveResult(item, error.message ?: "Could not save file.")
-    }
-  }
-
-  private fun buildSaveBatchResult(results: List<Map<String, Any?>>, mode: String, outputDirectory: String): Map<String, Any?> {
-    val saved = results.count { it["ok"] == true }
-    val failed = results.size - saved
-    val filesystemFixed = results.count { it["filesystemTimestampFixed"] == true }
-    val scanned = results.count { it["mediaScannerCompleted"] == true }
-    val exifFixed = results.count { it["exifWritten"] == true }
-    val mp4Fixed = results.count { it["mp4MetadataFixed"] == true }
-    val fallbackRisk = results.count { it["galleryMaySortByImportTime"] == true }
-    return mapOf(
-      "mode" to mode,
-      "outputDirectory" to outputDirectory,
-      "copied" to saved,
-      "saved" to saved,
-      "failed" to failed,
-      "filesystemTimestampFixed" to filesystemFixed,
-      "dateCorrected" to filesystemFixed,
-      "dateCorrectionFailed" to (saved - filesystemFixed).coerceAtLeast(0),
-      "exifFixed" to exifFixed,
-      "mp4MetadataFixed" to mp4Fixed,
-      "scanned" to scanned,
-      "fallbackImportTimeRisk" to fallbackRisk,
-      "results" to results
-    )
-  }
-
-  private fun testPickedFolderTimestampSupport(treeUriString: String): Map<String, Any?> {
-    val treeUri = Uri.parse(treeUriString)
-    val root = DocumentFile.fromTreeUri(context, treeUri)
-    val canWrite = root?.canWrite() == true
-    var canCreateSubfolders = false
-    var cleanupSucceeded = false
-    try {
-      val probeDir = root?.createDirectory(".chatstamp-probe-${System.currentTimeMillis()}")
-      canCreateSubfolders = probeDir != null
-      cleanupSucceeded = probeDir?.delete() ?: false
-    } catch (_: Exception) {
-      canCreateSubfolders = false
-    }
-    return mapOf(
-      "treeUri" to treeUriString,
-      "canWriteFile" to canWrite,
-      "canCreateSubfolders" to canCreateSubfolders,
-      "canSetFilesystemTimestamp" to false,
-      "timestampVerified" to false,
-      "cleanupSucceeded" to cleanupSucceeded,
-      "displayName" to readableTreeName(treeUri),
-      "readablePathLabel" to readableTreeLabel(treeUri),
-      "reason" to "Android folder picker access does not expose a reliable last-modified timestamp API."
-    )
-  }
-
   private fun openFolderTarget(target: FolderTarget): Map<String, Any?> {
     val exactUris = buildFolderViewUris(target)
     for (uri in exactUris) {
@@ -607,11 +359,9 @@ class ChatStampModule : Module() {
     val attempts = listOf(
       Intent(Intent.ACTION_VIEW).apply {
         setDataAndType(uri, DocumentsContract.Document.MIME_TYPE_DIR)
-        addDirectoryIntentFlags()
       },
       Intent(Intent.ACTION_VIEW).apply {
         data = uri
-        addDirectoryIntentFlags()
       }
     )
     return attempts.any { tryStartActivity(it) }
@@ -620,15 +370,8 @@ class ChatStampModule : Module() {
   private fun tryOpenDocumentNavigator(initialUri: Uri): Boolean {
     val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
       putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri)
-      addDirectoryIntentFlags()
     }
     return tryStartActivity(intent)
-  }
-
-  private fun Intent.addDirectoryIntentFlags() {
-    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-    addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
   }
 
   private fun publicFolderDocumentUri(path: String): Uri? {
@@ -647,10 +390,11 @@ class ChatStampModule : Module() {
   }
 
   private fun shareOutputFiles(files: List<ShareOutputFile>): Map<String, Any?> {
-    val uris = files.mapNotNull { shareUriForFile(it) }
+    val candidates = files.take(100)
+    val uris = candidates.mapNotNull(::shareUriForFile).distinct()
     if (uris.isEmpty()) return mapOf("opened" to false, "shared" to 0, "reason" to "No shareable files were available.")
 
-    val mimeType = files.mapNotNull { it.mimeType }.distinct().singleOrNull() ?: "*/*"
+    val mimeType = candidates.mapNotNull { it.mimeType }.distinct().singleOrNull() ?: "*/*"
     val intent = if (uris.size == 1) {
       Intent(Intent.ACTION_SEND).apply {
         type = mimeType
@@ -663,6 +407,9 @@ class ChatStampModule : Module() {
       }
     }.apply {
       addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+      clipData = ClipData.newUri(context.contentResolver, "chatStamp", uris.first()).also { clip ->
+        uris.drop(1).forEach { clip.addItem(ClipData.Item(it)) }
+      }
     }
 
     return try {
@@ -674,37 +421,38 @@ class ChatStampModule : Module() {
   }
 
   private fun deleteOutputFiles(files: List<DeleteOutputFile>): Map<String, Any?> {
+    val resolver = context.contentResolver
     val results = files.map { file ->
-      val target = file.uri ?: file.path
-      val deleted = try {
+      val uri = file.uri?.let(Uri::parse) ?: file.path?.let(::ownedMediaUriForPath)
+      val deleted = runCatching {
         when {
-          file.uri?.startsWith("content://") == true -> context.contentResolver.delete(Uri.parse(file.uri), null, null) > 0
-          !file.path.isNullOrBlank() -> File(file.path).delete()
+          uri == null -> false
+          DocumentsContract.isDocumentUri(context, uri) ->
+            resolver.getType(uri)?.let { it != DocumentsContract.Document.MIME_TYPE_DIR } == true &&
+              DocumentsContract.deleteDocument(resolver, uri)
+          uri.authority == MediaStore.AUTHORITY && uri.lastPathSegment?.toLongOrNull() != null && ownsMedia(uri) ->
+            resolver.delete(uri, null, null) == 1
           else -> false
         }
-      } catch (_: Throwable) {
-        false
-      }
-      mapOf("target" to target, "deleted" to deleted, "reason" to if (deleted) null else "Delete failed or target was unavailable.")
+      }.getOrDefault(false)
+      mapOf("target" to (uri?.toString() ?: file.path), "deleted" to deleted,
+        "reason" to if (deleted) null else "The file is unavailable or Android requires permission to delete it.")
     }
-    return mapOf(
-      "deleted" to results.count { it["deleted"] == true },
-      "failed" to results.count { it["deleted"] != true },
-      "results" to results
-    )
+    return mapOf("deleted" to results.count { it["deleted"] == true },
+      "failed" to results.count { it["deleted"] != true }, "results" to results)
   }
 
-  private fun openAllFilesAccessSettings(): Map<String, Any?> {
-    val packageUri = Uri.parse("package:${context.packageName}")
-    val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, packageUri)
-    } else {
-      Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageUri)
-    }.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+  private fun ownsMedia(uri: Uri): Boolean = context.contentResolver.query(
+    uri, arrayOf(MediaStore.MediaColumns.OWNER_PACKAGE_NAME), null, null, null
+  )?.use { it.moveToFirst() && it.getString(0) == context.packageName } == true
 
-    val opened = tryStartActivity(intent)
-    return mapOf("opened" to opened, "activity" to intent.action)
-  }
+  private fun ownedMediaUriForPath(path: String): Uri? = runCatching {
+    val collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+    context.contentResolver.query(collection, arrayOf(BaseColumns._ID),
+      "${MediaStore.MediaColumns.DATA}=? AND ${MediaStore.MediaColumns.OWNER_PACKAGE_NAME}=?",
+      arrayOf(path, context.packageName), null
+    )?.use { if (it.moveToFirst()) ContentUris.withAppendedId(collection, it.getLong(0)) else null }
+  }.getOrNull()
 
   private fun openScannedMedia(contentUri: String, mimeType: String?): Map<String, Any?> {
     val uri = Uri.parse(contentUri)
@@ -715,30 +463,6 @@ class ChatStampModule : Module() {
     }
     val opened = tryStartActivity(intent)
     return mapOf("opened" to opened, "uri" to contentUri, "reason" to if (opened) null else "No activity could open this media item.")
-  }
-
-  private fun setMediaStoreDates(assetId: String, localUri: String, mediaType: String, takenAtMillis: Long, displayName: String?): Map<String, Any?> {
-    val uri = if (localUri.startsWith("content://")) Uri.parse(localUri) else null
-    var rowsUpdated = 0
-    if (uri != null) {
-      val values = ContentValues().apply {
-        put(MediaStore.MediaColumns.DATE_MODIFIED, takenAtMillis / 1000)
-        if (mediaType == "photo" || mediaType == "video") {
-          put(MediaStore.MediaColumns.DATE_TAKEN, takenAtMillis)
-        }
-      }
-      rowsUpdated = runCatching { context.contentResolver.update(uri, values, null, null) }.getOrDefault(0)
-    }
-    return mapOf(
-      "mediaStoreRowsUpdated" to rowsUpdated,
-      "fileModified" to false,
-      "exifWritten" to false,
-      "dateCorrectionVerified" to (rowsUpdated > 0),
-      "collection" to mediaType,
-      "contentUri" to uri?.toString(),
-      "originalTimestampMillis" to takenAtMillis,
-      "warning" to if (rowsUpdated > 0) null else "MediaStore date update could not be verified for $displayName ($assetId)."
-    )
   }
 
   private fun openInputStream(uriString: String): InputStream {
@@ -887,11 +611,6 @@ class ChatStampModule : Module() {
     return base.ifBlank { "whatsapp-media" }
   }
 
-  private fun sanitizePathSegment(value: String): String {
-    return value.trim().replace(Regex("[\\\\/:*?\"<>|\\u0000-\\u001F]"), "_").replace(Regex("\\s+"), " ").trim('.').trim()
-      .ifBlank { "Imported Chat" }
-  }
-
   private fun uniqueFile(directory: File, requestedName: String, usedNames: MutableSet<String>): File {
     directory.mkdirs()
     val safeName = sanitizeFilename(requestedName)
@@ -912,146 +631,18 @@ class ChatStampModule : Module() {
     return if (filename.lowercase(Locale.ROOT).endsWith(".zip")) filename else "$filename.zip"
   }
 
-  private fun resolveOutputFile(directory: File, requestedName: String, duplicateHandling: String): File? {
-    val target = File(directory, sanitizeFilename(requestedName))
-    if (!target.exists()) return target
-    if (duplicateHandling == "skip-existing") return null
-    if (duplicateHandling == "replace-existing") {
-      target.delete()
-      return target
+  private fun shareUriForFile(file: ShareOutputFile): Uri? = runCatching {
+    val content = file.uri?.let(Uri::parse)?.takeIf { it.scheme == ContentResolver.SCHEME_CONTENT }
+    if (content != null) {
+      return@runCatching context.contentResolver.openInputStream(content)?.use { content }
     }
-    return uniqueFile(directory, requestedName, mutableSetOf())
-  }
-
-  private fun resolveSafName(directory: DocumentFile, requestedName: String, duplicateHandling: String): String? {
-    val safeName = sanitizeFilename(requestedName)
-    if (directory.findFile(safeName) == null) return safeName
-    if (duplicateHandling == "skip-existing") return null
-    if (duplicateHandling == "replace-existing") {
-      directory.findFile(safeName)?.delete()
-      return safeName
-    }
-    val dot = safeName.lastIndexOf('.')
-    val base = if (dot > 0) safeName.substring(0, dot) else safeName
-    val extension = if (dot > 0) safeName.substring(dot) else ""
-    var index = 1
-    while (true) {
-      val candidate = "$base-$index$extension"
-      if (directory.findFile(candidate) == null) return candidate
-      index += 1
-    }
-  }
-
-  private fun findOrCreateDirectory(parent: DocumentFile, name: String): DocumentFile {
-    return parent.findFile(name)?.takeIf { it.isDirectory } ?: parent.createDirectory(name)
-    ?: throw IllegalStateException("Could not create folder: $name")
-  }
-
-  private fun guessMimeType(filename: String, mediaType: String?): String {
-    val ext = extensionOf(filename)
-    if (ext == "txt") return "text/plain"
-    if (ext == "opus") return "audio/ogg"
-    if (ext == "heic") return "image/heic"
-    if (ext == "3gp") return "video/3gpp"
-    if (ext == "mov") return "video/quicktime"
-    val guessed = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
-    if (guessed != null) return guessed
-    return when (mediaType) {
-      "photo" -> "image/jpeg"
-      "video" -> "video/mp4"
-      "voice", "audio" -> "audio/mpeg"
-      "sticker" -> "image/webp"
-      "gif" -> "image/gif"
-      "document" -> "application/octet-stream"
-      else -> "application/octet-stream"
-    }
-  }
-
-  private fun writeExifTimestampIfSupported(file: File, timestamp: Long, mimeType: String): Boolean {
-    if (mimeType != "image/jpeg" && !file.name.lowercase(Locale.ROOT).let { it.endsWith(".jpg") || it.endsWith(".jpeg") }) return false
-    return try {
-      val utcFormat = SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }
-      ExifInterface(file).apply {
-        setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, utcFormat.format(Date(timestamp)))
-        setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, utcFormat.format(Date(timestamp)))
-        setAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL, "+00:00")
-        saveAttributes()
-      }
-      true
-    } catch (_: Throwable) {
-      false
-    }
-  }
-
-  private suspend fun scanFileBlocking(path: String, mimeType: String): String? = suspendCancellableCoroutine { continuation ->
-    MediaScannerConnection.scanFile(context, arrayOf(path), arrayOf(mimeType)) { _, uri ->
-      if (continuation.isActive) continuation.resume(uri?.toString())
-    }
-  }
-
-  private fun queryMediaStoreValues(uri: Uri): Map<String, Any?>? {
-    return runCatching {
-      context.contentResolver.query(
-        uri,
-        arrayOf(MediaStore.MediaColumns.DATE_MODIFIED, MediaStore.MediaColumns.DATE_ADDED, MediaStore.MediaColumns.DATE_TAKEN),
-        null,
-        null,
-        null
-      )?.use { cursor ->
-        if (!cursor.moveToFirst()) return@use null
-        val modifiedSeconds = getLongColumn(cursor, MediaStore.MediaColumns.DATE_MODIFIED)
-        val addedSeconds = getLongColumn(cursor, MediaStore.MediaColumns.DATE_ADDED)
-        val takenMillis = getLongColumn(cursor, MediaStore.MediaColumns.DATE_TAKEN)
-        mapOf(
-          "dateModified" to modifiedSeconds,
-          "dateModifiedMillis" to modifiedSeconds?.times(1000),
-          "dateAdded" to addedSeconds,
-          "dateAddedMillis" to addedSeconds?.times(1000),
-          "dateTaken" to takenMillis
-        )
-      }
-    }.getOrNull()
-  }
-
-  private fun getLongColumn(cursor: android.database.Cursor, name: String): Long? {
-    val index = cursor.getColumnIndex(name)
-    if (index < 0 || cursor.isNull(index)) return null
-    return cursor.getLong(index)
-  }
-
-  private fun withinTimestampTolerance(actual: Long, expected: Long): Boolean {
-    return kotlin.math.abs(actual - expected) <= 2000L
-  }
-
-  private fun failedSaveResult(item: NativeSaveMediaItem, reason: String): Map<String, Any?> {
-    val timestamp = item.originalTimestampMillis.toLong()
-    return mapOf(
-      "filename" to item.filename,
-      "ok" to false,
-      "mediaType" to item.mediaType,
-      "originalTimestampMillis" to timestamp,
-      "whatsAppTimestampMillis" to timestamp,
-      "whatsAppDateIso" to Date(timestamp).toInstant().toString(),
-      "copied" to false,
-      "dateCorrectionSupported" to false,
-      "dateCorrectionVerified" to false,
-      "galleryMaySortByImportTime" to true,
-      "metadataWritten" to false,
-      "filesystemTimestampFixed" to false,
-      "mediaScannerCompleted" to false,
-      "failureReason" to reason,
-      "error" to reason
-    )
-  }
-
-  private fun shareUriForFile(file: ShareOutputFile): Uri? {
-    file.uri?.takeIf { it.startsWith("content://") }?.let { return Uri.parse(it) }
-    val path = file.path ?: file.uri?.takeIf { it.startsWith("file://") }?.let { Uri.parse(it).path }
-    if (path.isNullOrBlank()) return null
-    val diskFile = File(path)
-    if (!diskFile.exists()) return null
-    return FileProvider.getUriForFile(context, "${context.packageName}.ChatStampFileProvider", diskFile)
-  }
+    val path = file.path ?: file.uri?.let(Uri::parse)?.path ?: return@runCatching null
+    val diskFile = File(path).canonicalFile
+    val cache = File(context.cacheDir, "chatstamp").canonicalPath + File.separator
+    if (diskFile.path.startsWith(cache) && diskFile.isFile) {
+      FileProvider.getUriForFile(context, "${context.packageName}.ChatStampFileProvider", diskFile)
+    } else ownedMediaUriForPath(diskFile.path)
+  }.getOrNull()
 
   private fun tryStartActivity(intent: Intent): Boolean {
     return try {
@@ -1074,10 +665,6 @@ class ChatStampModule : Module() {
     return context.contentResolver.persistedUriPermissions.any { it.uri == uri && it.isReadPermission && it.isWritePermission }
   }
 
-  private fun timestampFolderName(): String {
-    return SimpleDateFormat("yyyy-MM-dd HH-mm", Locale.US).format(Date())
-  }
-
   private data class TxtCandidate(
     val filename: String,
     val sourcePath: String,
@@ -1097,44 +684,6 @@ class ChatStampModule : Module() {
     )
   }
 }
-
-data class NativeSaveMediaItem(
-  @Field val sourceUri: String,
-  @Field val filename: String,
-  @Field val mediaType: String,
-  @Field val mimeType: String?,
-  @Field val originalTimestampMillis: Double,
-  @Field val sender: String?,
-  @Field val albumName: String?,
-  @Field val relativeFolder: String?
-) : Record
-
-data class OutputOrganizationOptions(
-  @Field val mode: String? = null,
-  @Field val createExportTimestampFolder: Boolean? = null,
-  @Field val duplicateHandling: String? = null
-) : Record
-
-data class TermuxParitySaveOptions(
-  @Field val chatName: String? = null,
-  @Field val baseFolder: String? = null,
-  @Field val exportTimestamp: String? = null,
-  @Field val organization: OutputOrganizationOptions? = null,
-  @Field val duplicateHandling: String? = null
-) : Record
-
-data class BasicSaveOptions(
-  @Field val albumName: String? = null,
-  @Field val keepFailedDebugFiles: Boolean? = null
-) : Record
-
-data class SafCustomFolderSaveOptions(
-  @Field val treeUri: String,
-  @Field val chatName: String? = null,
-  @Field val exportTimestamp: String? = null,
-  @Field val organization: OutputOrganizationOptions? = null,
-  @Field val duplicateHandling: String? = null
-) : Record
 
 data class FolderTarget(
   @Field val treeUri: String? = null,

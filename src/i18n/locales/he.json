@@ -62,10 +62,6 @@
     "infoLocalBody": "הקבצים מעובדים מקומית על גבי המכשיר. ללא צורך בחשבונות משתמש, העלאה לענן או שרתי API.",
     "infoShareTitle": "שיתוף ישיר מ-WhatsApp",
     "infoShareBody": "WhatsApp > ייצוא צ'אט > שיתוף קובץ ZIP לכאן. נתמך גם ייצוא בלי מדיה.",
-    "infoPermReadyTitle": "הרשאת הגישה לקבצים מוכנה",
-    "infoPermReadyBody": "התקבלה הרשאת גישה לכל הקבצים לצורך תהליך השמירה.",
-    "infoPermLaterTitle": "בקשת הרשאת גישה תופיע בהמשך",
-    "infoPermLaterBody": "לקראת ביצוע השמירה, מערכת האנדרואיד תבקש הרשאת גישה לכל הקבצים כדי להבטיח את שימור תאריכי היצירה המקוריים.",
     "instructionTitle": "ייצוא צ'אט כ-ZIP",
     "instructionBody": "בתוך WhatsApp, פותחים את הצ'אט, מייצאים עם או בלי מדיה, ואז משתפים את קובץ ה-ZIP לכאן או בוחרים אותו ידנית.",
     "trustTitle": "מה קורה במכשיר",
@@ -136,35 +132,6 @@
       "highlightOne": "שמרו על הסדר הכרונולוגי של המדיה המיוצאת בתוך הגלריה שלכם.",
       "highlightTwo": "שימוש במסלול שמירה ייעודי המבטיח את שימור תאריכי הקבצים.",
       "highlightThree": "פרטיות מלאה: הצ'אטים, המדיה והיסטוריית הפעולות נשארים במכשיר בלבד."
-    },
-    "permission": {
-      "eyebrow": "רגע לפני שמתחילים",
-      "title": "אישור הרשאת גישה לייבוא חלק ושמירת תאריכים מדויקת.",
-      "body": "לשם שמירת המדיה עם התאריכים המקוריים, האפליקציה זקוקה להרשאת גישה לקבצים במערכת האנדרואיד. אנו מתחייבים לפרטיות מלאה – המידע אינו נשלח לשום שרת חיצוני.",
-      "note": "המשך ללא מתן הרשאות עלול להגביל חלק מפעולות הייבוא והשמירה, עד לאישורן דרך תפריט ההגדרות.",
-      "heroLabel": "מתן הרשאות לייבוא ולשמירה",
-      "highlightOne": "ייבוא קובצי ZIP ישירות מהאחסון המקומי בקלות.",
-      "highlightTwo": "שמירת מדיה במסלול ייעודי ואמין לשימור תאריכים.",
-      "highlightThree": "ניתן לאשר כעת או לשנות את ההגדרות בשלב מאוחר יותר.",
-      "grantAccess": "אישור גישה",
-      "states": {
-        "checking": {
-          "title": "בדיקת מצב הרשאות",
-          "body": "האפליקציה מוודאת כעת האם התקבלו ההרשאות הנדרשות ממערכת ההפעלה."
-        },
-        "pending": {
-          "title": "נדרשת הרשאת גישה",
-          "body": "אנא אשרו את הגישה כדי לאפשר ייבוא נוח של קובצי ZIP ושימוש במסלול האמין ביותר לשימור תאריכי המדיה."
-        },
-        "granted": {
-          "title": "הרשאת הגישה אושרה",
-          "body": "הכל מוכן. האפליקציה מורשית כעת להשתמש במסלול המערכתי לשימור תאריכי הקבצים."
-        },
-        "limited": {
-          "title": "ניתן להמשיך, תחת הגבלות מסוימות",
-          "body": "חלק מפעולות הייבוא והשמירה לא יפעלו באופן מלא עד למתן ההרשאות המתאימות דרך מסך ההגדרות."
-        }
-      }
     }
   },
   "settings": {
@@ -175,9 +142,9 @@
     "history": "היסטוריית פעולות",
     "historyCleared": "היסטוריית הפעולות נוקתה בהצלחה.",
     "saveLocation": "יעד שמירה",
-    "defaultAccurateFolder": "תיקיית ברירת מחדל מותאמת",
-    "defaultAccurateFolderBody": "האפשרות האמינה ביותר לשימור תאריכי המדיה בתיקיית התמונות (Pictures) הציבורית של המכשיר.",
-    "customFolder": "תיקייה מותאמת אישית",
+    "defaultAccurateFolder": "תיקיות המדיה של Android",
+    "defaultAccurateFolderBody": "תמונות וסרטונים נשמרים בתיקיית התמונות. לשמע ולמסמכים יש תיקיות משלהם.",
+    "customFolder": "שמירה בתיקייה אחרת",
     "customFolderBody": "שימוש במנהל הקבצים של אנדרואיד לבחירת יעד שמירה חלופי.",
     "useDefaultFolder": "הגדרה כתיקיית ברירת מחדל",
     "chooseFolderTitle": "בחירת תיקייה",
@@ -186,16 +153,10 @@
     "chooseChangeFolder": "בחירה / שינוי תיקייה",
     "resetToDefault": "איפוס לברירת מחדל",
     "copyPath": "העתקת נתיב",
-    "allFilesAccess": "גישה לכל הקבצים",
-    "granted": "ההרשאה ניתנה",
-    "notGranted": "ההרשאה חסרה",
-    "permissionReadyTitle": "הרשאות השמירה מוכנות",
-    "permissionMissingTitle": "צריך להשלים הרשאת שמירה",
     "folderPickFailed": "בחירת התיקייה נכשלה.",
     "customFolderDateAccuracy": "רמת דיוק התאריכים בתיקייה המותאמת",
     "customFolderDateAccuracyReady": "מערכת ההפעלה אימתה תמיכה מלאה בחותמות זמן עבור תיקייה זו.",
     "customFolderDateAccuracyLimited": "פעולת השמירה נתמכת, אך שימור מדויק של חותמות זמן לא אומת באופן רשמי על ידי ה-SAF.",
-    "openAllFilesAccess": "פתיחת הגדרות הרשאת הגישה לקבצים",
     "outputOrg": "ארגון תוצרי הייצוא",
     "outputOrgSubtitle": "הגדרת האופן שבו יאורגנו הקבצים המיוצאים בתוך תיקיית היעד.",
     "outputOrgFooter": "צורת הארגון שנבחרה תוחל הן על תיקיית ברירת המחדל והן על תיקייה מותאמת אישית (SAF).",
@@ -260,7 +221,7 @@
     },
     "appOptions": "אפשרויות מתקדמות",
     "welcomeTour": "סיור היכרות",
-    "welcomeTourBody": "הפעלה מחדש של מסכי ההסבר וההיכרות עם האפליקציה.",
+    "welcomeTourBody": "אפשר לצפות בהדרכה שוב בכל עת.",
     "showWelcomeTourAgain": "הצגת סיור ההיכרות",
     "developerMode": "מצב מפתח",
     "developerModeToggle": "הפעלת מצב מפתח",
@@ -284,7 +245,10 @@
     "cacheCleanupFailed": "אירעה שגיאה בניקוי נתוני המטמון",
     "couldNotClearCache": "האפליקציה לא הצליחה לפנות את נתוני המטמון.",
     "restartRequiredTitle": "כיוון המסך עודכן",
-    "restartRequiredBody": "האפליקציה מחילה מעבר בין RTL ל-LTR מיד, בלי לסגור ולהפעיל מחדש."
+    "restartRequiredBody": "האפליקציה מחילה מעבר בין RTL ל-LTR מיד, בלי לסגור ולהפעיל מחדש.",
+    "customFolderDateBody": "אימות התאריך תלוי בתיקייה שנבחרה.",
+    "alwaysUseMessageDate": "שימוש קבוע בתאריך ההודעה",
+    "alwaysUseMessageDateBody": "שימוש בתאריך מהצ׳אט או בהערכה הזמינה במקום בתאריך שבקובץ."
   },
   "reviewSave": {
     "title": "סקירה לפני שמירה",
@@ -295,11 +259,11 @@
     "videos": "סרטונים",
     "other": "אחר",
     "originalDates": "התאריכים המקוריים מ-WhatsApp ישוחזרו",
-    "appWillUse": "האפליקציה תסתמך על חותמות הזמן של הקבצים ותפעיל את סורק המדיה של אנדרואיד עבור תמונות וסרטונים. קבצים מסוגים אחרים יועתקו לתיקיות המסודרות.",
+    "appWillUse": "לאחר השמירה ייקראו התאריכים ש־Android רשם.",
     "saveDetails": "פרטי פעולת השמירה",
     "outputFolder": "תיקיית יעד",
     "saveMethod": "שיטת שמירה",
-    "accurateMode": "שמירת חותמות זמן מדויקת",
+    "accurateMode": "אחסון מדיה ב־Android",
     "otherFiles": "קבצים אחרים",
     "andXMore": "ועוד {{count}}"
   },
@@ -313,13 +277,11 @@
     "footerReadyCount": "{{count}} פריטים יישמרו",
     "disabledNoSelection": "בחרו לפחות פריט אחד לשמירה.",
     "disabledChooseFolder": "בחר תיקיית יעד כדי להמשיך",
-    "disabledCheckingPermission": "בודק הרשאות שמירה...",
-    "disabledPermission": "נדרשת הרשאת שמירה כדי להמשיך",
     "destinationTitle": "יעד השמירה",
-    "defaultAccurateFolder": "תיקיית ברירת המחדל",
-    "defaultAccurateFolderBody": "שמירה לתיקיית התמונות הציבורית של המכשיר, במסלול האמין ביותר לשימור התאריכים.",
+    "defaultAccurateFolder": "תיקיות המדיה של Android",
+    "defaultAccurateFolderBody": "תמונות וסרטונים יישמרו בתיקיית התמונות, שמע בתיקיית המוזיקה ומסמכים בתיקיית המסמכים.",
     "customFolder": "תיקייה אחרת",
-    "customFolderBody": "יעד שנבחר דרך מנהל הקבצים של אנדרואיד.",
+    "customFolderBody": "הקבצים יישמרו בתיקייה שבחרת בהגדרות.",
     "chooseFolder": "בחר תיקייה",
     "changeFolder": "שנה תיקייה",
     "useDefaultFolder": "תיקיית ברירת המחדל",
@@ -329,7 +291,6 @@
     "selectedFolder": "התיקייה שנבחרה",
     "organizationTitle": "מבנה התיקיות",
     "accurateModeTitle": "מצב חותמות זמן מדויקות",
-    "accurateModeBody": "האפליקציה יוצרת קבצים תקניים, משחזרת לתוכם את חותמת הזמן המקורית מ-WhatsApp, ולאחר מכן מנחה את המערכת לסרוק אותם לגלריה.",
     "organizationModes": {
       "all-in-one": {
         "title": "תיקייה אחת",
@@ -353,7 +314,7 @@
       }
     },
     "createExportTimestampFolder": "הוסף תיקיית זמן לייצוא",
-    "createExportTimestampFolderBody": "עוזר להפריד בין שמירות שונות.",
+    "createExportTimestampFolderBody": "לכל ייצוא תהיה תיקייה עם תאריך שתשמש גם בניסיונות חוזרים.",
     "duplicateHandling": "קבצים כפולים",
     "duplicateModes": {
       "keep-both": {
@@ -370,7 +331,6 @@
       }
     },
     "advancedTitle": "אפשרויות מתקדמות",
-    "accessTitle": "הרשאות שמירה",
     "photos": "תמונות",
     "videos": "סרטונים",
     "other": "אחר",
@@ -380,12 +340,6 @@
     "dateRestoration": "שחזור התאריכים",
     "photosVideosTogether": "איחוד תמונות וסרטונים",
     "separatePhotosVideos": "הפרדת תמונות וסרטונים",
-    "dateRestorationValue": "הטמעת חותמת הזמן + סריקת מדיה מערכתית",
-    "allFilesAccess": "הרשאת גישה לכל הקבצים",
-    "checkingPermission": "מאמת הרשאות אל מול המערכת...",
-    "granted": "ההרשאה ניתנה בהצלחה. האפליקציה מורשית לשמר את תאריכי הקבצים במדויק.",
-    "needed": "הרשאה זו הכרחית ליצירת קבצים תקניים ולשחזור חותמות הזמן המקוריות מ-WhatsApp.",
-    "grantAccess": "מתן הרשאת גישה לקבצים",
     "customFolderSupport": "תמיכת המערכת בתיקייה המותאמת",
     "customFolderSupportReady": "התיקייה שנבחרה נגישה לכתיבה, ומערכת ההפעלה אישרה את התמיכה בחותמות זמן בתוכה.",
     "customFolderSupportLimited": "פעולת השמירה אפשרית, אך ה-SAF טרם אימת תמיכה רשמית בשמירה מדויקת של חותמות זמן במיקום זה.",
@@ -397,7 +351,10 @@
     "previewBody": "תצוגה זו ממחישה כיצד ייראה מבנה התיקיות והקבצים עם תחילת תהליך השמירה.",
     "otherFilesTitle": "קבצים אחרים",
     "otherFilesBody": "חשוב לציין: רק תמונות וסרטונים מובטחים להופיע בתוך גלריית המכשיר. שאר הקבצים יישמרו בצורה מסודרת בתוך התיקיות.",
-    "xFiles": "{{count}} קבצים"
+    "xFiles": "{{count}} קבצים",
+    "disabledMissingFolder": "כדי להמשיך, יש לבחור תיקייה בהגדרות.",
+    "useMessageDate": "תאריך ההודעה ישמש כשאפשר למצוא אותו.",
+    "preserveCaptureDate": "תאריך הצילום המקורי יישמר כשאפשר לקרוא אותו."
   },
   "fileSelection": {
     "title": "בחירת קבצים",
@@ -449,15 +406,11 @@
     "clear": "ניקוי בחירה",
     "emptyStateTitle": "לא נמצאו קבצים התואמים לחיפוש",
     "emptyStateBody": "כדאי לנסות מונח חיפוש שונה, או לשנות את הגדרות הסינון.",
-    "runDiagnostics": "הפעלת כלי אבחון לקובצי MP4",
-    "runningDiagnostics": "כלי האבחון לקובצי MP4 מופעל כעת...",
-    "diagnosticsFailed": "הפעלת כלי האבחון (MP4) נכשלה.",
     "chatTranscript": "קובץ השיחה",
     "chatTranscriptFile": "תמליל TXT",
     "unknownSender": "שולח לא ידוע",
     "noDate": "התאריך אינו זמין",
     "approximateDate": "{{date}} (משוער)",
-    "undatedSkipped": "קבצים שבחרת ללא תאריך ידולגו בשמירה הזאת.",
     "play": "השמעת הודעה קולית",
     "pause": "השהיה",
     "videoPreviewFailed": "המכשיר אינו תומך בהצגת תצוגה מקדימה לסרטון זה.",
@@ -480,7 +433,8 @@
       "file": "קובץ"
     },
     "galleryDateVerified": "התאריך אומת בהצלחה בגלריה",
-    "savedToFolderWithDate": "הקובץ נשמר בתיקייה עם חותמת הזמן המקורית"
+    "savedToFolderWithDate": "הקובץ נשמר בתיקייה עם חותמת הזמן המקורית",
+    "undatedSaved": "גם קבצים ללא תאריך יישמרו."
   },
   "processing": {
     "analyzeTitle": "מנתח קובץ ZIP",
@@ -517,8 +471,11 @@
       "findingTranscript": "מאתר את התמליל ומפענח את מבנה ההודעות",
       "matchingMedia": "מתאים ומסווג את קובצי המדיה השונים",
       "importReady": "תהליך הייבוא מוכן",
-      "savingFiles": "מעתיק את הקבצים, משחזר את חותמות הזמן ומפעיל את סורק המערכת",
+      "savingFiles": "שומר קבצים שנבחרו",
       "done": "התהליך הושלם בהצלחה"
+    },
+    "operations": {
+      "scanningGallery": "קריאת התאריכים לאחר השמירה"
     }
   },
   "results": {
@@ -570,7 +527,14 @@
       "dateFixed": "התאריך שוחזר",
       "scanPending": "נשמר בהצלחה, ממתין לסריקת המערכת",
       "mayShowImportTime": "נשמר, אך ייתכן שיוצג מועד הייבוא (במקום המקורי)",
-      "saved": "נשמר בהצלחה"
+      "saved": "נשמר בהצלחה",
+      "alreadySaved": "כבר נשמר",
+      "cancelled": "בוטל",
+      "capturePreserved": "תאריך הצילום נשמר ואומת",
+      "modificationTime": "תאריך השינוי של הקובץ אומת",
+      "dateUnavailable": "נשמר ללא תאריך",
+      "dateVerified": "תאריך השמירה אומת",
+      "dateUnverified": "נשמר, התאריך לא אומת"
     },
     "technical": {
       "copied": "קבצים שהועתקו: {{count}}",
@@ -579,12 +543,18 @@
       "importTimeRisk": "קבצים בסיכון להצגת מועד הייבוא: {{count}}",
       "cacheCleared": "פינוי זיכרון מטמון: {{value}}",
       "setLastModified": "פקודת setLastModified: {{value}}",
-      "actualLastModified": "ערך lastModified בפועל: {{value}}",
+      "actualLastModified": "תאריך שינוי שנקרא · {{value}}",
       "filesystemTimestamp": "חותמת הזמן במערכת הקבצים: {{value}}",
       "mediaScan": "סורק המדיה המערכתי: {{value}}",
-      "scannedUri": "נתיב URI שנסרק: {{value}}",
-      "failure": "פירוט שגיאה: {{value}}"
-    }
+      "scannedUri": "כתובת הקובץ שנשמר · {{value}}",
+      "failure": "פירוט שגיאה: {{value}}",
+      "dateTaken": "תאריך צילום שנקרא · {{value}}"
+    },
+    "headlineAlreadySaved": "הקבצים שנבחרו כבר נשמרו.",
+    "headlineSaved": "הקבצים שנבחרו נשמרו.",
+    "openGallery": "פתיחה בגלריה",
+    "retryFailedFiles": "שמירה חוזרת של הקבצים שנכשלו",
+    "previousFileKept": "הקובץ הקודם נשאר בתיקייה."
   },
   "history": {
     "title": "היסטוריית פעולות",
@@ -672,13 +642,12 @@
     }
   },
   "error": {
-    "grantAllFilesAccess": "אנא אשרו גישה לכל הקבצים",
     "tryAnotherZip": "נסו קובץ ZIP חלופי",
     "showDetails": "הצגת פרטי השגיאה",
     "unknownError": "שגיאה לא ידועה במערכת",
-    "permissionTitle": "נדרשת הרשאת גישה מלאה לקבצים",
-    "permissionReason": "מערכת ההפעלה לא סיפקה את הרשאות האחסון הנחוצות לשימור חותמות הזמן של המדיה.",
-    "permissionAction": "אנא אשרו את הגישה בהגדרות המערכת, ולאחר מכן חיזרו לאפליקציה כדי להמשיך.",
+    "permissionTitle": "בחירה מחדש בתיקיית השמירה",
+    "permissionReason": "הרשאת Android לתיקייה שבחרת פגה.",
+    "permissionAction": "יש לפתוח את ההגדרות ולבחור את התיקייה מחדש.",
     "noTranscriptTitle": "תמליל הצ'אט לא אותר",
     "noTranscriptReason": "קובץ ה-ZIP הנוכחי אינו מכיל את תמליל ההודעות (_chat.txt) הדרוש מ-WhatsApp.",
     "noTranscriptAction": "אנא בצעו ייצוא מחודש של הצ'אט (כולל מדיה) מתוך WhatsApp, ונסו לייבא את קובץ ה-ZIP החדש.",

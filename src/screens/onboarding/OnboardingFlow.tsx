@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Animated,
-  AppState,
   Easing,
   Pressable,
   StyleSheet,
@@ -9,9 +8,8 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Surface, Text } from 'react-native-paper';
+import { Surface, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { hasAllFilesAccess, openAllFilesAccessSettings } from '../../native/allFilesAccess';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useOnboardingStore } from '../../store/onboardingStore';
 import { syncI18nLanguage } from '../../i18n';
@@ -21,12 +19,11 @@ import { PrimaryButton, SecondaryButton, textStyles } from '../../components/App
 import { useAppLayoutDirection } from '../../i18n/AppLayoutDirectionContext';
 import { radius, spacing } from '../../theme/designTokens';
 import { OnboardingPage } from './OnboardingPage';
-import { getOnboardingPermissionVisualState } from './onboardingLogic';
 
 const languageOptions: AppLanguagePreference[] = ['system', 'en', 'he'];
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 type OnboardingPageConfig = {
-  key: 'welcome' | 'language' | 'importZip' | 'chooseSave' | 'restoreDates' | 'permission';
+  key: 'welcome' | 'language' | 'importZip' | 'chooseSave' | 'restoreDates';
   eyebrow: string;
   title: string;
   description: string;
@@ -58,32 +55,9 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
   const clearReplayRequest = useOnboardingStore((state) => state.clearReplayRequest);
   const [pageIndex, setPageIndex] = React.useState(0);
   const [transitionDirection, setTransitionDirection] = React.useState<1 | -1>(1);
-  const [accessGranted, setAccessGranted] = React.useState<boolean | undefined>();
-  const [grantAttempted, setGrantAttempted] = React.useState(false);
   const [languageBusy, setLanguageBusy] = React.useState(false);
   const transition = React.useRef(new Animated.Value(1)).current;
   const indicator = React.useRef(new Animated.Value(0)).current;
-
-  const refreshAccess = React.useCallback(async () => {
-    try {
-      setAccessGranted(await hasAllFilesAccess());
-    } catch {
-      setAccessGranted(false);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    void refreshAccess();
-    const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') void refreshAccess();
-    });
-    return () => subscription.remove();
-  }, [refreshAccess]);
-
-  const permissionState = getOnboardingPermissionVisualState({
-    accessGranted,
-    grantAttempted
-  });
 
   const pages = React.useMemo<OnboardingPageConfig[]>(
     () => [
@@ -161,25 +135,9 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
           { icon: 'content-save-check-outline' as const, label: t('onboarding.restoreDates.highlightTwo') },
           { icon: 'cellphone-lock' as const, label: t('onboarding.restoreDates.highlightThree') }
         ]
-      },
-      {
-        key: 'permission',
-        eyebrow: t('onboarding.permission.eyebrow'),
-        title: t('onboarding.permission.title'),
-        description: t('onboarding.permission.body'),
-        note: t('onboarding.permission.note'),
-        heroIcon: permissionState === 'granted' ? 'shield-check-outline' : 'shield-key-outline',
-        heroLabel: t('onboarding.permission.heroLabel'),
-        heroBadges: [t('onboarding.badges.localOnly'), t('onboarding.badges.nothingUploaded')],
-        highlights: [
-          { icon: 'folder-zip-outline' as const, label: t('onboarding.permission.highlightOne') },
-          { icon: 'content-save-check-outline' as const, label: t('onboarding.permission.highlightTwo') },
-          { icon: 'cog-outline' as const, label: t('onboarding.permission.highlightThree') }
-        ],
-        statusPanel: getPermissionStatusPanel(t, permissionState)
       }
     ],
-    [permissionState, t]
+    [t]
   );
 
   const totalPages = pages.length;
@@ -225,11 +183,6 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
     if (pageIndex <= 0) return;
     animatePage(pageIndex - 1, -1);
   }, [animatePage, pageIndex]);
-
-  const grantAccess = React.useCallback(async () => {
-    setGrantAttempted(true);
-    await openAllFilesAccessSettings();
-  }, []);
 
   const applyLanguagePreference = React.useCallback(
     async (nextLanguage: AppLanguagePreference) => {
@@ -304,7 +257,7 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
 
   const showSkip = pageIndex < totalPages - 1;
   const showBack = pageIndex > 0;
-  const isPermissionPage = pageIndex === totalPages - 1;
+  const isLastPage = pageIndex === totalPages - 1;
 
   return (
     <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
@@ -385,11 +338,6 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
       </View>
 
       <Surface elevation={2} style={[styles.footer, { backgroundColor: theme.colors.surface }]}>
-        {isPermissionPage && permissionState !== 'granted' ? (
-          <Button mode="text" onPress={() => void completeOnboarding()}>
-            {t('common.notNow')}
-          </Button>
-        ) : null}
         <View style={styles.footerRow}>
           {showBack ? (
             <SecondaryButton onPress={goBack} style={styles.flexButton}>
@@ -398,21 +346,9 @@ export function OnboardingFlow({ onFinish }: OnboardingFlowProps) {
           ) : (
             <View style={styles.flexButton} />
           )}
-          {isPermissionPage ? (
-            permissionState === 'granted' ? (
-              <PrimaryButton onPress={() => void completeOnboarding()} style={styles.flexButton}>
-                {t('common.start')}
-              </PrimaryButton>
-            ) : (
-              <PrimaryButton onPress={() => void grantAccess()} style={styles.flexButton}>
-                {t('onboarding.permission.grantAccess')}
-              </PrimaryButton>
-            )
-          ) : (
-            <PrimaryButton onPress={goNext} style={styles.flexButton}>
-              {pageIndex === 0 ? t('common.getStarted') : t('common.next')}
-            </PrimaryButton>
-          )}
+          <PrimaryButton onPress={isLastPage ? () => void completeOnboarding() : goNext} style={styles.flexButton}>
+            {isLastPage ? t('common.getStarted') : t('common.next')}
+          </PrimaryButton>
         </View>
       </Surface>
     </SafeAreaView>
@@ -472,45 +408,6 @@ function LanguageSelectionCard({
       })}
     </Surface>
   );
-}
-
-function getPermissionStatusPanel(
-  t: (key: string) => string,
-  state: ReturnType<typeof getOnboardingPermissionVisualState>
-) {
-  if (state === 'granted') {
-    return {
-      icon: 'check-decagram-outline' as const,
-      title: t('onboarding.permission.states.granted.title'),
-      body: t('onboarding.permission.states.granted.body'),
-      tone: 'success' as const
-    };
-  }
-
-  if (state === 'limited') {
-    return {
-      icon: 'alert-circle-outline' as const,
-      title: t('onboarding.permission.states.limited.title'),
-      body: t('onboarding.permission.states.limited.body'),
-      tone: 'warning' as const
-    };
-  }
-
-  if (state === 'checking') {
-    return {
-      icon: 'progress-clock' as const,
-      title: t('onboarding.permission.states.checking.title'),
-      body: t('onboarding.permission.states.checking.body'),
-      tone: 'info' as const
-    };
-  }
-
-  return {
-    icon: 'shield-outline' as const,
-    title: t('onboarding.permission.states.pending.title'),
-    body: t('onboarding.permission.states.pending.body'),
-    tone: 'info' as const
-  };
 }
 
 const styles = StyleSheet.create({

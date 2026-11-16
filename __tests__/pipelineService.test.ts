@@ -1,52 +1,64 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { NativeSaveMediaResult } from '../src/native/chatStampNativeModule';
-import { saveMediaTermuxParityNative } from '../src/native/nativeMediaSaver';
 import { runSavePipeline } from '../src/services/pipelineService';
-import type { ExtractedMediaFile } from '../src/types/media';
+import { saveMediaNative } from '../src/native/nativeMediaSaver';
+import type { ExtractedMediaFile, MediaTypeSelection } from '../src/types/media';
 
-vi.mock('../src/native/nativeMediaSaver', () => ({
-  saveMediaTermuxParityNative: vi.fn(),
-  saveMediaToSafFolderNative: vi.fn()
-}));
+vi.mock('../src/native/nativeMediaSaver', () => ({ saveMediaNative: vi.fn() }));
+vi.mock('../src/services/importService', () => ({ clearWorkingDirectory: vi.fn(async () => true) }));
 
-vi.mock('../src/services/importService', () => ({ clearWorkingDirectory: async () => true }));
+const photo: ExtractedMediaFile = {
+  id: 'Photo/IMG.jpg:0', filename: 'IMG.jpg', normalizedFilename: 'img.jpg',
+  uri: 'file:///cache/photo.jpg', mediaType: 'photo', dateSource: 'chat',
+  timeZone: 'Asia/Jerusalem',
+  matchedRecord: {
+    id: '1', filename: 'IMG.jpg', normalizedFilename: 'img.jpg', sender: 'Dana',
+    messageDateIso: '2019-02-15T08:30:00.000Z', rawLine: ''
+  }
+};
+const selectedMediaTypes: MediaTypeSelection = {
+  photo: true, video: true, voice: false, audio: false, sticker: false, gif: false, document: true, unknown: false
+};
+const archiveUri = 'file:///cache/chatstamp/sample.zip';
+const photoSelection = {
+  files: [photo], selectedSenders: ['Dana'], selectedMediaTypes, selectedFileIds: [photo.id], archiveUri
+};
+const saved = {
+  entryId: photo.id, filename: photo.filename, ok: true, mediaType: 'photo' as const,
+  outcome: 'saved' as const, targetTimestampMillis: Date.parse('2019-02-15T08:30:00Z')
+};
 
-describe('legacy save bridge readback', () => {
-  it('does not count an MP4 with only its filesystem time corrected', async () => {
-    const dateIso = '2019-02-16T09:30:00.000Z';
-    const timestamp = Date.parse(dateIso);
-    const file: ExtractedMediaFile = {
-      id: 'video',
-      filename: 'video.mp4',
-      normalizedFilename: 'video.mp4',
-      uri: 'file:///cache/video.mp4',
-      mediaType: 'video',
-      dateSource: 'chat',
-      dateIso,
-      matchedRecord: {
-        id: 'message', filename: 'video.mp4', normalizedFilename: 'video.mp4',
-        sender: 'Dana', messageDateIso: dateIso, rawLine: ''
-      }
-    };
-    const native: NativeSaveMediaResult = {
-      saved: 1, failed: 0, dateCorrected: 1, dateCorrectionFailed: 0, filesystemTimestampFixed: 1,
-      results: [{
-        ok: true, filename: file.filename, mediaType: 'video', originalTimestampMillis: timestamp,
-        dateCorrectionSupported: true, dateCorrectionVerified: true, filesystemTimestampFixed: true,
-        mediaScannerCompleted: true, galleryMaySortByImportTime: false, metadataWritten: true,
-        mediaStoreValues: { dateTaken: Date.parse('2022-07-08T09:10:11Z'), dateModifiedMillis: timestamp }
-      }]
-    };
-    vi.mocked(saveMediaTermuxParityNative).mockResolvedValue(native);
-
-    const completion = await runSavePipeline({
-      files: [file],
-      selectedSenders: ['Dana'],
-      selectedMediaTypes: { photo: true, video: true, voice: false, audio: false, sticker: false, gif: false, document: false, unknown: false },
-      selectedFileIds: [file.id]
+describe('scoped save pipeline', () => {
+  it('does not count a modification-time match as restoration of the message date', async () => {
+    vi.mocked(saveMediaNative).mockResolvedValue({
+      mode: 'scoped-media-store',
+      results: [{ ...saved, dateVerification: 'mtime-only', timestampSource: 'chat', filesystemTimestampFixed: true }]
     });
+    const summary = await runSavePipeline(photoSelection);
+    expect(summary).toMatchObject({ saved: 1, dateCorrected: 0, mayShowImportTime: 1 });
+    expect(summary.results?.[0]).toMatchObject({ dateCorrectionVerified: false, galleryMaySortByImportTime: true });
+  });
 
-    expect(completion).toMatchObject({ saved: 1, dateCorrected: 0, dateCorrectionFailed: 1 });
-    expect(completion.results?.[0]).toMatchObject({ dateCorrectionVerified: false, galleryMaySortByImportTime: true });
+  it('preserves and distinguishes a verified capture date from the requested chat date', async () => {
+    vi.mocked(saveMediaNative).mockResolvedValue({
+      mode: 'scoped-media-store',
+      results: [{ ...saved, dateVerification: 'verified', timestampSource: 'capture', targetTimestampMillis: saved.targetTimestampMillis + 86_400_000 }]
+    });
+    const summary = await runSavePipeline(photoSelection);
+    expect(summary).toMatchObject({ saved: 1, dateCorrected: 0, dateCorrectionFailed: 0, mayShowImportTime: 0 });
+  });
+
+  it('sends undated selected documents to the native saver with a stable archive and entry identity', async () => {
+    const document: ExtractedMediaFile = { ...photo, id: 'note', filename: 'notes.txt', mediaType: 'document',
+      matchedRecord: { ...photo.matchedRecord!, messageDateIso: 'invalid' }, dateSource: 'none' };
+    vi.mocked(saveMediaNative).mockResolvedValue({
+      mode: 'scoped-media-store',
+      results: [{ ...saved, entryId: document.id, mediaType: 'document', dateVerification: 'unverified', targetTimestampMillis: null }]
+    });
+    const summary = await runSavePipeline({ ...photoSelection, files: [document], selectedFileIds: [document.id] });
+    expect(saveMediaNative).toHaveBeenLastCalledWith(
+      [expect.objectContaining({ entryId: document.id, timestampMillis: undefined, mimeType: 'text/plain' })],
+      expect.objectContaining({ archiveUri, alwaysUseMessageDate: false, duplicateHandling: 'skip-existing' })
+    );
+    expect(summary).toMatchObject({ saved: 1, failed: 0, dateCorrected: 0 });
   });
 });

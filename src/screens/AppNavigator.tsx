@@ -89,6 +89,7 @@ function useGlobalSharedZipImport() {
       });
       setImportResult({
         workingDirectory: importResult.workingDirectory,
+        copiedZipUri: importResult.copiedZipUri,
         mediaFiles: importResult.mediaFiles,
         importSummary: importResult.importSummary
       });

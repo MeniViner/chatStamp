@@ -33,15 +33,14 @@ export function getSelectedSaveCandidates(
   selectedSenders: string[],
   selectedMediaTypes: MediaTypeSelection,
   selectedFileIds?: string[]
-): { file: ExtractedMediaFile; timestampMillis: number }[] {
+): { file: ExtractedMediaFile; timestampMillis?: number }[] {
   const senderSet = new Set(selectedSenders);
   const fileSet = selectedFileIds ? new Set(selectedFileIds) : undefined;
-  const selected: { file: ExtractedMediaFile; timestampMillis: number }[] = [];
+  const selected: { file: ExtractedMediaFile; timestampMillis?: number }[] = [];
   for (const file of files) {
     if (!senderSet.has(getMediaSender(file)) || !selectedMediaTypes[file.mediaType] || !isSaveableMediaType(file.mediaType)) continue;
     if (fileSet && !fileSet.has(file.id)) continue;
-    const timestampMillis = getMediaSaveTime(file);
-    if (timestampMillis !== undefined) selected.push({ file, timestampMillis });
+    selected.push({ file, timestampMillis: getMediaSaveTime(file) });
   }
   return selected;
 }

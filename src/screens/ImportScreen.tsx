@@ -1,16 +1,15 @@
-import React, { useCallback, useEffect } from 'react';
-import { AppState, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Appbar, Text } from 'react-native-paper';
 import * as DocumentPicker from 'expo-document-picker';
 import { usePipelineStore } from '../store/pipelineStore';
 import { importWhatsAppZip } from '../services/importService';
 import { logger } from '../lib/logger';
-import { hasAllFilesAccess } from '../native/allFilesAccess';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
-import { PremiumCard, PrimaryButton, SectionHeader, StatusBanner, textStyles } from '../components/AppUi';
+import { PremiumCard, PrimaryButton, SectionHeader, textStyles } from '../components/AppUi';
 import { radius, spacing } from '../theme/designTokens';
 
 export function ImportScreen() {
@@ -22,7 +21,6 @@ export function ImportScreen() {
   const setProgress = usePipelineStore((state) => state.setProgress);
   const setImportResult = usePipelineStore((state) => state.setImportResult);
   const setError = usePipelineStore((state) => state.setError);
-  const [allFilesAccessGranted, setAllFilesAccessGranted] = React.useState<boolean | undefined>();
 
   const importZip = useCallback(async (uri: string, name: string) => {
     setZip({ uri, name });
@@ -36,32 +34,11 @@ export function ImportScreen() {
 
     setImportResult({
       workingDirectory: importResult.workingDirectory,
+      copiedZipUri: importResult.copiedZipUri,
       mediaFiles: importResult.mediaFiles,
       importSummary: importResult.importSummary
     });
   }, [setImportResult, setProgress, setStage, setZip]);
-
-  const refreshPermissionStatus = useCallback(async (reason: string) => {
-    try {
-      const granted = await hasAllFilesAccess();
-      logger.debug(reason, { allFilesAccessGranted: granted });
-      setAllFilesAccessGranted(granted);
-    } catch (error) {
-      logger.warn('Could not read All Files Access status', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refreshPermissionStatus('Startup permission status');
-
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState === 'active') {
-        void refreshPermissionStatus('App resumed and permission rechecked');
-      }
-    });
-
-    return () => subscription.remove();
-  }, [refreshPermissionStatus]);
 
   async function pickZip() {
     try {
@@ -126,16 +103,6 @@ export function ImportScreen() {
           <SectionHeader icon="shield-check-outline" label={t('import.trustTitle')} />
           <InfoRow icon="cellphone-lock" title={t('import.infoLocalTitle')} body={t('import.infoLocalBody')} />
           <InfoRow icon="share-variant" title={t('import.infoShareTitle')} body={t('import.infoShareBody')} />
-          <StatusBanner
-            tone={allFilesAccessGranted ? 'success' : 'info'}
-            icon={allFilesAccessGranted ? 'check-circle-outline' : 'shield-outline'}
-            title={allFilesAccessGranted ? t('import.infoPermReadyTitle') : t('import.infoPermLaterTitle')}
-            body={
-              allFilesAccessGranted
-                ? t('import.infoPermReadyBody')
-                : t('import.infoPermLaterBody')
-            }
-          />
         </PremiumCard>
       </ScrollView>
     </WizardScreen>

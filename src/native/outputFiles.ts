@@ -12,7 +12,7 @@ export type ShareableOutputFile = {
 
 export function outputFileToShareTarget(result: SaveFileResult): ShareableOutputFile {
   return {
-    uri: result.scannedUri ?? result.insertedUri ?? (result.outputPath?.startsWith('content://') ? result.outputPath : null),
+    uri: result.insertedUri ?? result.scannedUri ?? (result.outputPath?.startsWith('content://') ? result.outputPath : null),
     path: result.outputPath?.startsWith('content://') ? null : result.outputPath,
     mimeType: mimeTypeForResult(result),
     mediaType: result.mediaType,
@@ -24,6 +24,7 @@ export async function shareOutputFiles(results: SaveFileResult[], categories: Me
   const selected = new Set(categories);
   const files = results
     .filter((result) => result.ok && result.mediaType && selected.has(result.mediaType))
+    .slice(0, 100)
     .map(outputFileToShareTarget);
   return getChatStampNativeModule().shareOutputFilesAsync(files);
 }
@@ -33,13 +34,14 @@ export async function deleteOutputFiles(results: SaveFileResult[]) {
     results
       .filter((result) => result.outputPath || result.scannedUri || result.insertedUri)
       .map((result) => ({
-        uri: result.scannedUri ?? result.insertedUri ?? (result.outputPath?.startsWith('content://') ? result.outputPath : null),
+        uri: result.insertedUri ?? result.scannedUri ?? (result.outputPath?.startsWith('content://') ? result.outputPath : null),
         path: result.outputPath?.startsWith('content://') ? null : result.outputPath
       }))
   );
 }
 
 function mimeTypeForResult(result: SaveFileResult): string {
+  if (result.mimeType) return result.mimeType;
   if (result.mediaType === 'photo') return 'image/*';
   if (result.mediaType === 'video') return 'video/*';
   if (result.mediaType === 'sticker' || result.mediaType === 'gif') return 'image/*';

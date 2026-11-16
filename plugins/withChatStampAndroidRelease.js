@@ -68,6 +68,7 @@ function applyReleaseSigning(buildGradle) {
 
 const withChatStampAndroidRelease = (config) => {
   config = withGradleProperties(config, (config) => {
+    ensureProperty(config.modResults, 'android.minSdkVersion', '30');
     ensureProperty(config.modResults, 'android.enableMinifyInReleaseBuilds', 'true');
     ensureProperty(config.modResults, 'android.enableShrinkResourcesInReleaseBuilds', 'true');
     ensureProperty(config.modResults, 'android.enablePngCrunchInReleaseBuilds', 'true');
