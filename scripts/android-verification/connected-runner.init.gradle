@@ -1,10 +1,13 @@
 gradle.projectsEvaluated {
-  def nativeProject = gradle.rootProject.findProject(':chatstamp-native')
-  if (nativeProject == null) return
+  def project = gradle.rootProject.findProject(':chatstamp-native')
+  if (project == null && gradle.rootProject.name == 'chatstamp-storage-probe') {
+    project = gradle.rootProject
+  }
+  if (project == null) return
 
-  nativeProject.tasks.register('prepareChatStampConnectedRunner') {
+  project.tasks.register('prepareChatStampConnectedRunner') {
     doLast {
-      def runnerConfigurations = nativeProject.configurations.findAll {
+      def runnerConfigurations = project.configurations.findAll {
         it.canBeResolved && it.name.startsWith('_internal-unified-test-platform')
       }
       if (runnerConfigurations.isEmpty()) {

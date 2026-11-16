@@ -1,0 +1,50 @@
+plugins {
+    id 'com.android.application' version '8.13.0'
+    id 'org.jetbrains.kotlin.android' version '2.1.20'
+}
+
+def probeRun = providers.gradleProperty('chatStampProbeRun').getOrElse('fixture')
+if (!(probeRun ==~ /[a-z0-9][a-z0-9-]{0,39}/)) {
+    throw new GradleException('Invalid chatStampProbeRun')
+}
+def evidence = file("../../../dist/android-verification/${probeRun}")
+def fixtureAssets = new File(evidence, 'probe-assets')
+
+android {
+    namespace 'com.menis.chatstamp.qa.probe'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.menis.chatstamp.qa.probe'
+        minSdk 30
+        targetSdk 36
+        versionCode 1
+        versionName '1.0'
+        testApplicationId 'com.menis.chatstamp.qa.probe.test'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+
+    sourceSets.androidTest.assets.srcDir(fixtureAssets)
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+kotlin {
+    jvmToolchain(17)
+}
+
+dependencies {
+    androidTestImplementation 'androidx.exifinterface:exifinterface:1.4.1'
+    androidTestImplementation 'androidx.test:runner:1.7.0'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+tasks.withType(Test).configureEach {
+    systemProperty 'probe.assets', fixtureAssets.absolutePath
+    systemProperty 'probe.host-output', new File(evidence, 'probe-host').absolutePath
+    inputs.dir(fixtureAssets)
+    outputs.dir(new File(evidence, 'probe-host'))
+}

@@ -8,7 +8,9 @@ Deliver an Android-first MVP that imports a WhatsApp chat export ZIP, extracts m
 
 The 0.1.1 baseline builds and runs on the connected Galaxy Note20 Ultra (Android 13 / API 33). Typecheck, lint and the 111 existing tests pass. A physical device run verified ZIP import, permission gating, saving and JPEG date indexing. Samsung Gallery's default creation-date sort and sharing into an already open app failed. See [the 0.1.1 verification report](../docs/VERIFICATION.md) for the observed dates, cache findings and remaining checks.
 
-The rebuild branch contains Stage 0 and the Stage A implementation. Stage A host verification passed 129 tests and produced a standalone arm64 QA APK. ADB lost the physical phone connection before the new build could be installed. Stage A physical smoke and the Stage P storage gate remain pending. See the [rebuild log](../docs/REBUILD_LOG.md) for the exact device steps.
+The rebuild branch contains Stage 0, the Stage A implementation, and the Stage P test tooling. Stage A host verification passed 129 tests and produced a standalone arm64 QA APK. The Stage P app and test APK build with target SDK 36. Six probe JVM tests and independent FFprobe verification of both rewritten MP4s pass.
+
+Stage A passed its physical smoke on the Samsung with an Android picker import. An ADB share of the shell-created Downloads URI was denied by the provider. Stage P passed on the same handset. Both probe packages and their synthetic output were removed. The [verification matrix](../docs/VERIFICATION.md#stage-p--scoped-storage-feasibility) records the observed timestamps and Gallery order.
 
 ## Decisions already made
 
@@ -20,6 +22,8 @@ The rebuild branch contains Stage 0 and the Stage A implementation. Stage A host
 - Native ZIP extraction is required.
 - Android Gallery date correctness is a core acceptance criterion.
 - OPUS voice notes are excluded or handled separately from photo/video export.
+- For Stage B, publish images and videos to `Pictures/chatStamp/<chat>/` using the Images and Video collections with `IS_PENDING`. Use the owned row's path to set modification time before publishing. Require matching embedded metadata and indexed `DATE_TAKEN` for verified image/video dates on the tested path. PNG and WebP used that path successfully.
+- Publish audio through Audio to `Music/chatStamp/<chat>/` and documents through Files to `Documents/chatStamp/<chat>/`. The tested audio and documents reopened byte-for-byte with the target `DATE_MODIFIED` and a null `DATE_TAKEN`. Use the Downloads and explicit folder alternatives when required on other configurations.
 
 ## Core rebuild stages
 
@@ -34,8 +38,8 @@ The v3 rebuild runs on `fix/core-rebuild` in the order 0, A, P, B, C, D, E, F. S
 
 ## Open risks / unknowns
 
-- Whether `expo-media-library` alone can preserve/set the required Android Gallery sort fields for all media types.
-- Whether target Gallery apps sort by `DATE_TAKEN`, `DATE_ADDED`, `DATE_MODIFIED`, EXIF `DateTimeOriginal`, or another field.
+- Whether Samsung Gallery's creation-date sort follows `DATE_MODIFIED` if another PNG or WebP triggers a null `DATE_TAKEN`. The tested PNG and WebP fixtures have indexed capture dates.
+- Whether the scoped storage destinations and date verification work on other devices, formats, and Gallery applications.
 - How WhatsApp export filenames vary by locale, Android version, and chat type.
 - Whether Share Intent payload arrives as `content://`, `file://`, or MIME variants.
 - The device run used synthetic exports on Android 13. A real WhatsApp export, Android 16 layout behavior, and the full English and Hebrew layout pass still need verification.
@@ -105,6 +109,8 @@ Manual Android verification:
 7. Delete app cache from the app and verify no temporary files remain.
 
 ## Progress log
+
+- 2026-11-16: Verified Stage A on the Samsung via the Android ZIP picker. Both the filename-dated unmatched JPEG and matched VCF appeared in selection, with no QA crash. Stage P verified scoped writes, indexed timestamps, and the Samsung Gallery creation-date sort on the same device. Cleanup passed. The Stage B destinations and date checks are listed above.
 
 - 2026-11-16: Captured the baseline and tracked QA tooling in Stage 0. Stage A implemented archive-aware matching, file-wide date order, DST and date provenance, and visible supported files without a chat match. Legacy date success now requires MediaStore readback. Host checks and the QA build pass. The physical smoke test is unverified after the phone disconnected from ADB.
 

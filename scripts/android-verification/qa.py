@@ -26,13 +26,16 @@ if MEDIA_ROOT not in ("Pictures", "DCIM", "Movies"):
 GALLERY_FOLDER = f"{MEDIA_ROOT}/chatStamp/{STEM}-mixed/"
 
 
-def adb(*args, check=True):
+def adb_executable():
     sdk = os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT")
     name = "adb.exe" if os.name == "nt" else "adb"
     sdk_adb = Path(sdk) / "platform-tools" / name if sdk else None
     default_adb = str(sdk_adb) if sdk_adb and sdk_adb.is_file() else "adb"
-    executable = os.environ.get("CHATSTAMP_QA_ADB", default_adb)
-    result = subprocess.run([executable, *args], capture_output=True)
+    return os.environ.get("CHATSTAMP_QA_ADB", default_adb)
+
+
+def adb(*args, check=True):
+    result = subprocess.run([adb_executable(), *args], capture_output=True)
     if check and result.returncode:
         raise RuntimeError((result.stdout + result.stderr).decode("utf-8", "replace"))
     return result.stdout.decode("utf-8", "replace").strip()

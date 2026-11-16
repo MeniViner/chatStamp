@@ -75,3 +75,37 @@ adb shell am start -W -a android.intent.action.SEND -t application/zip --grant-r
 ## Rebuild tooling
 
 Use the [tracked verification helpers](../scripts/android-verification/README.md) for later rebuild stages. The commands and artifact paths above document the historical baseline run.
+
+## Stage A · Samsung import smoke · 2026-11-16
+
+The arm64 build of `com.menis.chatstamp.qa` cold-launched on the Galaxy Note20 Ultra SM-N986N, Android 13 / API 33. The Android picker imported the mixed synthetic ZIP without All Files Access. Selection showed the unmatched JPEG under Unknown sender with the approximate 17 April 2021 noon date and `contact.vcf` under Dana. The QA crash buffer for the process was empty and cleanup removed the QA package and synthetic Downloads item.
+
+The cold ADB share of a shell-created `content://media/external/downloads/...` URI reached the app and failed provider access. The physical picker result satisfies the Stage A selection smoke. Stage C will verify source URI grants with actual Android shares. The screen captures, UI tree, app-scoped logs, and cleanup output are under `dist/android-verification/stage-a/`.
+
+## Stage P — Scoped-storage feasibility
+
+### Host preparation · 2026-11-16
+
+The standalone probe and AndroidJUnitRunner test APK build with min SDK 30 and target SDK 36. The APK check confirms the QA package and runner identities and the absence of broad storage permissions. The six JVM tests pass. FFmpeg decodes all 11 source media assets and both rewritten MP4s. FFprobe independently reads both target MP4 creation times. Host logs and the fixture manifest are under `dist/android-verification/stage-p-host/`.
+
+### Samsung Galaxy Note20 Ultra · API 33 · PASS · 2026-11-16
+
+The [Stage P procedure](../scripts/android-verification/README.md#stage-p-storage-probe) ran on the SM-N986N with Samsung Gallery 14.5.14.0 and Asia/Jerusalem. Gradle `connectedDebugAndroidTest` passed one `ProbeIdentityTest`. The isolated `com.menis.chatstamp.qa.probe` and `com.menis.chatstamp.qa.probe.test` target API 36. The storage process UID and app UID were both 10628. The app requested zero permissions and runtime checks confirmed zero broad grants, no All Files Access and scoped storage. `ProbeStorageTest` passed one test covering all 13 files.
+
+MediaStore `DATE_TAKEN` is expressed in milliseconds and `DATE_MODIFIED` in seconds. The probe set each file's mtime through its app-owned path while pending. The descriptor before and after publication and the indexed modification time matched the target for all 13 files. Reopened content matched the written bytes in every case. [MediaStore date columns](https://developer.android.com/reference/android/provider/MediaStore.MediaColumns)
+
+| Fixture | Expected instant (UTC) | Reopened metadata | MediaStore `DATE_TAKEN` (ms) | MediaStore `DATE_MODIFIED` (s) | Destination and Gallery result |
+| --- | --- | --- | --- | --- | --- |
+| Red JPEG | 2019-02-15 08:30:00Z | `2019:02:15 10:30:00 +02:00` | 1550219400000 | 1550219400 | Shared Pictures album, fifth. Details showed 15 February 2019, 10:30. |
+| Green MP4 | 2019-02-16 09:30:00Z | Retriever and FFprobe both 09:30:00Z | 1550309400000 | 1550309400 | Shared Pictures album, fourth |
+| Blue JPEG | 2020-03-16 13:15:00Z | `2020:03:16 15:15:00 +02:00` | 1584364500000 | 1584364500 | Shared Pictures album, third |
+| Yellow PNG | 2020-03-16 13:16:00Z | `2020:03:16 15:16:00 +02:00` | 1584364560000 | 1584364560 | Shared Pictures album, second |
+| Purple MP4 | 2020-03-17 10:00:00Z | Retriever and FFprobe both 10:00:00Z | 1584439200000 | 1584439200 | Shared Pictures album, first |
+| PNG control, cyan and orange | 2020-03-20 10:00:00Z and 2019-02-20 10:00:00Z | Both matched `12:00:00 +02:00` on their respective dates | 1584698400000 and 1550656800000 | 1584698400 and 1550656800 | Pictures control, indexed dates verified with opposing insert order |
+| WebP control, white and magenta | 2020-03-21 10:00:00Z and 2019-02-21 10:00:00Z | Both matched `12:00:00 +02:00` on their respective dates | 1584784800000 and 1550743200000 | 1584784800 and 1550743200 | Pictures control, indexed dates verified with opposing insert order |
+| OPUS and M4A | 2020-03-18 10:00:00Z and 10:01:00Z | Both reopened byte-for-byte | Null | 1584525600 and 1584525660 | Audio collection in Music |
+| VCF and TXT | 2020-03-19 10:00:00Z and 10:01:00Z | Both reopened byte-for-byte | Null | 1584612000 and 1584612060 | Files collection in Documents |
+
+The album under `Pictures/chatStamp/chatstamp-qa-stage-p-samsung-01/` accepted both image and video collections. Gallery was set to Date created (descending) and showed purple, yellow, blue, green, red. PNG and WebP used indexed capture dates. Modification-only Gallery sorting and other Gallery apps remain unverified. The music and document cases established byte readback and modification time.
+
+Evidence is under `dist/android-verification/stage-p-samsung-01/`. It includes the connected XML, APK manifests, Android event log, FFprobe output on the reopened MP4s, and the Gallery order, sort preference, and red JPEG detail screen. `ProbeCleanupTest` passed with zero remaining owned rows; the host confirmed that the run directories, on-device UI captures, and both probe packages were removed. Use the paths and readback policy selected in the ExecPlan for Stage B.
