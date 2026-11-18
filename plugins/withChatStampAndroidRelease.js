@@ -1,4 +1,4 @@
-const { AndroidConfig, withAndroidManifest, withAppBuildGradle, withGradleProperties } = require('expo/config-plugins');
+const { AndroidConfig, withAndroidManifest, withAppBuildGradle, withGradleProperties, withProjectBuildGradle } = require('expo/config-plugins');
 
 const propsBlock = `
 def chatstampReleaseProps = new Properties()
@@ -92,9 +92,23 @@ const withChatStampAndroidRelease = (config) => {
   });
   config = withGradleProperties(config, (config) => {
     ensureProperty(config.modResults, 'android.minSdkVersion', '30');
+    ensureProperty(config.modResults, 'android.compileSdkVersion', '36');
+    ensureProperty(config.modResults, 'android.targetSdkVersion', '36');
+    ensureProperty(config.modResults, 'android.buildToolsVersion', '36.0.0');
     ensureProperty(config.modResults, 'android.enableMinifyInReleaseBuilds', 'true');
     ensureProperty(config.modResults, 'android.enableShrinkResourcesInReleaseBuilds', 'true');
     ensureProperty(config.modResults, 'android.enablePngCrunchInReleaseBuilds', 'true');
+    return config;
+  });
+
+  config = withProjectBuildGradle(config, (config) => {
+    if (config.modResults.language !== 'groovy') throw new Error('chatStamp requires a reviewed Groovy root Gradle template.');
+    const anchor = 'apply plugin: "expo-root-project"';
+    const pin = "ext.ndkVersion = '27.1.12297006'";
+    if (!config.modResults.contents.includes(pin)) {
+      if (!config.modResults.contents.includes(anchor)) throw new Error('chatStamp could not pin the NDK before Expo defaults.');
+      config.modResults.contents = config.modResults.contents.replace(anchor, `${pin}\n${anchor}`);
+    }
     return config;
   });
 

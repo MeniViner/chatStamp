@@ -2,11 +2,9 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { usePipelineStore } from '../src/store/pipelineStore';
 import type { ExtractedMediaFile, ImportSummary } from '../src/types/media';
 import {
-  adjacentViewerId,
-  groupVisibleDays,
+  dayKeyAt,
   rangeIds,
   selectedIdsInOrder,
-  selectionFromIds,
   selectionState,
   selectionTotals,
   setIdsSelected,
@@ -17,23 +15,8 @@ const ids = (selection: ReadonlySet<string>) => [...selection].sort();
 const date = (value: string) => Date.parse(value);
 
 describe('default and individual ID selection', () => {
-  it('selects all eligible IDs, including voice, documents, transcript and unavailable dates', () => {
-    const eligible = Object.freeze(['photo', 'video', 'voice', 'document', 'transcript', 'undated']);
-    const selected = selectionFromIds(eligible);
-    expect(selected).toBeInstanceOf(Set);
-    expect(ids(selected)).toEqual([...eligible].sort());
-    expect(eligible).toEqual(['photo', 'video', 'voice', 'document', 'transcript', 'undated']);
-  });
-
-  it('creates an empty selection for an empty import and does not inherit previous import IDs', () => {
-    const previous = selectionFromIds(['old-photo', 'old-voice']);
-    expect(ids(selectionFromIds([]))).toEqual([]);
-    expect(ids(selectionFromIds(['new-document']))).toEqual(['new-document']);
-    expect(ids(previous)).toEqual(['old-photo', 'old-voice']);
-  });
-
   it('deduplicates import IDs and changes only the requested stable ID without mutation', () => {
-    const original = selectionFromIds(['A', 'B', 'A', 'hidden']);
+    const original = new Set(['A', 'B', 'A', 'hidden']);
     const removed = toggleId(original, 'B');
     const restored = toggleId(removed, 'B');
     expect(ids(original)).toEqual(['A', 'B', 'hidden']);
@@ -43,7 +26,7 @@ describe('default and individual ID selection', () => {
   });
 
   it('targets an ID after sorting rather than toggling the old row index', () => {
-    const selected = selectionFromIds(['photo-old', 'photo-new', 'voice']);
+    const selected = new Set(['photo-old', 'photo-new', 'voice']);
     const display = ['voice', 'photo-new', 'photo-old'];
     const next = toggleId(selected, display[0]);
     expect(ids(next)).toEqual(['photo-new', 'photo-old']);
@@ -64,7 +47,7 @@ describe('scoped bulk selection and tri-state', () => {
   });
 
   it('fills a partial scope, clears an all-selected scope, and preserves hidden selections', () => {
-    const original = selectionFromIds(['A', 'hidden']);
+    const original = new Set(['A', 'hidden']);
     const scope = Object.freeze(['A', 'B', 'A']);
     const filled = setIdsSelected(original, scope, selectionState(original, scope) !== 'all');
     expect(ids(filled)).toEqual(['A', 'B', 'hidden']);
@@ -75,14 +58,14 @@ describe('scoped bulk selection and tri-state', () => {
   });
 
   it('treats an empty bulk scope as a no-op regardless of hidden selections', () => {
-    const original = selectionFromIds(['hidden']);
+    const original = new Set(['hidden']);
     expect(ids(setIdsSelected(original, [], true))).toEqual(['hidden']);
     expect(ids(setIdsSelected(original, [], false))).toEqual(['hidden']);
     expect(selectionState(original, [])).toBe('none');
   });
 
   it('changes only visible members of a day across media kinds and senders', () => {
-    const selected = selectionFromIds(['Dana-photo', 'Eli-video', 'hidden-same-day', 'other-day']);
+    const selected = new Set(['Dana-photo', 'Eli-video', 'hidden-same-day', 'other-day']);
     const currentDay = ['Dana-photo', 'Eli-video'];
     const next = setIdsSelected(selected, currentDay, false);
     expect(selectionState(next, currentDay)).toBe('none');
@@ -112,7 +95,7 @@ describe('range selection in the active display order', () => {
   });
 
   it.each([true, false])('supports captured select=%s intent, expansion and shrink without a toggle trail', (shouldSelect) => {
-    const before = selectionFromIds(shouldSelect ? ['middle-9', 'hidden'] : [...ordered, 'hidden']);
+    const before = new Set(shouldSelect ? ['middle-9', 'hidden'] : [...ordered, 'hidden']);
     const expanded = setIdsSelected(before, rangeIds(ordered, 'newest', 'oldest'), shouldSelect);
     const shrunk = setIdsSelected(before, rangeIds(ordered, 'newest', 'middle-9'), shouldSelect);
     expect(ids(expanded)).toEqual(shouldSelect ? [...ordered, 'hidden'].sort() : ['hidden']);
@@ -132,7 +115,7 @@ describe('active-filter counts and prepared save IDs', () => {
   ]);
 
   it('uses sender + Photos + search + date intersection for footer and save, preserving hidden IDs', () => {
-    const selected = selectionFromIds(files.map((file) => file.id));
+    const selected = new Set(files.map((file) => file.id));
     const visible = files.filter((file) => file.sender === 'Dana' && file.kind === 'photo'
       && file.filename.includes('trip') && file.day === '2020-03-16').reverse();
     const ordered = visible.map((file) => file.id);
@@ -148,7 +131,7 @@ describe('active-filter counts and prepared save IDs', () => {
   });
 
   it('does not reset selections when viewing another tab or sorting', () => {
-    const chosen = toggleId(selectionFromIds(files.map((file) => file.id)), 'A');
+    const chosen = toggleId(new Set(files.map((file) => file.id)), 'A');
     expect(selectedIdsInOrder(['D'], chosen)).toEqual(['D']);
     expect(selectedIdsInOrder(['F', 'B', 'A'], chosen)).toEqual(['F', 'B']);
     expect(ids(chosen)).toEqual(['B', 'C', 'D', 'E', 'F']);
@@ -156,7 +139,7 @@ describe('active-filter counts and prepared save IDs', () => {
 
   it('does not inflate active counts or bytes from hidden large files or repeated visible IDs', () => {
     const visible = [{ id: 'A', sizeBytes: 10 }, { id: 'A', sizeBytes: 10 }, { id: 'B', sizeBytes: 20 }];
-    const selected = selectionFromIds(['A', 'hidden-8GiB']);
+    const selected = new Set(['A', 'hidden-8GiB']);
     expect(selectionTotals(visible, selected)).toEqual({ selected: 1, total: 2, selectedBytes: 10, unknownSizeCount: 0 });
     expect(selectedIdsInOrder(['B', 'A', 'A'], selected)).toEqual(['A']);
   });
@@ -165,93 +148,27 @@ describe('active-filter counts and prepared save IDs', () => {
     const visible = [{ id: 'zero', sizeBytes: 0 }, { id: 'known', sizeBytes: 42 }, { id: 'missing' },
       { id: 'negative', sizeBytes: -1 }, { id: 'nan', sizeBytes: Number.NaN }, { id: 'infinite', sizeBytes: Infinity },
       { id: 'unselected-unknown' }];
-    const selected = selectionFromIds(visible.slice(0, -1).map((file) => file.id));
+    const selected = new Set(visible.slice(0, -1).map((file) => file.id));
     expect(selectionTotals(visible, selected)).toEqual({ selected: 6, total: 7, selectedBytes: 42, unknownSizeCount: 4 });
     expect(selectionTotals([], selected)).toEqual({ selected: 0, total: 0, selectedBytes: 0, unknownSizeCount: 0 });
   });
 });
 
-describe('day grouping uses the displayed resolved date without upgrading provenance', () => {
-  it('groups chronological items while preserving tie order and stable group keys', () => {
-    const input = Object.freeze([
-      Object.freeze({ id: 'new-video', resolvedDateMillis: date('2020-03-17T10:00:00Z'), dateCertainty: 'known' as const }),
-      Object.freeze({ id: 'same-time-photo', resolvedDateMillis: date('2020-03-17T10:00:00Z'), dateCertainty: 'known' as const }),
-      Object.freeze({ id: 'older', resolvedDateMillis: date('2019-02-15T08:30:00Z'), dateCertainty: 'known' as const }),
-      Object.freeze({ id: 'undated', dateCertainty: 'missing' as const }),
-    ]);
-    const groups = groupVisibleDays(input, 'Asia/Jerusalem');
-    expect(groups.map((group) => ({ dayKey: group.dayKey, ids: group.ids }))).toEqual([
-      { dayKey: '2020-03-17', ids: ['new-video', 'same-time-photo'] },
-      { dayKey: '2019-02-15', ids: ['older'] },
-      { dayKey: null, ids: ['undated'] },
-    ]);
-    expect(groups.flatMap((group) => group.ids)).toEqual(input.map((file) => file.id));
-    expect(new Set(groups.map((group) => group.key)).size).toBe(groups.length);
-    expect(groupVisibleDays(input, 'Asia/Jerusalem')).toEqual(groups);
-  });
-
+describe('production day-key calculation retains zone and date provenance', () => {
   it('uses the explicit display time zone near midnight instead of the host time zone', () => {
-    const files = [{ id: 'near-midnight', resolvedDateMillis: date('2020-03-16T22:30:00Z'), dateCertainty: 'known' as const }];
-    expect(groupVisibleDays(files, 'Asia/Jerusalem')[0].dayKey).toBe('2020-03-17');
-    expect(groupVisibleDays(files, 'UTC')[0].dayKey).toBe('2020-03-16');
+    const instant = date('2020-03-16T22:30:00Z');
+    expect(dayKeyAt(instant, 'Asia/Jerusalem')).toBe('2020-03-17');
+    expect(dayKeyAt(instant, 'UTC')).toBe('2020-03-16');
   });
 
   it('retains calendar-day boundaries across the Jerusalem spring DST transition', () => {
-    const files = [
-      { id: 'after-clock-change', resolvedDateMillis: date('2020-03-27T00:30:00Z'), dateCertainty: 'known' as const },
-      { id: 'before-clock-change', resolvedDateMillis: date('2020-03-26T22:30:00Z'), dateCertainty: 'known' as const },
-      { id: 'previous-local-day', resolvedDateMillis: date('2020-03-26T21:30:00Z'), dateCertainty: 'known' as const },
-    ];
-    expect(groupVisibleDays(files, 'Asia/Jerusalem').map((group) => ({ dayKey: group.dayKey, ids: group.ids }))).toEqual([
-      { dayKey: '2020-03-27', ids: ['after-clock-change', 'before-clock-change'] },
-      { dayKey: '2020-03-26', ids: ['previous-local-day'] },
-    ]);
+    const instants = ['2020-03-27T00:30:00Z', '2020-03-26T22:30:00Z', '2020-03-26T21:30:00Z'];
+    expect(instants.map((instant) => dayKeyAt(date(instant), 'Asia/Jerusalem'))).toEqual(['2020-03-27', '2020-03-27', '2020-03-26']);
   });
 
-  it('keeps missing/invalid dates unavailable and preserves a valid epoch-zero date', () => {
-    const files = [
-      { id: 'epoch', resolvedDateMillis: 0, dateCertainty: 'known' as const },
-      { id: 'absent', dateCertainty: 'missing' as const },
-      { id: 'nan', resolvedDateMillis: Number.NaN, dateCertainty: 'known' as const },
-      { id: 'infinite', resolvedDateMillis: Infinity, dateCertainty: 'known' as const },
-    ];
-    const groups = groupVisibleDays(files, 'UTC');
-    expect(groups[0].dayKey).toBe('1970-01-01');
-    expect(groups.filter((group) => group.dayKey === null).flatMap((group) => group.ids)).toEqual(['absent', 'nan', 'infinite']);
-    expect(groupVisibleDays([], 'UTC')).toEqual([]);
-  });
-
-  it('does not mutate approximate/ambiguous metadata when placing chosen dates in a group', () => {
-    const approximate = Object.freeze({ id: 'estimate', resolvedDateMillis: date('2020-03-16T13:15:00Z'), dateCertainty: 'approximate' as const });
-    const ambiguous = Object.freeze({ id: 'ambiguous', resolvedDateMillis: date('2020-03-16T13:15:00Z'), dateCertainty: 'ambiguous' as const });
-    expect(groupVisibleDays([approximate, ambiguous], 'UTC')[0].ids).toEqual(['estimate', 'ambiguous']);
-    expect(approximate.dateCertainty).toBe('approximate');
-    expect(ambiguous.dateCertainty).toBe('ambiguous');
-  });
-});
-
-describe('viewer paging stays in filtered sort order independently of checkboxes', () => {
-  it('moves in either direction, retaining unchecked visible pages and excluding hidden IDs', () => {
-    const ordered = Object.freeze(['newest', 'unchecked-middle', 'oldest']);
-    const selected = selectionFromIds(['newest', 'oldest', 'hidden-photo', 'hidden-voice']);
-    expect(adjacentViewerId(ordered, 'newest', 1)).toBe('unchecked-middle');
-    expect(adjacentViewerId(ordered, 'unchecked-middle', 1)).toBe('oldest');
-    expect(adjacentViewerId(ordered, 'oldest', -1)).toBe('unchecked-middle');
-    toggleId(selected, 'oldest');
-    expect(adjacentViewerId(ordered, 'unchecked-middle', 1)).toBe('oldest');
-    expect(ordered).toEqual(['newest', 'unchecked-middle', 'oldest']);
-    expect(adjacentViewerId([...ordered].reverse(), 'oldest', 1)).toBe('unchecked-middle');
-  });
-
-  it.each([
-    [[], 'A', 1],
-    [['A'], 'A', 1],
-    [['A'], 'A', -1],
-    [['A', 'B'], 'A', -1],
-    [['A', 'B'], 'B', 1],
-    [['A', 'B'], 'hidden', 1],
-  ] as const)('returns no out-of-bounds or hidden page for %j, %s, %s', (ordered, current, direction) => {
-    expect(adjacentViewerId(ordered, current, direction)).toBeNull();
+  it('keeps invalid/missing dates unavailable and preserves a real epoch-zero date', () => {
+    for (const value of [undefined, Number.NaN, Infinity]) expect(dayKeyAt(value, 'UTC')).toBeNull();
+    expect(dayKeyAt(0, 'UTC')).toBe('1970-01-01');
   });
 });
 
@@ -286,6 +203,14 @@ describe('pipeline selection integration and durable save-scope snapshot', () =>
     expect(state.selectedFileIds).toBeInstanceOf(Set);
     expect(ids(state.selectedFileIds)).toEqual(files.map((file) => file.id).sort());
     expect(state.selectedMediaTypes).toMatchObject({ voice: true, audio: true, document: true, gif: true, sticker: true });
+  });
+
+  it('replaces old import IDs with an actual empty import without inheriting previous choices', () => {
+    importFiles();
+    expect(usePipelineStore.getState().selectedFileIds.size).toBe(files.length);
+    importFiles([]);
+    expect(usePipelineStore.getState().selectedFileIds).toEqual(new Set());
+    expect(usePipelineStore.getState().pendingSaveIds).toBeUndefined();
   });
 
   it('preserves hidden choices through sender/type filters and scopes clear/select to the requested IDs', () => {

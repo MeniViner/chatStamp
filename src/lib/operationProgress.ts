@@ -1,4 +1,4 @@
-export type OperationPhase = 'preparing' | 'extracting' | 'saving' | 'completed' | 'cancelled' | 'failed';
+type OperationPhase = 'preparing' | 'extracting' | 'saving' | 'completed' | 'cancelled' | 'failed';
 
 export type OperationProgress = {
   operationId: string;

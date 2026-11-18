@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 
-export type ExpectedAttachment = {
+type ExpectedAttachment = {
   sender: string;
   dateSource: 'chat' | 'filename' | 'zip-entry' | 'none';
   date: string | null;

@@ -1,0 +1,19 @@
+gradle.projectsEvaluated {
+    rootProject.tasks.register('chatstampVerifyToolchain') {
+        doLast {
+            def appAndroid = rootProject.project(':app').extensions.getByName('android')
+            def actual = [
+                compileSdk: appAndroid.compileSdk,
+                minSdk: appAndroid.defaultConfig.minSdk,
+                targetSdk: appAndroid.defaultConfig.targetSdk,
+                buildTools: appAndroid.buildToolsVersion,
+                ndk: appAndroid.ndkVersion,
+                rootNdk: rootProject.ext.ndkVersion,
+            ]
+            def expected = [compileSdk: 36, minSdk: 30, targetSdk: 36,
+                buildTools: '36.0.0', ndk: '27.1.12297006', rootNdk: '27.1.12297006']
+            if (actual != expected) throw new GradleException("chatStamp resolved toolchain mismatch: ${actual}")
+            println("chatStamp resolved toolchain PASS: ${actual}")
+        }
+    }
+}

@@ -6,23 +6,6 @@ export function isMessageDateVerified(result: SaveFileResult): boolean {
     && result.verificationReason !== 'date-unavailable';
 }
 
-export function getResultsHeadlineKey(completion?: CompletionSummary): string {
-  if (!completion) return 'results.title';
-  const cancelled = Math.max(completion.cancelled ?? 0, completion.results?.filter((result) => result.outcome === 'cancelled').length ?? 0);
-  if (cancelled > 0) return 'results.headlineCancelled';
-  if (completion.results?.length && completion.results.every((result) => result.outcome === 'skipped')) {
-    return 'results.headlineAlreadySaved';
-  }
-  if (completion.saved > 0 && completion.failed === 0 && completion.results?.every((result) => !result.galleryMaySortByImportTime)) {
-    return 'results.headlineSaved';
-  }
-  if (completion.saved > 0 && completion.dateCorrected === completion.saved && completion.failed === 0) {
-    return 'results.headlineAllGood';
-  }
-  if (completion.saved > 0) return 'results.headlineIssues';
-  return 'results.headlineNoneSaved';
-}
-
 export type CompletionPresentation = {
   status: 'success' | 'cancelled' | 'partial' | 'failed' | 'skipped' | 'empty';
   savedCount: number;
@@ -79,25 +62,6 @@ export function getResultStatusKey(result: SaveFileResult): string {
   return 'results.status.saved';
 }
 
-export function shouldShowTechnicalResults(developerMode: boolean): boolean {
-  return developerMode;
-}
-
 export function getResultRowKey(result: Pick<SaveFileResult, 'filename' | 'outputPath' | 'insertedUri' | 'failureReason'>, index: number): string {
   return `${result.filename}-${result.outputPath ?? result.insertedUri ?? result.failureReason ?? index}`;
-}
-
-export function expandAllResultRows(rowKeys: string[]): string[] {
-  return Array.from(new Set(rowKeys));
-}
-
-export function collapseAllResultRows(): string[] {
-  return [];
-}
-
-export function setResultRowExpanded(currentKeys: string[], rowKey: string, expanded: boolean): string[] {
-  const next = new Set(currentKeys);
-  if (expanded) next.add(rowKey);
-  else next.delete(rowKey);
-  return Array.from(next);
 }

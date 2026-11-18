@@ -214,9 +214,4 @@ export async function clearWorkingDirectory(workingDirectory?: string): Promise<
   }
 }
 
-export async function loadTranscriptPreview(uri: string) {
-  const text = await FileSystem.readAsStringAsync(uri);
-  return (await parseWhatsAppChatTextAsync(text, [])).preview;
-}
-
 export const MAX_TRANSCRIPT_BYTES = 16 * 1024 * 1024;

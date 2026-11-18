@@ -2,7 +2,7 @@ import type { MediaType, SaveFileResult } from '../types/media';
 import { getMimeTypeForMedia } from '../lib/mediaClassifier';
 import { getChatStampNativeModule } from './chatStampNativeModule';
 
-export type ShareableOutputFile = {
+type ShareableOutputFile = {
   uri?: string | null;
   path?: string | null;
   mimeType?: string | null;
@@ -10,7 +10,7 @@ export type ShareableOutputFile = {
   filename?: string | null;
 };
 
-export function outputFileToShareTarget(result: SaveFileResult): ShareableOutputFile {
+function outputFileToShareTarget(result: SaveFileResult): ShareableOutputFile {
   return {
     uri: result.insertedUri ?? result.scannedUri ?? (result.outputPath?.startsWith('content://') ? result.outputPath : null),
     path: result.outputPath?.startsWith('content://') ? null : result.outputPath,

@@ -4,7 +4,7 @@ import type { OperationProgress } from '../lib/operationProgress';
 import type { PipelineErrorCode } from '../lib/pipelineErrors';
 import type { OutputFolderLabels } from '../lib/outputOrganization';
 
-export type NativeExtractedMediaFile = {
+type NativeExtractedMediaFile = {
   filename: string;
   uri: string;
   sourcePath: string;
@@ -63,7 +63,7 @@ export type ScopedSaveOptions = {
   chatFolderName?: string;
 };
 
-export type NativeSavedMediaFileResult = Omit<SaveFileResult, 'dateCorrectionVerified' | 'galleryMaySortByImportTime'> & {
+type NativeSavedMediaFileResult = Omit<SaveFileResult, 'dateCorrectionVerified' | 'galleryMaySortByImportTime'> & {
   entryId: string;
   outcome: NonNullable<SaveFileResult['outcome']>;
   dateVerification: NonNullable<SaveFileResult['dateVerification']>;

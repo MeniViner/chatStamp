@@ -3,10 +3,8 @@ import type { ExportHistoryItem } from '../types/media';
 import { logger } from '../lib/logger';
 import { atomicStore } from './jsonFileStorage';
 import { createExportHistoryItem, normalizeHistoryItem } from './historyLogic';
-import { HistoryRepository, HISTORY_INDEX_FILE } from '../services/historyService';
+import { HistoryRepository } from '../services/historyService';
 
-const historyKey = HISTORY_INDEX_FILE;
-const historyLimit = 50;
 const repository = new HistoryRepository(atomicStore);
 
 type HistoryState = {
@@ -51,5 +49,4 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
   }
 }));
 
-export const historyStorage = { historyKey, historyLimit };
 export { createExportHistoryItem };

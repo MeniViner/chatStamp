@@ -2,113 +2,102 @@
 
 ## Goal
 
-Deliver an Android-first MVP that imports a WhatsApp chat export ZIP, extracts media and `_chat.txt`, maps each media file to sender/date, filters by sender and media type, saves selected media to Gallery, and applies original dates so Android Gallery sorting is correct.
+Import a WhatsApp export ZIP on Android, map attachments to original message
+instants, select/filter files and save them so the tested Gallery sorts by those
+instants. Saved and verified dates remain separate facts. Local-only; no DB,
+accounts, analytics, cloud or server. Existing production identity/signing stay
+com.menis.chatstamp and the owner's external upload key.
 
-## Current state
+## Current state — 2026-11-18
 
-The 0.1.1 baseline builds and runs on the connected Galaxy Note20 Ultra (Android 13 / API 33). Typecheck, lint and the 111 existing tests pass. A physical device run verified ZIP import, permission gating, saving and JPEG date indexing. Samsung Gallery's default creation-date sort and sharing into an already open app failed. See [the 0.1.1 verification report](../docs/VERIFICATION.md) for the observed dates, cache findings and remaining checks.
+The user-authorized v4 work proceeds R → B-close → C → G1 → D → E → F → G2 on
+fix/core-rebuild. R/B/C/G1/D are accepted and pushed. E's three-step flow,
+two-page onboarding, native RTL restart, localized durable folder profiles,
+settings/Save policy fencing and Results are implemented. Its full preflight
+smoke passed448 host/40 JVM/35 connected per API30 and API36. Later policy and
+physical accessibility corrections require the final rebuilt candidate; do not
+claim their runtime checks from the earlier artifact.
 
-The rebuild branch contains Stage 0, the Stage A implementation, and the Stage P test tooling. Stage A host verification passed 129 tests and produced a standalone arm64 QA APK. The Stage P app and test APK build with target SDK 36. Six probe JVM tests and independent FFprobe verification of both rewritten MP4s pass.
+The connected phone is Samsung A30/SM-A305F, Android11/API30, Gallery12.1.09.1;
+API36 is an emulator. The earlier API33 Note20 is not connected. Owner unlocks
+have permitted physical checks; API33 physical and real WhatsApp exports remain
+UNVERIFIED. Synthetic five-file MediaStore/embedded dates and Samsung creation-
+date order passed, including minified release and duplicate/language reruns.
 
-Stage A passed its physical smoke on the Samsung with an Android picker import. An ADB share of the shell-created Downloads URI was denied by the provider. Stage P passed on the same handset. Both probe packages and their synthetic output were removed. The [verification matrix](../docs/VERIFICATION.md#stage-p--scoped-storage-feasibility) records the observed timestamps and Gallery order.
+F source cleanup and criterion-preserving test migration are frozen; host count
+is431 after retiring test-only legacy wrappers and testing actual Screen/List/
+Viewer boundaries. CI, exact resolved-toolchain checks and compatible SDK55
+patches are being verified. Code6 is the final candidate under preparation,
+not yet an accepted/uploaded artifact. See the append-only progress below and
+REBUILD_LOG/VERIFICATION for precise heads, counts and artifact scopes.
 
-Stage B replaces the save bridge with app-owned MediaStore and explicit folder-provider writes. The Android QA build declares min SDK 30 and target SDK 36, the native XML reports five passing JVM tests and three passing tests on the Samsung, and TypeScript, Vitest, and ESLint pass. The physical app and Gallery checks use the Stage B five-file ZIP.
+A signed G1 code3 bundle/manual Play package exists, followed by D code4 and E
+code5 preflight. No Play service-account credentials, upload, live track, opted-in
+testers or14-day period is established. Public privacy Pages is enabled; keep
+its source on fix/core-rebuild/docs until the owner merges and switches it.
 
-## Decisions already made
+## Implemented decisions and boundaries
 
-- App is local-only and stateless.
-- MVP uses React Native + Expo + TypeScript.
-- Zustand is allowed only for current session state.
-- No database.
-- No backend.
-- Native ZIP extraction is required.
-- Android Gallery date correctness is a core acceptance criterion.
-- OPUS voice notes are excluded or handled separately from photo/video export.
-- For Stage B, publish images and videos to `Pictures/chatStamp/<chat>/` using the Images and Video collections with `IS_PENDING`. Use the owned row's path to set modification time before publishing. Require matching embedded metadata and indexed `DATE_TAKEN` for verified image/video dates on the tested path. PNG and WebP used that path successfully.
-- Publish audio through Audio to `Music/chatStamp/<chat>/` and documents through Files to `Documents/chatStamp/<chat>/`. The tested audio and documents reopened byte-for-byte with the target `DATE_MODIFIED` and a null `DATE_TAKEN`. Use the Downloads and explicit folder alternatives when required on other configurations.
+- Native ZIP streaming directly from a granted source URI; validation and
+  fingerprint in the same stream, no complete private ZIP copies or JS ZIP data.
+-20,000 entries,2 GiB per entry,8 GiB total; actual free-space guards. TXT samples
+ 64 KiB each/16 MiB total; TypeScript selects transcript. Unsafe/unsupported
+ entries counted. Supported native extraction and preview limits are in TECHNICAL_NOTES_ANDROID.md.
+- Scoped own MediaStore writes: photos/videos together under Pictures/chatStamp,
+ audio under Music, documents under Documents with Downloads/provider fallback.
+ EXIF JPEG/PNG/WebP, MP4 header rewriting and independent indexed/mtime readback.
+ Approximate/ambiguous/undated outcomes never count as verified message dates.
+- Native saved-record identities preserve old paths across duplicates, languages
+ and partial retry. New folder labels follow the committed app language.
+- Save captures session, IDs and committed destination/policy before async audio
+ release/notification permission; restart/share intake has an idle native fence.
+- Real progress, cancellable streamed buffers, user-started dataSync foreground
+ save with notification-denial behavior and API36 timeout cleanup. Cold-once and
+ warm-event shares; no polling. Discard/cold-start cleanup and grant release.
+- Atomic local settings/history/native-save JSON; details-before-index history
+ and startup reconciliation. Zustand is session state only; no database.
+- Virtualized day grid, Set selection, filtered footer/Save, bounded native JPEG
+ thumbnails, zero cell players, one viewer video and shared audio. OPUS/voice,
+ GIF/WebP, PDF/VCF and external document fallback are in current scope.
+- Import → Select → Save; organization/duplicates/custom folder in Settings.
+ Native I18nManager direction with explicit restart; app-language dates, actual
+ dynamic colors where supported and warm fallback. Insets/Back/font/wide UI
+ verified only in the combinations named by runtime receipts.
+- min30/target36, no broad-storage/media/network/microphone permission. Backup
+ and transfer disabled. Durable plugin/module source; ignored Android regenerated.
 
-## Core rebuild stages
+## Remaining gates
 
-The v3 rebuild runs on `fix/core-rebuild` in the order 0, A, P, B, C, D, E, F. See [the rebuild log](../docs/REBUILD_LOG.md) for per-stage results.
+- Finish the final full smoke from npm ci after each fix; native JVM/connected
+ tests must actually execute a nonzero count on both available devices.
+- Fresh-checkout Android CI must pass on the pushed head; Pages CI is separate.
+- Verify final production and QA-ID minified code6 AAB/APK, owner certificate,
+ strict permissions/backup/SDKs and all packaged ELF/static16 KiB alignment.
+- Repeat affected policy/a11y/RTL/preview/Save and five-file Gallery runtime on
+ the exact final QA release; refresh four real phone screenshots per language.
+- Remove this run's QA/helper/test packages, fixtures, own saved rows/cache and
+ restore phone/emulator settings. Curated evidence cumulatively under10 MB.
+- G2: final signed manual upload package and one PR to main, no agent merge.
+ Owner real-export closed/warm procedure and production-access answers remain
+ truthful pending actual execution and tester facts.
 
-- Stage 0 captures the verified baseline, synthetic fixture pairs, and checked-in QA helpers.
-- Stage A adds archive-aware transcript matching, date source and precision, and visible unmatched attachments while retaining the legacy native save bridge.
-- Stage P proves an owned-storage save on the connected Samsung. Require internal metadata and MediaStore readback plus the default Gallery order. Document working destinations for pictures, videos, audio, and documents before starting B.
-- Stage B implements the proven write path with verified timestamps, safe duplicate handling, and no broad storage permissions.
-- Stage C streams ZIP contents from the source into a bounded cache, delivers cold and warm shares, and adds background save, progress, cancellation, and cleanup.
-- Stages D and E update selection, previews, the three-step flow, accessibility, and English and Hebrew layouts. Stage F finishes CI, audit and release checks, including a real WhatsApp export on the physical phone.
+## Open risks and exact follow-up
 
-## Open risks / unknowns
+See KNOWN_RISKS.md and PLAY_UPLOAD_STEPS.md: API33 physical, real owner WhatsApp
+share, arbitrary Gallery/provider/codec combinations, actual16 KiB runtime and
+owner browser first-run rendering remain unverified. Provider-revocation
+simulation and the narrow process-death row-record window are deferred per v4.
+Play account is personal; creation date, actual track/tester count and eligibility
+must be supplied/recorded by the owner. Never substitute synthetic/device tests
+for a real closed-test period.
 
-- Whether Samsung Gallery's creation-date sort follows `DATE_MODIFIED` if another PNG or WebP triggers a null `DATE_TAKEN`. The tested PNG and WebP fixtures have indexed capture dates.
-- Whether the scoped storage destinations and date verification work on other devices, formats, and Gallery applications.
-- How WhatsApp export filenames vary by locale, Android version, and chat type.
-- Whether Share Intent payload arrives as `content://`, `file://`, or MIME variants.
-- The device run used synthetic exports on Android 13. A real WhatsApp export, Android 16 layout behavior, and the full English and Hebrew layout pass still need verification.
+## Verification
 
-## Milestone 1 — Project compiles
-
-- Install dependencies.
-- Ensure `npm run typecheck`, `npm run test`, and `npm run lint` work.
-- Fix starter code if package versions require adjustment.
-
-## Milestone 2 — Parser hardening
-
-- Expand parser tests for real WhatsApp `_chat.txt` formats.
-- Support Unicode control characters and RTL/LTR marks.
-- Support line continuations.
-- Extract sender, date, and filename reliably.
-- Mark unparseable lines without crashing.
-
-## Milestone 3 — ZIP import and extraction
-
-- Implement ZIP selection and/or Share Intent import.
-- Copy ZIP to cache.
-- Extract only `_chat.txt` and supported media extensions.
-- Avoid JS memory loading of the ZIP.
-- Create progress reporting.
-
-## Milestone 4 — Review/filter UI
-
-- Show extracted summary.
-- Show sender checklist.
-- Show media type toggles: photos, videos, OPUS voice notes.
-- Default OPUS excluded for MVP export.
-- Show matched/unmatched counts.
-
-## Milestone 5 — Gallery save pipeline
-
-- Save selected media to Gallery.
-- Apply original dates through the best available method.
-- If Expo APIs are insufficient, implement native Android bridge for MediaStore/EXIF fields.
-- Keep one clear adapter around metadata writes.
-
-## Milestone 6 — Verification on device
-
-- Test with a real WhatsApp export ZIP.
-- Test Android 10+ scoped storage behavior.
-- Confirm Gallery sort order after save.
-- Confirm cache cleanup.
-
-## Verification steps
-
-```bash
-npm run typecheck
-npm run test
-npm run lint
-npx expo prebuild --platform android
-npx expo run:android
-```
-
-Manual Android verification:
-
-1. Export a WhatsApp chat including media.
-2. Share ZIP to the app or select it manually.
-3. Select one sender and photos/videos.
-4. Save to Gallery.
-5. Open Gallery and sort by date.
-6. Confirm items appear at original message dates.
-7. Delete app cache from the app and verify no temporary files remain.
+Follow scripts/android-verification/README.md: npm ci/typecheck/test/lint,
+clean prebuild, two-worker arm64 QA assemble, merged manifest/APK inspection,
+nonzero JVM/connected suites and QA cold-launch/affected UI cases. Do not install
+over production. verify-release.py checks signed candidates separately; CI's
+resolved-toolchain/manifest/JUnit policy does not certify signing or device runs.
 
 ## Progress log
 
@@ -664,3 +653,23 @@ null whileactualoutputURIs/pathsremainstored. Newgesture-boundarycase plus both
 permissioncases pass:21coordinator tests; expectedfullsuite451. No native/UIlayout
 code changed. API36 preflight remains explicitly source0db5579/APKb4684528…;
 final cycle/artifact/runtime replay will follow the emulator lease release.
+
+
+## E physical gate and independent F continuation · 2026-11-18
+
+E implementation is preserved/pushed at041a79a (minified UIpreflight0db5579).
+PhoneUI gate is externally BLOCKED on ownerunlock: securelock confirmed atrelease
+build boundary; onlyMeni canunlock. No bypass,phoneUIclaim or phone screenshot
+replacement is allowed. RequestedAPI33physical isalso unavailable; actualA30 is
+API30. API36preflight remainsinprogress withits exclusivelease andexactAPKhase.
+Do not mark E complete or claim finalminifiedpolicyacceptance. Final451-testcycle,
+code5 rebuild/replay andstorecaptures remain after runtime/owner gates.
+
+Groundrule9 permits independent next-stage work after alternatives are exhausted.
+F cleanup/docs/CI-source preparation nowcontinues withoutdevice/build/prebuild/
+connectedtest/npm-install mutations during the emulator lease. Implementer owns
+caller-checkeddeadsource/exportcleanup; testauthor migratesactiveacceptance before
+retiringtest-onlyhelpers; root ownsdocs,currentExecPlan,CI/policyguards andpackage
+changes afterlease; reviewer laterreviewsfinaldiff. F release candidatewilluse
+highercode6. NativeZIPsample-budget suspicion wasrefuted byowningsource (64KiB/TXT,
+16MiBglobal,20kentries); do notchangeaworkingguard orreportit asadefect.

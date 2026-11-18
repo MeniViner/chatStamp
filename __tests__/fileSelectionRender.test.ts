@@ -3,7 +3,7 @@ import TestRenderer, { act, type ReactTestInstance, type ReactTestRenderer } fro
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { MediaCellItem, MediaCellProps, DaySelectionHeaderProps, SelectionFooterProps, ThumbnailState } from '../src/components/MediaSelectionList';
 import { CompactMediaRow, DaySelectionHeader, MediaGridCell, MediaSelectionList, SelectionFooter } from '../src/components/MediaSelectionList';
-import { selectionFromIds, selectionState, selectionTotals, setIdsSelected, toggleId } from '../src/store/fileSelectionState';
+import { selectionState, selectionTotals, setIdsSelected, toggleId } from '../src/store/fileSelectionState';
 
 const forbidden = vi.hoisted(() => ({ videoPlayer: vi.fn(), audioPlayer: vi.fn() }));
 vi.mock('expo-video', () => ({ useVideoPlayer: forbidden.videoPlayer, VideoView: 'VideoView' }));
@@ -108,7 +108,7 @@ function pressable(renderer: ReactTestRenderer, label: string): ReactTestInstanc
 
 async function mount(items: readonly MediaCellItem[], options: { columns?: 3 | 5; width?: number } = {}) {
   let visible = items;
-  let selected: ReadonlySet<string> = selectionFromIds(items.map((item) => item.id));
+  let selected: ReadonlySet<string> = new Set(items.map((item) => item.id));
   let renderer: ReactTestRenderer;
   const thumbnails = new Map<string, ThumbnailState>(items.map((item) => [item.id,
     Object.freeze({ uri: ['photo', 'video'].includes(item.mediaType) ? `file:///thumbs/${item.id}.jpg` : null,
@@ -223,6 +223,39 @@ describe('actual selection cell render budgets', () => {
 });
 
 describe('real cell controls and list integration', () => {
+  it('groups the actual SectionList in display order with stable tie order and a separate unavailable-date section', async () => {
+    const original = fixture(4);
+    const items: readonly MediaCellItem[] = Object.freeze([
+      Object.freeze({ ...original[0], dayKey: '2020-03-17' }),
+      Object.freeze({ ...original[1], dayKey: '2020-03-17', dateBadge: 'approximate' as const }),
+      Object.freeze({ ...original[2], dayKey: '2019-02-15' }),
+      Object.freeze({ ...original[3], dayKey: null, dateBadge: 'missing' as const }),
+    ]);
+    const harness = await mount(items);
+    const sections = () => harness.renderer.root.findByType(hostType('SectionList')).props.sections as { key: string; dayKey: string | null; ids: string[]; data: { items: MediaCellItem[] }[] }[];
+    expect(sections().map((section) => ({ dayKey: section.dayKey, ids: section.ids }))).toEqual([
+      { dayKey: '2020-03-17', ids: [items[0].id, items[1].id] },
+      { dayKey: '2019-02-15', ids: [items[2].id] },
+      { dayKey: null, ids: [items[3].id] },
+    ]);
+    expect(sections().flatMap((section) => section.data.flatMap((row) => row.items.map((item) => item.id)))).toEqual(items.map((item) => item.id));
+    const keys = sections().map((section) => section.key);
+    expect(new Set(keys).size).toBe(3);
+    await harness.change(new Set(harness.selected));
+    expect(sections().map((section) => section.key)).toEqual(keys);
+    expect(items[1].dateBadge).toBe('approximate'); expect(items[3].dateBadge).toBe('missing');
+    await harness.filter([items[2], items[0]]);
+    expect(sections().map((section) => section.ids)).toEqual([[items[2].id], [items[0].id]]);
+    expect(harness.selected.size).toBe(4);
+  });
+
+  it('renders the actual list empty state without constructing placeholder day groups or cells', async () => {
+    const harness = await mount([]);
+    expect(harness.renderer.root.findByType(hostType('SectionList')).props.sections).toEqual([]);
+    expect(harness.renderer.root.findAllByType(hostType('Text')).some((node) => node.props.children === 'picker.empty')).toBe(true);
+    expect(harness.renderer.root.findAll((node) => isHost(node, 'Pressable') && String(node.props.accessibilityLabel).startsWith('picker.openItem'))).toHaveLength(0);
+  });
+
   it('turns a ready JPEG decode error into a usable placeholder and reports only the file ID', async () => {
     const item = fixture(2)[1];
     const onThumbnailError = vi.fn();
@@ -357,7 +390,7 @@ describe('real cell controls and list integration', () => {
     const text = harness.renderer.root.findAllByType(hostType('Text')).flatMap((node) => node.children).filter((value) => typeof value === 'string').join(' ');
     expect(text).toContain('picker.unknownSize|count=1');
     await harness.filter([]);
-    expect(pressable(harness.renderer, 'picker.selectFilter').props.accessibilityState).toEqual({ checked: false, disabled: true });
+    expect(pressable(harness.renderer, 'picker.selectFilter').props.accessibilityState).toEqual({ checked: false, disabled: true, busy: false });
     expect(harness.renderer.root.findByType(hostType('PrimaryButton')).props.disabled).toBe(true);
     expect(harness.selected.has(sample.id)).toBe(true);
   });

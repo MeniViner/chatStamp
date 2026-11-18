@@ -1,4 +1,4 @@
-export const pipelineErrorCodes = [
+const pipelineErrorCodes = [
   'NO_TRANSCRIPT', 'ZIP_INVALID', 'NO_SPACE', 'ARCHIVE_LIMIT', 'CANCELLED', 'PERMISSION_LOST', 'IO_ERROR'
 ] as const;
 

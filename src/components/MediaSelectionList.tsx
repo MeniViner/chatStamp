@@ -121,7 +121,8 @@ export const DaySelectionHeader = React.memo(function DaySelectionHeader({ group
   const { t } = useTranslation();
   const theme = useAppTheme();
   return <Pressable onPress={() => onToggleDay(groupKey)} accessibilityRole="checkbox" accessibilityLabel={t('picker.selectDay', { date: label })}
-    accessibilityState={{ checked: state === 'some' ? 'mixed' : state === 'all' }}
+    // RN Android otherwise retains the old mixed-state description on boolean transitions.
+    accessibilityState={{ checked: state === 'some' ? 'mixed' : state === 'all', busy: false }}
     style={[styles.dayHeader, { backgroundColor: theme.colors.surface }]}>
     <Text variant="titleSmall" style={styles.dayTitle}>{label}</Text>
     <MaterialCommunityIcons name={state === 'all' ? 'checkbox-marked' : state === 'some' ? 'minus-box' : 'checkbox-blank-outline'} size={24} color={theme.colors.primary} />
@@ -133,7 +134,7 @@ export const SelectionFooter = React.memo(function SelectionFooter({ selected, t
   const theme = useAppTheme();
   return <View style={styles.footer}>
     <Pressable onPress={onToggleAll} disabled={!total} accessibilityRole="checkbox" accessibilityLabel={t('picker.selectFilter')}
-      accessibilityState={{ checked: state === 'some' ? 'mixed' : state === 'all', disabled: !total }} style={styles.footerSelect}>
+      accessibilityState={{ checked: state === 'some' ? 'mixed' : state === 'all', disabled: !total, busy: false }} style={styles.footerSelect}>
       <MaterialCommunityIcons name={state === 'all' ? 'checkbox-marked' : state === 'some' ? 'minus-box' : 'checkbox-blank-outline'} size={24} color={theme.colors.primary} />
       <Text style={styles.footerCount}>{t('picker.selectionCount', { selected, total })} · {formatSelectionBytes(selectedBytes)}{unknownSizeCount ? ` + ${t('picker.unknownSize', { count: unknownSizeCount })}` : ''}</Text>
     </Pressable>

@@ -252,12 +252,9 @@
     }
   },
   "fileSelection": {
-    "chatTranscript": "קובץ השיחה",
-    "chatTranscriptFile": "תמליל TXT",
     "unknownSender": "שולח לא ידוע",
     "noDate": "התאריך אינו זמין",
-    "approximateDate": "{{date}} (משוער)",
-    "previewFile": "תצוגה מקדימה"
+    "approximateDate": "{{date}} (משוער)"
   },
   "processing": {
     "analyzeTitle": "מנתח קובץ ZIP",

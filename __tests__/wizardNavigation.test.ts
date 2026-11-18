@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canGoBackInWizard, getPreviousWizardStage, getWizardStepIndex, wizardSteps } from '../src/screens/wizardNavigation';
+import { getWizardStepIndex, wizardSteps } from '../src/screens/wizardNavigation';
 
 describe('wizardNavigation', () => {
   it('maps wizard step indexes', () => {
@@ -12,11 +12,4 @@ describe('wizardNavigation', () => {
     expect(getWizardStepIndex('error')).toBe(0);
   });
 
-  it('uses safe back behavior for editable steps', () => {
-    expect(getPreviousWizardStage('selectFiles')).toBe('welcome');
-    expect(getPreviousWizardStage('outputOptions')).toBeUndefined();
-    expect(getPreviousWizardStage('reviewSave')).toBeUndefined();
-    expect(canGoBackInWizard('saving')).toBe(false);
-    expect(canGoBackInWizard('results')).toBe(false);
-  });
 });

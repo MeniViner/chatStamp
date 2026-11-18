@@ -252,12 +252,9 @@
     }
   },
   "fileSelection": {
-    "chatTranscript": "Chat transcript",
-    "chatTranscriptFile": "Conversation TXT",
     "unknownSender": "Unknown sender",
     "noDate": "Date unavailable",
-    "approximateDate": "Approx. {{date}}",
-    "previewFile": "Preview file"
+    "approximateDate": "Approx. {{date}}"
   },
   "processing": {
     "analyzeTitle": "Analyze ZIP",

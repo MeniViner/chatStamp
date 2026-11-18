@@ -498,3 +498,53 @@ Code5 source is checkpointed for signed release/runtime acceptance. This is not
 E closure: actual minified restart/RTLbothdirections,Back/insets/font130/wideENHE,
 updatedrealphone-onlysyntheticstoreimages,manualsignedupdate andcleanup remain.
 Physicalphoneunlock wasrequestedagain; API33physical remains unavailable.
+
+
+## E physical gate and independent F continuation · 2026-11-18
+
+E implementation is preserved/pushed at041a79a (minified UIpreflight0db5579).
+PhoneUI gate is externally BLOCKED on ownerunlock: securelock confirmed atrelease
+build boundary; onlyMeni canunlock. No bypass,phoneUIclaim or phone screenshot
+replacement is allowed. RequestedAPI33physical isalso unavailable; actualA30 is
+API30. API36preflight remainsinprogress withits exclusivelease andexactAPKhase.
+Do not mark E complete or claim finalminifiedpolicyacceptance. Final451-testcycle,
+code5 rebuild/replay andstorecaptures remain after runtime/owner gates.
+
+Groundrule9 permits independent next-stage work after alternatives are exhausted.
+F cleanup/docs/CI-source preparation nowcontinues withoutdevice/build/prebuild/
+connectedtest/npm-install mutations during the emulator lease. Implementer owns
+caller-checkeddeadsource/exportcleanup; testauthor migratesactiveacceptance before
+retiringtest-onlyhelpers; root ownsdocs,currentExecPlan,CI/policyguards andpackage
+changes afterlease; reviewer laterreviewsfinaldiff. F release candidatewilluse
+highercode6. NativeZIPsample-budget suspicion wasrefuted byowningsource (64KiB/TXT,
+16MiBglobal,20kentries); do notchangeaworkingguard orreportit asadefect.
+
+
+### 2026-11-18 — F validation corrections (candidate code6, acceptance pending)
+
+Caller-checked cleanup removed obsolete screens/root strays and test-only helper
+implementations. Criterion migration retains parser/date/cancel/history and real
+500/5000-cell/player tests; host baseline is431 tests/46files (previous451 before
+retiring duplicated wrapper assertions). Role handoff stays temporary; no raw
+work inputs were repackaged as evidence.
+
+Compatible SDK55 patching removes unused packages/redundant lint pins, declares
+real core/asset dependencies and keeps RN0.83. npm audit37→11 findings; every
+remaining package has a disposition in DEPENDENCY_AUDIT.md. Expo compatibility
+also required RN0.83.10 and matching React types. No forced major override or
+Expo52 downgrade. Reviewer found an inert NDK property: try another way, inject
+root ext.ndkVersion before Expo defaults and assert the resolved app/root SDK,
+build-tools and NDK in CI. AGP SDK getters use integer values.
+
+Physical code5 preflight reproduced a native stale mixed-selection description
+when narrowing an all-selected filter. RN setViewState only refreshed the label
+for checked-string transitions. try another way: retain stable checkbox nodes
+and include truthful busy:false on aggregate day/footer states to force native
+label refresh. Final code6 native mixed→all/none/empty checks remain pending.
+
+F wholecycle1 stopped at the empty-footer host assertion after this new state;
+updated its exact expected map to retain checked/disabled plus busy:false.
+Wholecycle2 passed431 host/TS/lint/prebuild but stopped at autolinking: expo-audio's
+unbounded expo-asset peer selected SDK58 beside Expo55. try another way: declare
+Expo's compatible expo-asset55.0.20 at the root, rather than patching node_modules
+or relaxing native metadata parsing. Full cycle restarts at npm ci.

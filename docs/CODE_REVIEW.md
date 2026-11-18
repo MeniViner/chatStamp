@@ -1,54 +1,70 @@
-# Code Review Checklist
+# Code review checklist
 
-Use this checklist before accepting Codex changes.
+Current acceptance rules, 2026-11-18. Historical dated reviews below describe
+older implementations and do not authorize their superseded storage/RTL paths.
 
-## Product correctness
+## Product and dates
 
-- Does the change move the MVP toward real Gallery date sorting?
-- Does it avoid Phase 2 scope creep?
-- Does it keep the app local-only?
+- Import → Select → Save, exactly two permission-free onboarding pages.
+- Local-only: no database, accounts, analytics, ads, cloud or server APIs.
+- Saved, verified original message date and observed Gallery order are separate
+  facts. Approximate/ambiguous/undated results never masquerade as verified.
+- JPEG/PNG/WebP EXIF, MP4 headers, mtime and MediaStore are independently read
+  back where applicable. Check the real Gallery's creation-date order/details.
+- Duplicate reruns and locale changes reuse recorded paths and identities;
+  legacy save/history compatibility stays intact.
 
-## Android correctness
+## Android and lifecycle
 
-- Are Android permissions appropriate and minimal?
-- Does the change respect scoped storage?
-- Does it handle `content://` URIs?
-- Does it avoid relying only on filesystem timestamps?
+- Production ID com.menis.chatstamp stays fixed. Test only .qa side-by-side.
+- min SDK30, target/compile36, build-tools36.0.0, NDK27.1.12297006 resolve from
+  durable source after clean prebuild; generated android/ is ignored.
+- Only FGS/dataSync/notification platform permissions and the app-owned AndroidX
+  signature receiver permission; no broad storage/media, microphone or network.
+- Native source-URI streaming, single-pass validation/fingerprint, space/archive
+  limits and bounded transcript samples; no complete private ZIP copies.
+- Intent inbox cold-once/warm-event behavior, grant lifetime, busy-share queue,
+  typed failures and retry readability remain correct.
+- Save captures session/IDs/settings before asynchronous work. Cancel, Back,
+  activity recreation, service timeout and restart preserve correct ownership.
+- Cancellation removes own partial/pending output, retains complete files and
+  reports the remainder as cancelled. Startup reconciles own stale job state.
+- Atomic JSON details-before-index writes; no settings publication before commit.
+- Backup and device transfer disabled/excluded; temporary external read grants
+  only on explicit user open/share actions.
 
-## Performance
+## UI and performance
 
-- Does it avoid loading the whole ZIP into JS memory?
-- Are large file operations streamed or native-backed?
-- Does UI progress update during long operations?
+- Set selection, stable memoized cells and virtualized grid/day sections; Save
+  and footer use the current filter and preserve hidden selections.
+- Bounded native thumbnails; zero cell video players, at most one viewer video
+  player and one shared audio controller. Release on page/unmount/background.
+- Real progress with unknown totals supported; no fabricated steps/percentages.
+- Native I18nManager direction only, explicit safe restart for direction changes,
+  app-language dates and actual dynamic palette or honest fallback.
+- English/Hebrew parity and zero unreachable keys; plain Hebrew without raw
+  placeholders/technical error leakage. Strict TypeScript has zero any.
+- Check Back, dialogs/sheets, keyboard and inset-safe primary actions on phone
+  and 600 dp layouts, 100/130% font sizes, both languages. Aggregate accessibility
+  checked/disabled/mixed transitions must agree with actual native descriptions.
 
-## Parser quality
+## Required validation and custody
 
-- Are new WhatsApp text formats covered by tests?
-- Does parsing tolerate Unicode marks and multiline messages?
-- Does failure produce a skipped/unmatched result rather than a crash?
+Run npm ci, typecheck, test, lint, clean Android prebuild, two-worker arm64 QA
+assembly, manifest/APK policy checks, nonzero native JVM and connected tests,
+then cold-launch and the affected real-device cases. Restart the whole cycle
+from npm ci after a failure/fix. Verification tooling regressions also run in CI.
 
-## TypeScript quality
+Release checks additionally validate signed AAB/APK identity, upload certificate,
+SDK/permission/backup policy, nondebug/minified runtime and packaged ELF/16 KiB
+alignment. Static alignment does not certify a 16 KiB device run. Never replace
+or regenerate the owner's key; secrets remain outside the repository and logs.
 
-- No `any` unless justified.
-- Public service functions use typed inputs/outputs.
-- Errors are represented clearly.
-
-## Verification
-
-Run:
-
-```bash
-npm run typecheck
-npm run test
-npm run lint
-```
-
-For native changes, also run on Android device:
-
-```bash
-npx expo prebuild --platform android
-npx expo run:android
-```
+Review against the requested acceptance criteria, update the ExecPlan/rebuild/
+verification logs and distinguish source, local tests, fresh-checkout CI,
+artifact checks, device outcomes and Play distribution. Keep evidence minimal
+and under the cumulative 10 MB ceiling. The owner controls Play Console and real
+exports; a local bundle does not establish upload, tester counts or 14 days.
 
 ## Latest Review Status
 

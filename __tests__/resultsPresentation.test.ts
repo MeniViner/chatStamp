@@ -54,6 +54,14 @@ const plain = (value: React.ReactNode): string => Array.isArray(value) ? value.m
 const text = (renderer: ReactTestRenderer) => renderer.root.findAllByType(host('Text')).map((node) => plain(node.props.children)).join('\n');
 
 describe('actual result row save/date facts', () => {
+  it('keeps a JPEG result on the actual photo thumbnail/status path without old English video wording', async () => {
+    const renderer = await mount(React.createElement(ResultRow, { result: row('IMG-synthetic') }));
+    expect(renderer.root.findByType(host('MediaThumbnail')).props.mediaType).toBe('photo');
+    expect(text(renderer)).toContain('IMG-synthetic.jpg');
+    expect(text(renderer)).toContain('results.status.dateFixed');
+    expect(text(renderer)).not.toMatch(/Video saved|וידאו נשמר/);
+  });
+
   it.each([
     ['saved/date verified', {}, 'results.fileSaved', 'results.dateVerified'],
     ['saved/date unverified', { dateCorrectionVerified: false, dateVerification: 'unverified' }, 'results.fileSaved', 'results.dateNotVerified'],

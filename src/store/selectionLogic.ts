@@ -19,15 +19,6 @@ export function toggleMediaTypeSelection(
   };
 }
 
-export function countSelectedSaveableFiles(
-  files: ExtractedMediaFile[],
-  selectedSenders: string[],
-  selectedMediaTypes: MediaTypeSelection,
-  selectedFileIds?: ReadonlySet<string> | readonly string[]
-): number {
-  return getSelectedSaveCandidates(files, selectedSenders, selectedMediaTypes, selectedFileIds).length;
-}
-
 export function getSelectedSaveCandidates(
   files: ExtractedMediaFile[],
   selectedSenders: string[],
@@ -47,20 +38,4 @@ export function getSelectedSaveCandidates(
     selected.sort((a, b) => (order.get(a.file.id) ?? 0) - (order.get(b.file.id) ?? 0));
   }
   return selected;
-}
-
-export function toggleFileSelection(selectedFileIds: string[], fileId: string): string[] {
-  if (!fileId) return selectedFileIds;
-  return selectedFileIds.includes(fileId)
-    ? selectedFileIds.filter((id) => id !== fileId)
-    : [...selectedFileIds, fileId];
-}
-
-export function selectAllVisibleFiles(selectedFileIds: string[], visibleFileIds: string[]): string[] {
-  return Array.from(new Set([...selectedFileIds, ...visibleFileIds]));
-}
-
-export function clearVisibleFiles(selectedFileIds: string[], visibleFileIds: string[]): string[] {
-  const visibleSet = new Set(visibleFileIds);
-  return selectedFileIds.filter((id) => !visibleSet.has(id));
 }

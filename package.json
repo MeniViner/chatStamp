@@ -15,8 +15,9 @@
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
     "@pchmn/expo-material3-theme": "^1.4.0",
-    "expo": "~55.0.19",
+    "expo": "~55.0.32",
     "expo-application": "~55.0.14",
+    "expo-asset": "~55.0.20",
     "expo-audio": "~55.0.14",
     "expo-clipboard": "^55.0.13",
     "expo-document-picker": "~55.0.13",
@@ -25,35 +26,25 @@
     "expo-image": "~55.0.9",
     "expo-intent-launcher": "^55.0.12",
     "expo-localization": "^55.0.13",
-    "expo-sharing": "~55.0.18",
+    "expo-modules-core": "55.0.27",
     "expo-system-ui": "~55.0.16",
     "expo-video": "~55.0.15",
     "i18next": "^26.0.8",
     "react": "19.2.0",
     "react-i18next": "^17.0.6",
-    "react-native": "0.83.6",
+    "react-native": "0.83.10",
     "react-native-paper": "^5.15.1",
     "react-native-safe-area-context": "~5.6.2",
-    "react-native-screens": "~4.23.0",
     "chatstamp-native": "file:./modules/chatstamp-native",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "@types/react": "^19.2.14",
+    "@types/react": "~19.2.10",
     "@types/react-test-renderer": "19.3.1",
-    "@typescript-eslint/eslint-plugin": "8.48.0",
-    "@typescript-eslint/parser": "8.48.0",
     "eslint": "^9.39.1",
     "eslint-config-expo": "^55.0.0",
     "react-test-renderer": "19.2.0",
     "typescript": "~5.9.2",
-    "vitest": "^4.1.5"
-  },
-  "overrides": {
-    "@typescript-eslint/scope-manager": "8.48.0",
-    "@typescript-eslint/types": "8.48.0",
-    "@typescript-eslint/typescript-estree": "8.48.0",
-    "@typescript-eslint/utils": "8.48.0",
-    "@typescript-eslint/visitor-keys": "8.48.0"
+    "vitest": "^4.1.12"
   }
 }

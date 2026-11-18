@@ -5,7 +5,6 @@ import { attachChatRecordsToMedia } from '../src/lib/matcher';
 import { classifyMedia } from '../src/lib/mediaClassifier';
 import type { ExtractedMediaFile } from '../src/types/media';
 import { UNKNOWN_SENDER } from '../src/lib/mediaMetadata';
-import { filterVisibleFiles } from '../src/store/fileFiltering';
 import { getSelectedSaveCandidates } from '../src/store/selectionLogic';
 import { chatFixtures } from './chatFixtures';
 
@@ -68,13 +67,11 @@ describe('chat archive matching', () => {
     const selectedMediaTypes = {
       photo: true, video: true, audio: true, gif: true, voice: true, sticker: true, document: true, unknown: false
     };
-    const visible = filterVisibleFiles({ files: attached, selectedSenders, selectedMediaTypes, saveableOnly: true });
-    expect(visible.map((file) => file.id)).toEqual(files.map((file) => file.id));
-
-    const eligible = getSelectedSaveCandidates(visible, selectedSenders, selectedMediaTypes, files.map((file) => file.id));
+    const eligible = getSelectedSaveCandidates(attached, selectedSenders, selectedMediaTypes, files.map((file) => file.id));
+    expect(eligible.map(({ file }) => file.id)).toEqual(files.map((file) => file.id));
     expect(eligible).toEqual([
-      { file: visible[0], timestampMillis: Date.parse('2024-02-05T12:00:00Z') },
-      { file: visible[1], timestampMillis: undefined }
+      { file: attached[0], timestampMillis: Date.parse('2024-02-05T12:00:00Z') },
+      { file: attached[1], timestampMillis: undefined }
     ]);
   });
 });

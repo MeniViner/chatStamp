@@ -51,7 +51,7 @@ export function displayOutputChatName(zipName: string | undefined, labels: Outpu
   return sanitizePathSegment(zipName?.replace(/\.zip$/i, '') ?? '', labels.importedChat);
 }
 
-export function sanitizePathSegment(value: string, fallback = legacyOutputFolderLabels.importedChat): string {
+function sanitizePathSegment(value: string, fallback = legacyOutputFolderLabels.importedChat): string {
   const safe = value
     .replace(/[\\/:*?"<>|\u0000-\u001F]/g, '_')
     .replace(/\s+/g, ' ')

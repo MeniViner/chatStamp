@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  clearVisibleFiles,
-  countSelectedSaveableFiles,
-  selectAllVisibleFiles,
-  toggleFileSelection,
+  getSelectedSaveCandidates,
   toggleMediaTypeSelection,
   toggleSenderSelection
 } from '../src/store/selectionLogic';
@@ -72,16 +69,6 @@ describe('selectionLogic', () => {
       }
     ];
 
-    expect(countSelectedSaveableFiles(files, ['Avi'], defaultTypes)).toBe(1);
-  });
-
-  it('toggles individual file selection', () => {
-    expect(toggleFileSelection(['1'], '2')).toEqual(['1', '2']);
-    expect(toggleFileSelection(['1', '2'], '1')).toEqual(['2']);
-  });
-
-  it('selects and clears visible files', () => {
-    expect(selectAllVisibleFiles(['1'], ['1', '2', '3'])).toEqual(['1', '2', '3']);
-    expect(clearVisibleFiles(['1', '2', '3'], ['2', '3'])).toEqual(['1']);
+    expect(getSelectedSaveCandidates(files, ['Avi'], defaultTypes).map(({ file }) => file.id)).toEqual(['1']);
   });
 });

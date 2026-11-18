@@ -40,7 +40,6 @@ vi.mock('../src/screens/SettingsScreen', () => ({ SettingsScreen: 'SettingsScree
 vi.mock('../src/screens/HistoryScreen', () => ({ HistoryScreen: 'HistoryScreen' }));
 vi.mock('../src/screens/ErrorScreen', () => ({ ErrorScreen: 'ErrorScreen' }));
 vi.mock('../src/screens/DoneScreen', () => ({ DoneScreen: 'DoneScreen' }));
-vi.mock('../src/screens/OutputFolderScreen', () => ({ OutputFolderScreen: () => { throw new Error('Obsolete output step rendered'); } }));
 
 const host = (name: string) => name as React.ElementType;
 const renderers: ReactTestRenderer[] = [];
@@ -50,7 +49,7 @@ const flush = () => new Promise<void>((resolve) => setImmediate(resolve));
 beforeAll(() => { env.IS_REACT_ACT_ENVIRONMENT = true; });
 afterAll(() => { if (previous === undefined) delete env.IS_REACT_ACT_ENVIRONMENT; else env.IS_REACT_ACT_ENVIRONMENT = previous; });
 const file = (id: string, mediaType: ExtractedMediaFile['mediaType'], sender: string, minute: number): ExtractedMediaFile => ({
-  id, filename: `${id}.${mediaType === 'photo' ? 'jpg' : mediaType === 'voice' ? 'opus' : 'txt'}`, uri: `file:///synthetic/${id}`, normalizedFilename: id,
+  id, filename: `${id}.${mediaType === 'photo' ? 'jpg' : mediaType === 'video' ? 'mp4' : mediaType === 'voice' ? 'opus' : 'txt'}`, uri: `file:///synthetic/${id}`, normalizedFilename: id,
   mediaType, sizeBytes: 100, dateSource: 'chat', matchedRecord: { id, filename: id, normalizedFilename: id, sender,
     messageDateIso: `2019-02-26T10:${String(minute).padStart(2, '0')}:00Z`, rawLine: '' },
 });
@@ -80,6 +79,67 @@ async function press(node: ReactTestInstance) { await act(async () => { node.pro
 async function back() { await act(async () => { expect([...control.listeners].reverse().some((listener) => listener())).toBe(true); }); }
 
 describe('actual Stage E Select and navigator integration', () => {
+  it('starts with search and filter surfaces closed and newest dates first', async () => {
+    const renderer = await mount();
+    expect(renderer.root.findAllByType(host('Searchbar'))).toHaveLength(0);
+    expect(renderer.root.findAllByType(host('PremiumBottomSheet')).every((node) => !node.props.visible)).toBe(true);
+    expect(find(renderer, 'Chip', textIs('picker.newest')).props.selected).toBe(true);
+    expect(find(renderer, 'MediaSelectionList').props.items.map((item: { id: string }) => item.id)).toEqual(['transcript', 'dana-voice', 'eli-photo', 'dana-photo']);
+  });
+
+  it('applies real case-insensitive search and visible-only clear/select without changing hidden choices', async () => {
+    const renderer = await mount();
+    await act(async () => find(renderer, 'MediaSelectionList').props.onToggle('dana-voice'));
+    await press(find(renderer, 'IconButton', (node) => node.props.accessibilityLabel === 'picker.search'));
+    await act(async () => find(renderer, 'Searchbar').props.onChangeText('  DANA  '));
+    expect(find(renderer, 'MediaSelectionList').props.items.map((item: { id: string }) => item.id)).toEqual(['dana-voice', 'dana-photo']);
+    expect(find(renderer, 'SelectionFooter').props).toMatchObject({ selected: 1, total: 2 });
+    await act(async () => find(renderer, 'SelectionFooter').props.onToggleAll());
+    expect(usePipelineStore.getState().selectedFileIds).toEqual(new Set(files.map((entry) => entry.id)));
+    await act(async () => find(renderer, 'SelectionFooter').props.onToggleAll());
+    expect(usePipelineStore.getState().selectedFileIds).toEqual(new Set(['eli-photo', 'transcript']));
+    await act(async () => find(renderer, 'Searchbar').props.onChangeText('ELI-PHOTO'));
+    expect(find(renderer, 'MediaSelectionList').props.items.map((item: { id: string }) => item.id)).toEqual(['eli-photo']);
+    expect(find(renderer, 'SelectionFooter').props).toMatchObject({ selected: 1, total: 1 });
+    await act(async () => find(renderer, 'Searchbar').props.onChangeText('no match'));
+    expect(find(renderer, 'SelectionFooter').props).toMatchObject({ selected: 0, total: 0 });
+  });
+
+  it('keeps unknown-sender and undated supported files visible and formats known dates without seconds', async () => {
+    const dated = file('known', 'photo', 'QA Dana', 29);
+    dated.matchedRecord = { ...dated.matchedRecord!, messageDateIso: '2026-08-18T14:29:42Z' };
+    const undated: ExtractedMediaFile = { id: 'undated', filename: 'undated.vcf', normalizedFilename: 'undated.vcf', uri: 'file:///synthetic/undated.vcf', mediaType: 'document', dateSource: 'none' };
+    const estimate = Object.freeze({ id: 'estimate', filename: 'IMG-20190226-WA0001.jpg', normalizedFilename: 'img-20190226-wa0001.jpg', uri: 'file:///synthetic/estimate.jpg',
+      mediaType: 'photo' as const, dateSource: 'filename' as const, dateIso: '2019-02-26T12:00:00Z', dateAmbiguous: true });
+    usePipelineStore.setState({ mediaFiles: [undated, dated, estimate], selectedFileIds: new Set(['known', 'estimate', 'undated']) });
+    const renderer = await mount();
+    const shown = find(renderer, 'MediaSelectionList').props.items;
+    expect(shown.map((item: { id: string }) => item.id)).toEqual(['known', 'estimate', 'undated']);
+    expect(shown[2]).toMatchObject({ sender: 'fileSelection.unknownSender', dateLabel: 'picker.date.missing', dateBadge: 'missing', dayKey: null });
+    expect(shown[1]).toMatchObject({ dateBadge: 'approximate', dayKey: '2019-02-26' });
+    expect(estimate).toMatchObject({ dateSource: 'filename', dateAmbiguous: true });
+    expect(shown[0].dateLabel).toBe(new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }).format(new Date('2026-08-18T14:29:42Z')));
+    expect(shown[0].dateLabel).not.toContain(':42');
+    expect(find(renderer, 'SelectionFooter').props).toMatchObject({ selected: 3, total: 3 });
+  });
+
+  it('shows sender-scoped type counts and preserves all selected categories across real tab changes', async () => {
+    const mixed = [file('A-photo', 'photo', 'Avi', 0), file('A-video', 'video', 'Avi', 1), file('A-voice', 'voice', 'Avi', 2), file('D-photo', 'photo', 'Dana', 3)];
+    usePipelineStore.setState({ mediaFiles: mixed, selectedFileIds: new Set(mixed.map((entry) => entry.id)) });
+    const renderer = await mount();
+    await press(find(renderer, 'IconButton', (node) => node.props.accessibilityLabel === 'picker.filters'));
+    await press(find(renderer, 'Chip', (node) => node.props.children === 'Dana'));
+    expect(find(renderer, 'SelectionFooter').props).toMatchObject({ selected: 3, total: 3 });
+    for (const [tab, id] of [['photos', 'A-photo'], ['videos', 'A-video'], ['voice', 'A-voice']] as const) {
+      await press(find(renderer, 'Chip', textIs(`picker.tabs.${tab}`)));
+      expect(find(renderer, 'MediaSelectionList').props.items.map((item: { id: string }) => item.id)).toEqual([id]);
+      expect(find(renderer, 'SelectionFooter').props).toMatchObject({ selected: 1, total: 1 });
+    }
+    expect(usePipelineStore.getState().selectedFileIds).toEqual(new Set(mixed.map((entry) => entry.id)));
+    await press(find(renderer, 'Chip', textIs('picker.tabs.all')));
+    expect(find(renderer, 'SelectionFooter').props).toMatchObject({ selected: 3, total: 3 });
+  });
+
   it('directly saves the active sender+Photos scope once after native release, retaining hidden choices', async () => {
     let release!: () => void; control.audio.release.mockReturnValueOnce(new Promise<void>((accept) => { release = accept; }));
     const renderer = await mount(true);

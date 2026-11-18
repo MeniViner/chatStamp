@@ -54,13 +54,13 @@ export function scoreTranscriptCandidates(candidates: TranscriptCandidateInput[]
   });
 }
 
-export function countWhatsAppMessageLines(sample: string): number {
+function countWhatsAppMessageLines(sample: string): number {
   return sample
     .split(/\r\n?|\n/)
     .filter(isWhatsAppMessageLine).length;
 }
 
-export function normalizeZipTextFilename(filename: string): string {
+function normalizeZipTextFilename(filename: string): string {
   const basename = filename.replace(/\\/g, '/').split('/').pop() ?? filename;
   try {
     return decodeURIComponent(basename);

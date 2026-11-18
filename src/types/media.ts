@@ -2,7 +2,7 @@ export type MediaType = 'photo' | 'video' | 'voice' | 'audio' | 'sticker' | 'gif
 export type DateSource = 'chat' | 'filename' | 'zip-entry' | 'none';
 export type DatePrecision = 'day' | 'minute' | 'second';
 
-export type ChatPreviewMessage = {
+type ChatPreviewMessage = {
   id: string;
   sender: string;
   messageDateIso: string;
@@ -20,8 +20,6 @@ export type PipelineStage =
   | 'welcome'
   | 'analyzing'
   | 'selectFiles'
-  | 'outputOptions'
-  | 'reviewSave'
   | 'saving'
   | 'results'
   | 'settings'
@@ -61,15 +59,6 @@ export type ExtractedMediaFile = {
   timeZone?: string;
   timeZoneAssumed?: boolean;
   transcriptPreview?: ChatPreview;
-};
-
-export type SenderSummary = {
-  sender: string;
-  total: number;
-  photos: number;
-  videos: number;
-  voice: number;
-  other: number;
 };
 
 export type ImportSummary = {
@@ -117,7 +106,7 @@ export type CompletionSummary = {
 
 export type SaveMethod = 'scoped-media-store' | 'saf-custom-folder' | 'termux-parity';
 
-export type SaveDestinationMode = 'default-accurate-folder' | 'custom-folder';
+type SaveDestinationMode = 'default-accurate-folder' | 'custom-folder';
 export type OutputOrganizationMode = 'all-in-one' | 'by-type' | 'by-sender' | 'by-sender-and-type';
 export type DuplicateHandlingMode = 'keep-both' | 'skip-existing' | 'replace-existing';
 export type AppAppearance = 'system' | 'light' | 'dark';
@@ -136,7 +125,7 @@ export type PickedFolderResult = {
   readablePathLabel?: string | null;
 };
 
-export type PickedFolderTimestampSupportResult = {
+type PickedFolderTimestampSupportResult = {
   treeUri: string;
   canWriteFile: boolean;
   canCreateSubfolders: boolean;

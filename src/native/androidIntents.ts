@@ -6,7 +6,7 @@ import { getChatStampNativeModule } from './chatStampNativeModule';
 import { buildOpenFolderTarget } from './openDirectoryLogic';
 import { findGalleryItem } from './openTargetLogic';
 import { getMimeTypeForMedia } from '../lib/mediaClassifier';
-export { shouldShowOpenFolder, shouldShowOpenGallery } from './openTargetLogic';
+export { shouldShowOpenGallery } from './openTargetLogic';
 
 export type OpenTargetOutcome = 'opened' | 'manual-fallback';
 
