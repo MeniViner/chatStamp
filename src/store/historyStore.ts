@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { ExportHistoryItem } from '../types/media';
 import { logger } from '../lib/logger';
 import { atomicStore } from './jsonFileStorage';
-import { createExportHistoryItem } from './historyLogic';
+import { createExportHistoryItem, normalizeHistoryItem } from './historyLogic';
 import { HistoryRepository, HISTORY_INDEX_FILE } from '../services/historyService';
 
 const historyKey = HISTORY_INDEX_FILE;
@@ -35,7 +35,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     if (!item || item.savedFiles || item.detailsMissing) return;
     const results = await repository.readDetails(id);
     set((state) => ({ items: state.items.map((entry) => entry.id === id
-      ? { ...entry, savedFiles: results ?? undefined, detailsMissing: results === null } : entry) }));
+      ? normalizeHistoryItem({ ...entry, savedFiles: results ?? undefined, detailsMissing: results === null }) : entry) }));
   },
   addHistoryItem: async (item) => {
     await repository.save(item);

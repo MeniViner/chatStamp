@@ -8,6 +8,7 @@ import { FolderFallbackSheet } from '../components/FolderFallbackSheet';
 import { openFolderBestEffort, openGalleryBestEffort, shouldShowOpenGallery } from '../native/androidIntents';
 import { deleteOutputFiles, shareOutputFiles } from '../native/outputFiles';
 import { useHistoryStore } from '../store/historyStore';
+import { historyPresentation } from '../store/historyLogic';
 import { usePipelineStore } from '../store/pipelineStore';
 import type { ExportHistoryItem, MediaType } from '../types/media';
 import { useAppTheme } from '../theme/useAppTheme';
@@ -155,7 +156,8 @@ function HistoryCard({
     }
   }
 
-  const completed = item.counts.failed === 0;
+  const presentation = historyPresentation(item);
+  const completed = presentation.status === 'completed';
 
   return (
     <PremiumCard style={styles.card}>
@@ -166,7 +168,7 @@ function HistoryCard({
           </Text>
         </View>
         <View style={styles.headerActions}>
-          <StatusBadge label={completed ? t('history.completed') : t('history.needsCheck')} selected={completed} danger={!completed} />
+          <StatusBadge label={t(presentation.statusKey)} selected={completed} danger={!completed} />
           <Menu
             visible={menuOpen}
             onDismiss={() => setMenuOpen(false)}
@@ -193,7 +195,7 @@ function HistoryCard({
         </View>
       </View>
       <Text variant="labelLarge" style={textStyles.start}>
-        {t('history.summaryCounts', { saved: item.counts.totalSaved, failed: item.counts.failed })}
+        {t(presentation.descriptionKey, presentation.values)}
       </Text>
       {item.detailsMissing ? <Text variant="bodySmall" style={textStyles.start}>{t('session.detailsMissing')}</Text> : null}
       <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>

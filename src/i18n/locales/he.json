@@ -506,7 +506,7 @@
     "savedWithIssues": "השמירה בוצעה (עם הערות)",
     "successTitle": "המדיה נשמרה בהצלחה.",
     "filesSaved": "קבצים שנשמרו",
-    "datesFixed": "תאריכים ששוחזרו",
+    "datesFixed": "תאריכים שאומתו",
     "failed": "קבצים שנכשלו",
     "summaryTitle": "סיכום תהליך השמירה",
     "folderReady": "סטטוס תיקיית היעד",
@@ -514,7 +514,6 @@
     "someNeedReview": "ייתכן שחלק מהקבצים יצריכו בדיקה ידנית באפליקציית הגלריה או במנהל הקבצים.",
     "outputFolder": "תיקיית היעד",
     "galleryItems": "פריטים שנסרקו והתווספו לגלריה",
-    "savedFiles": "הקבצים שנשמרו",
     "savedFilesCount": "סך הקבצים שנשמרו: {{count}}",
     "notYetVerified": "טרם אומת על ידי המערכת",
     "fixed": "שוחזר בהצלחה",
@@ -554,7 +553,13 @@
     "headlineSaved": "הקבצים שנבחרו נשמרו.",
     "openGallery": "פתיחה בגלריה",
     "retryFailedFiles": "שמירה חוזרת של הקבצים שנכשלו",
-    "previousFileKept": "הקובץ הקודם נשאר בתיקייה."
+    "previousFileKept": "הקובץ הקודם נשאר בתיקייה.",
+    "partialSaveTitle": "חלק מהקבצים נשמרו",
+    "cancelledTitle": "השמירה בוטלה",
+    "headlineCancelled": "השמירה נעצרה: {{saved}} נשמרו, {{cancelled}} בוטלו, {{failed}} נכשלו.",
+    "cancelled": "קבצים שבוטלו",
+    "fileResults": "תוצאות הקבצים",
+    "retryRemainingFiles": "שמירת הקבצים שנותרו"
   },
   "history": {
     "title": "היסטוריית פעולות",
@@ -580,7 +585,10 @@
     "deleteFilesTitle": "למחוק את הרשומה והקבצים גם יחד?",
     "deleteFilesBody": "פעולה זו תסיר את רשומת ההיסטוריה ותנסה למחוק בנוסף גם את הקבצים שיובאו אל אחסון המכשיר.",
     "recordDeleted": "רשומת ההיסטוריה נמחקה בהצלחה.",
-    "filesDeleted": "רשומת ההיסטוריה והקבצים המשויכים אליה נמחקו בהצלחה."
+    "filesDeleted": "רשומת ההיסטוריה והקבצים המשויכים אליה נמחקו בהצלחה.",
+    "partial": "שמירה חלקית",
+    "cancelled": "בוטל",
+    "summaryCancelledCounts": "{{saved}} נשמרו • {{cancelled}} בוטלו • {{failed}} נכשלו"
   },
   "summary": {
     "title": "סיכום וסינון מתקדם",

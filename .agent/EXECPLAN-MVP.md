@@ -186,7 +186,7 @@ Earlier dated observations above remain historical evidence, not current accepta
 - [x] B-close: five-file picker save; separate saved/date-verified UI outcomes;
   independent MediaStore and MP4 readback; Samsung Gallery order and red-photo
   details; duplicate and language-change reruns; undated-document save.
-- [ ] C: single-pass content-URI streaming and fingerprint; bounded extraction;
+- [x] C: single-pass content-URI streaming and fingerprint; bounded extraction;
   TypeScript transcript selection; real progress; cancellation; dataSync foreground
   save and reattachment; one-shot cold/warm share events; cache/grant cleanup;
   coded errors; atomic split history with migration and orphan reconciliation.
@@ -293,3 +293,48 @@ Current B-close evidence is summarized by
 with its readbacks and synthetic screenshots in the same existing folder.
 See [the verification report](../docs/VERIFICATION.md#b-close--physical-app-and-gallery-acceptance--pass--2026-11-18)
 for exact dates, Gallery interpretation, duplicate inventories and cleanup.
+
+
+## Stage C accepted · physical API30 and emulator API36 · 2026-11-18
+
+- Real Google Files Share to the open QA process retained its PID and started
+  exactly one import; force-stop plus the same real share launched a new process
+  and started exactly one import. The granted content URI was used directly.
+- Physical128MiB extraction held only the134220717-byte video and66-byte transcript,
+  with no private ZIP/DocumentPicker/shared ZIP copy. Confirmed Back/discard and
+  cold launch left zero job files. Independent five-file MediaStore/EXIF/FFprobe
+  readback also passed after the new save implementation.
+- Fresh physical background saves completed while Launcher remained foreground,
+  both with notifications allowed and with API30 POST_NOTIFICATION blocked.
+  Each published a new full128MiB file (rows133 and142), not an already-saved skip.
+  API36 separately tested the Android13+ runtime notification-denial path.
+- First physical cancel sampling waited for a published and pending row together;
+  its brief insertion window was missed and all eight files completed. This was
+  inconclusive, not a cancellation pass. **try another way**: use16videos and tap
+  the visible Cancel footer as soon as one file is published while the FGS is
+  active. Result:2saved,14cancelled; no pending/partial row; both completed32MiB
+  files remain intact and FFprobe matches2019-02-21T09:00/09:01Z.
+- Emulator API36 also passed real warm/cold share,128MiB cache/discard, fresh
+  allowed/denied background writes,4saved/20cancelled with full files, and the
+  official dataSync timeout controls. System timeout was followed by clean
+  service stop about40ms later, with no pending/partial output or crash.
+- Runtime testing found misleading cancellation summary copy. Results now counts
+  newly saved outcomes separately from cancelled/failed/skipped rows and verified
+  dates. History persists cancelled counts and reconciles older details; retries
+  clear cancelled outcomes only when they actually save them. A new installed QA
+  cold start visibly shows Partial save:2saved,14cancelled,0failed.
+- Independent test author added17completion and14history regressions. Final
+  complete smoke passed npm ci, strict TypeScript,222Vitest tests/34files, ESLint,
+  clean prebuild, two-worker arm64 QA assembly, min30/target36/permission/service
+  inspection,23JVM tests and10connected tests on each API30/API36; zero failures,
+  errors or skips. Final reviewer found no actionable findings.
+- Final QA APK SHA256:acfe5fd889feb63525b4162d3e5559f1bd74cf08ed6a9458564b046a1eed1558.
+  It cold-launched in2.926s and its process crash buffer was empty.
+- Physical cleanup removed17owned output rows and five source ZIPs, uninstalled
+  QA/UI helper and restored stay-awake7 and screen timeout600000. Emulator cleanup
+  removed its QA/run files and restored stay-awake1 and platform test defaults.
+  Production package was absent and unchanged. Curated proof remains in the one
+  ignored rebuild-20261118 evidence folder, currently below1MB.
+- Provider-revocation simulation and crash recovery beyond cleanup of this
+  operation's own orphaned pending rows remain explicitly deferred. API33
+  physical coverage and a real owner WhatsApp export remain UNVERIFIED.

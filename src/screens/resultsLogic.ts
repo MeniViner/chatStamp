@@ -2,6 +2,8 @@ import type { CompletionSummary, SaveFileResult } from '../types/media';
 
 export function getResultsHeadlineKey(completion?: CompletionSummary): string {
   if (!completion) return 'results.title';
+  const cancelled = Math.max(completion.cancelled ?? 0, completion.results?.filter((result) => result.outcome === 'cancelled').length ?? 0);
+  if (cancelled > 0) return 'results.headlineCancelled';
   if (completion.results?.length && completion.results.every((result) => result.outcome === 'skipped')) {
     return 'results.headlineAlreadySaved';
   }
@@ -13,6 +15,48 @@ export function getResultsHeadlineKey(completion?: CompletionSummary): string {
   }
   if (completion.saved > 0) return 'results.headlineIssues';
   return 'results.headlineNoneSaved';
+}
+
+export type CompletionPresentation = {
+  status: 'success' | 'cancelled' | 'partial' | 'failed' | 'skipped' | 'empty';
+  savedCount: number;
+  cancelledCount: number;
+  failedCount: number;
+  resultCount: number;
+  dateVerifiedCount: number;
+  titleKey: string;
+  summaryKey: string;
+  summaryValues: Record<string, number>;
+};
+
+export function completionPresentation(completion?: CompletionSummary): CompletionPresentation {
+  const rows = completion?.results ?? [];
+  const savedRows = rows.filter((result) => result.ok && (result.outcome === 'saved' || result.outcome === undefined));
+  const savedCount = rows.length > 0 ? savedRows.length : completion?.saved ?? 0;
+  const cancelledCount = Math.max(completion?.cancelled ?? 0, rows.filter((result) => result.outcome === 'cancelled').length);
+  const failedCount = Math.max(completion?.failed ?? 0, rows.filter((result) =>
+    result.outcome === 'failed' || (!result.ok && result.outcome !== 'cancelled' && result.outcome !== 'skipped')
+  ).length);
+  const dateVerifiedCount = rows.length > 0
+    ? savedRows.filter((result) => result.dateCorrectionVerified && result.dateAmbiguous !== true && result.dateVerification !== 'unverified'
+      && result.dateVerification !== 'mtime-only' && result.verificationReason !== 'date-unavailable').length
+    : Math.min(savedCount, completion?.dateCorrected ?? 0);
+  const resultCount = rows.length > 0 ? rows.length : savedCount + cancelledCount + failedCount;
+  const counts = { savedCount, cancelledCount, failedCount, resultCount, dateVerifiedCount,
+    summaryValues: { saved: savedCount, cancelled: cancelledCount, failed: failedCount, verified: dateVerifiedCount } };
+
+  if (!completion) return { ...counts, status: 'empty', titleKey: 'results.title', summaryKey: 'results.title' };
+  const summaryKey = getResultsHeadlineKey({ ...completion, saved: savedCount, failed: failedCount,
+    cancelled: cancelledCount, dateCorrected: dateVerifiedCount });
+  if (cancelledCount > 0) return { ...counts, status: savedCount > 0 ? 'partial' : 'cancelled',
+    titleKey: savedCount > 0 ? 'results.partialSaveTitle' : 'results.cancelledTitle', summaryKey };
+  if (failedCount > 0) return { ...counts, status: savedCount > 0 ? 'partial' : 'failed',
+    titleKey: savedCount > 0 ? 'results.savedWithIssues' : 'results.headlineNoneSaved', summaryKey };
+  if (rows.length > 0 && rows.every((result) => result.outcome === 'skipped')) {
+    return { ...counts, status: 'skipped', titleKey: 'results.headlineAlreadySaved', summaryKey };
+  }
+  return { ...counts, status: savedCount > 0 ? 'success' : 'empty',
+    titleKey: savedCount > 0 ? 'results.successTitle' : 'results.headlineNoneSaved', summaryKey };
 }
 
 export function getResultStatusKey(result: SaveFileResult): string {

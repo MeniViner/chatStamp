@@ -506,7 +506,7 @@
     "savedWithIssues": "Saved with issues",
     "successTitle": "Media saved successfully.",
     "filesSaved": "Files saved",
-    "datesFixed": "Dates fixed",
+    "datesFixed": "Dates verified",
     "failed": "Failed",
     "summaryTitle": "Save summary",
     "folderReady": "Folder status",
@@ -514,7 +514,6 @@
     "someNeedReview": "Some files may still need manual review in Gallery or Files.",
     "outputFolder": "Output folder",
     "galleryItems": "Gallery-scanned items",
-    "savedFiles": "Saved files",
     "savedFilesCount": "Total saved files: {{count}}",
     "notYetVerified": "not yet verified",
     "fixed": "fixed",
@@ -554,7 +553,13 @@
     "headlineSaved": "The selected files were saved.",
     "openGallery": "Open in Gallery",
     "retryFailedFiles": "Retry failed files",
-    "previousFileKept": "The previous file was kept."
+    "previousFileKept": "The previous file was kept.",
+    "partialSaveTitle": "Some files were saved",
+    "cancelledTitle": "Save cancelled",
+    "headlineCancelled": "Saving stopped: {{saved}} saved, {{cancelled}} cancelled, {{failed}} failed.",
+    "cancelled": "Cancelled",
+    "fileResults": "File results",
+    "retryRemainingFiles": "Save remaining files"
   },
   "history": {
     "title": "History",
@@ -580,7 +585,10 @@
     "deleteFilesTitle": "Delete history and files?",
     "deleteFilesBody": "This removes the history record and also tries to delete the exported files from storage.",
     "recordDeleted": "History record deleted.",
-    "filesDeleted": "History record and files deleted."
+    "filesDeleted": "History record and files deleted.",
+    "partial": "Partially saved",
+    "cancelled": "Cancelled",
+    "summaryCancelledCounts": "{{saved}} saved • {{cancelled}} cancelled • {{failed}} failed"
   },
   "summary": {
     "title": "Summary & Filters",

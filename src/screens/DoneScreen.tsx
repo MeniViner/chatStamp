@@ -16,10 +16,10 @@ import { shareOutputFiles } from '../native/outputFiles';
 import { useTranslation } from 'react-i18next';
 import {
   collapseAllResultRows,
+  completionPresentation,
   expandAllResultRows,
   getResultRowKey,
   getResultStatusKey,
-  getResultsHeadlineKey,
   setResultRowExpanded,
   shouldShowTechnicalResults
 } from './resultsLogic';
@@ -51,6 +51,8 @@ export function DoneScreen() {
   const [folderFallbackOpen, setFolderFallbackOpen] = React.useState(false);
   const [expandedResultKeys, setExpandedResultKeys] = React.useState<string[]>([]);
   const results = React.useMemo(() => completion?.results ?? [], [completion?.results]);
+  const presentation = React.useMemo(() => completionPresentation(completion), [completion]);
+  const incomplete = presentation.failedCount > 0 || presentation.cancelledCount > 0;
   const firstSaved = results.find((result) => result.ok);
   const hasGalleryItem = shouldShowOpenGallery(results);
   const resultKeys = React.useMemo(() => results.map((result, index) => getResultRowKey(result, index)), [results]);
@@ -126,7 +128,7 @@ export function DoneScreen() {
     <WizardScreen
       stage="results"
       title={t('results.title')}
-      subtitle={t(getResultsHeadlineKey(completion))}
+      subtitle={t(presentation.summaryKey, presentation.summaryValues)}
       onBack={() => setRestartDialogOpen(true)}
       footer={
         <FooterActions>
@@ -148,23 +150,24 @@ export function DoneScreen() {
     >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <PremiumCard style={styles.successCard}>
-          <View style={[styles.successIcon, { backgroundColor: completion?.failed ? theme.colors.errorContainer : theme.colors.primaryContainer }]}>
+          <View style={[styles.successIcon, { backgroundColor: incomplete ? theme.colors.errorContainer : theme.colors.primaryContainer }]}>
             <MaterialCommunityIcons
-              name={completion?.failed ? 'alert-circle-outline' : 'check-circle-outline'}
+              name={presentation.cancelledCount > 0 ? 'pause-circle-outline' : presentation.failedCount > 0 ? 'alert-circle-outline' : 'check-circle-outline'}
               size={48}
-              color={completion?.failed ? theme.colors.error : theme.colors.primary}
+              color={incomplete ? theme.colors.error : theme.colors.primary}
             />
           </View>
           <Text variant="headlineSmall" style={[styles.successTitle, textStyles.start]}>
-            {completion?.failed ? t('results.savedWithIssues') : t('results.successTitle')}
+            {t(presentation.titleKey)}
           </Text>
           <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {t(getResultsHeadlineKey(completion))}
+            {t(presentation.summaryKey, presentation.summaryValues)}
           </Text>
           <View style={styles.metricsRow}>
-            <SummaryMetricCard label={t('results.filesSaved')} value={completion?.saved ?? 0} />
-            <SummaryMetricCard label={t('results.datesFixed')} value={completion?.dateCorrected ?? 0} />
-            <SummaryMetricCard label={t('results.failed')} value={completion?.failed ?? 0} />
+            <SummaryMetricCard label={t('results.filesSaved')} value={presentation.savedCount} />
+            <SummaryMetricCard label={t('results.datesFixed')} value={presentation.dateVerifiedCount} />
+            <SummaryMetricCard label={t('results.failed')} value={presentation.failedCount} />
+            {presentation.cancelledCount > 0 ? <SummaryMetricCard label={t('results.cancelled')} value={presentation.cancelledCount} /> : null}
           </View>
           <SummaryRow icon="folder-outline" label={t('results.outputFolder')} value={outputFolderDisplayName} />
           <ExpandableTechnicalDetails collapsedTitle={t('outputOptions.showFullPath')} expandedTitle={t('common.hideTechnicalDetails')}>
@@ -181,17 +184,17 @@ export function DoneScreen() {
               {t('results.openFolder')}
             </SecondaryButton>
           ) : null}
-          {completion?.failed && !completion.cacheCleared ? (
+          {incomplete && completion && !completion.cacheCleared ? (
             <SecondaryButton icon="refresh" style={styles.actionButton} onPress={retryFailedFiles}>
-              {t('results.retryFailedFiles')}
+              {t(presentation.cancelledCount > 0 ? 'results.retryRemainingFiles' : 'results.retryFailedFiles')}
             </SecondaryButton>
           ) : null}
         </View>
 
-        <Section title={t('results.savedFiles')} icon="file-check-outline">
+        <Section title={t('results.fileResults')} icon="file-check-outline">
           <View style={styles.savedFilesToolbar}>
             <Text variant="bodySmall" style={[styles.flex, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-              {t('results.savedFilesCount', { count: results.length })}
+              {t('results.savedFilesCount', { count: presentation.savedCount })}
             </Text>
             <IconOnlyActionButton
               icon="chevron-down"

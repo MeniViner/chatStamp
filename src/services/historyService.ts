@@ -1,5 +1,5 @@
 import type { ExportHistoryItem, SaveFileResult } from '../types/media';
-import { normalizeHistoryItem } from '../store/historyLogic';
+import { historyDatesVerified, normalizeHistoryItem } from '../store/historyLogic';
 
 export type HistoryStorage = {
   read: (name: string) => Promise<string | null>;
@@ -89,7 +89,7 @@ export class HistoryRepository {
         const detail = parseDetail(await this.storage.read(name));
         if (!detail || name !== historyDetailFileName(detail.summary.id)) continue;
         if (detail.deleted) deleted.add(detail.summary.id);
-        else summaries.set(detail.summary.id, withoutDetails(detail.summary));
+        else summaries.set(detail.summary.id, historySummary(detail.summary, detail.results));
       }
     }
     const legacyValue = parse(await this.storage.read(HISTORY_LEGACY_FILE));
@@ -151,13 +151,15 @@ function parseDetail(text: string | null): Detail | null {
 
 function historySummary(item: ExportHistoryItem, results: SaveFileResult[]): ExportHistoryItem {
   const summary = withoutDetails(item);
-  const saved = results.filter((result) => result.outcome === 'saved' || (!result.outcome && result.ok));
-  if (results.length === 0) return summary;
+  const saved = results.filter((result) => result.ok && (result.outcome === 'saved' || result.outcome === undefined));
+  if (results.length === 0) return withoutDetails(normalizeHistoryItem({ ...summary, savedFiles: results }));
   const count = (type: string) => saved.filter((result) => result.mediaType === type).length;
+  const failed = results.filter((result) => result.outcome === 'failed' || (!result.outcome && !result.ok)).length;
+  const cancelled = results.filter((result) => result.outcome === 'cancelled').length;
   return { ...summary, counts: { totalSaved: saved.length, photos: count('photo'), videos: count('video'),
     voice: count('voice'), stickers: count('sticker'), documents: count('document'),
-    failed: results.filter((result) => result.outcome === 'failed' || (!result.outcome && !result.ok)).length },
-    allFilesHadTimestampsFixed: saved.length > 0 && saved.every((result) => result.dateCorrectionVerified === true) };
+    failed, cancelled },
+    allFilesHadTimestampsFixed: saved.length > 0 && failed === 0 && cancelled === 0 && historyDatesVerified(results) };
 }
 
 function mergeResults(previous: SaveFileResult[], current: SaveFileResult[]): SaveFileResult[] {

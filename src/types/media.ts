@@ -182,6 +182,7 @@ export type ExportHistoryItem = {
     stickers: number;
     documents: number;
     failed: number;
+    cancelled?: number;
   };
   saveMethod: SaveMethod;
   outputDirectory?: string | null;
