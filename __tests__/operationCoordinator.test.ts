@@ -53,14 +53,19 @@ vi.mock('../src/i18n', () => ({ default: { t: mocks.translate } }));
 vi.mock('../src/lib/logger', () => ({ logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
 
 function imported(params: Partial<ImportPipelineResult> = {}): ImportPipelineResult {
+  const workingDirectory = params.workingDirectory ?? 'file:///cache/chatstamp/import-fixture/';
+  const record = { id: 'record-photo', filename: 'photo.jpg', normalizedFilename: 'photo.jpg', sender: 'QA Dana',
+    messageDateIso: '2025-01-02T10:00:00Z', rawLine: '2025-01-02, 10:00 - QA Dana: photo.jpg (file attached)' };
   return {
-    operationId: 'import-fixture', workingDirectory: 'file:///cache/chatstamp/import-fixture/', archiveFingerprint: 'a'.repeat(64),
-    chatRecords: [], skippedChatLines: [], mediaFiles: [],
+    operationId: 'import-fixture', workingDirectory, archiveFingerprint: 'a'.repeat(64),
+    chatRecords: [record], skippedChatLines: [], mediaFiles: [{ id: 'photo-entry', filename: 'photo.jpg', normalizedFilename: 'photo.jpg',
+      uri: `${workingDirectory}extracted/photo.jpg`, sourcePath: 'photo.jpg', mediaType: 'photo', sourceKind: 'zip-media',
+      sizeBytes: 4096, dateSource: 'chat', dateIso: record.messageDateIso, matchedRecord: record }],
     importSummary: {
-      chatRecords: 0, skippedChatLines: 0, extractedEntries: 1, skippedZipEntries: 0, matchedMedia: 0, unmatchedMedia: 0,
-      senders: 0, photos: 0, videos: 0, voice: 0, stickers: 0, documents: 0, unknown: 0, extractionMode: 'native-selective'
+      chatRecords: 1, skippedChatLines: 0, extractedEntries: 2, skippedZipEntries: 0, matchedMedia: 1, unmatchedMedia: 0,
+      senders: 1, photos: 1, videos: 0, voice: 0, stickers: 0, documents: 0, unknown: 0, extractionMode: 'native-selective'
     },
-    extraction: { extractedCount: 1, skippedCount: 0, extractionMode: 'native-selective' }, ...params
+    extraction: { extractedCount: 2, skippedCount: 0, extractionMode: 'native-selective' }, ...params
   };
 }
 

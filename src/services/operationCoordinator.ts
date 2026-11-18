@@ -12,6 +12,7 @@ import { displayOutputChatName, localizedOutputFolderLabels, outputChatName, typ
 import type { AppSettings, CompletionSummary } from '../types/media';
 import i18n from '../i18n';
 import { logger } from '../lib/logger';
+import { getSelectedSaveCandidates } from '../store/selectionLogic';
 
 let importTask: Promise<void> | null = null;
 let importId: string | null = null;
@@ -26,6 +27,7 @@ let restartingApp = false;
 let drainIdle: Promise<void> = Promise.resolve();
 let importRevision = 0;
 const shareListeners = new Set<() => void>();
+const retainedImportSources = new Set<string>();
 
 export type SaveIntent = Readonly<{
   revision: number; importOperationId?: string; workingDirectory: string; archiveFingerprint: string;
@@ -100,11 +102,23 @@ export async function beginImport(uri: string, name: string): Promise<void> {
   state.startProgress(id, 'import');
   state.setStage('analyzing');
   const task = (async () => {
+    let cleaningStaleResult = false;
+    let staleWorkingDirectory: string | undefined;
     try {
       const result = await importWhatsAppZip({ zipUri: uri, zipName: name, operationId: id,
         onProgress: (event) => { if (importId === id) usePipelineStore.getState().setProgress(event); } });
       if (importId === id) usePipelineStore.getState().setImportResult(result);
+      else {
+        cleaningStaleResult = true;
+        staleWorkingDirectory = result.workingDirectory;
+        await getChatStampNativeModule().releaseImportAsync(id, result.workingDirectory,
+          retainedImportSources.has(id) ? '' : uri);
+      }
     } catch (error) {
+      if (cleaningStaleResult) {
+        usePipelineStore.setState({ workingDirectory: staleWorkingDirectory, importOperationId: id });
+        throw error;
+      }
       if (importId !== id) return;
       if (asPipelineError(error).code === 'CANCELLED') usePipelineStore.getState().reset();
       else usePipelineStore.getState().setError(error);
@@ -112,13 +126,14 @@ export async function beginImport(uri: string, name: string): Promise<void> {
   })();
   importTask = task;
   startingImport = false;
-  try { await task; } finally { if (importTask === task) importTask = null; }
+  try { await task; }
+  catch (error) { usePipelineStore.getState().setError(error); }
+  finally { if (importTask === task) importTask = null; }
 }
 
 export async function discardImport(keepSource = false): Promise<void> {
-  const state = usePipelineStore.getState();
   const native = getChatStampNativeModule();
-  if (state.stage === 'saving' || saveTask) return;
+  if (usePipelineStore.getState().stage === 'saving' || saveTask) return;
   importRevision++;
   const retained = await native.getOperationSnapshotAsync();
   if (retained?.progress.kind === 'save' && retained.result) {
@@ -128,14 +143,26 @@ export async function discardImport(keepSource = false): Promise<void> {
       throw new PipelineError('IO_ERROR', 'The completed save must be stored in history before replacing it.');
     }
   }
+  // Parsing may have published a completed import while the native snapshot or
+  // history gate was awaited. Read its actual directory before invalidating it.
+  const state = usePipelineStore.getState();
+  if (state.stage === 'saving' || saveTask) return;
   const previousId = importId ?? state.importOperationId ?? state.progress?.operationId;
+  const previousTask = importTask;
   importId = null;
-  if (importTask && previousId) {
-    await native.cancelOperationAsync(previousId);
-    await importTask;
+  if (previousTask && previousId) {
+    if (keepSource) retainedImportSources.add(previousId);
+    try {
+      await native.cancelOperationAsync(previousId);
+      await previousTask;
+    } finally { retainedImportSources.delete(previousId); }
   }
   if (state.workingDirectory) {
-    if (keepSource) await clearWorkingDirectory(state.workingDirectory);
+    if (keepSource) {
+      if (!await clearWorkingDirectory(state.workingDirectory)) {
+        throw new PipelineError('IO_ERROR', 'The previous import working files could not be removed.');
+      }
+    }
     else await native.releaseImportAsync(previousId ?? '', state.workingDirectory, state.zipUri ?? '');
   } else if (!keepSource && state.zipUri) {
     await native.releaseSourceAsync(state.zipUri);
@@ -148,11 +175,12 @@ export async function discardImport(keepSource = false): Promise<void> {
 
 export async function cancelCurrentOperation(): Promise<void> {
   const state = usePipelineStore.getState();
+  const pendingImport = importTask;
   if (state.stage === 'analyzing') importId = null;
   if (state.progress) await getChatStampNativeModule().cancelOperationAsync(state.progress.operationId);
   if (state.stage === 'analyzing') {
-    await importTask;
-    await discardImport();
+    try { await pendingImport; await discardImport(); }
+    catch (error) { usePipelineStore.getState().setError(error); }
   }
 }
 
@@ -165,6 +193,11 @@ export async function startSaving(intent?: SaveIntent): Promise<void> {
     || intent.archiveFingerprint !== initial.archiveFingerprint)) return;
   if (!initial.archiveFingerprint || !initial.workingDirectory) {
     initial.setError(new PipelineError('IO_ERROR'));
+    return;
+  }
+  if (getSelectedSaveCandidates(initial.mediaFiles, initial.selectedSenders, initial.selectedMediaTypes,
+    initial.pendingSaveIds ?? initial.selectedFileIds).length === 0) {
+    initial.setError(new PipelineError('IO_ERROR', 'Reimport the export before saving when no retry inputs remain.'));
     return;
   }
   const operationId = createOperationId('save');
@@ -237,6 +270,10 @@ async function restoreSave(): Promise<void> {
 
 function applySnapshot(snapshot: OperationSnapshot) {
   const state = usePipelineStore.getState();
+  if (state.workingDirectory !== snapshot.workingDirectory || state.archiveFingerprint !== snapshot.archiveFingerprint) {
+    usePipelineStore.setState({ mediaFiles: [], selectedSenders: [], selectedFileIds: new Set(), pendingSaveIds: undefined,
+      importOperationId: undefined });
+  }
   if (state.progress?.operationId !== snapshot.progress.operationId) state.startProgress(snapshot.progress.operationId, 'save');
   usePipelineStore.setState({ workingDirectory: snapshot.workingDirectory, archiveFingerprint: snapshot.archiveFingerprint,
     zipUri: snapshot.sourceUri, zipName: snapshot.chatName, stage: 'saving' });

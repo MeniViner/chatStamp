@@ -243,7 +243,8 @@ class ChatStampModule : Module() {
   }
 
   private fun shareOutputFiles(files: List<ShareOutputFile>): Map<String, Any?> {
-    val candidates = files.take(100)
+    if (files.size > 100) return mapOf("opened" to false, "shared" to 0, "reason" to "share-limit", "limit" to 100)
+    val candidates = files
     val uris = candidates.mapNotNull(::shareUriForFile).distinct()
     if (uris.isEmpty()) return mapOf("opened" to false, "shared" to 0, "reason" to "No shareable files were available.")
 

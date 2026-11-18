@@ -1,6 +1,7 @@
 import type { MediaType, SaveFileResult } from '../types/media';
 import { getMimeTypeForMedia } from '../lib/mediaClassifier';
 import { getChatStampNativeModule } from './chatStampNativeModule';
+import { MAX_SHARE_FILES, selectShareableOutputFiles, ShareLimitError } from '../lib/outputSharing';
 
 type ShareableOutputFile = {
   uri?: string | null;
@@ -20,12 +21,10 @@ function outputFileToShareTarget(result: SaveFileResult): ShareableOutputFile {
   };
 }
 
-export async function shareOutputFiles(results: SaveFileResult[], categories: MediaType[]) {
-  const selected = new Set(categories);
-  const files = results
-    .filter((result) => result.ok && result.mediaType && selected.has(result.mediaType))
-    .slice(0, 100)
-    .map(outputFileToShareTarget);
+export async function shareOutputFiles(results: readonly SaveFileResult[], categories: readonly MediaType[]) {
+  const selected = selectShareableOutputFiles(results, categories);
+  if (selected.length > MAX_SHARE_FILES) throw new ShareLimitError(selected.length);
+  const files = selected.map(outputFileToShareTarget);
   return getChatStampNativeModule().shareOutputFilesAsync(files);
 }
 

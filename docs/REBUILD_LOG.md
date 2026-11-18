@@ -801,3 +801,41 @@ recurring check, merge or automatic production rollout was created.
   table: https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#context-availability.
   No host/native gate was skipped. The earlier ea45a36 push CI44417140377 also
   completed successfully; its separate PR retry had failed Maven resolution.
+
+
+- 2026-11-19 CI transport accepted on5e0917f: independent reviewer clear. Fresh
+  GitHub PR run44421242295/job135214500429 passes checkout/npmci,431host/46files,
+  TypeScript/lint,105Python,cleanprebuild,4/4pinned official artifact downloads,
+  resolved SDK/NDK,40executed JVM,93executed Gradle tasks and strict production
+  manifest/backup policy. https://github.com/MeniViner/chatStamp/actions/runs/44421242295
+  Three newly read PR product findings are now being fixed separately: invalid
+  retry after runtime recreation, silent share100 truncation, and stale parsed-
+  import cache ownership. A new code7 artifact/fullsmoke/runtime gate follows;
+  this CI checkpoint does not certify those uncommitted source fixes.
+
+
+## 2026-11-19 — PR product review fixes, code7 source checkpoint
+
+The three externally raised P2s were reproduced with independent acceptance
+tests: runtime recreation could leave a visible empty Retry; category sharing
+silently truncated after100; a superseded import could retain its extracted
+job after native extraction finished. try another way: explicit reimport when
+retry inputs are absent plus a no-empty-save guard; one shared Done/History
+batch sheet with explicit ranges/Previous/Next and a separate chooser gesture
+per at-most100files; native and JS oversized requests reject rather than cut.
+The chooser opening is never described as successful delivery. Stale import
+results release their exact job/grant before replacement; same-source grants
+remain readable. Cleanup errors block replacement and retain cleanup context.
+A second deferred-snapshot interleaving now reads current cleanup ownership
+after awaits, so a just-published import result cannot be lost by reset.
+
+Test author added25criterion regressions (10recovery/cleanup,15sharing) and
+corrected the existing coordinator fixture to contain the1file its unchanged
+21save assertions already modelled. Root full smoke from npmci passes
+456Vitest/48files, TypeScript/lint, clean prebuild, two-worker arm64 QA assembly
+(226executed tasks), QA manifest,40fresh JVM and39connected on each API30/API36
+with0fail/skip.105Python and unused-source check pass; i18n has325keys with
+parity/zero-unused assertions. Final source review, phone debug cold launch,
+signed code7 artifact checks and minified runtime are separate pending gates.
+The phone is locked; the owner unlock request is pending while builds and
+emulator work continue. Earlier code6 artifacts remain historical candidates.

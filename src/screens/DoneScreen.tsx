@@ -4,26 +4,30 @@ import { Snackbar, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { FolderFallbackSheet } from '../components/FolderFallbackSheet';
-import { PremiumBottomSheet } from '../components/BottomSheet';
+import { ShareOutputSheet } from '../components/ShareOutputSheet';
 import { ExpandableTechnicalDetails, FilePathText, MediaThumbnail, PrimaryButton, SecondaryButton, textStyles } from '../components/AppUi';
 import { usePipelineStore } from '../store/pipelineStore';
 import { useSettingsStore } from '../store/settingsStore';
-import { discardImport, startSaving } from '../services/operationCoordinator';
+import { chooseZip, discardImport, startSaving } from '../services/operationCoordinator';
 import { openFolderBestEffort, openGalleryBestEffort, openSavedFileBestEffort, shouldShowOpenGallery } from '../native/androidIntents';
-import { shareOutputFiles } from '../native/outputFiles';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, WizardScreen } from './WizardScreen';
-import type { MediaType, SaveFileResult } from '../types/media';
+import type { SaveFileResult } from '../types/media';
 import { completionPresentation, getResultRowKey, getResultStatusKey, isMessageDateVerified } from './resultsLogic';
 import { errorMessageKey, pipelineErrorCode } from '../lib/pipelineErrors';
 import { formatAppDate } from '../lib/localeDateFormat';
 import { spacing } from '../theme/designTokens';
+import { getSelectedSaveCandidates } from '../store/selectionLogic';
 
 export function DoneScreen() {
   const { t } = useTranslation();
   const completion = usePipelineStore((state) => state.completion);
   const developerMode = useSettingsStore((state) => state.settings.developerMode);
   const customFolder = useSettingsStore((state) => state.settings.customFolder);
+  const mediaFiles = usePipelineStore((state) => state.mediaFiles);
+  const selectedSenders = usePipelineStore((state) => state.selectedSenders);
+  const selectedMediaTypes = usePipelineStore((state) => state.selectedMediaTypes);
+  const selectedFileIds = usePipelineStore((state) => state.selectedFileIds);
   const [details, setDetails] = React.useState(false), [restartOpen, setRestartOpen] = React.useState(false);
   const [shareOpen, setShareOpen] = React.useState(false), [folderOpen, setFolderOpen] = React.useState(false);
   const [message, setMessage] = React.useState<string>();
@@ -32,6 +36,10 @@ export function DoneScreen() {
   const issues = React.useMemo(() => results.filter((row) => !row.ok || row.galleryMaySortByImportTime || row.dateVerification === 'unverified'), [results]);
   const firstSaved = results.find((row) => row.ok);
   const gallery = shouldShowOpenGallery(results);
+  const remainingIds = React.useMemo(() => [...new Set(results.filter((row) => !row.ok && row.entryId).map((row) => row.entryId!))], [results]);
+  const canRetry = remainingIds.length > 0 && getSelectedSaveCandidates(mediaFiles, selectedSenders, selectedMediaTypes,
+    remainingIds.filter((id) => selectedFileIds.has(id))).length === remainingIds.length;
+  const hasRemaining = Boolean((facts.cancelledCount || facts.failedCount) && completion && !completion.cacheCleared);
   const folder = completion?.outputDirectory ?? firstSaved?.outputPath?.replace(/[\\/][^\\/]+$/, '') ?? '';
   const back = React.useCallback(() => {
     if (details) setDetails(false); else setRestartOpen(true);
@@ -49,7 +57,7 @@ export function DoneScreen() {
     if (await openFolderBestEffort(folder, completion?.saveMethod === 'saf-custom-folder' ? customFolder : null, completion?.outputDirectory) === 'manual-fallback') setFolderOpen(true);
   }
   async function retry() {
-    usePipelineStore.getState().prepareSave(results.filter((row) => !row.ok && row.entryId).map((row) => row.entryId!));
+    usePipelineStore.getState().prepareSave(remainingIds);
     await startSaving();
   }
   const header = <View style={styles.header}>
@@ -59,8 +67,11 @@ export function DoneScreen() {
       <SecondaryButton onPress={() => setDetails((value) => !value)}>{t(details ? 'results.hideDetails' : 'results.details')}</SecondaryButton>
       {firstSaved ? <SecondaryButton icon="share-variant-outline" onPress={() => setShareOpen(true)}>{t('results.shareOutputFiles')}</SecondaryButton> : null}
       {firstSaved && folder ? <SecondaryButton icon="folder-open-outline" onPress={() => { void openFolder(); }}>{t('results.openFolder')}</SecondaryButton> : null}
-      {(facts.cancelledCount || facts.failedCount) && completion && !completion.cacheCleared ? <SecondaryButton onPress={() => { void retry(); }}>{t(facts.cancelledCount > 0 ? 'results.retryRemainingFiles' : 'results.retryFailedFiles')}</SecondaryButton> : null}
+      {hasRemaining ? <SecondaryButton onPress={() => { if (canRetry) void retry(); else void chooseZip(); }}>
+        {t(canRetry ? facts.cancelledCount > 0 ? 'results.retryRemainingFiles' : 'results.retryFailedFiles' : 'results.reimportRemainingFiles')}
+      </SecondaryButton> : null}
     </View>
+    {hasRemaining && !canRetry ? <Text style={textStyles.start}>{t('results.reimportRequired')}</Text> : null}
     {!details && issues.length ? <Text variant="titleMedium" style={styles.sectionTitle}>{t('results.issues')}</Text> : null}
   </View>;
   return <WizardScreen stage="results" title={t(facts.titleKey)} onBack={back}
@@ -112,20 +123,6 @@ export const ResultRow = React.memo(function ResultRow({ result, developerMode =
   </View>;
 });
 
-function ShareOutputSheet({ visible, results, onDismiss, onError }: {
-  visible: boolean; results: SaveFileResult[]; onDismiss: () => void; onError: (message: string) => void;
-}) {
-  const { t } = useTranslation();
-  const available = React.useMemo(() => [...new Set(results.filter((row) => row.ok && row.mediaType).map((row) => row.mediaType!))], [results]);
-  const [selected, setSelected] = React.useState<MediaType[]>([]);
-  React.useEffect(() => { setSelected(available); }, [available]);
-  return <PremiumBottomSheet visible={visible} title={t('results.shareSheetTitle')} onDismiss={onDismiss}
-    footer={<PrimaryButton disabled={!selected.length} onPress={() => {
-      void shareOutputFiles(results, selected).then((outcome) => { if (!outcome.opened) onError(t('results.shareFailed')); onDismiss(); }, () => onError(t('results.shareFailed')));
-    }}>{t('results.shareAction')}</PrimaryButton>}>
-    {available.map((type) => <SecondaryButton key={type} selected={selected.includes(type)} onPress={() => setSelected((old) => old.includes(type) ? old.filter((value) => value !== type) : [...old, type])}>{t(`media.plural.${type}`)}</SecondaryButton>)}
-  </PremiumBottomSheet>;
-}
 const styles = StyleSheet.create({ header: { gap: 16, paddingVertical: 16 }, actions: { gap: 8 }, sectionTitle: { fontWeight: '600' },
   list: { paddingBottom: spacing.section }, row: { paddingVertical: 16, borderBottomWidth: StyleSheet.hairlineWidth, gap: 8 },
   rowHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 }, flex: { flex: 1, minWidth: 0 } });

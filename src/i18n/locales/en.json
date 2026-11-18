@@ -313,7 +313,14 @@
     "dateVerified": "Message date verified",
     "dateNotVerified": "Message date not verified",
     "cleanupFailed": "Could not finish cleanup. Try again; saved files remain.",
-    "fileAlreadySaved": "Already saved earlier"
+    "fileAlreadySaved": "Already saved earlier",
+    "shareBatchHint": "Share up to {{limit}} files at a time. Use Next files for the rest. Opening a share app does not confirm delivery.",
+    "shareBatchRange": "Files {{from}}–{{to}} of {{total}}",
+    "sharePreviousBatch": "Previous files",
+    "shareNextBatch": "Next files",
+    "shareLimit": "Share up to {{limit}} files at a time. Choose another group to share the rest.",
+    "reimportRemainingFiles": "Reimport to save remaining files",
+    "reimportRequired": "To retry after reopening the app, choose the same export ZIP again. Saved files remain. Use Skip existing to avoid duplicates."
   },
   "history": {
     "title": "History",

@@ -113,3 +113,10 @@ exports; a local bundle does not establish upload, tester counts or 14 days.
 
 
 -2026-11-19 G2 handoff review clear: artifact identities/hashes/certificate, eight phone PNGs,11.17s privacy-safe demo and live policy checked. Owner-only Play/tester/account-date/real-export facts remain unverified. Final-head CI is checked separately after a transient Maven resolution failure; no assertion waived.
+
+
+- 2026-11-19 CI-only follow-up review clear: checksum/size-pinned official Maven
+  transport, exact plugin coordinates, safe composite/default Portal semantics,
+  and valid step-scoped runner path preserve all existing gates. Root actual
+  fresh CI44421242295 passes431host/105Python/40JVM and release policy. Three
+  later PR product findings remain under implementation/independent review.
