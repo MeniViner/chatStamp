@@ -1,0 +1,55 @@
+import java.security.MessageDigest
+
+// Gradle 9 beforeSettings reaches composite settings before plugin resolution.
+// Ordinary exact-version content preserves Android buildscript repositories.
+def configured = System.getenv('CHATSTAMP_CI_BOOTSTRAP_REPOSITORY')
+if (configured != null && !configured.trim().isEmpty()) {
+    def repository = new File(configured)
+    if (!repository.isAbsolute() || !repository.isDirectory()) {
+        throw new GradleException('chatStamp CI bootstrap repository must be an existing absolute directory.')
+    }
+    repository = repository.canonicalFile
+    def artifacts = [
+        ['com/google/code/gson/gson/2.9.1/gson-2.9.1.pom', 8208L,
+         'e5966323d7142570b37a4be979e21bc2dae848107e4dc416d8f44d9aa3f02903'],
+        ['com/google/code/gson/gson/2.9.1/gson-2.9.1.jar', 265030L,
+         '378534e339e6e6d50b1736fb3abb76f1c15d1be3f4c13cec6d536412e23da603'],
+        ['com/google/code/gson/gson-parent/2.9.1/gson-parent-2.9.1.pom', 4488L,
+         '7ca0845e73685618de3e46bd3434d03a4a373d520fab93a680318ad6c8cb2a79'],
+        ['org/sonatype/oss/oss-parent/9/oss-parent-9.pom', 6569L,
+         'fb40265f982548212ff82e362e59732b2187ec6f0d80182885c14ef1f982827a'],
+    ]
+    artifacts.each { artifact ->
+        def file = new File(repository, artifact[0])
+        if (!file.isFile() || java.nio.file.Files.isSymbolicLink(file.toPath()) ||
+            !file.canonicalFile.toPath().startsWith(repository.toPath()) || file.length() != artifact[1]) {
+            throw new GradleException('chatStamp CI bootstrap artifact is missing or invalid.')
+        }
+        def digest = MessageDigest.getInstance('SHA-256')
+        file.withInputStream { input ->
+            def buffer = new byte[65536]
+            int count
+            while ((count = input.read(buffer)) != -1) digest.update(buffer, 0, count)
+        }
+        if (digest.digest().encodeHex().toString() != artifact[2]) {
+            throw new GradleException('chatStamp CI bootstrap artifact integrity mismatch.')
+        }
+    }
+    gradle.beforeSettings { settings ->
+        settings.pluginManagement.repositories {
+            maven {
+                name = 'chatstampCiBootstrap'
+                url = repository.toURI()
+                metadataSources { mavenPom(); artifact() }
+                content {
+                    includeVersion('com.google.code.gson', 'gson', '2.9.1')
+                    includeVersion('com.google.code.gson', 'gson-parent', '2.9.1')
+                    includeVersion('org.sonatype.oss', 'oss-parent', '9')
+                }
+            }
+            // Adding one repository suppresses Gradle's implicit portal in builds
+            // without explicit settings repos, including Expo's Kotlin plugin.
+            gradlePluginPortal()
+        }
+    }
+}

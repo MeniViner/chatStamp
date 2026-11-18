@@ -18,6 +18,7 @@ jobs:
     env:
       CI: 'true'
       EXPO_NO_TELEMETRY: '1'
+      CHATSTAMP_CI_BOOTSTRAP_REPOSITORY: ${{ runner.temp }}/chatstamp-ci-bootstrap
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -44,9 +45,12 @@ jobs:
         run: python3 -m unittest discover -s scripts/android-verification -p 'test_*.py'
       - name: Generate Android from durable source
         run: npx expo prebuild --platform android --clean
+      - name: Fetch the checksum-pinned Gradle bootstrap dependency
+        run: python3 scripts/android-verification/ci-bootstrap.py --repository "$CHATSTAMP_CI_BOOTSTRAP_REPOSITORY"
       - name: Execute native JVM tests and merge the release manifest
         run: >-
           ./android/gradlew -p android --console=plain --max-workers=2
+          -I ../scripts/android-verification/ci-bootstrap.init.gradle
           -I ../scripts/android-verification/ci-toolchain.init.gradle
           :chatstampVerifyToolchain :chatstamp-native:testDebugUnitTest
           :app:processReleaseManifest -PreactNativeArchitectures=arm64-v8a

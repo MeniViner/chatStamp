@@ -153,3 +153,16 @@ This checks source/test callers, not native autolinking reachability. Keep the
 native package entry and SDK-matched peer dependencies even when a JS-only
 heuristic cannot see their consumer. Do not use bare production mode without
 Expo entry discovery or automatically delete intentional production test seams.
+
+
+## CI bootstrap transport
+
+The optional CI-only `ci-bootstrap.py`/`ci-bootstrap.init.gradle` repair Maven
+transport for React Native's unchanged Foojay Gson2.9.1 dependency. The downloader
+admits only four SHA256/size-pinned official Central files; it never changes an
+app dependency version. `CHATSTAMP_CI_BOOTSTRAP_REPOSITORY` enables the verified
+local plugin repository, restricted to three exact GAVs; Plugin Portal remains
+available for composite builds. Leave this variable unset for ordinary local
+Android builds. The workflow still runs all host/JVM/manifest gates and uses no
+signing or Play credentials. Integrity/cache/path/fallback regressions are part
+of the105-case Python verification suite.

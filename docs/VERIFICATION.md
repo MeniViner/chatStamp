@@ -699,3 +699,23 @@ recurring check, merge or automatic production rollout was created.
  reviewer found no material handoff issue, confirmed artifact/screens/demo and
  reverified the public policy HTTP200 byte-identical to tracked HTML. Owner-only
  gaps remain explicit. Device hygiene is complete and app source unchanged.
+
+
+-2026-11-19 F CI transport repair: final-head MavenGson2.9.1 resolution failed
+ again after a full fresh verify-job retry. try another way: a CI-only four-file
+ repository fetches the unchanged Gson2.9.1 POM/JAR and parent POMs from the two
+ official Maven Central hosts, validates pinned SHA256/size before atomic publish,
+ and fails closed on tampering/missing/unsafe paths. A beforeSettings hook reaches
+ composite builds, admits only those exact three GAVs, preserves Plugin Portal
+ and ordinary Android buildscript repositories, and revalidates bytes before
+ Gradle uses them. It neither patches node_modules nor changes runtime versions,
+ package identity, signing, native app source or the existing code6 binaries.
+
+ Implementer live official fetch/verify-only passed4/4; independent test author
+ added24meaningful transport/integrity/cache/atomic/path regressions. Combined
+ Python suite105/105 passes. Root's actual Gradle execution with both CI hooks
+ passes resolved SDK/NDK,40 freshly executed JVM tests and production release
+ manifest; strict ci-policy passes. Reviewer checked the composite/default-portal
+ trap before implementation. A new fresh GitHub checkout must pass the complete
+ npmci→host→prebuild→pinnedfetch→native→manifest path; no tests are skipped or
+ marked continue-on-error. Final current CI link is recorded in the report.

@@ -12,7 +12,7 @@ com.menis.chatstamp and the owner's external upload key.
 
 R/B/C/G1/D and E/F implementation are complete on fix/core-rebuild. Final app
 source3f4ab91, version0.2.0/code6, passes431 host/40 executed JVM/39 connected
-per API30/API36,81Python, lint/typecheck, clean prebuild, Knip/i18n and fresh
+per API30/API36,105Python, lint/typecheck, clean prebuild, Knip/i18n and fresh
 GitHub Android CI. Signed production/QA artifacts and the executed minified
 phone/emulator scopes pass. Latest receipts/logs name exact binaries and limits.
 
@@ -679,3 +679,6 @@ highercode6. NativeZIPsample-budget suspicion wasrefuted byowningsource (64KiB/T
 
 
 -2026-11-19 G2: PR1 opened atd3634a4: https://github.com/MeniViner/chatStamp/pull/1; no merge. Signed code6/manual Play/owner real-export handoff complete. Real owner export and actual Play/tester eligibility remain unverified; production installation untouched and QA cleanup complete.
+
+
+-2026-11-19 CI-only transport repair: repeated final-head MavenGson failures now use an authenticated-byte, exact-GAV local plugin bootstrap from official Central; runtime code6 artifacts unchanged.24new fail-closed tests bring verifier suite to105; actual local CI hooks/toolchain/40JVM/release-manifest policy pass. Fresh GitHub CI remains the final gate.
