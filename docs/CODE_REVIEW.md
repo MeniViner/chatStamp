@@ -110,3 +110,6 @@ exports; a local bundle does not establish upload, tester counts or 14 days.
 
 
 -2026-11-19: E/F final source/docs findings resolved. Fullsmoke431host/40JVM/39connected perAPI30/API36,81Python, stricti18n/Knip and fresh Android CI pass. Code6 signed artifacts, final physical five-file/Gallery/duplicate/a11y/RTL/background/40-video and API36 reviewer scope pass. Cleanup/restoration pass. Full UI matrix/API33/real owner export/actual16KiB/Play participant facts remain explicitly unverified; no merge/upload. G2 owner-handoff review is separate.
+
+
+-2026-11-19 G2 handoff review clear: artifact identities/hashes/certificate, eight phone PNGs,11.17s privacy-safe demo and live policy checked. Owner-only Play/tester/account-date/real-export facts remain unverified. Final-head CI is checked separately after a transient Maven resolution failure; no assertion waived.

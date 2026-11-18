@@ -727,3 +727,48 @@ Small current proof is together under ignored dist/android-verification/rebuild-
 requested binary/demo product files are separate under ignored dist/play. Store
 assets and docs/screens are tracked. Combined proof/listing/screens remain under
 10,000,000bytes; final exact size is recorded at handoff.
+
+
+## 2026-11-19 — G2 owner handoff and PR opened
+
+PR1 is open: https://github.com/MeniViner/chatStamp/pull/1, fix/core-rebuild→main,
+created at branch head d3634a42c4333dfe075506b7689f49085b32dfdb. It is not merged.
+Final code6 binary app source remains3f4ab91; subsequent commits update docs,
+listing assets/check configuration and receipts. Current final head/CI are
+recorded in the local primary report and PR checks rather than self-referencing
+this commit. The production package was not installed or replaced.
+
+Owner can now use the signed code6 AAB, isolated QA APK and11.17s actual synthetic
+FGS demo under dist/play, the8updated store screenshots, live privacy URL and
+numbered PLAY_UPLOAD_STEPS. TESTERS contains exact closed-app/warm WhatsApp
+own-share acceptance and isolated installer commands, plus a private result form.
+PLAY_RELEASE_CHECKLIST has truthful production-access inputs; external tester
+counts/continuous opt-in/feedback and account creation date stay UNKNOWN.
+
+No service-account path was configured. No agent Play upload/live track/tester
+clock or production approval was established. The owner must upload manually,
+publish an accessible demo URL, confirm account/audience/legal fields, recruit
+qualifying testers and record the actual interval/feedback. Real owner export,
+API33/full UI matrix, actual16KiB and remaining platform/provider limits remain
+UNVERIFIED with exact follow-up in the primary report. QA/helper/test material
+is removed and original phone/emulator settings restored. No cross-chat watcher,
+recurring check, merge or automatic production rollout was created.
+
+
+-2026-11-19 late CI note: d3634a4 push run44415277957 passed host/tooling
+ checks but failed native configuration because Maven resolution reported
+ com.google.code.gson:gson:2.9.1 missing in the repositories. Its official Maven
+ Central POM independently returned HTTP200 (8208bytes, SHA256
+ e5966323d7142570b37a4be979e21bc2dae848107e4dc416d8f44d9aa3f02903).
+ Earlier full fresh runs3f4ab91 and6f3178f passed the identical app/dependency
+ source. try another way: require the complete final-head push/PR checkout to
+ rerun npm ci through native/JUnit/manifest gates; no continue-on-error, source
+ dependency override or skipped test is introduced. Final run outcome/link is
+ recorded in the primary report after completion.
+
+-2026-11-19 G2 roles closed: implementer independently rehashed final AAB/QAAPK,
+ checked demo/screens and finalized owner availability dates in upload steps;
+ test author prepared concrete real-export closed/warm/privacy-safe result steps;
+ reviewer found no material handoff issue, confirmed artifact/screens/demo and
+ reverified the public policy HTTP200 byte-identical to tracked HTML. Owner-only
+ gaps remain explicit. Device hygiene is complete and app source unchanged.
