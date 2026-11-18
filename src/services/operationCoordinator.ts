@@ -8,8 +8,8 @@ import { clearWorkingDirectory, importWhatsAppZip } from './importService';
 import { runSavePipeline, summarizeNativeSave } from './pipelineService';
 import { asPipelineError, PipelineError } from '../lib/pipelineErrors';
 import { createOperationId, isTerminalProgress } from '../lib/operationProgress';
-import { displayOutputChatName, localizedOutputFolderLabels, outputChatName } from '../lib/outputOrganization';
-import type { CompletionSummary } from '../types/media';
+import { displayOutputChatName, localizedOutputFolderLabels, outputChatName, type OutputFolderLabels } from '../lib/outputOrganization';
+import type { AppSettings, CompletionSummary } from '../types/media';
 import i18n from '../i18n';
 import { logger } from '../lib/logger';
 
@@ -29,13 +29,31 @@ const shareListeners = new Set<() => void>();
 
 export type SaveIntent = Readonly<{
   revision: number; importOperationId?: string; workingDirectory: string; archiveFingerprint: string;
+  policy: SavePolicy;
 }>;
+
+type SavePolicy = Readonly<{
+  settings: AppSettings; folderLabels: OutputFolderLabels; chatFolderName: string;
+  notificationTitle: string; notificationCancelLabel: string;
+}>;
+
+function captureSavePolicy(zipName?: string): SavePolicy {
+  const current = useSettingsStore.getState().settings;
+  const folderLabels = localizedOutputFolderLabels((key) => i18n.t(key));
+  return {
+    settings: { ...current, outputOrganization: { ...current.outputOrganization },
+      customFolder: current.customFolder ? { ...current.customFolder } : current.customFolder },
+    folderLabels, chatFolderName: displayOutputChatName(zipName, folderLabels),
+    notificationTitle: i18n.t('operation.notificationTitle'), notificationCancelLabel: i18n.t('operation.cancel')
+  };
+}
 
 export function captureSaveIntent(): SaveIntent | null {
   const state = usePipelineStore.getState();
   return state.stage === 'selectFiles' && state.workingDirectory && state.archiveFingerprint
     ? { revision: importRevision, importOperationId: state.importOperationId,
-      workingDirectory: state.workingDirectory, archiveFingerprint: state.archiveFingerprint } : null;
+      workingDirectory: state.workingDirectory, archiveFingerprint: state.archiveFingerprint,
+      policy: captureSavePolicy(state.zipName) } : null;
 }
 
 /** Hold share intake in native storage until the next JS runtime starts. */
@@ -150,8 +168,7 @@ export async function startSaving(intent?: SaveIntent): Promise<void> {
     return;
   }
   const operationId = createOperationId('save');
-  const folderLabels = localizedOutputFolderLabels((key) => i18n.t(key));
-  const chatFolderName = displayOutputChatName(initial.zipName, folderLabels);
+  const policy = intent?.policy ?? captureSavePolicy(initial.zipName);
   initial.startProgress(operationId, 'save');
   initial.setStage('saving');
   const task = (async () => {
@@ -164,13 +181,12 @@ export async function startSaving(intent?: SaveIntent): Promise<void> {
         selectedMediaTypes: initial.selectedMediaTypes, selectedFileIds: initial.pendingSaveIds ?? initial.selectedFileIds,
         archiveFingerprint: initial.archiveFingerprint!, workingDirectory: initial.workingDirectory,
         sourceUri: initial.zipUri, operationId, chatName: outputChatName(initial.zipName),
-        folderLabels, chatFolderName,
-        settings: useSettingsStore.getState().settings,
-        notificationTitle: i18n.t('operation.notificationTitle'), notificationCancelLabel: i18n.t('operation.cancel'),
+        ...policy,
         onProgress: (event) => usePipelineStore.getState().setProgress(event)
       });
       await finishSave(completion, { archiveFingerprint: initial.archiveFingerprint!, chatName: outputChatName(initial.zipName),
-        workingDirectory: initial.workingDirectory, sourceUri: initial.zipUri, operationId });
+        workingDirectory: initial.workingDirectory, sourceUri: initial.zipUri, operationId,
+        folderTreeUri: policy.settings.saveDestinationMode === 'custom-folder' ? policy.settings.customFolder?.treeUri : null });
     } catch (error) { usePipelineStore.getState().setError(error); }
   })();
   saveTask = task;
@@ -179,6 +195,7 @@ export async function startSaving(intent?: SaveIntent): Promise<void> {
 
 async function finishSave(completion: CompletionSummary, context: {
   archiveFingerprint: string; chatName: string; operationId: string; workingDirectory?: string; sourceUri?: string;
+  folderTreeUri?: string | null;
 }) {
   const settings = useSettingsStore.getState();
   const state = usePipelineStore.getState();
@@ -187,7 +204,7 @@ async function finishSave(completion: CompletionSummary, context: {
     completion, files: state.mediaFiles, selectedFileIds: state.pendingSaveIds ?? state.selectedFileIds,
     selectedMediaTypes: state.selectedMediaTypes, selectedSenders: state.selectedSenders,
     chatName: context.chatName, outputFolderPath: folder, archiveFingerprint: context.archiveFingerprint,
-    folderTreeUri: completion.saveMethod === 'saf-custom-folder' ? settings.settings.customFolder?.treeUri : null
+    folderTreeUri: completion.saveMethod === 'saf-custom-folder' ? context.folderTreeUri ?? null : null
   }));
   if (folder) await settings.updateSettings({ lastOutputFolder: folder });
   if (completion.cacheCleared && context.workingDirectory) {

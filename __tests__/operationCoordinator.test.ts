@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ImportPipelineResult, ImportWhatsAppZipParams } from '../src/services/importService';
-import type { CompletionSummary } from '../src/types/media';
+import type { AppSettings, CompletionSummary } from '../src/types/media';
 import type { OperationSnapshot } from '../src/native/chatStampNativeModule';
+import type { RunSavePipelineParams } from '../src/services/pipelineService';
+import { defaultSettings } from '../src/store/settingsLogic';
 
 const mocks = vi.hoisted(() => {
   const listeners = new Map<string, Set<(value: unknown) => void>>();
@@ -24,7 +26,8 @@ const mocks = vi.hoisted(() => {
       releaseSourceAsync: vi.fn()
     },
     importZip: vi.fn(), clearWorkingDirectory: vi.fn(), runSave: vi.fn(), summarizeSave: vi.fn(),
-    addHistory: vi.fn(), createHistory: vi.fn(), updateSettings: vi.fn(), pick: vi.fn(), requestPermission: vi.fn()
+    addHistory: vi.fn(), createHistory: vi.fn(), updateSettings: vi.fn(), pick: vi.fn(), requestPermission: vi.fn(),
+    settings: {} as AppSettings, translate: vi.fn()
   };
 });
 
@@ -44,9 +47,9 @@ vi.mock('../src/store/historyStore', () => ({
   useHistoryStore: { getState: () => ({ addHistoryItem: mocks.addHistory }) }, createExportHistoryItem: mocks.createHistory
 }));
 vi.mock('../src/store/settingsStore', () => ({
-  useSettingsStore: { getState: () => ({ settings: { customFolder: null }, updateSettings: mocks.updateSettings }) }
+  useSettingsStore: { getState: () => ({ settings: mocks.settings, updateSettings: mocks.updateSettings }) }
 }));
-vi.mock('../src/i18n', () => ({ default: { t: (key: string) => key } }));
+vi.mock('../src/i18n', () => ({ default: { t: mocks.translate } }));
 vi.mock('../src/lib/logger', () => ({ logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
 
 function imported(params: Partial<ImportPipelineResult> = {}): ImportPipelineResult {
@@ -101,6 +104,8 @@ describe('pipeline runtime share and foreground-service coordination', () => {
     mocks.summarizeSave.mockReset().mockResolvedValue(completion);
     mocks.addHistory.mockReset().mockResolvedValue(undefined);
     mocks.updateSettings.mockReset().mockResolvedValue(undefined);
+    mocks.settings = structuredClone(defaultSettings);
+    mocks.translate.mockReset().mockImplementation((key: string) => key);
     mocks.createHistory.mockReset().mockReturnValue({ id: 'a'.repeat(64) });
     mocks.requestPermission.mockReset().mockResolvedValue('denied');
     mocks.pick.mockReset().mockResolvedValue({ canceled: true, assets: null });
@@ -266,6 +271,97 @@ describe('pipeline runtime share and foreground-service coordination', () => {
     expect(mocks.addHistory).toHaveBeenCalledOnce();
     expect(mocks.native.acknowledgeOperationAsync).toHaveBeenCalledOnce();
     expect(mocks.importZip).toHaveBeenCalledWith(expect.objectContaining({ zipUri: 'content://provider/second.zip' }));
+  });
+
+  it('snapshots committed date, destination and organization settings before awaiting notification permission', async () => {
+    const settingsAtSave: AppSettings = {
+      ...structuredClone(defaultSettings), languagePreference: 'en', alwaysUseMessageDate: false,
+      saveDestinationMode: 'custom-folder', useDefaultFolder: false,
+      customFolder: { treeUri: 'content://tree/synthetic-A', displayName: 'Synthetic A', persistedPermission: true },
+      outputOrganization: { mode: 'by-sender', duplicateHandling: 'skip-existing', createExportTimestampFolder: true }
+    };
+    mocks.settings = settingsAtSave;
+    store.getState().setZip({ uri: 'content://provider/first.zip', name: 'first.zip' });
+    store.getState().setImportResult(imported());
+    const permission = deferred<string>();
+    mocks.requestPermission.mockReturnValueOnce(permission.promise);
+    const save = coordinator.startSaving(coordinator.captureSaveIntent()!);
+    await vi.waitFor(() => expect(mocks.requestPermission).toHaveBeenCalledExactlyOnceWith('android.permission.POST_NOTIFICATIONS'));
+    expect(mocks.runSave).not.toHaveBeenCalled();
+    // A queued Settings write publishes a new immutable committed snapshot while
+    // Android's permission dialog is still open. It belongs to the next save.
+    mocks.settings = {
+      ...structuredClone(defaultSettings), languagePreference: 'he', alwaysUseMessageDate: true,
+      saveDestinationMode: 'default-accurate-folder', useDefaultFolder: true, customFolder: null,
+      outputOrganization: { mode: 'by-type', duplicateHandling: 'replace-existing', createExportTimestampFolder: false }
+    };
+    permission.resolve('denied');
+    await save;
+    expect(mocks.runSave).toHaveBeenCalledOnce();
+    const received = mocks.runSave.mock.calls[0][0] as RunSavePipelineParams;
+    expect(received.settings).toEqual(settingsAtSave);
+    expect(mocks.settings.alwaysUseMessageDate).toBe(true);
+    expect(mocks.addHistory).toHaveBeenCalledOnce();
+  });
+
+  it('freezes translated notification copy together with folder labels before the permission dialog', async () => {
+    const translate = (suffix: 'A' | 'B') => (key: string) => ({
+      'operation.notificationTitle': `Saving ${suffix}`,
+      'operation.cancel': `Cancel ${suffix}`,
+      'outputFolders.importedChat': `Imported ${suffix}`,
+      'outputFolders.media': `Media ${suffix}`
+    }[key] ?? key);
+    mocks.translate.mockImplementation(translate('A'));
+    store.getState().setZip({ uri: 'content://provider/first.zip', name: 'first.zip' });
+    store.getState().setImportResult(imported());
+    const permission = deferred<string>(); mocks.requestPermission.mockReturnValueOnce(permission.promise);
+    const save = coordinator.startSaving(coordinator.captureSaveIntent()!);
+    await vi.waitFor(() => expect(mocks.requestPermission).toHaveBeenCalledOnce());
+    expect(mocks.runSave).not.toHaveBeenCalled();
+    mocks.translate.mockImplementation(translate('B'));
+    permission.resolve('granted'); await save;
+    expect(mocks.runSave).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({
+      notificationTitle: 'Saving A', notificationCancelLabel: 'Cancel A',
+      folderLabels: expect.objectContaining({ importedChat: 'Imported A', media: 'Media A' })
+    }));
+  });
+
+  it('keeps the click-time policy when settings publish B before the captured intent starts saving', async () => {
+    mocks.runSave.mockResolvedValueOnce({ ...completion, saveMethod: 'saf-custom-folder', outputDirectory: 'content://tree/click-A' });
+    const settingsAtClick: AppSettings = {
+      ...structuredClone(defaultSettings), alwaysUseMessageDate: false, languagePreference: 'en',
+      saveDestinationMode: 'custom-folder', useDefaultFolder: false,
+      customFolder: { treeUri: 'content://tree/click-A', displayName: 'Click A', persistedPermission: true },
+      outputOrganization: { mode: 'by-sender', duplicateHandling: 'keep-both', createExportTimestampFolder: true }
+    };
+    const translate = (suffix: 'A' | 'B') => (key: string) => ({
+      'operation.notificationTitle': `Saving ${suffix}`, 'operation.cancel': `Cancel ${suffix}`,
+      'outputFolders.media': `Media ${suffix}`
+    }[key] ?? key);
+    mocks.settings = settingsAtClick; mocks.translate.mockImplementation(translate('A'));
+    store.getState().setZip({ uri: 'content://provider/first.zip', name: 'first.zip' });
+    store.getState().setImportResult(imported());
+    const intent = coordinator.captureSaveIntent();
+    expect(intent).not.toBeNull();
+    expect(mocks.requestPermission).not.toHaveBeenCalled(); expect(mocks.runSave).not.toHaveBeenCalled();
+    // Models a settings publication during the UI's audio-release barrier,
+    // before startSaving is reached with the already accepted click intent.
+    mocks.settings = {
+      ...structuredClone(defaultSettings), alwaysUseMessageDate: true, languagePreference: 'he',
+      saveDestinationMode: 'default-accurate-folder', customFolder: null,
+      outputOrganization: { mode: 'by-type', duplicateHandling: 'replace-existing', createExportTimestampFolder: false }
+    };
+    mocks.translate.mockImplementation(translate('B'));
+    await coordinator.startSaving(intent!);
+    expect(mocks.runSave).toHaveBeenCalledOnce();
+    const received = mocks.runSave.mock.calls[0][0] as RunSavePipelineParams;
+    expect(received.settings).toEqual(settingsAtClick);
+    expect(received.settings).not.toBe(settingsAtClick);
+    expect(received.settings?.outputOrganization).not.toBe(settingsAtClick.outputOrganization);
+    expect(received.settings?.customFolder).not.toBe(settingsAtClick.customFolder);
+    expect(received).toMatchObject({ notificationTitle: 'Saving A', notificationCancelLabel: 'Cancel A', folderLabels: { media: 'Media A' } });
+    expect(mocks.createHistory).toHaveBeenCalledWith(expect.objectContaining({ folderTreeUri: 'content://tree/click-A' }));
+    expect(mocks.settings).toMatchObject({ alwaysUseMessageDate: true, languagePreference: 'he' });
   });
 
   it('reattaches to a background save and consumes its completion without starting a second save', async () => {

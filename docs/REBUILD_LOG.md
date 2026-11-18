@@ -556,3 +556,18 @@ Code5 source is checkpointed for signed release/runtime acceptance. This is not
 E closure: actual minified restart/RTLbothdirections,Back/insets/font130/wideENHE,
 updatedrealphone-onlysyntheticstoreimages,manualsignedupdate andcleanup remain.
 Physicalphoneunlock wasrequestedagain; API33physical remains unavailable.
+
+
+### E additional Save-policy regression
+
+Independent acceptance contract requires a Save's settings to be fixed before
+async work. Two actual coordinator regressions reproduced a delayed notification
+permission allowing settingsB/notificationcopyB to replace acceptedA;18 existing
+cases stayed green. **try another way:** capture cloned policy,folderlabels and
+notificationstrings at the visible Save gesture as part of SaveIntent,and use the
+same snapshot across media-release and notification waits; direct retry captures
+beforeitsfirstawait. Capturedcustom-folderhistoryusesA; restoredunknownhandle is
+null whileactualoutputURIs/pathsremainstored. Newgesture-boundarycase plus both
+permissioncases pass:21coordinator tests; expectedfullsuite451. No native/UIlayout
+code changed. API36 preflight remains explicitly source0db5579/APKb4684528…;
+final cycle/artifact/runtime replay will follow the emulator lease release.
