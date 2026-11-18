@@ -178,34 +178,44 @@ function VideoPlayback({ lease, item, controller }: { lease: VideoLease; item: M
 function ZoomImage({ item, onZoom }: { item: MediaCellItem; onZoom: (zoomed: boolean) => void }) {
   const [failed, setFailed] = React.useState(false);
   const [transform, setTransform] = React.useState({ scale: 1, x: 0, y: 0 });
-  const state = React.useRef(transform); state.current = transform;
-  const start = React.useRef({ scale: 1, x: 0, y: 0, distance: 0 });
+  const state = React.useRef(transform);
+  const start = React.useRef({ scale: 1, x: 0, y: 0, distance: 0, dx: 0, dy: 0, touches: 0 });
   const lastTap = React.useRef(0);
   const zoomCallback = React.useRef(onZoom); zoomCallback.current = onZoom;
   const responder = React.useMemo(() => {
     const distance = (touches: readonly { pageX: number; pageY: number }[]) => touches.length < 2 ? 0 : Math.hypot(touches[0].pageX - touches[1].pageX, touches[0].pageY - touches[1].pageY);
     return PanResponder.create({
       onStartShouldSetPanResponder: (event) => event.nativeEvent.touches.length > 1,
-      onMoveShouldSetPanResponder: (event) => event.nativeEvent.touches.length > 1 || state.current.scale > 1,
-      onPanResponderGrant: (event) => { start.current = { ...state.current, distance: distance(event.nativeEvent.touches) }; },
+      onMoveShouldSetPanResponderCapture: (event, gesture) => event.nativeEvent.touches.length > 1 || (state.current.scale > 1 && Math.abs(gesture.dx) + Math.abs(gesture.dy) > 5),
+      onMoveShouldSetPanResponder: (event, gesture) => event.nativeEvent.touches.length > 1 || (state.current.scale > 1 && Math.abs(gesture.dx) + Math.abs(gesture.dy) > 5),
+      onPanResponderGrant: (event, gesture) => {
+        start.current = { ...state.current, distance: distance(event.nativeEvent.touches), dx: gesture.dx, dy: gesture.dy, touches: event.nativeEvent.touches.length };
+        zoomCallback.current(true);
+      },
       onPanResponderMove: (event, gesture) => {
         const span = distance(event.nativeEvent.touches), origin = start.current;
-        if (span && !origin.distance) { origin.distance = span; return; }
+        if (origin.touches !== event.nativeEvent.touches.length) {
+          start.current = { ...state.current, distance: span, dx: gesture.dx, dy: gesture.dy, touches: event.nativeEvent.touches.length };
+          return;
+        }
         const scale = span && origin.distance ? Math.max(1, Math.min(5, origin.scale * span / origin.distance)) : origin.scale;
-        const next = { scale, x: scale === 1 ? 0 : Math.max(-600, Math.min(600, origin.x + gesture.dx)), y: scale === 1 ? 0 : Math.max(-800, Math.min(800, origin.y + gesture.dy)) };
-        setTransform(next); zoomCallback.current(scale > 1);
+        const next = { scale, x: scale === 1 ? 0 : Math.max(-600, Math.min(600, origin.x + gesture.dx - origin.dx)), y: scale === 1 ? 0 : Math.max(-800, Math.min(800, origin.y + gesture.dy - origin.dy)) };
+        state.current = next; setTransform(next);
       },
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderRelease: () => zoomCallback.current(state.current.scale > 1),
+      onPanResponderTerminate: () => zoomCallback.current(state.current.scale > 1),
     });
   }, []);
   if (failed) return <FileFallback item={item} failed />;
-  return <Pressable style={styles.full} onPress={() => {
+  return <View style={styles.full} {...responder.panHandlers}><Pressable style={styles.full} onPress={() => {
     const now = Date.now();
-    if (now - lastTap.current < 300) { const scale = state.current.scale > 1 ? 1 : 2; setTransform({ scale, x: 0, y: 0 }); onZoom(scale > 1); }
+    if (now - lastTap.current < 300) { const scale = state.current.scale > 1 ? 1 : 2; const next = { scale, x: 0, y: 0 }; state.current = next; setTransform(next); onZoom(scale > 1); }
     lastTap.current = now;
-  }} {...responder.panHandlers}>
+  }}>
     <Image source={{ uri: item.uri }} contentFit="contain" style={[styles.full, { transform: [{ translateX: transform.x }, { translateY: transform.y }, { scale: transform.scale }] }]}
-      accessibilityLabel={item.filename} onError={() => setFailed(true)} />
-  </Pressable>;
+      accessibilityLabel={item.filename} onError={() => { onZoom(false); setFailed(true); }} />
+  </Pressable></View>;
 }
 
 function clock(seconds: number) { const value = Number.isFinite(seconds) ? Math.max(0, Math.floor(seconds)) : 0; return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, '0')}`; }

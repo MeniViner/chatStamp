@@ -206,8 +206,8 @@ export function MediaSelectionList(props: MediaSelectionListProps) {
   return <View style={styles.list} {...responder.panHandlers} onTouchEnd={() => { if (!captured.current) endRange(); }}>
     <SectionList<SelectionRow, SelectionSection> sections={sections} extraData={selectedIds}
       keyExtractor={(row) => row.key} stickySectionHeadersEnabled scrollEnabled={!dragging}
-      // Keep the JS render window bounded; native clipping corrupts Fabric child
-      // ordering when empty/date-filtered sections and mixed rows are replaced.
+      // Keep the JS render window bounded. Disable native clipping after Fabric
+      // child-order failures when empty/date-filtered sections were replaced.
       initialNumToRender={8} maxToRenderPerBatch={8} windowSize={5} removeClippedSubviews={false}
       onViewableItemsChanged={viewability} viewabilityConfig={viewabilityConfig}
       ListEmptyComponent={<Text style={styles.empty}>{t('picker.empty')}</Text>}

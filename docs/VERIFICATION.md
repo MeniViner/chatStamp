@@ -413,3 +413,71 @@ Filter-sheet Reset was clipped at default emulator width; sender/date/sort contr
 were observed, hidden selections preserved by manually clearing filters. Keep the
 Reset defect explicit for the immediately following E sheet/inset work. No
 all-controls-accessible claim is made. No E implementation has started.
+
+
+## Stage D accepted · scoped runtime and signed update · 2026-11-18
+
+Final whole cycle `stage-d-image-touch-final` passed npm ci, strict TypeScript,
+305 Vitest tests/39 files, lint, clean Android prebuild/arm64 QA assembly, merged
+identity/permission/service checks,35 JVM and27 connected tests on EACH API30
+phone and API36 emulator. Reviewer found no remaining D source blockers against
+CODE_REVIEW. The75 new TS tests exercise production selection, actual500/5000
+memoized cells, thumbnail hooks, cleanup and deferred native-player ownership.
+
+The native-clipping alternative passed three exact emulator replays of the
+previous Fabric failure (date26→empty25→26→scroll→Photos); no Fabric error recurred.
+SectionList keeps windowSize5/batch8/stable keys; only native clipping is disabled.
+Image gestures originally competed with Pressable responder ownership: **try
+another way**, place PanResponder on a plain parent View, preserve latest transform
+when a pointer lifts and retain gesture ownership until release. Final physical
+FINGER tests observed doubletap red extent810→1620px, two-finger→one-finger zoom
+1758px, no paging during pan, then reset810px and a swipe to the next image.
+
+Final upload-signed/minified QA APK SHA256
+`69bfa0a5d78701556dc2386eb5f9d0cabd7d94c981a6f87afab24df35fee5015`
+ran40videos/sixscrolls with zero grid players. Captured cold-PID11276 preview/
+reopen window had4Init/4Release,peak1/final0,zero decoder-error lines and empty
+crash buffer. A subsequent actual Play displayed00:01/00:02 and a decoded frame.
+These are scoped event measurements, not independently queried decoder counts.
+Rapid video swipes were not certified as page changes; actual photo swipe and
+emulator16page-button transitions were observed independently.
+
+Physical all-media acceptance: photo gestures; GIF actual two-color animation;
+WebP rendered to match its white320x240 source; MP4 playback; OPUS reached20/20s;
+PDF showed the labelled red first page; VCF showed QA Dana/+15550123456. TXT
+FileProvider launched a real chooser. OEM HTML Viewer requested its own broad
+media permission and exited on denial. **try another way:** an independent,
+zero-permission disposable receiver read the actual granted content URI through
+ContentResolver and displayed exact62-byte UTF8,READ_OK/read_grant=GRANTED. This
+proves external transport; it does not certify that OEM viewer without its own
+permission. API36 built-in HTML Viewer had displayed the document. No storage
+permission was granted to chatStamp. Actual senderQA Dana+Photos footer1of1/673B
+saved only the red JPEG; independent MediaStore datetaken1551175200000,
+date_modified/mtime1551175200 agree with2019-02-26T10:00Z (1saved,1dateverified).
+
+Signed production AAB `dist/play/chatstamp-0.2.0-4.aab` SHA256
+`98b97a409ff9cfd38a1034095ea53faf26e51e6e001a1820081d027d682379e2`
+and production universal APK SHA256
+`5f96adb9dc2ff84610973642d74434366c9b5bd996c88326ba28efffff6b3827`
+pass the full artifact verifier with the established upload cert,exact identity,
+0.2.0/code4,min30/target36,minified/non-debuggable,allowed permissions,no backups,
+zipalignment and all72ELF entries (36ELF64 pass16KiB;32-bit explicitpolicyN/A).
+QA AAB/APK pass the same verifier except intentional.qa identity. First signed
+install over debug was rejected for different certificates: **try another way**,
+remove only our debug QA after deleting its own saved row,then install signed QA.
+Production was absent and untouched. No service-account credential exists; code4
+is packaged as the higher-code manual update under PLAY_UPLOAD_STEPS,not uploaded.
+No internal/closed track availability or tester clock is claimed.
+
+Current proof stays in `dist/android-verification/rebuild-20261118/`:d-emulator-
+runtime.json,d-phone-runtime.json,gesture/filter/external/release40 receipts,
+production/QA artifact reports and only small relevant screenshots. Actual phone
+cleanup removed saved row340,two source ZIPs,QA/helper/native instrumentation and
+temporary UI XML; restoredstayon7,timeout600000,font1.1,size1080x2340/density420
+without overrides. Emulator QA/source/output cleanup passed; native test package
+was removed after the final cycle,stayon1,font1.0,size1080x2400 unchanged.
+
+Known E work: filter-sheet Reset is still clipped at default dimensions, and
+footer/viewer native touch bounds need the E inset pass. Do not claim all-controls
+accessibility. API33 physical remains UNVERIFIED (actualA30API30 substitute).
+E/F/G2 now continue; real owner WhatsApp export and Play actions remain external.
