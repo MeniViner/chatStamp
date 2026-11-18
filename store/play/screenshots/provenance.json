@@ -1,0 +1,78 @@
+{
+  "captured_on": "2026-11-18",
+  "device": "Samsung Galaxy A30 SM-A305F, Android11/API30",
+  "package": "com.menis.chatstamp.qa",
+  "version": "0.2.0 (3)",
+  "apk_sha256": "3151927af160166cb15737050d0eb949228db5ed07a2ad3e483dc74a48359640",
+  "synthetic_only": true,
+  "capture": "ADB screencap; RGB conversion only; no UI compositing or retouching",
+  "temporary_display": "1080x2160, density420, font1.0; restored after run",
+  "fresh_saves": "Hebrew rows244\u2013248 were deliberately removed before English fresh-save rows249\u2013253; duplicate preservation is separately proven by Stage B, not this reset.",
+  "pending_redesign": "Current six-step UI; replace after Stage E.",
+  "files": [
+    {
+      "file": "en-US/01-import.png",
+      "width": 1080,
+      "height": 2160,
+      "color": "RGB24",
+      "bytes": 189008,
+      "sha256": "57a46fe805f48e9fec3345c83b684520adeaf1343b2d265b1fb45f4335c5c9d6"
+    },
+    {
+      "file": "en-US/02-selection.png",
+      "width": 1080,
+      "height": 2160,
+      "color": "RGB24",
+      "bytes": 188396,
+      "sha256": "a58ce9653f5531e9cd97d8f6ee1045b661d00d3e16c9373983c375513638cc65"
+    },
+    {
+      "file": "en-US/03-saving.png",
+      "width": 1080,
+      "height": 2160,
+      "color": "RGB24",
+      "bytes": 74613,
+      "sha256": "15530967add2cb74a2c418ccbeae7a9400aa042cd69e4e0f5d9369e4a1718acf"
+    },
+    {
+      "file": "en-US/04-results.png",
+      "width": 1080,
+      "height": 2160,
+      "color": "RGB24",
+      "bytes": 137344,
+      "sha256": "fea28739d0f80518d665ea02d5710b6301261c14779f865ef888ccc3b08fa2c8"
+    },
+    {
+      "file": "he-IL/01-import.png",
+      "width": 1080,
+      "height": 2160,
+      "color": "RGB24",
+      "bytes": 157417,
+      "sha256": "a0d8e18135f9b86d42f8d10bdb39728ea59dec39e630b46c8cd4534221f67d99"
+    },
+    {
+      "file": "he-IL/02-selection.png",
+      "width": 1080,
+      "height": 2160,
+      "color": "RGB24",
+      "bytes": 171362,
+      "sha256": "1909d9349d7614cc4e8da239cd7b8d4085f4ebaf39600a59edd1c7619a90eb05"
+    },
+    {
+      "file": "he-IL/03-saving.png",
+      "width": 1080,
+      "height": 2160,
+      "color": "RGB24",
+      "bytes": 70028,
+      "sha256": "fa3edb2e863fb5a02cd86d772faea1218648da78c974ae3dcfa696ab87f950aa"
+    },
+    {
+      "file": "he-IL/04-results.png",
+      "width": 1080,
+      "height": 2160,
+      "color": "RGB24",
+      "bytes": 126202,
+      "sha256": "e4336085179d423f06bf4dc1d30bdb8e4a4f3a40c08afae6557b1bfc815c59d0"
+    }
+  ]
+}

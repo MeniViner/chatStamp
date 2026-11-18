@@ -6,7 +6,7 @@ permalink: /privacy-policy-source.html
 
 Effective date / בתוקף מיום: **18 November 2026 / 18 בנובמבר 2026**
 
-Developer / מפתח: **Meni Viner**  
+Developer / מפתח: **Meni Viner**
 Privacy and support / פרטיות ותמיכה: **[meniviner@gmail.com](mailto:meniviner@gmail.com)**
 
 ## English

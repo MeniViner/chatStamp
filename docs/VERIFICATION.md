@@ -326,3 +326,58 @@ ABIs, so preserve their raw results and correct verifier applicability rather th
 omit ABIs or claim ELF32 compatibility. The public policy page/Play upload are
 not established by this checkpoint. Phone has securely locked again; owner unlock
 was requested while independent release preparation continues.
+
+
+## Stage G1 accepted with manual Play handoff · 2026-11-18
+
+- Final complete smoke: npm ci, strict TypeScript, **230 Vitest tests/35 files**,
+  lint, clean Android prebuild, two-worker QA assembly/manifest checks, **25 JVM
+  tests**, and **10 connected tests on each API30/API36**, all passed. Independent
+  signing-template tests cover eight cases; the standalone verifier/harness has
+  **73 passing Python tests**. Reviewer found no remaining actionable findings.
+- Fixed release signing selection across Expo comments and fail closed on unknown
+  Gradle templates. Production AAB `dist/play/chatstamp-0.2.0-3.aab` SHA256
+  `7cd6730b3b80742abeb50d1c61197ce4825c316ac2657ccea1f56e5e2c84c95d`
+  validates and is signed by the established upload certificate SHA256
+  `efe36695cfc6a3d9ea8471527103f29e3374322ab09890af41692412d76a66c8`.
+  Exact identity/version0.2.0/code3/min30/target36/nondebug, signed payload coverage,
+  backup exclusions, platform-permission trio and AndroidX own signature permission
+  pass. All72 ELF libraries were inspected: all36 ELF64 LOAD/RELRO checks and
+  APK16KiB ZIP alignment pass; genuine32-bit raw results are retained with explicit
+  policy NOT_APPLICABLE. Actual16KiB-device runtime remains UNVERIFIED.
+- The same owner-signed minified QA universal APK SHA256
+  `3151927af160166cb15737050d0eb949228db5ed07a2ad3e483dc74a48359640`
+  cold-launched in998ms and passed real-picker five-file save/readback on the
+  physical Samsung A30/API30 and API36 emulator. Five saved and five dates verified
+  agree independently with MediaStore, filesystem dates, EXIF and both MP4
+  creation times. Phone Gallery default Date created descending shows purple,
+  yellow, blue, green, red; red details show15Feb2019 10:30. Crash buffer empty.
+- All eight synthetic actual-phone store screenshots are captured in English
+  and Hebrew, with dimensions/hashes/provenance. The English fresh-save run
+  intentionally removed Hebrew rows244–248 first; rows249–253 are new. This reset
+  is not duplicate acceptance; accepted Stage B proves duplicate preservation.
+- Privacy policy is public HTTP200 at
+  https://meniviner.github.io/chatStamp/privacy-policy.html and matches tracked
+  bilingual HTML. Pages currently serves fix/core-rebuild /docs; after owner merge
+  switch to main /docs before deleting the branch. Installed Privacy policy action
+  launches Chrome on both devices; browser first-run/sync prompts prevented page
+  rendering. **UNVERIFIED:** owner completes their browser setup and taps Settings
+  → Privacy policy; the test did not alter account/sync preferences.
+- Recorded actual minified user-started save, live dataSync notification while
+  Launcher was foreground, reattachment and4saved/4verified results. The14.4s
+  `dist/play/chatstamp-0.2.0-3-fgs-demo.mp4` uses cuts around transitions and a crop
+  of only the chatStamp notification to exclude unrelated personal notifications;
+  no UI or progress was composited. A first timing attempt missed the shade:
+  **try another way**: wait for Home to settle, then use a real downward swipe.
+  The owner must publish an accessible video URL. No raw/private video is packaged.
+- No Play service-account variable was supplied. **try another way:** signed AAB,
+  bilingual listing/declarations/tester messages and exact numbered manual steps
+  are ready; no upload or started closed-test period is claimed. Personal-account
+  creation date and tester participation remain UNKNOWN. Real owner WhatsApp
+  export and API33 physical coverage remain UNVERIFIED with G2 steps.
+- Phone cleanup removed the five current Gallery rows and four demo rows, both
+  source ZIPs, both temporary recordings and QA/helper packages; earlier trial
+  rows were already removed. Display1080x2340/font1.1/timeout600000/stay-awake7
+  restored. Emulator cleanup removed its QA/run files and restored stay-awake1.
+  Production package stayed absent and unchanged. Compact proof is in the single
+  ignored rebuild-20261118 folder; product AAB/demo are separate requested outputs.

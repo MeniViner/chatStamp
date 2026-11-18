@@ -1,6 +1,6 @@
 # Google Play listing package
 
-G1 text prepared **2026-11-18** for **0.2.0 (3)**. This folder is the tracked listing output set. No Console upload, live listing or policy website is established by its presence. Start the owner handoff at [PLAY_UPLOAD_STEPS.md](../../docs/PLAY_UPLOAD_STEPS.md); declarations and release gates are in [PLAY_RELEASE_CHECKLIST.md](../../docs/PLAY_RELEASE_CHECKLIST.md).
+G1 text prepared **2026-11-18** for **0.2.0 (3)**. This folder is the tracked listing output set. No Console upload or live listing is established by its presence. The linked privacy policy was published and anonymously verified HTTP200 on2026-11-18; its in-app action still needs installed-device verification. Start the owner handoff at [PLAY_UPLOAD_STEPS.md](../../docs/PLAY_UPLOAD_STEPS.md); declarations and release gates are in [PLAY_RELEASE_CHECKLIST.md](../../docs/PLAY_RELEASE_CHECKLIST.md).
 
 ## Text files
 
@@ -40,4 +40,6 @@ Before handoff inspect image dimensions/channels and every screen, validate text
 
 ## לבעל החשבון
 
-קובצי הטקסט באנגלית ובעברית מוכנים להעתקה, אך אין בכך אישור שהחנות או הבדיקה הסגורה פורסמו. יש לוודא שקיימים ונבדקו סמל 512×512, תמונת נושא 1024×500 וארבעה צילומי מסך אמיתיים מכל שפה, עם מידע מלאכותי בלבד. יש לעדכן גרסה, הערות הפצה וצילומים בכל העלאה עתידית ולפעול לפי [הוראות ההעלאה](../../docs/PLAY_UPLOAD_STEPS.md). עמוד הפרטיות עדיין מחייב הפעלה ואימות פומבי על ידי בעל החשבון.
+קובצי הטקסט באנגלית ובעברית מוכנים להעתקה, אך אין בכך אישור שהחנות או הבדיקה הסגורה פורסמו. יש לוודא שקיימים ונבדקו סמל 512×512, תמונת נושא 1024×500 וארבעה צילומי מסך אמיתיים מכל שפה, עם מידע מלאכותי בלבד. יש לעדכן גרסה, הערות הפצה וצילומים בכל העלאה עתידית ולפעול לפי [הוראות ההעלאה](../../docs/PLAY_UPLOAD_STEPS.md). עמוד הפרטיות פורסם ואומת לציבור; יש לבדוק גם את פתיחתו מהאפליקציה המותקנת.
+
+G1 eight actual-phone synthetic screenshots and hashes are in `screenshots/provenance.json`. Their six-step baseline UI will be replaced after Stage E.

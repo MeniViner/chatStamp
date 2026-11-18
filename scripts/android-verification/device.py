@@ -31,7 +31,7 @@ def tap(node):
 
 
 def find(pattern, nodes):
-    matching = [node for node in nodes if any(
+    matching = [node for node in nodes if node.get("enabled") != "false" and any(
         re.fullmatch(pattern, node.get(field, ""), flags=re.IGNORECASE)
         for field in ("text", "content-desc", "resource-id")
     )]

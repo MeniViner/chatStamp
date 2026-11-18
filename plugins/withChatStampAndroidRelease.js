@@ -32,6 +32,9 @@ function applyReleaseSigning(buildGradle) {
       `def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()\n${propsBlock}`
     );
   }
+  if (!contents.includes('def chatstampReleaseSigningConfigured =') || !contents.includes('def chatstampReleaseStoreFile =')) {
+    throw new Error('chatStamp could not install the release signing inputs; refusing an unknown Gradle template.');
+  }
 
   if (!contents.includes('if (chatstampReleaseSigningConfigured) {\n            release {')) {
     contents = contents.replace(
@@ -53,6 +56,9 @@ function applyReleaseSigning(buildGradle) {
         }
     }`
     );
+  }
+  if (!contents.includes('if (chatstampReleaseSigningConfigured) {\n            release {')) {
+    throw new Error('chatStamp could not install the existing release signing configuration.');
   }
 
   const buildTypesStart = contents.indexOf('buildTypes {');
@@ -93,9 +99,8 @@ const withChatStampAndroidRelease = (config) => {
   });
 
   config = withAppBuildGradle(config, (config) => {
-    if (config.modResults.language === 'groovy') {
-      config.modResults.contents = applyReleaseSigning(config.modResults.contents);
-    }
+    if (config.modResults.language !== 'groovy') throw new Error('chatStamp requires a reviewed Groovy release signing template.');
+    config.modResults.contents = applyReleaseSigning(config.modResults.contents);
     return config;
   });
 

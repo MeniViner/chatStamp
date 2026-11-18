@@ -2,17 +2,17 @@
 
 Prepared and official requirements checked: **2026-11-18**. G1 candidate: **0.2.0 / versionCode 3**, package **`com.menis.chatstamp`**, min SDK **30**, target SDK **36**. Each later upload needs a higher versionCode. Use the latest verified candidate recorded in [VERIFICATION.md](VERIFICATION.md); these documents do not certify an artifact or a Play rollout.
 
-The account is personal; its creation date is **UNKNOWN — owner must confirm**. No Play service-account credential was provided for G1. No upload, closed-test enrollment, production access or live privacy website is asserted here. Use [the manual upload steps](PLAY_UPLOAD_STEPS.md). Public privacy/support contact chosen by the owner: **meniviner@gmail.com**.
+The account is personal; its creation date is **UNKNOWN — owner must confirm**. No Play service-account credential was provided for G1. No upload, closed-test enrollment or production access is asserted here. The privacy policy was published and anonymously verified HTTP200 on2026-11-18 from `fix/core-rebuild /docs`; its body matches the tracked HTML. Use [the manual upload steps](PLAY_UPLOAD_STEPS.md). Public privacy/support contact chosen by the owner: **meniviner@gmail.com**.
 
 ## Release gates
 
-- [ ] Signed AAB at `dist/play/chatstamp-0.2.0-3.aab`; record actual SHA256, source commit and upload certificate fingerprint in the verification report. Reuse the established upload key via [external signing configuration](ANDROID_RELEASE_SIGNING.md). Never put keys or passwords in this repository.
-- [ ] `bundletool validate` passes. Inspect the final AAB/APKs for package/version, min30/target36, release signature, `debuggable=false`, R8/minification and every delivered ABI. A successful Gradle task alone does not prove signing.
-- [ ] Check the final permission list: foreground service, dataSync and notifications are the intended app permissions; investigate generated library permissions. No Internet/network-state, broad storage/media-read, microphone, overlay, vibration or install-referrer permission. Verify backup and device-transfer exclusion in the merged release manifest/rules before publishing this privacy policy.
-- [ ] Verify all bundled native ELF LOAD segment alignments are at least 16 KiB, bundle config requests `PAGE_ALIGNMENT_16K`, and a universal APK passes `zipalign -c -P 16 -v 4`. Record any 16 KiB runtime smoke separately; static alignment does not prove it ran on a 16 KiB device.
-- [ ] Minified release installed under the permitted production/QA identity, launched, and passed the five-file save plus Gallery regression. Existing debug QA coverage does not replace this check.
-- [ ] `store/play/` contains both listing languages, icon, feature graphic and four actual-phone synthetic screenshots per language. Check formats/dimensions against [its README](../store/play/README.md).
-- [ ] Privacy page publicly returns the policy over HTTPS without login. Add its URL in Console **and inside the app**; verify the in-app Privacy policy action is accessible and opens it. Expected URL: `https://meniviner.github.io/chatStamp/privacy-policy.html` — **PENDING owner enabling Pages and public verification**.
+- [x] Signed AAB at `dist/play/chatstamp-0.2.0-3.aab`; record actual SHA256, source commit and upload certificate fingerprint in the verification report. Reuse the established upload key via [external signing configuration](ANDROID_RELEASE_SIGNING.md). Never put keys or passwords in this repository.
+- [x] `bundletool validate` passes. Inspect the final AAB/APKs for package/version, min30/target36, release signature, `debuggable=false`, R8/minification and every delivered ABI. A successful Gradle task alone does not prove signing.
+- [x] Check the final permission list: foreground service, dataSync and notifications are the intended app permissions; investigate generated library permissions. No Internet/network-state, broad storage/media-read, microphone, overlay, vibration or install-referrer permission. Verify backup and device-transfer exclusion in the merged release manifest/rules before publishing this privacy policy.
+- [x] Inventory every bundled native library and its actual ELF class/machine. Require at least16KiB LOAD alignment and no RELRO concern on64-bit arm64-v8a/x86_64; retain genuine32-bit raw alignments with explicit policy NOT_APPLICABLE, without claiming16KiB compatibility. Confirm bundle config requests `PAGE_ALIGNMENT_16K`, and a universal APK passes `zipalign -c -P 16 -v 4`. Record any 16 KiB runtime smoke separately; static alignment does not prove it ran on a 16 KiB device.
+- [x] Minified release installed under the permitted production/QA identity, launched, and passed the five-file save plus Gallery regression. Existing debug QA coverage does not replace this check.
+- [x] `store/play/` contains both listing languages, icon, feature graphic and four actual-phone synthetic screenshots per language. Check formats/dimensions against [its README](../store/play/README.md).
+- [x] Privacy page publicly returns the policy over HTTPS without login. Add its URL in Console **and inside the app**; verify the in-app Privacy policy action is accessible and opens it. Expected URL: `https://meniviner.github.io/chatStamp/privacy-policy.html` — **PUBLIC: HTTP200 verified2026-11-18; installed action launches Chrome; page rendering UNVERIFIED because browser setup blocks it**.
 - [ ] Owner completed App content declarations below, verified intended audience/countries/pricing, and provided an accessible FGS demonstration-video link. The private/local video path is not a valid Console link.
 - [ ] Internal and closed tracks show the intended version as available; record the actual track status and opt-in URLs after Console confirmation. A draft or submitted review is not a live test.
 
@@ -68,7 +68,7 @@ The [official FGS guidance](https://support.google.com/googleplay/android-develo
 
 ### Demonstration video script / תסריט סרטון הדגמה
 
-Record the actual final minified candidate on the phone with synthetic content only. Store the raw video under ignored `dist/`, outside the curated evidence set. Do not upload personal chats, notification contents, account identifiers or credentials. The owner must publish an accessible reviewer link and verify it while signed out. **Video URL: NOT RECORDED / NOT PUBLISHED.**
+Record the actual final minified candidate on the phone with synthetic content only. Keep raw capture temporary; package only the privacy-safe demo under ignored `dist/play/`, outside the curated evidence folder. Do not upload personal chats, notification contents, account identifiers or credentials. The owner must publish an accessible reviewer link and verify it while signed out. **G1 recording:** `dist/play/chatstamp-0.2.0-3-fgs-demo.mp4` (14.4s, synthetic, minified QA0.2.0/code3). It shows the Save trigger, actual progress/Cancel, the live notification while Launcher is foreground, and4saved/4verified results. Cuts omit Home transitions; only the chatStamp notification is cropped into its original screen frame to exclude unrelated private notifications. **Video URL: NOT PUBLISHED; owner must publish an accessible reviewer link.** Replace with final UI candidate after Stage E.
 
 | Step | English narration | קריינות בעברית |
 | --- | --- | --- |
@@ -76,7 +76,7 @@ Record the actual final minified candidate on the phone with synthetic content o
 | 2 | “I tap Save to start a local export.” Keep the actual tap and progress visible. | ״אני לוחץ על שמירה כדי להתחיל ייצוא מקומי.״ להציג את הלחיצה ואת ההתקדמות. |
 | 3 | “The save continues when I leave the app.” Press Home, open the notification shade and show changing progress plus Cancel. | ״השמירה ממשיכה גם כשאני יוצא מהאפליקציה.״ לעבור למסך הבית ולהציג בהתראה התקדמות וביטול. |
 | 4 | “I return to the results.” Show actual saved/date-verified counts and the saved files. | ״אני חוזר לתוצאות.״ להציג את מספר הקבצים שנשמרו והתאריכים שאומתו ואת הקבצים עצמם. |
-| 5 | “I start another save and cancel it. Completed files remain; the rest are cancelled.” Show a fresh remaining-file run, Cancel, truthful partial results and no ongoing save notification. | ״אני מתחיל שמירה נוספת ומבטל אותה. הקבצים שהושלמו נשארים והיתר מבוטלים.״ להציג פעולה חדשה, ביטול, תוצאות חלקיות וסיום ההתראה. |
+| Optional extended cancellation example (separately accepted in Stage C) | “I start another save and cancel it. Completed files remain; the rest are cancelled.” Show a fresh remaining-file run, Cancel, truthful partial results and no ongoing save notification. | ״אני מתחיל שמירה נוספת ומבטל אותה. הקבצים שהושלמו נשארים והיתר מבוטלים.״ להציג פעולה חדשה, ביטול, תוצאות חלקיות וסיום ההתראה. |
 
 If one save finishes too quickly, use a larger synthetic fixture. Do not edit a completed run to look like background work or claim a notification-denied test that was not performed in this video.
 
@@ -106,6 +106,6 @@ Accepted rebuild evidence is in [VERIFICATION.md](VERIFICATION.md): Samsung Gala
 
 ## Owner summary / סיכום לבעל החשבון
 
-**English:** Enable and verify the privacy page, confirm the audience and account date, complete the declarations, publish the synthetic FGS demo, manually upload the verified candidate to internal then closed testing, invite testers and record real opt-in/feedback evidence. Do not request production access before its actual testing gate is met.
+**English:** Verify the already published privacy page and its in-app action, confirm the audience and account date, complete the declarations, publish the synthetic FGS demo, manually upload the verified candidate to internal then closed testing, invite testers and record real opt-in/feedback evidence. Do not request production access before its actual testing gate is met.
 
-**עברית:** יש להפעיל ולאמת את עמוד הפרטיות, לאשר את קהל היעד ואת מועד פתיחת החשבון, להשלים הצהרות, לפרסם סרטון הדגמה עם מידע מלאכותי, להעלות ידנית את הגרסה המאומתת לבדיקה פנימית ולאחר מכן סגורה, להזמין בודקים ולתעד הצטרפות ומשוב אמיתיים. אין לבקש גישה להפצה לפני שדרישות הבדיקה התקיימו בפועל.
+**עברית:** עמוד הפרטיות פורסם ואומת; יש לבדוק את הכפתור באפליקציה, לאשר את קהל היעד ואת מועד פתיחת החשבון, להשלים הצהרות, לפרסם סרטון הדגמה עם מידע מלאכותי, להעלות ידנית את הגרסה המאומתת לבדיקה פנימית ולאחר מכן סגורה, להזמין בודקים ולתעד הצטרפות ומשוב אמיתיים. אין לבקש גישה להפצה לפני שדרישות הבדיקה התקיימו בפועל.
