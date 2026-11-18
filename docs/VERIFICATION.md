@@ -719,3 +719,12 @@ recurring check, merge or automatic production rollout was created.
  trap before implementation. A new fresh GitHub checkout must pass the complete
  npmci→host→prebuild→pinnedfetch→native→manifest path; no tests are skipped or
  marked continue-on-error. Final current CI link is recorded in the report.
+
+
+- 2026-11-19 CI workflow evaluation correction: the first bootstrap push b51bd00
+  was rejected before any job because runner.temp is unavailable in job-level
+  env. try another way: define the identical runner-local repository in the
+  fetch and Gradle step env blocks, where runner is supported. Official context
+  table: https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#context-availability.
+  No host/native gate was skipped. The earlier ea45a36 push CI44417140377 also
+  completed successfully; its separate PR retry had failed Maven resolution.
