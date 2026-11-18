@@ -89,3 +89,25 @@ Record the rendered first screen and QA process crash log. Complete or skip onbo
   the requested WebP fixture and clean its intermediate. This is verification
   tooling, not a change to application media/date behavior.
 - Final verification-helper validation: 18 Python host tests passed; the five-media and undated fixtures generated successfully with the WebP fallback. Final independent R diff review found no remaining actionable findings.
+
+
+## Stage B-close · UI awaiting owner unlock · 2026-11-18
+
+- Tested application source remains the Stage R head `fe7be66`; no product change
+  was made for B-close. The complete smoke cycle was rerun and passed: npm ci,
+  TypeScript, 112 Vitest tests, ESLint, clean prebuild, two-worker arm64 QA assembly,
+  min30/target36 QA manifest inspection, five JVM and three API30 connected tests.
+- The synthetic five-media ZIP and absent-date VCF ZIP generated successfully.
+  The source MP4s still deliberately contain the wrong 2022/2018 dates.
+- Before the app-driven regression the phone entered a secure lock. A wake key
+  brought up the lock screen; policy reports `showing=true`, `secure=true`.
+  ADB remains connected but battery service reports AC/USB/wireless power false,
+  so `svc power stayon usb` does not keep this connection awake.
+- **try another way**: wake and inspect the keyguard rather than attempting a
+  credential or gesture unlock. A secure unlock still requires the owner. The
+  owner was asked to unlock the A30 and leave it connected. No UI save, Gallery,
+  duplicate or absent-date result is claimed.
+- Preserve the tested head and QA binary as a development input. Keep B-close
+  acceptance pending and continue independent Stage C implementation; G1 stays
+  gated on accepted B-close and C. On unlock, repeat the retained QA regression,
+  then run it again on any changed save implementation.

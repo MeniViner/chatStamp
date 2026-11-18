@@ -147,3 +147,15 @@ B-close app save, Gallery, duplicate and undated-file acceptance remain
 not stand in for those app/Gallery cases.
 
 Verification tooling also passes 18 Python host tests (`python3 -m unittest discover -s scripts/android-verification -p 'test_*.py' -v`). The five-media and undated fixture generation passed using the installed cwebp fallback.
+
+
+## B-close continuation · 2026-11-18
+
+Smoke steps 1–8 pass again at application head `fe7be66` (112 Vitest, 5 JVM,
+3 connected tests). The physical UI acceptance is **UNVERIFIED — owner unlock
+required**. Wake alone leaves the secure keyguard showing. Unlock the A30,
+install the isolated QA APK, skip onboarding, enable Always use message date,
+import the five-file ZIP through the picker, save, run the tracked readback
+assertions, and inspect Samsung Gallery. Then rerun duplicates in both languages
+and save the undated VCF. The corresponding exact procedure is in
+scripts/android-verification/README.md; no Gallery result is inferred from tests.
