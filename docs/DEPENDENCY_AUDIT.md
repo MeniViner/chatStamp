@@ -39,5 +39,6 @@ These remaining risks concern developer/build tooling. Do not feed untrusted
 repositories/configuration to development servers as a substitute for package
 maintenance. This is a reviewed reachability disposition, not an assertion that
 an npm production-dependency flag establishes APK contents. The final minified
-Hermes source-map check is recorded with its artifact in VERIFICATION.md; no raw
-map or dependency tree is included in curated evidence.
+Hermes source-map check must be recorded with its artifact in VERIFICATION.md; no raw
+map or dependency tree is included in curated evidence. That final-candidate
+source-map check remains pending until an artifact-scoped result is appended.

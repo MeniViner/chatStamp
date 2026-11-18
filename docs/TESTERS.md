@@ -1,6 +1,8 @@
 # Closed-test invitations and owner test record
 
-Prepared **2026-11-18**. No tester count, opt-in period, live Play release or owner real-export result has been verified. The personal account's creation date is unknown. Plan for at least 12 testers continuously opted into closed testing for 14 days; the exact applicability and eligibility must be confirmed by the owner in Console. Internal testing does not satisfy that requirement. [Official personal-account requirements](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en).
+Prepared **2026-11-19**. No tester count, opt-in period, live Play release or owner real-export result has been verified. The personal account's creation date is unknown. Plan for at least 12 testers continuously opted into closed testing for 14 days; the exact applicability and eligibility must be confirmed by the owner in Console. Internal testing does not satisfy that requirement. [Official personal-account requirements](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en).
+
+The intended candidate is **0.2.0 (versionCode 6)**, still under validation. **No uploaded Play track or working opt-in URL is asserted.** The owner run below starts only after the release owner confirms that the final QA candidate is installed. Preparing this guide does not complete that run.
 
 ## Owner setup
 
@@ -42,15 +44,103 @@ Report expected/actual behavior, steps, version, device/Android, language and wh
 
 ## Owner real-export acceptance — still UNVERIFIED
 
-The owner must export a real WhatsApp chat **with media** whose message dates are known. Keep the export and all personal proof outside Git and public evidence.
+Run this privately on the **Samsung Galaxy A30 (SM-A305F), Android 11 / API 30**, after the final **0.2.0 (6)** QA installation is confirmed. Record the actual installed version and package; the side-by-side QA package is `com.menis.chatstamp.qa`. Do not replace or uninstall the owner's production app. The requested physical **API 33 device is unavailable: UNVERIFIED**. API 30 results and synthetic emulator results do not fill that gap.
 
-1. In WhatsApp export/share to chatStamp once while chatStamp is closed and once while it is already open. Confirm each share starts one import and the expected attachments/senders appear.
-2. Select a few known photo/video messages. Start Save without granting broad storage permission; use the relevant message-date preference explicitly. Compare saved count and per-file verification with the source conversation.
-3. In Samsung Gallery use the default creation-date order and inspect Details. Confirm order and displayed dates match the known messages. If anything differs, record the exact format and observed date; do not call all files corrected.
-4. Repeat with Skip existing and confirm no duplicate file/folder. Discard/reset and relaunch; verify private import working files are gone. Delete only the test's saved outputs when no longer wanted, keeping the original export safe.
-5. Record PASS/FAIL, date, candidate/version, device/Gallery version, formats, date preference and a redacted result summary. Do not upload the actual export. Until this happens, keep the result **UNVERIFIED**.
+Use **PASS**, **FAIL** or **UNVERIFIED (not run / blocked)** for each case. Until the owner runs these steps, every owner real-export result remains **UNVERIFIED**.
 
-**לבעל החשבון:** יש לייצא מ-WhatsApp שיחה אמיתית עם מדיה ותאריכים מוכרים, לשתף כשהאפליקציה סגורה ופתוחה, לשמור קבצים נבחרים ללא הרשאת אחסון גורפת, ולהשוות את סדר ברירת המחדל ופרטי התאריך בגלריה לשיחה. יש לבדוק גם דילוג על קיימים וניקוי קובצי עבודה. שומרים את הייצוא ואת המידע האישי מחוץ ל-Git, ומתעדים רק סיכום ללא פרטים מזהים. התוצאה עדיין **לא אומתה**.
+### 1. Prepare known dates and fixed save settings
+
+1. Keep the original conversation and media. Choose a real WhatsApp chat containing at least three known photo/video messages, preferably JPEG and MP4 on distinct days or minutes so ordering is unambiguous. Privately label them **A, B, C**, oldest to newest. Record their message dates/times, the phone's time zone, formats and the corresponding exported filenames in a private note. Avoid messages whose date or attachment association is uncertain.
+2. Keep a local copy of one export ZIP **with media** in private on-device storage for the identical-ZIP reruns below. Use WhatsApp's **chat → ⋮ → More → Export chat → Include media**, then an available local file-saving share target. Menu wording can vary; record the route actually used. If a local ZIP cannot be retained, mark the identical-ZIP cases blocked. Do not send the export to the agent, a public issue, Git or a cloud service for this test.
+3. In chatStamp open **Settings**. Explicitly turn **Always use message date ON**, wait for the setting to save, leave Settings and reopen it to confirm. Fresh/missing preferences default ON; an older explicit OFF is preserved, so do not assume the installed preference is ON. If saving the preference fails, stop and record the failure.
+4. Use **Save Location → Android media folders** for the Samsung Gallery check. Under **Output Organization**, record the mode, use **Duplicate handling → Skip existing** (the default), and leave **Create export timestamp folder OFF**. Keep destination, organization mode and this switch unchanged for all duplicate/language reruns. These options live in Settings; the main flow is **Import → Select → Save**, with no intervening output-options page.
+5. Record the WhatsApp and Samsung Gallery versions privately. Use neutral labels and counts in the shareable result; do not include the chat name, sender names, private filenames, exact message content or screenshots containing personal media.
+
+### 2. WhatsApp's own ShareSheet into a closed app
+
+1. Finish or discard any current import; do not interrupt an active save. Close chatStamp by swiping its task away in Android Recents. Record this method. A process-level cold-start claim additionally needs the release owner's PID check; merely switching to WhatsApp is a warm run.
+2. In **WhatsApp itself**, open the chosen chat and use **⋮ → More → Export chat → Include media**. On Android's share sheet select the installed **QA chatStamp** target **once**. If the target cannot be distinguished from production, stop for the release owner to identify it. A Files share or ZIP picker does not substitute for this WhatsApp case.
+3. Wait for import to reach **Select**. Confirm the known attachments and expected sender associations appear. Record one import leading to one selection session: no second import spinner, replacement prompt or repeated transition from the same share. Press Home and return once; the same selection session must remain without another import. If the visible sequence cannot establish exactly once, record it as UNVERIFIED rather than guessing.
+4. Continue with the save/date check below. Retain the local master ZIP from step 1 separately; exporting again from WhatsApp may produce different ZIP bytes.
+
+### 3. Save known files and check actual Gallery dates
+
+1. On **Select**, open **All**, clear the initial selection using its selection control, then choose only the known A/B/C attachments. Confirm the active filter and the footer's selected count **N** before tapping **Save selection** once. Saving applies to selected files in the active filter; hidden selections must not be mistaken for this save's count.
+2. Save directly from Select. A notification permission prompt may appear on Android 13+; it is not a broad storage permission. This API 30 run does not verify Android 13 notification behavior. If a broad storage permission or an unexpected extra options step is required, record it as a failure.
+3. On **Results**, record **saved**, **dates verified**, **failed** and **cancelled** separately. Open **Details** and record each selected file's outcome, including **Already saved**, unavailable, estimated or unverified dates. A successful file write is not proof of a verified message date; skipped files are not newly saved files. For an initial fresh save, require the intended N outputs to exist, and explain any difference rather than accepting the headline alone.
+4. Use **Open in Gallery** or open Samsung Gallery manually. First observe the output album's **existing default order without changing its sort setting**. Record its sort label if available. Compare the actual relative order with the known A/B/C dates (C/B/A for newest-first, A/B/C for oldest-first). Import-time order or an order that cannot be distinguished is not a PASS for original-date sorting. A later manually chosen sort can be reported separately; it does not prove the default order passed.
+5. Open Gallery **Details** for each selected photo/video. Privately compare the displayed date/time with its original WhatsApp message and time zone, rather than the import time or a different embedded capture date. Record Gallery's displayed precision. Mark each tested format PASS only when its observed order and Details support the expected original message date. Report mismatches or unavailable/estimated/unverified dates per file; do not call all files corrected because some passed.
+
+### 4. WhatsApp's own ShareSheet into a warm app
+
+1. Return to chatStamp, use **Start over** and confirm if shown, then leave it idle on **Import**. Switch to WhatsApp through Recents **without swiping chatStamp away**. Keep the same app process alive; record if Android kills it, in which case retry or mark the warm case UNVERIFIED.
+2. Repeat WhatsApp's **Export chat → Include media → Android share sheet → QA chatStamp**, tapping the target once. Require exactly one import to Select, expected attachments/senders and no repeated import after Home/return, as in the closed case. Do not infer success from a Files share.
+3. This newly generated export may differ from the earlier ZIP. It proves warm WhatsApp intake only. Use the **unchanged retained ZIP** for the duplicate/path cases next, rather than treating two freshly generated exports as identical.
+
+### 5. Identical-ZIP duplicates and language/path stability
+
+1. Discard the current warm import safely. On **Import → Choose ZIP**, select the retained local master ZIP. With the fixed Settings from step 1, select a small known subset and save it once to establish this exact archive's baseline. If it is already saved, record that fact and its existing output paths/counts; do not count skipped files as a fresh save. Keep a private note of those paths and the relevant output folder's file count.
+2. Start over, choose **the very same local ZIP file**, select the same subset with the same active filter and save with **Skip existing**. Require **no additional copies or folders**, intact existing files and truthful Already saved/skipped outcomes. Check the file manager/Gallery count, not just the app's success text.
+3. While idle, open **Settings → Language**, switch English/Hebrew, wait for the preference to save and follow **Restart now** when the direction-change prompt appears. If restarting would discard an import, finish/discard it deliberately first. Check the chosen language and direction after reopening; record any failure.
+4. Reimport the **identical retained ZIP** with unchanged destination/organization/duplicate settings and save the same subset. Require the **original stored output paths** to remain in use, with no new translated sibling folder and no extra copies. Inspect all relevant chatStamp destination folders for a second location, not only the original folder. Existing saved paths are retained; switching language is not a request to rename old folders. Report each direction actually tested; an unrun reverse direction stays UNVERIFIED.
+
+### 6. Discard, private working files and safe cleanup
+
+1. Import the retained ZIP once more, reach Select, press Back and confirm **Discard**. Require return to Import, with the original ZIP and previously completed saved outputs intact. Close and reopen chatStamp: no abandoned selection/import should resume.
+2. This UI check alone does **not** prove that private bytes were removed. Before uninstalling or clearing app data, ask the release owner to verify the discarded QA import's private working directory and associated temporary files through the approved local QA inspection. Record only a nonpersonal removed/remaining count. If not inspected, keep **private import cleanup UNVERIFIED**, even if the app reopens cleanly. Do not confuse unrelated persistent settings/history or a general cache count with the discarded import's files.
+3. When no longer wanted, remove only the output copies and temporary export created for this test, after checking their locations privately. Keep the original WhatsApp conversation/media safe. The release owner handles QA uninstall and any test-setting restoration. Never clear the owner's production app or unrelated files as a cleanup shortcut.
+
+**לבעל החשבון:** יש להתחיל רק אחרי אישור שהותקן מועמד QA סופי 0.2.0 (6). הבדיקה המתוכננת היא ב-Galaxy A30 עם Android 11; מכשיר API 33 אינו זמין והבדיקה בו לא אומתה. יש להפעיל במפורש את Always use message date בהגדרות, לשתף מתוך WhatsApp כשהאפליקציה סגורה ופתוחה, ולבדוק שמתחיל ייבוא אחד לכל שיתוף. שומרים קבצים מוכרים דרך Import → Select → Save ומשווים בנפרד את הכמות שנשמרה, הכמות שתאריכיה אומתו, סדר ברירת המחדל ופרטי התאריך בגלריה. לבדיקת כפילויות ושינוי שפה משתמשים באותו ZIP שמור, ללא שינוי יעד או ארגון. פתיחה נקייה אחרי Discard אינה לבדה הוכחה לניקוי קובצי העבודה הפרטיים. הייצוא והמידע האישי נשארים מחוץ ל-Git; מדווחים רק סיכום ללא פרטים מזהים. כל בדיקה שטרם בוצעה נשארת **UNVERIFIED / לא אומתה**.
+
+## Copyable owner result — nonpersonal, initially UNVERIFIED
+
+Copy this template into the private owner record and fill only observed facts. A redacted copy may contain aggregate counts and neutral A/B/C labels, never the export, chat/sender names, private paths, filenames, messages, account addresses or personal screenshots. The participant/eligibility record below is separate.
+
+```text
+Owner real-export run: UNVERIFIED — NOT RUN
+Run date/time and time zone: UNVERIFIED
+Installed candidate: expected 0.2.0 (6); actual version/code: UNVERIFIED
+Installed package/build identifier confirmed by release owner: UNVERIFIED
+Play track/upload/opt-in URL: NOT VERIFIED; this guide asserts no uploaded track
+Device: Samsung Galaxy A30 SM-A305F, Android 11/API 30 — actual confirmed: UNVERIFIED
+Physical API 33: UNVERIFIED — device unavailable
+WhatsApp / Samsung Gallery versions: UNVERIFIED
+Formats and anonymized sample count: UNVERIFIED
+Known original message dates/time zone compared privately: UNVERIFIED
+Settings readback: message date ON / Android media folders / organization mode: UNVERIFIED
+Duplicate setting: Skip existing / timestamp folder OFF — confirmed: UNVERIFIED
+
+Closed WhatsApp ShareSheet: UNVERIFIED
+  Closing method / process-level cold proof if checked: UNVERIFIED
+  WhatsApp Export chat > Include media > QA target used: UNVERIFIED
+  One import, correct attachments/senders, no replay after Home/return: UNVERIFIED
+Warm WhatsApp ShareSheet (app kept alive): UNVERIFIED
+  Same own-ShareSheet route / one import / no replay: UNVERIFIED
+
+Initial known-file save: UNVERIFIED
+  Selected N / actual saved / dates verified / already saved or skipped: UNVERIFIED
+  Failed / cancelled / unavailable-estimated-unverified date outcomes: UNVERIFIED
+  Actual output count matches Results: UNVERIFIED
+Gallery default-order label and A/B/C relative order (no personal dates): UNVERIFIED
+  JPEG original message date: order / Details match privately: UNVERIFIED
+  MP4 original message date: order / Details match privately: UNVERIFIED
+  Any additional format, ambiguity or mismatch category: UNVERIFIED
+
+Identical retained ZIP rerun, fixed destination/settings: UNVERIFIED
+  New copies / new folders / existing files intact / skipped count: UNVERIFIED
+Language change actually tested (EN>HE and/or HE>EN), persisted after restart: UNVERIFIED
+  Same stored paths / no translated sibling folder / no new copies: UNVERIFIED
+Discard + cold reopen at Import, original ZIP/saved outputs intact: UNVERIFIED
+Private discarded-job cleanup, inspected before uninstall/clear-data: UNVERIFIED
+  Release-owner inspection result, remaining count only: UNVERIFIED
+Test-only outputs/export cleanup and settings restoration: UNVERIFIED
+
+Overall observed result: UNVERIFIED
+Redacted failure steps, expected/actual, repeatability: NOT RUN
+Unrun/blocked cases and reason: UNVERIFIED
+No private export/content committed or attached: UNVERIFIED
+Closed testers / qualifying 14-day interval: UNKNOWN / UNVERIFIED (separate Console record)
+```
 
 ## Private owner record — template, not completed evidence
 

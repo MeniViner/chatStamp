@@ -1,91 +1,70 @@
 # chatStamp
 
-אפליקציית Android לשחזור, סידור ושמירה של מדיה מתוך ייצוא שיחות WhatsApp.
+chatStamp is an Android app for importing a WhatsApp export ZIP, selecting attachments and saving them with their message dates where the file format, Android destination and Gallery support them. Processing stays on the phone: no account, database, analytics, ads, cloud upload or application network access.
 
-## מה האפליקציה עושה
+## Current status
 
-chatStamp מיועדת למקרים שבהם מייצאים שיחת WhatsApp ורוצים לשמור את התמונות, הסרטונים והקבצים המצורפים בצורה מסודרת, עם כמה שיותר נאמנות לתאריכים המקוריים של ההודעות.
+The source candidate is **0.2.0 / versionCode 6**, with Expo **55.0.32**, expo-modules-core **55.0.27**, React Native **0.83.10**, React 19.2, TypeScript, Material Design 3 and a local Kotlin Expo module. Android **11/API 30 or later** is required; compile/target SDK is **36**. The source pins build-tools **36.0.0** and NDK **27.1.12297006**.
 
-- מייבאת קובץ ZIP של ייצוא שיחת WhatsApp.
-- מזהה תמונות, סרטונים וקבצים מצורפים מתוך הייצוא.
-- מאפשרת סינון, מיון, חיפוש ובחירה של הקבצים לשמירה.
-- שומרת את המדיה בתיקיית יעד מסודרת במכשיר Android.
-- משחזרת תאריכי מדיה כאשר Android וסוג הקובץ מאפשרים זאת.
-- מציגה תוצאות שמירה, תצוגות מקדימות ופרטי קבצים.
+The candidate's dependency changes, final CI run, signed artifacts and device runtime are **UNVERIFIED until their new checks finish**. Earlier synthetic tests on a Samsung Galaxy A30 SM-A305F (Android 11/API 30) and an API 36 emulator are recorded in [VERIFICATION.md](docs/VERIFICATION.md); they do not certify every later binary or device. Current requested API 33 physical coverage and an owner-provided real WhatsApp export remain unverified. No Play upload, qualifying tester count or closed-test interval is established.
 
-## תהליך העבודה
+The dependency audit snapshot fell from 37 to **11 package findings: 9 moderate and 2 high**. The remaining reported paths are build/development tooling; this is a scoped dependency assessment, not a claim of zero vulnerabilities. See [known risks](docs/KNOWN_RISKS.md) and the dated [rebuild log](docs/REBUILD_LOG.md).
 
-1. בחירת ייצוא שיחה מ-WhatsApp.
-2. קריאת קובץ השיחה והמדיה המצורפת.
-3. בחירת הקבצים שרוצים לשמור.
-4. הגדרת אפשרויות שמירה.
-5. שמירת המדיה במכשיר.
-6. צפייה בתוצאות ופתיחת תיקיית היעד.
+## Use the app
 
-## דרישות Android
+Two onboarding pages introduce date handling and WhatsApp export. The main flow has three steps:
 
-האפליקציה מיועדת ל-Android ופועלת עם מנגנוני האחסון המודרניים של המערכת.
+1. **Import:** choose an export ZIP through Android's picker or share one from another app. The native importer reads the granted source URI directly, streams extraction and computes the archive fingerprint without copying the ZIP into private storage.
+2. **Select:** search and filter by sender, media type or date, preview files and choose what to save. Hidden selections remain selected; Save captures the visible selected IDs and the current destination/date/duplicate/folder policy.
+3. **Save:** a user-started foreground operation reports real progress and supports Cancel. Results and History distinguish saved, skipped, cancelled, failed and date-verified files.
 
-במהלך השימוש Android עשוי לבקש הרשאה לבחירת תיקיית יעד או לגישה לקבצים שנבחרו. הבחירה נעשית דרך מסך מערכת של Android, והאפליקציה משתמשת בהרשאה הזאת כדי לשמור את הקבצים בתיקייה שבחרתם.
+The default output uses owned Android collections under `Pictures/chatStamp` for photos **and videos**, `Music/chatStamp` for audio and `Documents/chatStamp` for documents, with a Downloads fallback if the document collection rejects a write. An explicitly selected folder uses its persisted provider grant. Custom-folder date preservation and opening folders depend on that provider and installed file manager.
 
-התנהגות פתיחת תיקיית היעד עשויה להשתנות בין מכשירים, גרסאות Android ואפליקציות ניהול קבצים שונות.
+English and Hebrew are supported. Changing language commits the preference before applying translations and native RTL flags. A layout-direction change requires **Restart now** or a later restart; the app does not simulate native RTL with a root-view flip. New exports capture localized folder labels; retrying an existing export keeps its recorded folder paths and duplicate identity.
 
-## התקנה
+See [Android technical notes](docs/TECHNICAL_NOTES_ANDROID.md) for supported extensions, date rules, limits, caching and native boundaries. A successful file save alone does not prove its message date or Gallery position.
 
-1. נכנסים לעמוד **Releases** של הפרויקט ב-GitHub.
-2. מורידים את קובץ ה-APK של הגרסה הרצויה.
-3. פותחים את הקובץ במכשיר Android ומתקינים.
-4. אם Android מבקש לאפשר התקנה מהדפדפן או ממנהל הקבצים, מאשרים זאת עבור מקור ההתקנה.
+## Local development and isolated QA
 
-האפליקציה אינה מופצת כרגע דרך Google Play.
+Use **Node 26.7.0**, **JDK 17** (CI pins Temurin 17.0.19+10), Android SDK/platform **36**, build-tools **36.0.0**, NDK **27.1.12297006** and SDK platform-tools. Set `ANDROID_HOME` to your SDK root and put its `platform-tools` directory on `PATH` so `adb devices -l` is available.
 
-## סטטוס הגרסה הנוכחית
+Run from the repository root:
 
-- גרסה נוכחית: `v0.1.1`
-- Android package id: `com.menis.chatstamp`
-- קובץ APK נבנה ונחתם בהצלחה.
-- בדיקת התקנה והרצה על מכשיר Android או אמולטור עדיין ממתינה.
-
-## פיתוח מקומי
-
-הפרויקט בנוי עם React Native ו-Expo, כולל שכבת Android Native עבור פעולות שאינן זמינות מספיק טוב דרך JavaScript בלבד.
-
-פקודות בדיקה ופיתוח:
-
-```bash
-npm install
+```sh
+npm ci
 npm run typecheck
 npm run test
 npm run lint
+npx expo prebuild --platform android --clean
+./android/gradlew -p android --console=plain --max-workers=2 \
+  -I ../scripts/android-verification/device-test.init.gradle \
+  :app:assembleDebug -PreactNativeArchitectures=arm64-v8a
 ```
 
-בניית Android:
+The init-script path above is relative to the Android project selected by `-p android`. On Windows use `android\gradlew.bat` and the equivalent `..\scripts\android-verification\device-test.init.gradle` path. `/android` is generated and ignored; durable Android code lives in `modules/chatstamp-native/android`, `app.config.ts` and the release config plugin.
 
-```bash
-npx expo prebuild --platform android
-cd android
-./gradlew assembleRelease
+Before any install, inspect the built APK and confirm its application ID is **`com.menis.chatstamp.qa`**, min SDK 30 and target SDK 36. Routine testing uses only this isolated QA copy, never an unqualified production install. Select the intended device explicitly:
+
+```sh
+adb devices -l
+adb -s YOUR_QA_SERIAL install --no-incremental -r android/app/build/outputs/apk/debug/app-debug.apk
+adb -s YOUR_QA_SERIAL shell am start -W -n com.menis.chatstamp.qa/com.menis.chatstamp.MainActivity
 ```
 
-הרצה על מכשיר או אמולטור:
+Run native regression tests against an authorized test device/emulator:
 
-```bash
-npx expo run:android
+```sh
+./android/gradlew -p android --console=plain --max-workers=2 \
+  :chatstamp-native:testDebugUnitTest :chatstamp-native:connectedDebugAndroidTest \
+  -PreactNativeArchitectures=arm64-v8a
 ```
 
-כאשר בודקים שיתוף ZIP מ-WhatsApp או פתיחת תיקיית יעד, מומלץ לעקוב גם אחרי לוגים:
+Both native tasks must execute a nonzero test count. Record actual results; these commands are instructions, not a claim they passed for code 6. Follow the [verification guide](scripts/android-verification/README.md) for manifest inspection, synthetic inputs, locked-device handling, run-scoped cleanup and restoring device settings. Do not unlock the owner's phone or commit private exports.
 
-```bash
-adb logcat -s ChatStamp ReactNativeJS Expo
-```
+[Android CI](.github/workflows/ci.yml) defines pinned tooling, host checks, generated Android, native JVM execution and merged release-manifest policy. Its presence is not evidence of a successful fresh-checkout run or device acceptance.
 
-## פרטיות
+## Privacy and release
 
-עיבוד קבצי הייצוא מתבצע מקומית במכשיר. לפי מבנה הפרויקט הנוכחי, אין שרת, אין חשבון משתמש, ואין העלאה יזומה של קובצי השיחה או המדיה לענן.
+The production package is **`com.menis.chatstamp`**. The app uses scoped owned outputs or an explicit folder grant, with no broad storage/media-read, recording or network permission. Settings, history and save records are small atomic local JSON files; active import files are private working data. Android backup/transfer is disabled by source policy and must be checked in the final artifact.
 
-## מגבלות ידועות
-
-- גרסת `v0.1.1` נבנתה ואומתה ברמת build, אך טרם אומתה בהתקנה והרצה על מכשיר Android או אמולטור.
-- יש עדיין לאמת בפועל ניגון סרטונים, גלילת תצוגת TXT, מיקום Bottom Sheets ופתיחת תיקיית יעד.
-- פתיחת תיקיית יעד תלויה גם בהתנהגות מנהל הקבצים שמותקן במכשיר.
-- שחזור תאריכים תלוי במגבלות Android, בסוג הקובץ ובאופן שבו אפליקציות גלריה קוראות מטא-דאטה.
+Read the [privacy policy](docs/privacy-policy.md), [release checklist](docs/PLAY_RELEASE_CHECKLIST.md), [manual Play upload steps](docs/PLAY_UPLOAD_STEPS.md), [tester/real-export acceptance guide](docs/TESTERS.md) and [external signing guide](docs/ANDROID_RELEASE_SIGNING.md). Historical artifact paths in release documents identify their original candidate; use the latest verified candidate and matching code/hash report for a later upload. Signing material stays outside Git. Play publication and real-export/Gallery acceptance are separate gates.

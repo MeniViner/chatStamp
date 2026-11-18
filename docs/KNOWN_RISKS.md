@@ -1,25 +1,31 @@
-# Known Risks
+# Known risks and acceptance gaps
 
-## 1. MediaStore / EXIF limitations
+Status for the **0.2.0/code 6 source candidate**, 2026-11-19. Current guidance supersedes the old ZIP-copy/All-Files-Access design. Consult [VERIFICATION.md](VERIFICATION.md) for dated evidence attached to an exact source and binary; these notes do not certify the pending dependency-updated candidate.
 
-Expo APIs may not expose all fields needed to control Android Gallery sorting. If this happens, implement a focused native Android module.
+| Area | Current boundary and remaining work |
+| --- | --- |
+| Candidate and CI | Expo 55.0.32/core 55.0.27/RN 0.83.10, code 6 and pinned Android tooling are configured. Fresh-checkout Android CI passed on3f4ab91 (run44406963599). The final local full smoke, signed-artifact verification and runtime acceptance remain pending until their own results are recorded. |
+| Device coverage | Recent rebuild testing used the physical **Galaxy A30 SM-A305F, Android 11/API 30**, plus an API 36 emulator. Requested **API 33 physical coverage is UNVERIFIED**; older Note20/API 33 records concern their historical binary. The owner unlocked the phone for code5 E preflight. Final-candidate physical UI validation is pending; owner unlock is required whenever it relocks. No agent unlock is authorized. |
+| Real owner export | A real WhatsApp export with known message dates, shared once while chatStamp is closed and once while open, is **UNVERIFIED**. Synthetic Files shares and fixture tests do not establish this. Follow [TESTERS.md](TESTERS.md#owner-real-export-acceptance--still-unverified), keep the export private and do not commit it. |
+| Gallery dates | Save success, embedded metadata, indexed-date readback and visible Gallery order are distinct. The A30/Samsung Gallery 12.1.09.1 five-file result applies to its tested files/sort mode. Other Galleries, formats, codecs, imported dates and devices require their own evidence. Filename/ZIP-date fallbacks are approximate; missing dates remain unavailable. |
+| Custom folders/providers | Explicit persisted grants permit provider writes, not universal metadata preservation or Gallery indexing. Arbitrary local/cloud providers, changed capabilities and provider-revocation behavior are not exhaustively tested. Permission loss must surface truthfully; selecting a provider may invoke that provider's own cloud behavior, outside chatStamp's local processing. |
+| Process death | A live native operation can survive JS recreation and be reattached through its snapshot. Automatic recovery after complete process death is not promised. Broader orphan reconciliation, including the narrow insert-before-record window, and revoked-provider recovery remain **deferred** beyond the implemented owned-record cleanup. |
+| Preview/external apps | Bounded JPEG thumbnails and one active video player prevent the previous many-player list behavior. Decoder support, malformed media, unsupported HEIC/container variants and nonseekable PDFs can still fail gracefully. OEM HTML Viewer requested broad media permission during a physical text-open attempt; denial closed that handler. An independent QA receiver verified grant transport only, not every real handler's behavior. |
+| RTL/accessibility | Source uses native I18nManager plus explicit restart, with no fake runtime direction overwrite. Minified release restart in both directions, modal/footer actions, 130% text and wider layouts must be accepted on the actual candidate; historical debug/layout results do not substitute. |
+| Privacy link in the browser | Earlier tests launched Chrome but its first-run/sync setup prevented observing page rendering. **Owner Chrome first-run completion and in-app privacy-page rendering remain UNVERIFIED**. Do not automate the owner's browser setup or infer a rendered page from a successful intent. |
+| 16 KiB devices | Earlier artifact ELF/ZIP alignment results are specific to their reported artifacts. They do not prove code 6 alignment or actual execution with 16 KiB pages. **16 KiB-device runtime remains UNVERIFIED**; rerun artifact checks for each final candidate. |
+| Play and testers | No Play upload/publication, qualifying participant count, tester clock or production-access approval is established. The personal account creation date is **UNKNOWN**. The owner must confirm account-specific requirements and record real closed-test engagement/dates; preparation documents and internal/device QA do not start the 14-day qualifying period. |
 
-## 2. Gallery app differences
+## Bounded imports and retained data
 
-Samsung Gallery, Google Photos, OEM Gallery apps, and file managers may use different sorting logic.
+Native extraction streams the original granted URI and does not copy the ZIP. Limits are 20,000 entries, 2 GiB per entry and 8 GiB cumulative uncompressed bytes; TXT samples are 64 KiB each/16 MiB together and the selected transcript parse is capped at 16 MiB. Entry metadata and samples still consume bounded memory, and extraction/metadata scratch files require actual free space. No guarantee is made that every archive below the hard limits succeeds on every handset. See [technical notes](TECHNICAL_NOTES_ANDROID.md) for the exact format and destination policy.
 
-## 3. WhatsApp export format variations
+Cancellation and timeout preserve already published files and report remaining outcomes separately. Cleanup can fail; such failures must remain visible instead of reporting a clean cancellation. Failed/cancelled private working files may remain for retry until discard/cleanup. Removing cache does not delete the user's already saved outputs. Settings/history/save records are local atomic JSON, not a database; a failed read/write is not permission to erase previous data.
 
-WhatsApp text export lines vary by locale, platform, and version. Keep the parser test-driven.
+## Dependency audit
 
-## 4. Large ZIP memory pressure
+The preparation snapshot is **11 package findings (9 moderate, 2 high), down from 37**. Reported remaining chains are build/development tooling; source-path reachability review does not mean all dependencies or future inputs are harmless. Re-audit the locked graph after changes and preserve per-package dispositions. Incompatible cross-major overrides and `npm audit fix --force` are not accepted remedies: the earlier suggested Expo 52 downgrade would undo the SDK 55/RN rebuild baseline.
 
-A chat export can contain thousands of files. Avoid all-at-once reads and use native extraction.
+## Release handoff
 
-## 5. Share Intent URI handling
-
-Shared files may arrive as `content://` URIs with temporary permissions. Copy to cache immediately.
-
-## 6. Permissions and Play policy
-
-Broad media access may require justification. MVP should request only needed permissions.
+Use the [release checklist](PLAY_RELEASE_CHECKLIST.md), [upload steps](PLAY_UPLOAD_STEPS.md), [tester guide](TESTERS.md) and [external signing rules](ANDROID_RELEASE_SIGNING.md). Historical code 3/code 4 artifact paths in those records are not the pending code 6 deliverable. Confirm the current source, package, versionCode, SHA256, existing upload certificate, manifest permissions and 16 KiB checks before upload. Routine device testing installs only **com.menis.chatstamp.qa**; replacing the owner's production installation is not part of ordinary QA.

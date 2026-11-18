@@ -1,4 +1,6 @@
-Test release 0.2.0
-Import selected WhatsApp export files on your device, save with supported date checks, and see real progress.
-Background saving, cancellation, duplicate handling and truthful partial results.
-English and Hebrew.
+Three-step Import, Select and Save flow.
+Gallery picker with filters, day selection and full-screen previews.
+Streaming import, background save and Cancel with real progress.
+Separate saved and date-verified results.
+English/Hebrew layouts with a restart for direction changes.
+On-device processing without broad storage access.

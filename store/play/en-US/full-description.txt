@@ -3,7 +3,7 @@ Keep the dates behind your WhatsApp memories.
 chatStamp imports a WhatsApp chat export ZIP, matches supported attachments to messages and helps you save selected files on Android with their message dates where supported.
 
 Choose what to keep
-Import a ZIP through Android's file picker or share it to chatStamp. Review the files, filter by sender or file type, and choose what to save. Photos and videos go to Android media storage; other supported files can be saved too.
+Import a ZIP through Android's file picker or share it to chatStamp. Use the three-step Import, Select and Save flow. Search and filter by sender, date or file type; select files by day or preview them full screen before saving. Photos and videos go to Android media storage; other supported files can be saved too.
 
 See the actual result
 Files saved and dates verified are shown separately. Missing or uncertain dates, failed files and cancelled work remain visible. Date handling varies by format, destination and Gallery app, so check the result instead of assuming every saved file has a verified date.

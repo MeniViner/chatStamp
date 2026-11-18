@@ -621,3 +621,12 @@ Wholecycle2 passed431 host/TS/lint/prebuild but stopped at autolinking: expo-aud
 unbounded expo-asset peer selected SDK58 beside Expo55. try another way: declare
 Expo's compatible expo-asset55.0.20 at the root, rather than patching node_modules
 or relaxing native metadata parsing. Full cycle restarts at npm ci.
+
+
+-2026-11-19 F wholecycle3:431 host/TS/lint/clean prebuild/QAarm64 assembly and
+ manifest assertions passed (226 executed build tasks). Native step8 stopped in
+ the temporary force-execution harness: its projectsEvaluated callback also ran
+ for RN's included Gradle plugin build, where :chatstamp-native does not exist.
+ try another way: scope the temporary task override to builds that actually own
+ that project. No product assertion or connected test was weakened. Full cycle
+ restarts from npm ci; CI uses its separate resolved-toolchain task.
