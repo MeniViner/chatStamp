@@ -26,7 +26,8 @@ describe('pipelineStore overlay navigation', () => {
 
   it('selects the transcript document by default when the ZIP has no media', () => {
     usePipelineStore.getState().setImportResult({
-      copiedZipUri: 'file:///cache/chatstamp/sample.zip',
+      archiveFingerprint: 'a'.repeat(64),
+      operationId: 'import-test',
       workingDirectory: 'file:///cache/run/',
       importSummary: {
         chatRecords: 0,

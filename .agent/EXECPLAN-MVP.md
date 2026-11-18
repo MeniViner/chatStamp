@@ -229,3 +229,34 @@ Keep tracked stage summaries in REBUILD_LOG.md and VERIFICATION.md current.
   performed. Never commit a real export or include it in evidence.
 - Play credentials, account type, app-entry existence, Pages publication and tester
   recruitment have not yet been checked; none are assumed complete.
+
+
+### Stage C implementation checkpoint — 2026-11-18
+
+Source now uses a direct granted-URI native stream and SHA-256 fingerprint;
+TypeScript selects the transcript from bounded candidate samples and keeps other
+supported TXT files. Limits are 20,000 archive entries, 2 GiB per entry, 8 GiB
+uncompressed total, 64 KiB per TXT sample, 16 MiB total samples, and a 16 MiB
+selected transcript parsing limit before JavaScript reads it. Supported extensions:
+`txt jpg jpeg png heic webp mp4 mov m4v 3gp opus ogg m4a mp3 aac gif pdf doc docx
+vcf xls xlsx ppt pptx zip`. Unsafe paths are skipped, not written.
+
+The application-scoped operation registry, dataSync foreground service,
+notification cancellation, real progress, retained event-driven cold/warm shares,
+source/cache cleanup, coded errors, and atomic split history are implemented.
+History details precede the summary index, migration keeps legacy data until
+committed, and native completion is acknowledged only after durable history.
+
+A complete smoke retry passed npm ci, strict TypeScript, 191 Vitest tests in 32
+files, ESLint, clean prebuild, arm64 QA assembly, service/permission inspection,
+16 JVM tests, and 10 connected tests on each of API 30 and API 36. The first
+API 36 run exposed Android's default ZIP path validator before the application's
+skip guard; the replacement is Apache Commons Compress 1.28.0 with independent
+safe-path, CRC, size and end-record validation. No global path validator was
+disabled. Review then found a cancellation/error-classification race; its fix
+and additional tests require a fresh full smoke before this source is committed.
+
+B-close remains unaccepted: physical app/Gallery evidence requires owner unlock.
+Stage C UI/cache/background/notification/cancel/timeout acceptance is being run
+on the disposable API 36 emulator and remains distinct from physical coverage.
+G1 is still gated. No Play version bump, upload, or publication is claimed.

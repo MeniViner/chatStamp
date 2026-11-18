@@ -7,7 +7,7 @@ import { FolderFallbackSheet } from '../components/FolderFallbackSheet';
 import { PremiumBottomSheet } from '../components/BottomSheet';
 import { usePipelineStore } from '../store/pipelineStore';
 import { useSettingsStore } from '../store/settingsStore';
-import { clearWorkingDirectory } from '../services/importService';
+import { discardImport, startSaving } from '../services/operationCoordinator';
 import { openFolderBestEffort, openGalleryBestEffort, openSavedFileBestEffort, shouldShowOpenGallery } from '../native/androidIntents';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, WizardScreen } from './WizardScreen';
@@ -41,10 +41,7 @@ export function DoneScreen() {
   const { t } = useTranslation();
   const theme = useAppTheme();
   const completion = usePipelineStore((state) => state.completion);
-  const workingDirectory = usePipelineStore((state) => state.workingDirectory);
-  const reset = usePipelineStore((state) => state.reset);
   const clearFiles = usePipelineStore((state) => state.clearFiles);
-  const setStage = usePipelineStore((state) => state.setStage);
   const developerMode = useSettingsStore((state) => state.settings.developerMode);
   const saveDestinationMode = useSettingsStore((state) => state.settings.saveDestinationMode);
   const customFolder = useSettingsStore((state) => state.settings.customFolder);
@@ -72,10 +69,7 @@ export function DoneScreen() {
   }, [completion]);
 
   async function startOver() {
-    if (!completion?.cacheCleared) {
-      await clearWorkingDirectory(workingDirectory);
-    }
-    reset();
+    await discardImport();
   }
 
   async function openFolder() {
@@ -99,7 +93,7 @@ export function DoneScreen() {
 
   function retryFailedFiles() {
     clearFiles(results.flatMap((result) => result.ok && result.entryId ? [result.entryId] : []));
-    setStage('saving');
+    void startSaving();
   }
 
   async function shareSelectedCategories(categories: MediaType[]) {

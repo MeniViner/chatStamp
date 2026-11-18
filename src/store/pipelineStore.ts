@@ -11,6 +11,8 @@ import type {
 import { logger } from '../lib/logger';
 import { getMediaSender } from '../lib/mediaMetadata';
 import { toggleMediaTypeSelection, toggleSenderSelection } from './selectionLogic';
+import { reduceProgress, startOperation } from '../lib/operationProgress';
+import { asPipelineError, type PipelineError } from '../lib/pipelineErrors';
 
 export type PipelineState = {
   stage: PipelineStage;
@@ -18,7 +20,8 @@ export type PipelineState = {
   zipUri?: string;
   zipName?: string;
   workingDirectory?: string;
-  copiedZipUri?: string;
+  archiveFingerprint?: string;
+  importOperationId?: string;
   mediaFiles: ExtractedMediaFile[];
   importSummary?: ImportSummary;
   selectedSenders: string[];
@@ -26,14 +29,15 @@ export type PipelineState = {
   selectedFileIds: string[];
   progress?: ProcessingProgress;
   completion?: CompletionSummary;
-  error?: string;
+  error?: PipelineError;
   setStage: (stage: PipelineStage) => void;
   openOverlayStage: (stage: 'settings' | 'history') => void;
   closeOverlayStage: (fallback?: PipelineStage) => void;
   setZip: (zip: { uri: string; name: string }) => void;
   setImportResult: (result: {
     workingDirectory: string;
-    copiedZipUri: string;
+    archiveFingerprint: string;
+    operationId: string;
     mediaFiles: ExtractedMediaFile[];
     importSummary: ImportSummary;
   }) => void;
@@ -43,8 +47,9 @@ export type PipelineState = {
   selectFiles: (fileIds: string[]) => void;
   clearFiles: (fileIds: string[]) => void;
   setProgress: (progress: ProcessingProgress) => void;
+  startProgress: (operationId: string, kind: 'import' | 'save') => void;
   setCompletion: (completion: CompletionSummary) => void;
-  setError: (error: string) => void;
+  setError: (error: unknown) => void;
   clearError: () => void;
   reset: () => void;
 };
@@ -86,7 +91,7 @@ export const usePipelineStore = create<PipelineState>((set) => ({
       return { stage, overlayReturnStage: undefined };
     }),
   setZip: (zip) => set({ zipUri: zip.uri, zipName: zip.name }),
-  setImportResult: ({ workingDirectory, copiedZipUri, mediaFiles, importSummary }) =>
+  setImportResult: ({ workingDirectory, archiveFingerprint, operationId, mediaFiles, importSummary }) =>
     set(() => {
       const hasDefaultMediaSelection = mediaFiles.some(
         (file) => file.mediaType === 'photo' || file.mediaType === 'video'
@@ -97,7 +102,8 @@ export const usePipelineStore = create<PipelineState>((set) => ({
         mediaFiles[0]?.sourceKind === 'chat-transcript';
       return {
         workingDirectory,
-        copiedZipUri,
+        archiveFingerprint,
+        importOperationId: operationId,
         mediaFiles,
         importSummary,
         selectedSenders: Array.from(new Set(mediaFiles.map(getMediaSender))),
@@ -145,9 +151,10 @@ export const usePipelineStore = create<PipelineState>((set) => ({
       logger.debug('Clear visible files', { cleared: fileIds.length, selectedCount: selectedFileIds.length });
       return { selectedFileIds };
     }),
-  setProgress: (progress) => set({ progress }),
+  setProgress: (progress) => set((state) => ({ progress: reduceProgress(state.progress ?? null, progress) })),
+  startProgress: (operationId, kind) => set({ progress: startOperation(operationId, kind) }),
   setCompletion: (completion) => set({ completion, stage: 'results' }),
-  setError: (error) => set({ error, stage: 'error' }),
+  setError: (error) => set({ error: asPipelineError(error), stage: 'error' }),
   clearError: () => set({ error: undefined }),
   reset: () =>
     set({
@@ -156,7 +163,8 @@ export const usePipelineStore = create<PipelineState>((set) => ({
       zipUri: undefined,
       zipName: undefined,
       workingDirectory: undefined,
-      copiedZipUri: undefined,
+      archiveFingerprint: undefined,
+      importOperationId: undefined,
       mediaFiles: [],
       importSummary: undefined,
       selectedSenders: [],

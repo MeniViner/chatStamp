@@ -50,6 +50,7 @@ export type ExtractedMediaFile = {
   sourceKind?: 'zip-media' | 'chat-transcript';
   sourcePath?: string;
   modificationTime?: string;
+  sizeBytes?: number;
   thumbnailUri?: string;
   matchedRecord?: ChatMediaRecord;
   dateSource?: DateSource;
@@ -76,6 +77,7 @@ export type ImportSummary = {
   skippedChatLines: number;
   extractedEntries: number;
   skippedZipEntries: number;
+  skippedEntries?: { sourcePath: string; reason: 'unsafe-path' | 'unsupported-type' }[];
   matchedMedia: number;
   unmatchedMedia: number;
   senders: number;
@@ -92,12 +94,7 @@ export type ImportSummary = {
 
 export type MediaTypeSelection = Record<MediaType, boolean>;
 
-export type ProcessingProgress = {
-  stageLabel: string;
-  processed: number;
-  total: number;
-  failed: number;
-};
+export type ProcessingProgress = import('../lib/operationProgress').OperationProgress;
 
 export type CompletionSummary = {
   saved: number;
@@ -171,6 +168,8 @@ export type AppSettings = {
 
 export type ExportHistoryItem = {
   id: string;
+  exportFingerprint?: string;
+  detailsMissing?: boolean;
   exportTimestampIso: string;
   chatName: string;
   outputFolderPath: string;
@@ -212,6 +211,7 @@ export type SaveFileResult = {
   mediaType?: MediaType;
   originalTimestampMillis?: number;
   whatsAppDateIso?: string | null;
+  dateAmbiguous?: boolean;
   copied?: boolean;
   setLastModifiedReturned?: boolean;
   actualLastModifiedMillis?: number | null;

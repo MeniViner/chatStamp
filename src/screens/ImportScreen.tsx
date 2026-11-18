@@ -1,11 +1,9 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Appbar, Text } from 'react-native-paper';
-import * as DocumentPicker from 'expo-document-picker';
 import { usePipelineStore } from '../store/pipelineStore';
-import { importWhatsAppZip } from '../services/importService';
-import { logger } from '../lib/logger';
+import { chooseZip } from '../services/operationCoordinator';
 import { useAppTheme } from '../theme/useAppTheme';
 import { FooterActions, WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
@@ -15,48 +13,7 @@ import { radius, spacing } from '../theme/designTokens';
 export function ImportScreen() {
   const { t } = useTranslation();
   const theme = useAppTheme();
-  const setZip = usePipelineStore((state) => state.setZip);
-  const setStage = usePipelineStore((state) => state.setStage);
   const openOverlayStage = usePipelineStore((state) => state.openOverlayStage);
-  const setProgress = usePipelineStore((state) => state.setProgress);
-  const setImportResult = usePipelineStore((state) => state.setImportResult);
-  const setError = usePipelineStore((state) => state.setError);
-
-  const importZip = useCallback(async (uri: string, name: string) => {
-    setZip({ uri, name });
-    setStage('analyzing');
-
-    const importResult = await importWhatsAppZip({
-      zipUri: uri,
-      zipName: name,
-      onProgress: setProgress
-    });
-
-    setImportResult({
-      workingDirectory: importResult.workingDirectory,
-      copiedZipUri: importResult.copiedZipUri,
-      mediaFiles: importResult.mediaFiles,
-      importSummary: importResult.importSummary
-    });
-  }, [setImportResult, setProgress, setStage, setZip]);
-
-  async function pickZip() {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/zip', 'application/x-zip-compressed'],
-        copyToCacheDirectory: true,
-        multiple: false
-      });
-      logger.debug('Document picker result', result);
-
-      if (result.canceled) return;
-
-      const asset = result.assets[0];
-      await importZip(asset.uri, asset.name);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : t('import.importFailed'));
-    }
-  }
 
   return (
     <WizardScreen
@@ -71,7 +28,7 @@ export function ImportScreen() {
       }
       footer={
         <FooterActions>
-          <PrimaryButton icon="folder-zip-outline" onPress={pickZip}>
+          <PrimaryButton icon="folder-zip-outline" onPress={() => { void chooseZip(); }}>
             {t('import.chooseZip')}
           </PrimaryButton>
         </FooterActions>

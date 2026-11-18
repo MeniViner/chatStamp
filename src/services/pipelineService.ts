@@ -5,13 +5,20 @@ import { defaultOutputOrganization, outputChatName, relativeOutputFolderForFile 
 import { clearWorkingDirectory } from './importService';
 import { buildSaveSummary } from './saveSummary';
 import { saveMediaNative } from '../native/nativeMediaSaver';
+import { createOperationId } from '../lib/operationProgress';
+import type { NativeSaveMediaResult } from '../native/chatStampNativeModule';
+import { PipelineError } from '../lib/pipelineErrors';
 
 export type RunSavePipelineParams = {
   files: ExtractedMediaFile[];
   selectedSenders: string[];
   selectedMediaTypes: MediaTypeSelection;
   selectedFileIds: string[];
-  archiveUri: string;
+  archiveFingerprint: string;
+  sourceUri?: string;
+  operationId?: string;
+  notificationTitle?: string;
+  notificationCancelLabel?: string;
   workingDirectory?: string;
   chatName?: string;
   settings?: AppSettings;
@@ -20,16 +27,16 @@ export type RunSavePipelineParams = {
 
 export async function runSavePipeline({
   files, selectedSenders, selectedMediaTypes, selectedFileIds,
-  archiveUri, workingDirectory, chatName, settings, onProgress
+  archiveFingerprint, sourceUri, operationId = createOperationId('save'), workingDirectory, chatName, settings, onProgress,
+  notificationTitle = 'chatStamp', notificationCancelLabel = ''
 }: RunSavePipelineParams): Promise<CompletionSummary> {
   const selected = getSelectedSaveCandidates(files, selectedSenders, selectedMediaTypes, selectedFileIds);
   const organization = settings?.outputOrganization ?? defaultOutputOrganization;
   const treeUri = settings?.saveDestinationMode === 'custom-folder' ? settings.customFolder?.treeUri : undefined;
   if (settings?.saveDestinationMode === 'custom-folder' && !treeUri) {
-    throw new Error('Selected folder access expired. Choose it again in Settings.');
+    throw new PipelineError('PERMISSION_LOST');
   }
 
-  onProgress?.({ stageLabel: 'Saving selected files', processed: 0, total: selected.length, failed: 0 });
   const nativeResult = await saveMediaNative(selected.map(({ file, timestampMillis }) => ({
     entryId: file.id,
     sourceUri: file.uri,
@@ -39,16 +46,23 @@ export async function runSavePipeline({
     timestampMillis,
     dateSource: file.dateSource ?? (file.matchedRecord ? 'chat' : 'none'),
     timeZone: file.timeZone,
+    whatsAppDateIso: file.matchedRecord?.messageDateIso,
+    dateAmbiguous: file.dateAmbiguous ?? false,
     relativeFolder: relativeOutputFolderForFile(file, organization)
   })), {
-    archiveUri,
+    archiveFingerprint,
+    operationId,
+    workingDirectory: workingDirectory ?? '',
+    sourceUri,
+    notificationTitle,
+    notificationCancelLabel,
     chatName: outputChatName(chatName),
     treeUri,
     duplicateHandling: organization.duplicateHandling,
     timestampFolder: organization.createExportTimestampFolder,
     organizationMode: organization.mode,
     alwaysUseMessageDate: settings?.alwaysUseMessageDate ?? false
-  });
+  }, onProgress);
 
   const sources = new Map(selected.map((candidate) => [candidate.file.id, candidate]));
   const results = nativeResult.results.map<SaveFileResult>((result) => {
@@ -63,24 +77,41 @@ export async function runSavePipeline({
       && Math.abs(result.targetTimestampMillis - target) <= 2000;
     return {
       ...result,
-      originalTimestampMillis: candidate?.timestampMillis,
+      originalTimestampMillis: candidate?.timestampMillis ?? result.originalTimestampMillis,
       whatsAppDateIso: chatDate,
+      dateAmbiguous: candidate?.file.dateAmbiguous ?? result.dateAmbiguous,
       dateCorrectionVerified,
       galleryMaySortByImportTime: result.ok && isVisual(result) && result.dateVerification !== 'verified'
     };
   });
 
+  return summarizeNativeSave({ ...nativeResult, results }, workingDirectory, files.length, selected.length);
+}
+
+export async function summarizeNativeSave(
+  nativeResult: Pick<NativeSaveMediaResult, 'mode'> & { results: Omit<SaveFileResult, 'dateCorrectionVerified' | 'galleryMaySortByImportTime'>[] },
+  workingDirectory?: string, totalFiles = nativeResult.results.length,
+  selectedFiles = nativeResult.results.length
+): Promise<CompletionSummary> {
+  const results = nativeResult.results.map<SaveFileResult>((result) => {
+    const chatTime = Date.parse(result.whatsAppDateIso ?? '');
+    const target = result.timestampSource === 'capture' ? chatTime : result.originalTimestampMillis;
+    const verified = result.ok && result.dateVerification === 'verified' && result.dateAmbiguous !== true
+      && Number.isFinite(chatTime) && typeof target === 'number' && Number.isFinite(target)
+      && typeof result.targetTimestampMillis === 'number' && Math.abs(result.targetTimestampMillis - target) <= 2000;
+    return { ...result, dateCorrectionVerified: verified,
+      galleryMaySortByImportTime: result.ok && isVisual(result) && result.dateVerification !== 'verified' };
+  });
   const saved = results.filter((result) => result.outcome === 'saved');
   const failed = results.filter((result) => result.outcome === 'failed').length;
   const cancelled = results.filter((result) => result.outcome === 'cancelled').length;
   const skippedExisting = results.filter((result) => result.outcome === 'skipped').length;
-  onProgress?.({ stageLabel: 'Done', processed: selected.length, total: selected.length, failed });
 
   const cacheCleared = failed === 0 && cancelled === 0 && await clearWorkingDirectory(workingDirectory);
   const firstOutput = results.find((result) => result.ok && isVisual(result)) ?? results.find((result) => result.ok);
   return buildSaveSummary({
-    totalFiles: files.length,
-    selectedFiles: selected.length,
+    totalFiles,
+    selectedFiles,
     saved: saved.length,
     failed,
     skippedExisting,

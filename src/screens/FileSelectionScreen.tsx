@@ -39,6 +39,8 @@ import {
   textStyles
 } from '../components/AppUi';
 import { spacing } from '../theme/designTokens';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { discardImport } from '../services/operationCoordinator';
 
 export function FileSelectionScreen() {
   const { t } = useTranslation();
@@ -51,6 +53,7 @@ export function FileSelectionScreen() {
   const [sortMode, setSortMode] = React.useState<SortMode>(defaultFileSelectionUiState.sortMode);
   const [categoryFilters, setCategoryFilters] = React.useState<MediaType[]>(defaultFileSelectionUiState.categoryFilters);
   const [previewFile, setPreviewFile] = React.useState<ExtractedMediaFile | undefined>();
+  const [discardOpen, setDiscardOpen] = React.useState(false);
   const mediaFiles = usePipelineStore((state) => state.mediaFiles);
   const importSummary = usePipelineStore((state) => state.importSummary);
   const selectedSenders = usePipelineStore((state) => state.selectedSenders);
@@ -65,11 +68,11 @@ export function FileSelectionScreen() {
 
   React.useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      setStage('welcome');
+      setDiscardOpen(true);
       return true;
     });
     return () => subscription.remove();
-  }, [setStage]);
+  }, []);
 
   const senders = React.useMemo(
     () => Array.from(new Set(mediaFiles.map(getMediaSender))),
@@ -141,7 +144,7 @@ export function FileSelectionScreen() {
     <WizardScreen
       stage="selectFiles"
       title={t('fileSelection.title')}
-      onBack={() => setStage('welcome')}
+      onBack={() => setDiscardOpen(true)}
       footer={
         filterSheetOpen || sortSheetOpen || previewFile ? undefined :
         <FooterActions>
@@ -230,6 +233,12 @@ export function FileSelectionScreen() {
         ) : null}
       </View>
 
+      {importSummary?.skippedZipEntries ? <Text variant="bodySmall" style={textStyles.start}>
+        {t('session.skipSummary', {
+          unsafe: importSummary.skippedEntries?.filter((entry) => entry.reason === 'unsafe-path').length ?? 0,
+          unsupported: importSummary.skippedEntries?.filter((entry) => entry.reason === 'unsupported-type').length ?? 0
+        })}
+      </Text> : null}
       <FlatList
         data={visibleFiles}
         keyExtractor={(item) => item.id}
@@ -286,6 +295,9 @@ export function FileSelectionScreen() {
         onSaveableOnly={setSaveableOnly}
       />
       <SortSheet visible={sortSheetOpen} sortMode={sortMode} onDismiss={() => setSortSheetOpen(false)} onSortMode={setSortMode} />
+      <ConfirmDialog visible={discardOpen} title={t('session.discardTitle')} body={t('session.discardBody')}
+        confirmLabel={t('session.discard')} cancelLabel={t('common.cancel')} destructive
+        onConfirm={() => { setDiscardOpen(false); void discardImport(); }} onDismiss={() => setDiscardOpen(false)} />
     </WizardScreen>
   );
 }

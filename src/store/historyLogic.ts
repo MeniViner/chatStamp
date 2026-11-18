@@ -11,6 +11,7 @@ export function createExportHistoryItem(params: {
   outputFolderPath: string;
   folderTreeUri?: string | null;
   now?: Date;
+  archiveFingerprint?: string;
 }): ExportHistoryItem {
   const selectedFiles = getSelectedSaveCandidates(
     params.files, params.selectedSenders, params.selectedMediaTypes, params.selectedFileIds
@@ -22,7 +23,8 @@ export function createExportHistoryItem(params: {
   const fixed = params.completion.dateCorrected;
 
   return {
-    id: `${timestamp.toISOString()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: params.archiveFingerprint ? `export-${params.archiveFingerprint}` : `${timestamp.toISOString()}-${Math.random().toString(36).slice(2, 8)}`,
+    exportFingerprint: params.archiveFingerprint,
     exportTimestampIso: timestamp.toISOString(),
     chatName: params.chatName,
     outputFolderPath: params.outputFolderPath,

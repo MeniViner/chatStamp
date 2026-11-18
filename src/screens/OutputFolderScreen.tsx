@@ -16,6 +16,7 @@ import {
 } from '../components/AppUi';
 import { spacing } from '../theme/designTokens';
 import { FooterActions, WizardScreen } from './WizardScreen';
+import { startSaving } from '../services/operationCoordinator';
 
 export function OutputFolderScreen() {
   const { t } = useTranslation();
@@ -52,7 +53,7 @@ export function OutputFolderScreen() {
               ? t('outputOptions.disabledMissingFolder')
               : t('outputOptions.footerReadyCount', { count: selectedCount })}
           </Text>
-          <PrimaryButton icon="content-save-check-outline" disabled={!canSave} onPress={() => setStage('saving')}>
+          <PrimaryButton icon="content-save-check-outline" disabled={!canSave} onPress={() => { void startSaving(); }}>
             {t('outputOptions.save')}
           </PrimaryButton>
         </FooterActions>

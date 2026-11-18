@@ -19,6 +19,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.Closeable
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -28,25 +29,32 @@ import java.time.Instant
 import java.time.ZoneId
 import java.util.Locale
 
-internal class ScopedMediaSaver(private val context: Context) {
+internal class ScopedMediaSaver(private val context: Context, private val operation: NativeOperation? = null) {
   private val resolver = context.contentResolver
   private val cache = File(context.cacheDir, "chatstamp").canonicalFile
 
   suspend fun save(items: List<ScopedSaveItem>, options: ScopedSaveOptions): Map<String, Any?> =
     withContext(Dispatchers.IO) {
       saveLock.withLock {
-        val archiveFingerprint = fingerprint(cacheFile(options.archiveUri))
+        val archiveFingerprint = options.archiveFingerprint
+        if (!Regex("[a-fA-F0-9]{64}").matches(archiveFingerprint)) throw OperationFailure("IO_ERROR", "The archive fingerprint is unavailable.")
         val chat = cleanSegment(options.chatName)
         val tree = options.treeUri?.takeIf(String::isNotBlank)?.let(Uri::parse)
         if (tree != null && resolver.persistedUriPermissions.none { it.uri == tree && it.isReadPermission && it.isWritePermission }) {
-          throw SecurityException("Selected folder access expired. Choose it again in Settings.")
+          throw OperationFailure("PERMISSION_LOST", "Selected folder access expired. Choose it again in Settings.")
         }
         val destination = SaveFolders(context, tree)
         val recordKey = hash(listOf(archiveFingerprint, tree?.toString(), chat, options.organizationMode, options.timestampFolder))
         val records = SaveRecords(File(context.filesDir, "chatstamp-store/save-records"), recordKey, options.timestampFolder)
         val root = listOf(chat, records.folder).filter(String::isNotEmpty).joinToString("/")
-        val results = items.map { item ->
-          try {
+        val results = mutableListOf<JSONObject>()
+        val sizes = items.map { runCatching { cacheFile(it.sourceUri).length() }.getOrNull() }
+        val totalBytes = if (sizes.all { it != null }) sizes.filterNotNull().sum() else null
+        items.forEachIndexed { index, item ->
+          checkOperation()
+          operation?.advance(operation.progress.copy(phase = "saving", filesDone = index,
+            totalFiles = items.size, totalBytes = totalBytes, currentFileName = item.filename))
+          val result = try {
             val relative = item.relativeFolder.orEmpty().split('/').filter(String::isNotBlank).map(::cleanSegment)
             val folder = (listOf(root) + relative).joinToString("/")
             val target = destination.forItem(item.mediaType, folder)
@@ -59,8 +67,13 @@ internal class ScopedMediaSaver(private val context: Context) {
           } catch (cancelled: CancellationException) {
             throw cancelled
           } catch (error: Exception) {
-            baseResult(item, "failed").put("failureReason", error.message ?: "Unable to save the file")
+            val failure = failureFor(error, operation?.cancelled?.get() == true)
+            if (failure.code == "CANCELLED") throw failure
+            baseResult(item, "failed").put("failureReason", failure.message).put("failureCode", failure.code)
           }
+          results.add(result)
+          operation?.addResult(toBridgeMap(result))
+          operation?.advance(operation.progress.copy(filesDone = index + 1))
         }
         mapOf(
           "mode" to if (tree == null) "scoped-media-store" else "saf-custom-folder",
@@ -76,7 +89,7 @@ internal class ScopedMediaSaver(private val context: Context) {
     folder: SaveFolder,
     archiveFingerprint: String
   ): JSONObject {
-    currentCoroutineContext().ensureActive()
+    checkOperation()
     val key = hash(listOf(item.entryId, folder.label))
     val recovered = recover(records, key, item, folder)
     if (recovered != null) return recovered
@@ -84,7 +97,7 @@ internal class ScopedMediaSaver(private val context: Context) {
     val completedUri = completed?.optString("insertedUri")?.takeIf(String::isNotBlank)?.let(Uri::parse)
     val previousCopy = completedUri?.let(folder::read)?.takeUnless { it.pending || it.isDirectory }
     if (options.duplicateHandling == "skip-existing" && previousCopy != null && canRead(previousCopy.uri)) {
-      return JSONObject(completed.toString()).put("outcome", "skipped").put("ok", true)
+      return echoDateContext(JSONObject(completed.toString()), item).put("outcome", "skipped").put("ok", true)
         .put("failureReason", "already-saved")
     }
 
@@ -104,6 +117,7 @@ internal class ScopedMediaSaver(private val context: Context) {
     val prepared = scratch ?: input
     var uri: Uri? = null
     var published = false
+    var completedResult: JSONObject? = null
     try {
       val writing = JSONObject().put("name", name).put("folder", folder.label).put("mimeType", item.mimeType)
       records.updateWriting(key, writing)
@@ -111,25 +125,27 @@ internal class ScopedMediaSaver(private val context: Context) {
       uri = created
       records.updateWriting(key, writing.put("uri", created.toString()))
       val output = resolver.openOutputStream(created, "w") ?: throw IOException("Could not open the destination")
-      val copied = output.use { stream -> prepared.inputStream().use { copy(it, stream) } }
+      val copied = tracked(output) { stream -> tracked(prepared.inputStream()) { copy(it, stream, true) } }
       check(copied == prepared.length()) { "The source changed while it was being copied" }
       if (choice.instant != null) runCatching { folder.trySetModified(created, choice.instant) }
       writing.put("expectedSize", copied).put("timestampSource", choice.source)
         .put("targetTimestampMillis", choice.instant?.toEpochMilli() ?: JSONObject.NULL)
       records.updateWriting(key, writing)
+      checkOperation()
       folder.publish(created)
       val result = inspect(item, folder, created, copied, choice, zone)
       published = true
       result.put("exifWritten", scratch != null && format == MediaTimestamps.Format.EXIF)
         .put("mp4MetadataFixed", scratch != null && format == MediaTimestamps.Format.CONTAINER)
       records.complete(key, result)
+      completedResult = result
       val row = runCatching { folder.read(created) }.getOrNull()
       if (row != null) folder.remember(row)
       if (replaced != null) {
         val bytesVerified = runCatching {
           fingerprint(prepared) == resolver.openInputStream(created)?.use { fingerprint(it) }
         }.getOrDefault(false)
-        currentCoroutineContext().ensureActive()
+        checkOperation()
         val verified = mayRemoveReplacedFile(
           bytesVerified, choice.instant != null, result.getString("dateVerification"), item.mediaType in galleryTypes
         )
@@ -140,9 +156,14 @@ internal class ScopedMediaSaver(private val context: Context) {
       }
       return result
     } catch (error: Exception) {
+      if (published && completedResult != null && (error is CancellationException || operation?.cancelled?.get() == true)) {
+        if (replaced != null) completedResult.put("replacementWarning", "previous-file-kept")
+        return completedResult
+      }
       if (!published) withContext(NonCancellable) {
         val clean = uri?.let { runCatching { folder.delete(it) }.getOrDefault(false) } ?: true
-        if (clean) runCatching { records.updateWriting(key, null) }
+        if (clean) records.updateWriting(key, null)
+        else throw OperationFailure("IO_ERROR", "The interrupted destination could not be removed.", cause = error)
       }
       throw error
     } finally {
@@ -238,7 +259,7 @@ internal class ScopedMediaSaver(private val context: Context) {
       return copy
     } catch (error: Exception) {
       scratch?.delete()
-      if (error is CancellationException) throw error
+      if (error is CancellationException || (error is OperationFailure && error.code == "CANCELLED")) throw error
       return null
     }
   }
@@ -272,15 +293,16 @@ internal class ScopedMediaSaver(private val context: Context) {
     }
   }.getOrNull()
 
-  private suspend fun copy(input: InputStream, output: OutputStream): Long {
+  private suspend fun copy(input: InputStream, output: OutputStream, trackProgress: Boolean = false): Long {
     val buffer = ByteArray(128 * 1024)
     var copied = 0L
     while (true) {
-      currentCoroutineContext().ensureActive()
+      checkOperation()
       val count = input.read(buffer)
       if (count < 0) return copied
       output.write(buffer, 0, count)
       copied += count
+      if (trackProgress) operation?.advance(operation.progress.copy(bytesDone = operation.progress.bytesDone + count))
     }
   }
 
@@ -290,11 +312,21 @@ internal class ScopedMediaSaver(private val context: Context) {
     val digest = MessageDigest.getInstance("SHA-256")
     val buffer = ByteArray(128 * 1024)
     while (true) {
-      currentCoroutineContext().ensureActive()
+      checkOperation()
       val count = input.read(buffer)
       if (count < 0) return digest.digest().hex()
       digest.update(buffer, 0, count)
     }
+  }
+
+  private suspend fun checkOperation() {
+    operation?.checkCancelled()
+    currentCoroutineContext().ensureActive()
+  }
+
+  private suspend fun <T : Closeable, R> tracked(stream: T, block: suspend (T) -> R): R {
+    operation?.register(stream)
+    return try { block(stream) } finally { operation?.unregister(stream); stream.close() }
   }
 
   private fun cacheFile(value: String): File {
@@ -364,6 +396,12 @@ private fun baseResult(item: ScopedSaveItem, outcome: String) = JSONObject()
   .put("entryId", item.entryId).put("filename", item.filename).put("mediaType", item.mediaType)
   .put("mimeType", item.mimeType).put("outcome", outcome).put("ok", outcome == "saved")
   .put("dateVerification", "unverified")
+  .let { echoDateContext(it, item) }
+
+internal fun echoDateContext(result: JSONObject, item: ScopedSaveItem): JSONObject = result
+  .put("whatsAppDateIso", item.whatsAppDateIso ?: JSONObject.NULL)
+  .put("dateAmbiguous", item.dateAmbiguous)
+  .put("originalTimestampMillis", item.timestampMillis?.takeIf(Double::isFinite) ?: JSONObject.NULL)
 
 private fun chooseName(folder: SaveFolder, filename: String, suffix: String): String {
   var candidate = collisionName(filename, suffix)
@@ -404,15 +442,22 @@ data class ScopedSaveItem(
   @Field val timestampMillis: Double? = null,
   @Field val dateSource: String = "none",
   @Field val timeZone: String? = null,
-  @Field val relativeFolder: String? = null
+  @Field val relativeFolder: String? = null,
+  @Field val whatsAppDateIso: String? = null,
+  @Field val dateAmbiguous: Boolean = false
 ) : Record
 
 data class ScopedSaveOptions(
-  @Field val archiveUri: String,
+  @Field val archiveFingerprint: String,
   @Field val chatName: String,
   @Field val treeUri: String? = null,
   @Field val duplicateHandling: String = "skip-existing",
   @Field val timestampFolder: Boolean = false,
   @Field val organizationMode: String = "by-type",
-  @Field val alwaysUseMessageDate: Boolean = false
+  @Field val alwaysUseMessageDate: Boolean = false,
+  @Field val operationId: String,
+  @Field val workingDirectory: String,
+  @Field val notificationTitle: String,
+  @Field val notificationCancelLabel: String,
+  @Field val sourceUri: String? = null
 ) : Record

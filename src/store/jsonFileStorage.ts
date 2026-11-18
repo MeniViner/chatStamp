@@ -1,26 +1,22 @@
-import { Directory, File, Paths } from 'expo-file-system';
+import { getChatStampNativeModule } from '../native/chatStampNativeModule';
+import type { HistoryStorage } from '../services/historyService';
 
-const storageDirectoryName = 'chatstamp-store';
-
-function storageFile(name: string): File {
-  const directory = new Directory(Paths.document, storageDirectoryName);
-  if (!directory.exists) directory.create({ intermediates: true, idempotent: true });
-  return new File(directory, name);
-}
+export const atomicStore: HistoryStorage = {
+  read: (name) => getChatStampNativeModule().readStoreFileAsync(name),
+  writeAtomic: (name, contents) => getChatStampNativeModule().writeStoreFileAtomicAsync(name, contents),
+  list: (prefix) => getChatStampNativeModule().listStoreFilesAsync(prefix),
+  remove: (name) => getChatStampNativeModule().deleteStoreFileAsync(name)
+};
 
 export async function readJsonFile<T>(name: string): Promise<T | null> {
-  const file = storageFile(name);
-  if (!file.exists) return null;
-  return JSON.parse(await file.text()) as T;
+  const text = await atomicStore.read(name);
+  return text === null ? null : JSON.parse(text) as T;
 }
 
 export async function writeJsonFile(name: string, value: unknown): Promise<void> {
-  const file = storageFile(name);
-  if (!file.exists) file.create({ intermediates: true, overwrite: true });
-  file.write(JSON.stringify(value));
+  await atomicStore.writeAtomic(name, JSON.stringify(value));
 }
 
 export async function deleteJsonFile(name: string): Promise<void> {
-  const file = storageFile(name);
-  if (file.exists) file.delete();
+  await atomicStore.remove(name);
 }

@@ -145,6 +145,8 @@ function HistoryCard({
   const theme = useAppTheme();
   const [shareOpen, setShareOpen] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const loadDetails = useHistoryStore((state) => state.loadHistoryDetails);
+  React.useEffect(() => { void loadDetails(item.id); }, [item.id, loadDetails]);
 
   async function openFolder() {
     const outcome = await openFolderBestEffort(item.outputFolderPath, null, item.outputDirectory ?? item.outputFolderPath);
@@ -193,6 +195,7 @@ function HistoryCard({
       <Text variant="labelLarge" style={textStyles.start}>
         {t('history.summaryCounts', { saved: item.counts.totalSaved, failed: item.counts.failed })}
       </Text>
+      {item.detailsMissing ? <Text variant="bodySmall" style={textStyles.start}>{t('session.detailsMissing')}</Text> : null}
       <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
         {t('history.mediaCounts', {
           photos: item.counts.photos,

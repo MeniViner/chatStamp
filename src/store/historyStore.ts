@@ -1,50 +1,53 @@
 import { create } from 'zustand';
 import type { ExportHistoryItem } from '../types/media';
 import { logger } from '../lib/logger';
-import { deleteJsonFile, readJsonFile, writeJsonFile } from './jsonFileStorage';
-import { createExportHistoryItem, normalizeHistoryItem } from './historyLogic';
+import { atomicStore } from './jsonFileStorage';
+import { createExportHistoryItem } from './historyLogic';
+import { HistoryRepository, HISTORY_INDEX_FILE } from '../services/historyService';
 
-const historyKey = 'export-history.v1.json';
+const historyKey = HISTORY_INDEX_FILE;
 const historyLimit = 50;
+const repository = new HistoryRepository(atomicStore);
 
 type HistoryState = {
   items: ExportHistoryItem[];
   loaded: boolean;
   loadHistory: () => Promise<void>;
+  loadHistoryDetails: (id: string) => Promise<void>;
   addHistoryItem: (item: ExportHistoryItem) => Promise<void>;
   deleteHistoryItem: (id: string) => Promise<void>;
   clearHistory: () => Promise<void>;
 };
-
-async function persist(items: ExportHistoryItem[]) {
-  await writeJsonFile(historyKey, items.slice(0, historyLimit));
-}
 
 export const useHistoryStore = create<HistoryState>((set, get) => ({
   items: [],
   loaded: false,
   loadHistory: async () => {
     try {
-      const stored = await readJsonFile<ExportHistoryItem[]>(historyKey);
-      set({ items: (stored ?? []).map(normalizeHistoryItem), loaded: true });
+      set({ items: await repository.load(), loaded: true });
     } catch (error) {
       logger.warn('historyLoadFailed', error);
       set({ items: [], loaded: true });
     }
   },
+  loadHistoryDetails: async (id) => {
+    const item = get().items.find((entry) => entry.id === id);
+    if (!item || item.savedFiles || item.detailsMissing) return;
+    const results = await repository.readDetails(id);
+    set((state) => ({ items: state.items.map((entry) => entry.id === id
+      ? { ...entry, savedFiles: results ?? undefined, detailsMissing: results === null } : entry) }));
+  },
   addHistoryItem: async (item) => {
-    const next = [item, ...get().items.filter((existing) => existing.id !== item.id)].slice(0, historyLimit);
-    set({ items: next });
-    await persist(next);
+    await repository.save(item);
+    set({ items: await repository.load() });
   },
   deleteHistoryItem: async (id) => {
-    const next = get().items.filter((item) => item.id !== id);
-    set({ items: next });
-    await persist(next);
+    await repository.remove(id);
+    set({ items: get().items.filter((item) => item.id !== id) });
   },
   clearHistory: async () => {
+    await repository.clear();
     set({ items: [] });
-    await deleteJsonFile(historyKey);
   }
 }));
 

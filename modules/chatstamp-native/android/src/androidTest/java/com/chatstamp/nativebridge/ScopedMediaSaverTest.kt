@@ -20,8 +20,7 @@ import java.io.File
 import java.time.Instant
 import java.time.ZoneId
 import java.util.UUID
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
+import java.security.MessageDigest
 
 class ScopedMediaSaverTest {
   private val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -119,13 +118,9 @@ class ScopedMediaSaverTest {
   }
 
   private fun archive(): ScopedSaveOptions {
-    val zip = File(cache, "test.zip")
-    ZipOutputStream(zip.outputStream()).use { output ->
-      output.putNextEntry(ZipEntry("_chat.txt"))
-      output.write("15/02/2019, 10:30 - Dana: Test conversation".toByteArray())
-      output.closeEntry()
-    }
-    return ScopedSaveOptions(Uri.fromFile(zip).toString(), chat)
+    val fingerprint = MessageDigest.getInstance("SHA-256").digest(chat.toByteArray()).joinToString("") { "%02x".format(it) }
+    return ScopedSaveOptions(fingerprint, chat, operationId = "$chat-save", workingDirectory = Uri.fromFile(cache).toString(),
+      notificationTitle = "Saving test files", notificationCancelLabel = "Cancel")
   }
 
   private fun item(id: String, file: File, type: String, mime: String, date: Instant?, filename: String = file.name) =

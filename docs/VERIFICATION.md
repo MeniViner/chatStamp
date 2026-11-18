@@ -159,3 +159,31 @@ import the five-file ZIP through the picker, save, run the tracked readback
 assertions, and inspect Samsung Gallery. Then rerun duplicates in both languages
 and save the undated VCF. The corresponding exact procedure is in
 scripts/android-verification/README.md; no Gallery result is inferred from tests.
+
+
+## Stage C · current implementation smoke · 2026-11-18
+
+The final fresh cycle (`stage-c-final`) passes npm ci, strict TypeScript,
+191 Vitest tests in 32 files, ESLint, clean Android prebuild and two-worker arm64
+QA assembly. APK/merged-manifest inspection confirms QA identity, min SDK 30,
+target SDK 36, no broad storage/media-read permission, an exported=false dataSync
+service and the three foreground-service/notification declarations.
+
+JUnit XML records 23 passing JVM tests (11 archive policy,5 MP4,7 cancellation/error
+classification) and 10 passing connected tests on each of Galaxy A30/API 30 and
+Android16/API 36 emulator. No failures, errors or skips. The controls include
+unsafe-entry skipping, stream fingerprint/no-copy behavior, candidate retention,
+malformed/truncated archives, STORED CRC corruption, DEFLATED descriptor CRC
+corruption, scoped date writes and atomic store/path safety.
+
+On the API 36 emulator the app UI imported the 128 MiB synthetic ZIP through the
+system picker. Its private cache contained only the 66-byte transcript and the
+134,220,717-byte extracted MP4, with no complete ZIP or DocumentPicker cache.
+After confirming Back→Discard and a cold launch, the job had zero remaining
+files (8 KiB empty directory allocation). This is API 36 app/cache evidence, not
+physical Gallery acceptance. Small readback/screenshot files are under the
+single `dist/android-verification/rebuild-20261118/` curated output set.
+
+Physical B-close and the C warm/cold share, background save, notification denial,
+mid-save cancel and API 36 dataSync timeout UI cases are still being executed.
+No Play release or Gallery acceptance is inferred from the automated checks.

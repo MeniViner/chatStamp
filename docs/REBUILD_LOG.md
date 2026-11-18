@@ -111,3 +111,57 @@ Record the rendered first screen and QA process crash log. Complete or skip onbo
   acceptance pending and continue independent Stage C implementation; G1 stays
   gated on accepted B-close and C. On unlock, repeat the retained QA regression,
   then run it again on any changed save implementation.
+
+
+## Stage C · implementation and review · 2026-11-18
+
+- Implementer replaced private ZIP copies with native content/file-URI streaming,
+  one-pass SHA-256, bounded entry extraction, candidate metadata and ZIP times.
+  TypeScript selects the transcript and keeps other supported TXT documents.
+  Actual limits and supported extensions are appended in the active ExecPlan.
+- Added application-scoped operation snapshots, event-driven cold/warm shares,
+  real throttled progress, cancellation, a user-started dataSync foreground save
+  with notification Cancel, safe cache/source release, coded recovery messages,
+  atomic native JSON writes and split history with durable migration/reconciliation.
+- Independent acceptance tests cover unknown progress totals, operation isolation,
+  typed error messages in both languages, original-URI extraction without copies,
+  year-first transcript selection, undated VCF, transcript limits, interrupted
+  history writes, and retained native completion after a history write failure.
+- Review fixed a second-share queue guard that could delay replacement prompts,
+  restored same-minute save timestamp offsets in completion counts, and prevented
+  save acknowledgement before durable history. The final coordinator suite has
+  twelve passing cases; the full TypeScript suite has 191 passing tests/32 files.
+- First native compile hit an Expo zero-argument Coroutine overload ambiguity;
+  **try another way**: use an explicit zero-argument lambda. The compile passed.
+- First API36 native run failed because Android's default ZIP validator rejected
+  an unsafe entry before it could be counted/skipped. **try another way**: use
+  Apache Commons Compress 1.28.0 ZipArchiveInputStream while retaining explicit
+  safe-path/bounded-write checks. Do not disable the platform validator globally.
+  Added independent STORED-payload and DEFLATED-descriptor CRC corruption checks;
+  no assertion was relaxed. Official dependency coordinates checked:
+  https://commons.apache.org/proper/commons-compress/dependency-info.html .
+- The complete retry passed npm ci, TypeScript, 191 tests, ESLint, clean prebuild,
+  arm64 QA assembly, min30/target36/no-broad-permission inspection, exact exported-
+  false dataSync service/notification declarations, 16 JVM tests, and ten connected
+  tests on each of physical API30 and emulator API36, zero failures/errors/skips.
+- Further review identified cancellation-close I/O classification and pending-row
+  cleanup reporting; preserve explicit cleanup IO_ERROR and test the actual reader
+  cancellation boundary. A fresh full cycle is required after those final fixes.
+- Current official Android timeout/notification test procedures were checked at
+  https://developer.android.com/develop/background-work/services/fgs/timeout and
+  https://developer.android.com/develop/ui/compose/notifications/notification-permission .
+  Runtime UI, background, denial, cancel and timeout acceptance is still in progress.
+
+- Final C fresh smoke after review passes191 TypeScript tests,23 JVM tests and
+  ten connected tests per API 30/API 36. Seven new pure JVM controls exercise actual
+  source-close cancellation before ZIP error wrapping and keep explicit cleanup
+  failures visible as IO_ERROR. The initial proposed blanket error-precedence
+  assertion was replaced by this real reader-boundary test because cleanup I/O
+  failures must not be masked; no integrity/cancellation acceptance was relaxed.
+- Final independent source review has no remaining findings. C implementation
+  may be committed with runtime acceptance explicitly open. The API36 picker
+  imported 128 MiB with no private ZIP copy; confirmed discard plus cold launch
+  left zero job files. Curated evidence totals about 131 KiB at this checkpoint.
+- Owner reported physical unlock; policy confirmed showing=false. Temporarily
+  changed screen_off_timeout from 600000 to 1800000 ms for physical UI tests;
+  restore 600000 and prior stay-awake 7 after device cleanup.

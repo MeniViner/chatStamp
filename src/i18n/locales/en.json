@@ -662,6 +662,44 @@
     "storageAction": "Try again, or choose the ZIP from device storage.",
     "parsingTitle": "Parsing failed",
     "parsingReason": "The app could not finish reading this export.",
-    "parsingAction": "Try another ZIP. Technical details are below if needed."
+    "parsingAction": "Try another ZIP. Technical details are below if needed.",
+    "codes": {
+      "NO_TRANSCRIPT": "No WhatsApp conversation was found in this ZIP.",
+      "ZIP_INVALID": "This file is not a readable ZIP archive.",
+      "NO_SPACE": "There is not enough free space. Free some space and try again.",
+      "ARCHIVE_LIMIT": "This archive exceeds the supported size or file-count limits.",
+      "CANCELLED": "The operation was cancelled.",
+      "PERMISSION_LOST": "Access to this file or folder has expired. Choose it again.",
+      "IO_ERROR": "The operation could not finish. Try again or choose another file."
+    }
+  },
+  "operation": {
+    "preparing": "Preparing",
+    "extracting": "Importing files",
+    "saving": "Saving files",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "failed": "Could not finish",
+    "filesKnown": "{{done}} of {{total}} files",
+    "filesUnknown": "{{done}} files processed",
+    "bytes": "{{bytes}} MB processed",
+    "cancel": "Cancel",
+    "notificationTitle": "Saving your selected files"
+  },
+  "session": {
+    "discardTitle": "Discard this import?",
+    "discardBody": "The temporary files for this import will be removed. Files already saved on your phone will remain.",
+    "discard": "Discard",
+    "replaceTitle": "Open the shared export?",
+    "replaceBody": "This will cancel the current import and open the new shared ZIP.",
+    "replace": "Open export",
+    "chooseAnother": "Choose another file",
+    "retry": "Try again",
+    "spaceMissing": "Free at least {{bytes}} MB and try again.",
+    "skipped": "{{count}} archive entries were skipped",
+    "unsafe": "Unsafe file path",
+    "unsupported": "Unsupported file type",
+    "detailsMissing": "The file details for this export are unavailable.",
+    "skipSummary": "Skipped {{unsafe}} unsafe paths and {{unsupported}} unsupported entries."
   }
 }

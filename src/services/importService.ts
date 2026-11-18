@@ -6,11 +6,15 @@ import { normalizeFilename } from '../lib/filename';
 import { CHAT_TRANSCRIPT_SENDER, getMediaSender } from '../lib/mediaMetadata';
 import { logger } from '../lib/logger';
 import { extractSupportedZipEntries } from '../native/zipExtractor';
+import { chooseBestTranscriptCandidate } from '../lib/transcriptDetection';
+import { PipelineError, asPipelineError } from '../lib/pipelineErrors';
+import { createOperationId } from '../lib/operationProgress';
 import type { ChatMediaRecord, ExtractedMediaFile, ImportSummary, ProcessingProgress } from '../types/media';
 
 export type ImportPipelineResult = {
   workingDirectory: string;
-  copiedZipUri: string;
+  operationId: string;
+  archiveFingerprint: string;
   chatRecords: ChatMediaRecord[];
   skippedChatLines: string[];
   mediaFiles: ExtractedMediaFile[];
@@ -25,6 +29,7 @@ export type ImportPipelineResult = {
 export type ImportWhatsAppZipParams = {
   zipUri: string;
   zipName: string;
+  operationId?: string;
   onProgress?: (progress: ProcessingProgress) => void;
 };
 
@@ -33,44 +38,36 @@ export { CHAT_TRANSCRIPT_SENDER };
 export async function importWhatsAppZip({
   zipUri,
   zipName,
+  operationId = createOperationId('import'),
   onProgress
 }: ImportWhatsAppZipParams): Promise<ImportPipelineResult> {
   const cacheDirectory = FileSystem.cacheDirectory;
   if (!cacheDirectory) {
-    throw new Error('App cache directory is not available.');
+    throw new PipelineError('IO_ERROR', 'App cache directory is not available.');
   }
 
-  const workingDirectory = `${cacheDirectory}chatstamp/${Date.now()}/`;
+  const workingDirectory = `${cacheDirectory}chatstamp/${operationId}/`;
   const extractionDirectory = `${workingDirectory}extracted/`;
-  const copiedZipUri = `${workingDirectory}${sanitizeFileName(zipName || 'whatsapp-export.zip')}`;
 
   try {
     logger.info('Import started', { zipName });
-    onProgress?.({ stageLabel: 'Preparing cache', processed: 0, total: 7, failed: 0 });
     await FileSystem.makeDirectoryAsync(extractionDirectory, { intermediates: true });
-
-    onProgress?.({ stageLabel: 'Copying ZIP', processed: 1, total: 7, failed: 0 });
-    await FileSystem.copyAsync({ from: zipUri, to: copiedZipUri });
-    logger.debug('ZIP copied to cache', { from: zipUri, to: copiedZipUri });
-
-    onProgress?.({ stageLabel: 'Validating ZIP and reading entries', processed: 2, total: 7, failed: 0 });
-    const extraction = await extractSupportedZipEntries(copiedZipUri, extractionDirectory);
+    const extraction = await extractSupportedZipEntries(zipUri, extractionDirectory, operationId, onProgress);
     logger.debug('ZIP entries discovered', {
       extractedCount: extraction.extractedCount,
       skippedCount: extraction.skippedCount,
-      mediaFiles: extraction.mediaFiles.length,
-      txtFiles: extraction.txtFiles
+      mediaFiles: extraction.mediaFiles.length
     });
-    logger.debug('TXT transcript candidates discovered', extraction.transcriptCandidates);
-    if (!extraction.chatFileUri) {
-      const txtDetails =
-        extraction.txtFiles.length > 0 ? ` TXT files found: ${extraction.txtFiles.join(', ')}` : ' No TXT files were found.';
-      throw new Error(`No WhatsApp chat transcript TXT file was found in this export.${txtDetails}`);
-    }
-    logger.debug('Selected transcript filename', extraction.chatFilename ?? extraction.chatFileUri);
+    const choice = chooseBestTranscriptCandidate(extraction.transcriptCandidates.map((candidate) => ({
+      filename: candidate.sourcePath, sample: candidate.sample
+    })));
+    const transcript = extraction.transcriptCandidates.find((candidate) => candidate.sourcePath === choice?.filename);
+    if (!transcript) throw new PipelineError('NO_TRANSCRIPT');
+    if (transcript.sizeBytes > MAX_TRANSCRIPT_BYTES) throw new PipelineError('ARCHIVE_LIMIT', 'Transcript exceeds the 16 MiB parsing limit.');
+    logger.debug('Selected transcript filename', transcript.filename);
 
     const occurrences = new Map<string, number>();
-    const extractedMediaFiles = extraction.mediaFiles
+    const extractedMediaFiles = [...extraction.mediaFiles, ...extraction.transcriptCandidates.filter((candidate) => candidate !== transcript)]
       .filter((file) => isSupportedForMvp(file.filename))
       .map<ExtractedMediaFile>((file) => {
         const sourcePath = file.sourcePath.replace(/\\/g, '/');
@@ -81,33 +78,33 @@ export async function importWhatsAppZip({
           filename: file.filename,
           normalizedFilename: normalizeFilename(file.filename),
           sourcePath,
-          modificationTime: file.modificationTime,
+          modificationTime: file.modificationTime ?? undefined,
+          sizeBytes: file.sizeBytes,
           uri: file.uri,
           mediaType: classifyMedia(file.filename),
           sourceKind: 'zip-media'
         };
       });
-    onProgress?.({ stageLabel: 'Finding transcript and parsing messages', processed: 4, total: 7, failed: 0 });
-    const chatText = await FileSystem.readAsStringAsync(extraction.chatFileUri);
+    const chatText = await FileSystem.readAsStringAsync(transcript.uri);
     const parsedChat = await parseWhatsAppChatTextAsync(chatText, extractedMediaFiles);
     logger.debug('Number of parsed messages', parsedChat.preview.totalMessages);
     if (extractedMediaFiles.length === 0) {
       logger.warn('No supported media files found in export', {
-        txtFiles: extraction.txtFiles,
+        txtFiles: extraction.transcriptCandidates.map((candidate) => candidate.filename),
         chatRecords: parsedChat.records.length
       });
     }
 
-    onProgress?.({ stageLabel: 'Matching and classifying media', processed: 5, total: 7, failed: 0 });
     const matchedMediaFiles = attachChatRecordsToMedia(
       extractedMediaFiles, parsedChat.records, parsedChat.timeZone, parsedChat.timeZoneAssumed
     );
-    const transcriptFile = buildTranscriptFile(extraction.chatFileUri, extraction.chatFilename, parsedChat);
+    const transcriptFile = { ...buildTranscriptFile(transcript.uri, transcript.filename, parsedChat), sizeBytes: transcript.sizeBytes };
     const mediaFiles = [transcriptFile, ...matchedMediaFiles];
     logger.debug('Number of media references matched', mediaFiles.filter((file) => file.matchedRecord).length);
     const importSummary = buildImportSummary(mediaFiles, parsedChat.records.length, parsedChat.skippedLines.length, {
       extractedCount: extraction.extractedCount,
       skippedCount: extraction.skippedCount,
+      skippedEntries: extraction.skippedEntries,
       extractionMode: extraction.extractionMode
     });
 
@@ -118,11 +115,11 @@ export async function importWhatsAppZip({
       videos: importSummary.videos,
       other: mediaFiles.length - importSummary.photos - importSummary.videos
     });
-    onProgress?.({ stageLabel: 'Import ready', processed: 7, total: 7, failed: 0 });
 
     return {
       workingDirectory,
-      copiedZipUri,
+      operationId,
+      archiveFingerprint: extraction.archiveFingerprint,
       chatRecords: parsedChat.records,
       skippedChatLines: parsedChat.skippedLines,
       mediaFiles,
@@ -135,7 +132,7 @@ export async function importWhatsAppZip({
     };
   } catch (error) {
     await clearWorkingDirectory(workingDirectory);
-    throw error;
+    throw asPipelineError(error);
   }
 }
 
@@ -175,7 +172,7 @@ function buildImportSummary(
   mediaFiles: ExtractedMediaFile[],
   chatRecords: number,
   skippedChatLines: number,
-  extraction: { extractedCount: number; skippedCount: number; extractionMode: 'native-selective' }
+  extraction: { extractedCount: number; skippedCount: number; skippedEntries: ImportSummary['skippedEntries']; extractionMode: 'native-selective' }
 ): ImportSummary {
   const exportedMediaFiles = mediaFiles.filter((file) => file.sourceKind !== 'chat-transcript');
   const matchedMedia = exportedMediaFiles.filter((file) => file.matchedRecord).length;
@@ -187,6 +184,7 @@ function buildImportSummary(
     skippedChatLines,
     extractedEntries: extraction.extractedCount,
     skippedZipEntries: extraction.skippedCount,
+    skippedEntries: extraction.skippedEntries,
     matchedMedia,
     unmatchedMedia: exportedMediaFiles.length - matchedMedia,
     senders,
@@ -220,8 +218,4 @@ export async function loadTranscriptPreview(uri: string) {
   return (await parseWhatsAppChatTextAsync(text, [])).preview;
 }
 
-function sanitizeFileName(filename: string): string {
-  const baseName = filename.split(/[\\/]/).pop() ?? 'whatsapp-export.zip';
-  const safeName = baseName.replace(/[^a-zA-Z0-9_.() -]/g, '_').trim();
-  return safeName || 'whatsapp-export.zip';
-}
+export const MAX_TRANSCRIPT_BYTES = 16 * 1024 * 1024;

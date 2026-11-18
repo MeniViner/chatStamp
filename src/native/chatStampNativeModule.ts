@@ -1,30 +1,33 @@
 import { requireOptionalNativeModule } from 'expo-modules-core';
 import type { DateSource, DuplicateHandlingMode, MediaType, OutputOrganizationMode, PickedFolderResult, SaveFileResult } from '../types/media';
+import type { OperationProgress } from '../lib/operationProgress';
+import type { PipelineErrorCode } from '../lib/pipelineErrors';
 
 export type NativeExtractedMediaFile = {
   filename: string;
   uri: string;
   sourcePath: string;
-  modificationTime?: string;
+  modificationTime?: string | null;
+  sizeBytes: number;
 };
 
 export type NativeTranscriptCandidate = {
   filename: string;
   sourcePath: string;
-  score: number;
-  messageLineCount: number;
-  selected: boolean;
-  reason: string;
+  uri: string;
+  sample: string;
+  modificationTime?: string | null;
+  sizeBytes: number;
 };
 
 export type NativeZipExtractionResult = {
-  chatFileUri?: string | null;
-  chatFilename?: string | null;
-  txtFiles: string[];
+  operationId: string;
+  archiveFingerprint: string;
   transcriptCandidates: NativeTranscriptCandidate[];
   mediaFiles: NativeExtractedMediaFile[];
   extractedCount: number;
   skippedCount: number;
+  skippedEntries: { sourcePath: string; reason: 'unsafe-path' | 'unsupported-type' }[];
   extractionMode: 'native-selective';
 };
 
@@ -38,10 +41,17 @@ export type NativeSaveMediaItem = {
   dateSource: DateSource;
   timeZone?: string;
   relativeFolder?: string;
+  whatsAppDateIso?: string;
+  dateAmbiguous?: boolean;
 };
 
 export type ScopedSaveOptions = {
-  archiveUri: string;
+  archiveFingerprint: string;
+  operationId: string;
+  workingDirectory: string;
+  sourceUri?: string;
+  notificationTitle: string;
+  notificationCancelLabel: string;
   chatName: string;
   treeUri?: string;
   duplicateHandling: DuplicateHandlingMode;
@@ -63,30 +73,44 @@ export type NativeSaveMediaResult = {
 
 export type NativeSharedZipResult = {
   received: boolean;
-  copiedUri?: string;
+  id?: string;
   filename?: string;
   mimeType?: string;
   sourceAction?: string;
   sourceUri?: string;
-  sourceSizeBytes?: number | null;
-  copiedSizeBytes?: number | null;
-  validZip?: boolean;
-  zipEntryCount?: number | null;
-  firstZipEntries?: string[];
-  error?: string;
-  debugStatus?: Record<string, unknown>;
+  errorCode?: PipelineErrorCode;
 };
 
-export type NativeShareIntentDebugStatus = Record<string, unknown>;
+export type OperationSnapshot = {
+  progress: OperationProgress;
+  workingDirectory?: string;
+  sourceUri?: string;
+  archiveFingerprint?: string;
+  chatName?: string;
+  result?: NativeSaveMediaResult;
+  error?: { code: PipelineErrorCode; message: string; missingBytes?: number };
+};
 
 type ChatStampNativeModule = {
   extractSupportedZipEntriesAsync: (
     zipUri: string,
-    outputDirectoryUri: string
+    outputDirectoryUri: string,
+    operationId: string
   ) => Promise<NativeZipExtractionResult>;
-  getPendingSharedZipAsync: () => Promise<NativeSharedZipResult>;
   consumePendingSharedZipAsync: () => Promise<NativeSharedZipResult>;
-  getShareIntentDebugStatusAsync: () => Promise<NativeShareIntentDebugStatus>;
+  cancelOperationAsync: (operationId: string) => Promise<void>;
+  acknowledgeOperationAsync: (operationId: string) => Promise<void>;
+  getOperationSnapshotAsync: () => Promise<OperationSnapshot | null>;
+  canReadSourceAsync: (sourceUri: string) => Promise<boolean>;
+  releaseImportAsync: (operationId: string, workingDirectory: string, sourceUri: string) => Promise<void>;
+  releaseSourceAsync: (sourceUri: string) => Promise<void>;
+  cleanupStaleJobsAsync: () => Promise<void>;
+  readStoreFileAsync: (name: string) => Promise<string | null>;
+  writeStoreFileAtomicAsync: (name: string, contents: string) => Promise<void>;
+  listStoreFilesAsync: (prefix: string) => Promise<string[]>;
+  deleteStoreFileAsync: (name: string) => Promise<void>;
+  addListener(event: 'onImportProgress' | 'onSaveProgress', listener: (progress: OperationProgress) => void): { remove: () => void };
+  addListener(event: 'onSharedZip', listener: () => void): { remove: () => void };
   saveMediaAsync: (items: NativeSaveMediaItem[], options: ScopedSaveOptions) => Promise<NativeSaveMediaResult>;
   openOutputFolderPickerAsync: () => Promise<PickedFolderResult | null>;
   openFolderTargetAsync: (target: {
