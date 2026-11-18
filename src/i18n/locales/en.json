@@ -248,7 +248,12 @@
     "restartRequiredBody": "The app now applies Right-to-Left and Left-to-Right layout changes immediately.",
     "customFolderDateBody": "Date verification depends on the selected folder.",
     "alwaysUseMessageDate": "Always use message date",
-    "alwaysUseMessageDateBody": "Use the date from the chat or its best available estimate instead of the date in the file."
+    "alwaysUseMessageDateBody": "Use the date from the chat or its best available estimate instead of the date in the file.",
+    "privacySupport": "Privacy and support",
+    "privacySummary": "Your export is processed on this device. No account, advertising or cloud upload. Sharing or opening a file passes it to the app you choose.",
+    "privacyPolicy": "Privacy policy",
+    "contactSupport": "Contact support",
+    "couldNotOpenLink": "No app could open this link."
   },
   "reviewSave": {
     "title": "Review & Save",

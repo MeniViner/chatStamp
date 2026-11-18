@@ -1,4 +1,4 @@
-const { withAppBuildGradle, withGradleProperties } = require('expo/config-plugins');
+const { AndroidConfig, withAndroidManifest, withAppBuildGradle, withGradleProperties } = require('expo/config-plugins');
 
 const propsBlock = `
 def chatstampReleaseProps = new Properties()
@@ -55,18 +55,35 @@ function applyReleaseSigning(buildGradle) {
     );
   }
 
-  contents = contents.replace(
-    /release \{\n\s+signingConfig signingConfigs\.debug/,
-    `release {
-            if (chatstampReleaseSigningConfigured) {
+  const buildTypesStart = contents.indexOf('buildTypes {');
+  const releaseStart = contents.indexOf('release {', buildTypesStart);
+  const releaseEnd = contents.indexOf('\n        }', releaseStart);
+  if (buildTypesStart < 0 || releaseStart < 0 || releaseEnd < 0) {
+    throw new Error('chatStamp could not locate the release build type; refusing unknown signing configuration.');
+  }
+  const release = contents.slice(releaseStart, releaseEnd);
+  const signedRelease = release.replace(
+    /^[ \t]*signingConfig signingConfigs\.debug[ \t]*$/m,
+    `            if (chatstampReleaseSigningConfigured) {
                 signingConfig signingConfigs.release
             }`
   );
+  if (!signedRelease.includes('signingConfig signingConfigs.release') || signedRelease.includes('signingConfigs.debug')) {
+    throw new Error('chatStamp could not select the existing release signing configuration.');
+  }
+  contents = contents.slice(0, releaseStart) + signedRelease + contents.slice(releaseEnd);
 
   return contents;
 }
 
 const withChatStampAndroidRelease = (config) => {
+  config = withAndroidManifest(config, (config) => {
+    const application = AndroidConfig.Manifest.getMainApplicationOrThrow(config.modResults);
+    application.$['android:allowBackup'] = 'false';
+    application.$['android:fullBackupContent'] = 'false';
+    application.$['android:dataExtractionRules'] = '@xml/chatstamp_data_extraction_rules';
+    return config;
+  });
   config = withGradleProperties(config, (config) => {
     ensureProperty(config.modResults, 'android.minSdkVersion', '30');
     ensureProperty(config.modResults, 'android.enableMinifyInReleaseBuilds', 'true');

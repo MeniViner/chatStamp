@@ -1,5 +1,5 @@
 import React from 'react';
-import { BackHandler, ScrollView, StyleSheet, View } from 'react-native';
+import { BackHandler, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import * as Application from 'expo-application';
 import { Directory, Paths } from 'expo-file-system';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -102,6 +102,10 @@ export function SettingsScreen() {
     await clearHistory();
     setClearHistoryOpen(false);
     setSnackbar(t('settings.historyCleared'));
+  }
+
+  async function openSupportLink(url: string) {
+    try { await Linking.openURL(url); } catch { setSnackbar(t('settings.couldNotOpenLink')); }
   }
 
   return (
@@ -256,6 +260,16 @@ export function SettingsScreen() {
             value={settings.useDynamicColors}
             onValueChange={(value) => void updateSettings({ useDynamicColors: value })}
           />
+        </Section>
+
+        <Section title={t('settings.privacySupport')} icon="shield-account-outline">
+          <Text variant="bodyMedium" style={textStyles.start}>{t('settings.privacySummary')}</Text>
+          <SecondaryButton icon="shield-lock-outline" onPress={() => void openSupportLink('https://meniviner.github.io/chatStamp/privacy-policy.html')}>
+            {t('settings.privacyPolicy')}
+          </SecondaryButton>
+          <SecondaryButton icon="email-outline" onPress={() => void openSupportLink('mailto:meniviner@gmail.com')}>
+            {t('settings.contactSupport')}
+          </SecondaryButton>
         </Section>
 
         <Section title={t('settings.appOptions')} icon="tune-variant">

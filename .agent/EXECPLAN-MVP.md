@@ -338,3 +338,36 @@ for exact dates, Gallery interpretation, duplicate inventories and cleanup.
 - Provider-revocation simulation and crash recovery beyond cleanup of this
   operation's own orphaned pending rows remain explicitly deferred. API33
   physical coverage and a real owner WhatsApp export remain UNVERIFIED.
+
+
+## Stage G1 preparation checkpoint · 2026-11-18
+
+Version0.2.0/code3 is synchronized across Expo, root/module package metadata,
+lockfile and module Gradle. Release policy removes unnecessary Internet/network,
+overlay/audio/vibration/referrer capabilities, disables background media playback,
+and excludes private data from backup/transfers. Actual minified AAB manifest
+confirms exactly the three required platform permissions plus AndroidX's own
+signature receiver permission, nondebuggable, min30/target36, backup disabled
+and all nine-domain exclusion rules. Bilingual policy/listings/upload/tester
+materials and in-app privacy/support actions are prepared; public website,
+phone screenshots/demo and upload remain pending.
+
+The first R8 pass found Commons Compress's optional Zstd class. A suppression
+alone was rejected by review: its factory can run before the entry-method guard.
+**try another way**: SupportedZipInputStream rejects Zstd in the protected factory.
+Two known-size method20/93 JVM controls prove rejection before returning an entry.
+The initial descriptor fixture did not enter that factory; the fixture was fixed,
+not the assertion. Complete retry passes222Vitest/25JVM/10connected perAPI30/API36.
+The minified bundle then builds successfully and bundletool validates it.
+
+Artifact acceptance remains OPEN. Independent certificate comparison caught that
+the old config-plugin regex missed Expo's commented release block, leaving the
+DEBUG signingConfig selected. Fix the durable plugin, regression-test selection,
+rebuild and require an exact established-upload-certificate match; never distribute
+this preflight artifact. No new upload key was generated. All72native libraries
+were inspected: all36ELF64 LOAD/RELRO results pass16KiB. Genuine ELF32 libraries
+include4KiB segments; Android/AOSP policy scopes the16KiB requirement to64-bit
+ABIs, so preserve their raw results and correct verifier applicability rather than
+omit ABIs or claim ELF32 compatibility. The public policy page/Play upload are
+not established by this checkpoint. Phone has securely locked again; owner unlock
+was requested while independent release preparation continues.

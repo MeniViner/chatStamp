@@ -248,7 +248,12 @@
     "restartRequiredBody": "האפליקציה מחילה מעבר בין RTL ל-LTR מיד, בלי לסגור ולהפעיל מחדש.",
     "customFolderDateBody": "אימות התאריך תלוי בתיקייה שנבחרה.",
     "alwaysUseMessageDate": "שימוש קבוע בתאריך ההודעה",
-    "alwaysUseMessageDateBody": "שימוש בתאריך מהצ׳אט או בהערכה הזמינה במקום בתאריך שבקובץ."
+    "alwaysUseMessageDateBody": "שימוש בתאריך מהצ׳אט או בהערכה הזמינה במקום בתאריך שבקובץ.",
+    "privacySupport": "פרטיות ותמיכה",
+    "privacySummary": "הייצוא מעובד במכשיר הזה. אין חשבון, פרסומות או העלאה לענן. שיתוף או פתיחת קובץ מעבירים אותו לאפליקציה שבחרת.",
+    "privacyPolicy": "מדיניות פרטיות",
+    "contactSupport": "יצירת קשר",
+    "couldNotOpenLink": "לא נמצאה אפליקציה שיכולה לפתוח את הקישור."
   },
   "reviewSave": {
     "title": "סקירה לפני שמירה",

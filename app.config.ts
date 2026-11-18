@@ -1,7 +1,7 @@
 const config = {
   name: 'chatStamp',
   slug: 'chatstamp',
-  version: '0.1.1',
+  version: '0.2.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
   scheme: 'chatstamp',
@@ -9,7 +9,8 @@ const config = {
   assetBundlePatterns: ['**/*'],
   android: {
     package: 'com.menis.chatstamp',
-    versionCode: 2,
+    versionCode: 3,
+    allowBackup: false,
     icon: './assets/icon.png',
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
@@ -29,7 +30,14 @@ const config = {
       'android.permission.READ_MEDIA_IMAGES',
       'android.permission.READ_MEDIA_VIDEO',
       'android.permission.READ_MEDIA_VISUAL_USER_SELECTED',
-      'android.permission.RECORD_AUDIO'
+      'android.permission.RECORD_AUDIO',
+      'android.permission.INTERNET',
+      'android.permission.ACCESS_NETWORK_STATE',
+      'android.permission.SYSTEM_ALERT_WINDOW',
+      'android.permission.MODIFY_AUDIO_SETTINGS',
+      'android.permission.VIBRATE',
+      'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
+      'com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE'
     ],
     intentFilters: [
       {
@@ -62,8 +70,8 @@ const config = {
   },
   plugins: [
     './plugins/withChatStampAndroidRelease',
-    'expo-video',
-    'expo-audio',
+    ['expo-video', { supportsBackgroundPlayback: false, supportsPictureInPicture: false }],
+    ['expo-audio', { recordAudioAndroid: false, microphonePermission: false, enableBackgroundRecording: false, enableBackgroundPlayback: false }],
     'expo-image',
     [
       'expo-font',

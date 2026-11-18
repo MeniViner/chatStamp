@@ -29,7 +29,6 @@ import java.util.zip.ZipException
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
 
 internal class StreamingZipImporter(private val context: Context, private val limits: ArchiveLimits = ArchiveLimits()) {
   suspend fun extract(sourceUri: String, outputDirectoryUri: String, operationId: String): Map<String, Any?> = withContext(Dispatchers.IO) {
@@ -76,7 +75,7 @@ internal class StreamingZipImporter(private val context: Context, private val li
           }
           buffered.reset()
           // Keep STORED data-descriptor buffering disabled: every entry must remain bounded and streamed.
-          ZipArchiveInputStream(buffered, "UTF-8", true, false).use { zip ->
+          SupportedZipInputStream(buffered).use { zip ->
             val buffer = ByteArray(128 * 1024)
             var previousEntry: EntryValidation? = null
             while (true) {

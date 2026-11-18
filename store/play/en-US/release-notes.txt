@@ -1,0 +1,4 @@
+Test release 0.2.0
+Import selected WhatsApp export files on your device, save with supported date checks, and see real progress.
+Background saving, cancellation, duplicate handling and truthful partial results.
+English and Hebrew.
