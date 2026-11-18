@@ -91,6 +91,25 @@ export type OperationSnapshot = {
   error?: { code: PipelineErrorCode; message: string; missingBytes?: number };
 };
 
+export type ThumbnailResult =
+  | {
+      available: true;
+      uri: string;
+      width: number;
+      height: number;
+      cacheKey: string;
+      cacheHit: boolean;
+      kind: 'image' | 'video' | 'pdf';
+      durationMillis?: number;
+    }
+  | { available: false; reason: 'unsupported' | 'unreadable' | 'decode-failed' | 'busy' };
+
+export type ExternalOpenResult =
+  | { opened: true }
+  | { opened: false; reason: 'invalid-uri' | 'unreadable' | 'permission-lost' | 'no-handler' | 'launch-failed' };
+
+export type ExternalOpenFile = { uri: string; mimeType?: string | null; filename?: string | null };
+
 type ChatStampNativeModule = {
   extractSupportedZipEntriesAsync: (
     zipUri: string,
@@ -124,6 +143,10 @@ type ChatStampNativeModule = {
   shareOutputFilesAsync: (files: { uri?: string | null; path?: string | null; mimeType?: string | null; mediaType?: MediaType | null; filename?: string | null }[]) => Promise<{ opened?: boolean; shared?: number; reason?: string; activity?: string | null }>;
   deleteOutputFilesAsync: (files: { uri?: string | null; path?: string | null }[]) => Promise<{ deleted: number; failed: number; results: { target?: string | null; deleted: boolean; reason?: string | null }[] }>;
   openScannedMediaAsync: (contentUri: string, mimeType?: string | null) => Promise<{ opened?: boolean; reason?: string; uri?: string }>;
+  getThumbnailAsync: (uri: string, sizePx: number) => Promise<ThumbnailResult>;
+  invalidateThumbnailAsync: (thumbnailUri: string) => Promise<void>;
+  openFileInOtherAppAsync: (file: ExternalOpenFile) => Promise<ExternalOpenResult>;
+  awaitMediaReleaseAsync: () => Promise<void>;
 
 };
 

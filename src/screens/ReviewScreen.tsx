@@ -218,7 +218,7 @@ export function ReviewScreen() {
                 <MediaFileListItem
                   key={file.id}
                   file={file}
-                  selected={selectedFileIds.includes(file.id)}
+                  selected={selectedFileIds.has(file.id)}
                   onToggle={() => toggleFile(file.id)}
                   onPreview={() => toggleFile(file.id)}
                 />

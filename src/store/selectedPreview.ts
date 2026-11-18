@@ -22,7 +22,7 @@ export function buildSelectedPreview(
   files: ExtractedMediaFile[],
   selectedSenders: string[],
   selectedMediaTypes: MediaTypeSelection,
-  selectedFileIds?: string[]
+  selectedFileIds?: ReadonlySet<string> | readonly string[]
 ): SelectedPreviewSummary {
   const matchedFiles = files.filter((file) => file.matchedRecord).length;
   const selectedFiles: SelectedFilePreview[] = getSelectedSaveCandidates(files, selectedSenders, selectedMediaTypes, selectedFileIds)

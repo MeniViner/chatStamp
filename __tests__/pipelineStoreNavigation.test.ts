@@ -67,7 +67,7 @@ describe('pipelineStore overlay navigation', () => {
 
     const state = usePipelineStore.getState();
     expect(state.stage).toBe('selectFiles');
-    expect(state.selectedFileIds).toEqual(['chat-transcript:_chat.txt']);
+    expect(state.selectedFileIds).toEqual(new Set(['chat-transcript:_chat.txt']));
     expect(state.selectedMediaTypes.document).toBe(true);
   });
 });

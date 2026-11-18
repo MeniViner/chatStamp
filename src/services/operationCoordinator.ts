@@ -124,7 +124,7 @@ export async function startSaving(): Promise<void> {
       }
       const completion = await runSavePipeline({
         files: initial.mediaFiles, selectedSenders: initial.selectedSenders,
-        selectedMediaTypes: initial.selectedMediaTypes, selectedFileIds: initial.selectedFileIds,
+        selectedMediaTypes: initial.selectedMediaTypes, selectedFileIds: initial.pendingSaveIds ?? initial.selectedFileIds,
         archiveFingerprint: initial.archiveFingerprint!, workingDirectory: initial.workingDirectory,
         sourceUri: initial.zipUri, operationId, chatName: outputChatName(initial.zipName),
         settings: useSettingsStore.getState().settings,
@@ -146,7 +146,7 @@ async function finishSave(completion: CompletionSummary, context: {
   const state = usePipelineStore.getState();
   const folder = completion.outputDirectory ?? '';
   await useHistoryStore.getState().addHistoryItem(createExportHistoryItem({
-    completion, files: state.mediaFiles, selectedFileIds: state.selectedFileIds,
+    completion, files: state.mediaFiles, selectedFileIds: state.pendingSaveIds ?? state.selectedFileIds,
     selectedMediaTypes: state.selectedMediaTypes, selectedSenders: state.selectedSenders,
     chatName: context.chatName, outputFolderPath: folder, archiveFingerprint: context.archiveFingerprint,
     folderTreeUri: completion.saveMethod === 'saf-custom-folder' ? settings.settings.customFolder?.treeUri : null

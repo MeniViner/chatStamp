@@ -13,7 +13,7 @@ export type RunSavePipelineParams = {
   files: ExtractedMediaFile[];
   selectedSenders: string[];
   selectedMediaTypes: MediaTypeSelection;
-  selectedFileIds: string[];
+  selectedFileIds: ReadonlySet<string> | readonly string[];
   archiveFingerprint: string;
   sourceUri?: string;
   operationId?: string;

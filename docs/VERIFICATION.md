@@ -381,3 +381,35 @@ was requested while independent release preparation continues.
   restored. Emulator cleanup removed its QA/run files and restored stay-awake1.
   Production package stayed absent and unchanged. Compact proof is in the single
   ignored rebuild-20261118 folder; product AAB/demo are separate requested outputs.
+
+
+### Stage D runtime checkpoint — 2026-11-18
+
+Last pre-fix complete smoke (stage-d-final-2) passed305 Vitest/39files,35 JVM and
+27 connected tests on each API30/API36, plus clean prebuild/QA assembly and
+merged service/permission checks. First new native-test compilation used `.use`
+with Android PdfDocument, which is not Closeable: **try another way**, explicit
+try/finally close; assertions unchanged. The cycle was restarted from npm ci.
+
+New grid creates zero ExoPlayers; physical pilot opened/released one cleanly.
+Independent emulator preflight passed40 videos/eight scrolls with zero list
+players, playback/16rapid-page taps/four reopen cycles with peak1/final0, and
+all media formats, sender+Photos footer and hidden selections. Actual host tests
+include500/5000 real memoized cells, shrinking/no-move gestures, lazy thumbnail
+recovery and deferred native release across owner remounts/batched offers.
+
+Runtime acceptance found a Fabric native-child-order error after date26→empty
+date25→date26→scroll→Photos. It reproduced on c2763b9a… and final-2 APK
+86e8e703be14151e1604b6e8e6e53cc606f12669ccdda375df65ca9059254577,
+outside connected-test intervals. **try another way:** disable only native
+removeClippedSubviews; keep SectionList windowSize5, initial/batch8 and stable
+keys. Official RN guidance documents correctness risks with clipping:
+https://reactnative.dev/docs/optimizing-flatlist-configuration#removeclippedsubviews
+The failure is established; clipping is a controlled hypothesis pending replay,
+not yet a proven cause/fix. Current code4 bundles are preflight artifacts and have
+not been handed off/uploaded. D remains OPEN through the fresh smoke and replay.
+
+Filter-sheet Reset was clipped at default emulator width; sender/date/sort controls
+were observed, hidden selections preserved by manually clearing filters. Keep the
+Reset defect explicit for the immediately following E sheet/inset work. No
+all-controls-accessible claim is made. No E implementation has started.

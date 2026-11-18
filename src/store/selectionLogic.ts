@@ -23,7 +23,7 @@ export function countSelectedSaveableFiles(
   files: ExtractedMediaFile[],
   selectedSenders: string[],
   selectedMediaTypes: MediaTypeSelection,
-  selectedFileIds?: string[]
+  selectedFileIds?: ReadonlySet<string> | readonly string[]
 ): number {
   return getSelectedSaveCandidates(files, selectedSenders, selectedMediaTypes, selectedFileIds).length;
 }
@@ -32,7 +32,7 @@ export function getSelectedSaveCandidates(
   files: ExtractedMediaFile[],
   selectedSenders: string[],
   selectedMediaTypes: MediaTypeSelection,
-  selectedFileIds?: string[]
+  selectedFileIds?: ReadonlySet<string> | readonly string[]
 ): { file: ExtractedMediaFile; timestampMillis?: number }[] {
   const senderSet = new Set(selectedSenders);
   const fileSet = selectedFileIds ? new Set(selectedFileIds) : undefined;
@@ -41,6 +41,10 @@ export function getSelectedSaveCandidates(
     if (!senderSet.has(getMediaSender(file)) || !selectedMediaTypes[file.mediaType] || !isSaveableMediaType(file.mediaType)) continue;
     if (fileSet && !fileSet.has(file.id)) continue;
     selected.push({ file, timestampMillis: getMediaSaveTime(file) });
+  }
+  if (selectedFileIds) {
+    const order = new Map(Array.from(selectedFileIds, (id, index) => [id, index]));
+    selected.sort((a, b) => (order.get(a.file.id) ?? 0) - (order.get(b.file.id) ?? 0));
   }
   return selected;
 }

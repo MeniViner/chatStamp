@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as FileSystem from 'expo-file-system/legacy';
-import { importWhatsAppZip, CHAT_TRANSCRIPT_SENDER, MAX_TRANSCRIPT_BYTES } from '../src/services/importService';
+import { importWhatsAppZip, clearWorkingDirectory, CHAT_TRANSCRIPT_SENDER, MAX_TRANSCRIPT_BYTES } from '../src/services/importService';
 import { extractSupportedZipEntries } from '../src/native/zipExtractor';
 import type { NativeTranscriptCandidate, NativeZipExtractionResult } from '../src/native/chatStampNativeModule';
+import { getChatStampNativeModule } from '../src/native/chatStampNativeModule';
+const { releaseImportAsync } = vi.hoisted(() => ({ releaseImportAsync: vi.fn() }));
+
+vi.mock('../src/native/chatStampNativeModule', () => ({
+  getChatStampNativeModule: vi.fn(() => ({ releaseImportAsync }))
+}));
 
 vi.mock('expo-file-system/legacy', () => ({
   cacheDirectory: 'file:///cache/',
@@ -42,6 +48,7 @@ function runImport() {
 describe('streamed WhatsApp import orchestration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    releaseImportAsync.mockResolvedValue(undefined);
     vi.mocked(FileSystem.makeDirectoryAsync).mockResolvedValue(undefined);
     vi.mocked(FileSystem.copyAsync).mockResolvedValue(undefined);
     vi.mocked(FileSystem.deleteAsync).mockResolvedValue(undefined);
@@ -135,13 +142,13 @@ describe('streamed WhatsApp import orchestration', () => {
     }));
     await expect(runImport()).rejects.toMatchObject({ code: 'NO_TRANSCRIPT' });
     expect(FileSystem.readAsStringAsync).not.toHaveBeenCalled();
-    expect(FileSystem.deleteAsync).toHaveBeenCalledExactlyOnceWith(workingDirectory, { idempotent: true });
+    expect(releaseImportAsync).toHaveBeenCalledExactlyOnceWith('', workingDirectory, '');
   });
 
   it('rejects an archive with no TXT candidates and cleans only its own job directory', async () => {
     vi.mocked(extractSupportedZipEntries).mockResolvedValue(extraction({ transcriptCandidates: [], extractedCount: 0 }));
     await expect(runImport()).rejects.toMatchObject({ code: 'NO_TRANSCRIPT' });
-    expect(FileSystem.deleteAsync).toHaveBeenCalledExactlyOnceWith(workingDirectory, { idempotent: true });
+    expect(releaseImportAsync).toHaveBeenCalledExactlyOnceWith('', workingDirectory, '');
   });
 
   it('rejects a selected transcript larger than 16 MiB before reading it into JavaScript', async () => {
@@ -150,7 +157,7 @@ describe('streamed WhatsApp import orchestration', () => {
     }));
     await expect(runImport()).rejects.toMatchObject({ code: 'ARCHIVE_LIMIT' });
     expect(FileSystem.readAsStringAsync).not.toHaveBeenCalled();
-    expect(FileSystem.deleteAsync).toHaveBeenCalledWith(workingDirectory, { idempotent: true });
+    expect(releaseImportAsync).toHaveBeenCalledWith('', workingDirectory, '');
   });
 
   it('accepts the documented transcript limit exactly', async () => {
@@ -173,7 +180,28 @@ describe('streamed WhatsApp import orchestration', () => {
   it('preserves coded native failures including computable space shortage and cleans partial output', async () => {
     vi.mocked(extractSupportedZipEntries).mockRejectedValue({ code: 'NO_SPACE', missingBytes: 4096 });
     await expect(runImport()).rejects.toMatchObject({ code: 'NO_SPACE', missingBytes: 4096 });
-    expect(FileSystem.deleteAsync).toHaveBeenCalledExactlyOnceWith(workingDirectory, { idempotent: true });
+    expect(releaseImportAsync).toHaveBeenCalledExactlyOnceWith('', workingDirectory, '');
     expect(FileSystem.readAsStringAsync).not.toHaveBeenCalled();
+  });
+  it('waits for native thumbnail invalidation and job cleanup rather than deleting around it', async () => {
+    let complete: (() => void) | undefined;
+    releaseImportAsync.mockImplementationOnce(() => new Promise<void>((resolve) => { complete = resolve; }));
+    let finished = false;
+    const task = clearWorkingDirectory(workingDirectory).then((result) => { finished = true; return result; });
+    await Promise.resolve();
+    expect(getChatStampNativeModule).toHaveBeenCalled();
+    expect(finished).toBe(false);
+    expect(FileSystem.deleteAsync).not.toHaveBeenCalled();
+    complete?.();
+    await expect(task).resolves.toBe(true);
+  });
+  it('reports failed native cleanup and never deletes outside the native coordinator', async () => {
+    releaseImportAsync.mockRejectedValueOnce(new Error('cleanup failed'));
+    await expect(clearWorkingDirectory(workingDirectory)).resolves.toBe(false);
+    expect(FileSystem.deleteAsync).not.toHaveBeenCalled();
+  });
+  it('does not invoke native cleanup without a job directory', async () => {
+    await expect(clearWorkingDirectory()).resolves.toBe(false);
+    expect(releaseImportAsync).not.toHaveBeenCalled();
   });
 });

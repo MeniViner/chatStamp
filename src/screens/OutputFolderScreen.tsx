@@ -21,9 +21,9 @@ import { startSaving } from '../services/operationCoordinator';
 export function OutputFolderScreen() {
   const { t } = useTranslation();
   const theme = useAppTheme();
-  const { mediaFiles, selectedSenders, selectedMediaTypes, selectedFileIds, setStage, openOverlayStage } = usePipelineStore();
+  const { mediaFiles, selectedSenders, selectedMediaTypes, selectedFileIds, pendingSaveIds, setStage, openOverlayStage } = usePipelineStore();
   const settings = useSettingsStore((state) => state.settings);
-  const preview = buildSelectedPreview(mediaFiles, selectedSenders, selectedMediaTypes, selectedFileIds);
+  const preview = buildSelectedPreview(mediaFiles, selectedSenders, selectedMediaTypes, pendingSaveIds ?? selectedFileIds);
   const selectedCount = preview.selectedFiles.length;
   const usesCustomFolder = settings.saveDestinationMode === 'custom-folder';
   const custom = settings.customFolder;

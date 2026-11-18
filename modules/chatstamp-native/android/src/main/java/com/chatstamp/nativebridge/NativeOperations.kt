@@ -199,6 +199,7 @@ internal object NativeOperations {
         File(Uri.parse(it.workingDirectory).path!!).canonicalFile == directory }) {
       throw OperationFailure("IO_ERROR", "The operation is still using its working files.")
     }
+    ThumbnailManager.get(context).discardJob(directory)
     if (directory.exists() && !directory.deleteRecursively()) throw OperationFailure("IO_ERROR", "Working files could not be removed.")
     SharedZipInbox.release(context, sourceUri)
     operations[id]?.takeIf { it.progress.terminal && it.id != latestId }?.let { operations.remove(id) }
@@ -215,8 +216,12 @@ internal object NativeOperations {
     val active = activeDirectories()
     val root = File(context.cacheDir, "chatstamp").apply { mkdirs() }
     root.listFiles().orEmpty().forEach { file ->
-      if (file.canonicalPath !in active && !file.deleteRecursively()) throw OperationFailure("IO_ERROR", "Stale import files could not be removed.")
+      if (file.canonicalPath !in active) {
+        ThumbnailManager.get(context).discardJob(file)
+        if (!file.deleteRecursively()) throw OperationFailure("IO_ERROR", "Stale import files could not be removed.")
+      }
     }
+    ThumbnailManager.get(context).cleanup()
     if (active.isEmpty()) {
       listOf("shared-zips", "DocumentPicker").forEach { name ->
         File(context.cacheDir, name).takeIf(File::exists)?.let {

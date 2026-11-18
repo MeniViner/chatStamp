@@ -4,13 +4,13 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Appbar, Button, Chip, IconButton, ProgressBar, RadioButton, Surface, Switch, Text } from 'react-native-paper';
 import { Image as ExpoImage } from 'expo-image';
-import { useVideoPlayer } from 'expo-video';
 import { useTranslation } from 'react-i18next';
 import { useAppLayoutDirection } from '../i18n/AppLayoutDirectionContext';
 import { spacing, radius, size, appTypography, appColorTokens } from '../theme/designTokens';
 import { useAppTheme } from '../theme/useAppTheme';
 import type { ExtractedMediaFile, MediaType } from '../types/media';
 import { getMediaDateIso, isApproximateDate } from '../lib/mediaMetadata';
+import { getThumbnail, invalidateThumbnail, type ThumbnailResult } from '../native/mediaPreviews';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -846,10 +846,7 @@ export function MediaFileListItem({
   );
 }
 
-const videoThumbnailCache = new Map<string, unknown>();
-const videoThumbnailFailures = new Set<string>();
-
-export function MediaThumbnail({
+export const MediaThumbnail = React.memo(function MediaThumbnail({
   mediaType,
   uri,
   thumbnailUri,
@@ -864,6 +861,24 @@ export function MediaThumbnail({
 }) {
   const theme = useAppTheme();
   const normalizedType = mediaType ?? 'unknown';
+  const [resolved, setResolved] = React.useState<{ source: string; result: ThumbnailResult } | null>(null);
+  const [failedSupplied, setFailedSupplied] = React.useState<string | null>(null);
+  const [retry, setRetry] = React.useState(0);
+  const retriedSource = React.useRef<string | null>(null);
+  const supplied = thumbnailUri && failedSupplied !== thumbnailUri ? thumbnailUri : null;
+  const source = uri ?? '';
+  const visual = normalizedType === 'photo' || normalizedType === 'sticker' || normalizedType === 'gif'
+    || normalizedType === 'video' || normalizedType === 'document';
+  React.useEffect(() => {
+    if (!source || !visual || supplied) return;
+    let disposed = false;
+    void getThumbnail(source, 256).then((result) => {
+      if (!disposed) setResolved({ source, result });
+    });
+    return () => { disposed = true; };
+  }, [retry, source, supplied, visual]);
+  const nativeImage = resolved?.source === source && resolved.result.available ? resolved.result.uri : null;
+  const image = supplied ?? nativeImage;
   const thumbStyle = [styles.mediaImage, { width: size, height: size }, style] as StyleProp<ImageStyle>;
   const iconStyle = [
     styles.mediaIcon,
@@ -871,11 +886,15 @@ export function MediaThumbnail({
     style
   ] as StyleProp<ViewStyle>;
 
-  if ((normalizedType === 'photo' || normalizedType === 'sticker' || normalizedType === 'gif') && (thumbnailUri || uri)) {
-    return <ExpoImage source={thumbnailUri ?? uri ?? undefined} contentFit="cover" style={thumbStyle} />;
-  }
-  if (normalizedType === 'video' && (thumbnailUri || uri)) {
-    return <VideoThumbnail uri={(thumbnailUri ?? uri) as string} imageStyle={thumbStyle} fallbackStyle={iconStyle} />;
+  if (image) {
+    return <ExpoImage source={image} contentFit="cover" style={thumbStyle} onError={() => {
+      if (supplied) setFailedSupplied(supplied);
+      else if (retriedSource.current !== source) {
+        retriedSource.current = source;
+        setResolved(null);
+        void invalidateThumbnail(image).then(() => setRetry((value) => value + 1), () => undefined);
+      } else setResolved(null);
+    }} />;
   }
 
   return (
@@ -883,63 +902,7 @@ export function MediaThumbnail({
       <MaterialCommunityIcons name={getMediaIcon(normalizedType)} size={Math.max(20, Math.round(size * 0.28))} color={theme.colors.primary} />
     </View>
   );
-}
-
-function VideoThumbnail({
-  uri,
-  imageStyle,
-  fallbackStyle
-}: {
-  uri: string;
-  imageStyle: StyleProp<ImageStyle>;
-  fallbackStyle: StyleProp<ViewStyle>;
-}) {
-  const theme = useAppTheme();
-  const cached = videoThumbnailCache.get(uri);
-  const [thumbnail, setThumbnail] = React.useState<unknown>(cached);
-  const [failed, setFailed] = React.useState(videoThumbnailFailures.has(uri));
-  const player = useVideoPlayer({ uri }, () => undefined);
-
-  React.useEffect(() => {
-    if (thumbnail || failed) return;
-    let cancelled = false;
-    player
-      .generateThumbnailsAsync([0], { maxWidth: 360, maxHeight: 360 })
-      .then((thumbs) => {
-        const nextThumbnail = thumbs[0];
-        if (nextThumbnail) videoThumbnailCache.set(uri, nextThumbnail);
-        if (!cancelled) {
-          if (nextThumbnail) setThumbnail(nextThumbnail);
-          else setFailed(true);
-        }
-      })
-      .catch(() => {
-        videoThumbnailFailures.add(uri);
-        if (!cancelled) setFailed(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [failed, player, thumbnail, uri]);
-
-  if (thumbnail) {
-    return <ExpoImage source={thumbnail} contentFit="cover" style={imageStyle} />;
-  }
-
-  return (
-    <View style={fallbackStyle}>
-      <MaterialCommunityIcons name={failed ? 'video-off-outline' : 'video-outline'} size={24} color={theme.colors.primary} />
-    </View>
-  );
-}
-
-export function rememberVideoThumbnail(uri: string, thumbnail: unknown) {
-  videoThumbnailCache.set(uri, thumbnail);
-}
-
-export function getCachedVideoThumbnail(uri: string): unknown {
-  return videoThumbnailCache.get(uri);
-}
+});
 
 function getMediaIcon(mediaType: MediaType): IconName {
   if (mediaType === 'video') return 'video-outline';

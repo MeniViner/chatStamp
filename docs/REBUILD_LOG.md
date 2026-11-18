@@ -333,3 +333,81 @@ was requested while independent release preparation continues.
   restored. Emulator cleanup removed its QA/run files and restored stay-awake1.
   Production package stayed absent and unchanged. Compact proof is in the single
   ignored rebuild-20261118 folder; product AAB/demo are separate requested outputs.
+
+
+## Stage D implementation and acceptance plan · 2026-11-18
+
+G1 is accepted with a manual Play handoff (commit30a422a); no track upload is
+claimed. D uses versionCode4 while keeping0.2.0 and the production identity.
+Before any D product edits, root imported40 synthetic H.264 videos on the A30,
+scrolled six screens and opened VID-20190224-WA4012. Captured PID5216 contains
+42 ExoPlayer Init,1 Release, peak41 unreleased captured instances and76 decoder
+error lines including OMX.Exynos.avc.dec initialization failures. Preview opened;
+these errors establish resource pressure, not an independently enumerated hardware
+decoder count. Small fresh proof: d-baseline-40-video.json.
+
+Implementation ownership: implementer owns native thumbnails/cache/queue,
+FileProvider opening, cleanup and native barrier plus AppUi thumbnail removal;
+root owns picker/viewer, shared lazy audio, Set selection and save-scope snapshot;
+test author independently derives pure, actual-cell and lifecycle regressions;
+reviewer checks the complete diff against the task and CODE_REVIEW.
+
+- Native thumbnails are64–512px JPEGs: image downsample, scaled video frame, PDF
+  page one; two workers, one heavy renderer, bounded pending work and32MiB/512
+  cache entries. Identity includes URI/path, native mtime/size and requested size.
+  Invalidation and import discard prevent late repopulation. External opens use
+  only checked cache/owned/granted content URIs and read-only temporary grants.
+- Selection is an immutable Set by ID. All eligible media, voice, documents and
+  transcript start selected. Sender/search/tab/date filters preserve hidden
+  selections; day/filter tri-state and shrinking ranges affect the active IDs
+  only. Footer and pendingSaveIds use the same filtered ordered intersection.
+- Real SectionList cells are square3/5-column visual rows or64dp voice/docs rows,
+  with sticky day headers. Stable callbacks/metadata and memoized actual cells
+  must pass500/5000-cell invalidation tests, not fake counter replacements.
+- Viewer follows the filtered/sorted order, provides image pinch/double-tap,
+  current-page video, one lazy shared audio owner/seek/loading/error state,
+  PDF first page, VCF name/phone and external-app fallbacks. No list player.
+- Installed Expo factories allocate players during render and release them later
+  on Android MAIN. **try another way:** construct the viewer player only after
+  commit, acquire a global slot, claim the still-current offer, and hold the slot
+  through explicit release plus an awaited MAIN completion fence. Superseded
+  offers create nothing; owner remounts share the same fence; failure stays closed.
+  Regression tests must cover batched requests and delayed release/remount.
+
+Remaining acceptance: full smoke from npm ci; native nonzero unit/connected counts;
+physical40-video grid/player-log comparison, all nine fixture attachment previews,
+external opening and sender+Photos footer/save scope; API36 runtime cross-check;
+source review closure; signed code4 update or manual handoff; QA cleanup and settings
+restoration. Stage D is OPEN until these are observed. E/F/G2 have not started.
+
+
+### Stage D runtime checkpoint — 2026-11-18
+
+Last pre-fix complete smoke (stage-d-final-2) passed305 Vitest/39files,35 JVM and
+27 connected tests on each API30/API36, plus clean prebuild/QA assembly and
+merged service/permission checks. First new native-test compilation used `.use`
+with Android PdfDocument, which is not Closeable: **try another way**, explicit
+try/finally close; assertions unchanged. The cycle was restarted from npm ci.
+
+New grid creates zero ExoPlayers; physical pilot opened/released one cleanly.
+Independent emulator preflight passed40 videos/eight scrolls with zero list
+players, playback/16rapid-page taps/four reopen cycles with peak1/final0, and
+all media formats, sender+Photos footer and hidden selections. Actual host tests
+include500/5000 real memoized cells, shrinking/no-move gestures, lazy thumbnail
+recovery and deferred native release across owner remounts/batched offers.
+
+Runtime acceptance found a Fabric native-child-order error after date26→empty
+date25→date26→scroll→Photos. It reproduced on c2763b9a… and final-2 APK
+86e8e703be14151e1604b6e8e6e53cc606f12669ccdda375df65ca9059254577,
+outside connected-test intervals. **try another way:** disable only native
+removeClippedSubviews; keep SectionList windowSize5, initial/batch8 and stable
+keys. Official RN guidance documents correctness risks with clipping:
+https://reactnative.dev/docs/optimizing-flatlist-configuration#removeclippedsubviews
+The failure is established; clipping is a controlled hypothesis pending replay,
+not yet a proven cause/fix. Current code4 bundles are preflight artifacts and have
+not been handed off/uploaded. D remains OPEN through the fresh smoke and replay.
+
+Filter-sheet Reset was clipped at default emulator width; sender/date/sort controls
+were observed, hidden selections preserved by manually clearing filters. Keep the
+Reset defect explicit for the immediately following E sheet/inset work. No
+all-controls-accessible claim is made. No E implementation has started.

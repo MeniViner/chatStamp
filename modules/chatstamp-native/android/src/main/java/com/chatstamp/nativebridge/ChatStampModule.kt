@@ -2,17 +2,13 @@ package com.chatstamp.nativebridge
 
 import android.app.Activity
 import android.content.ClipData
-import android.content.ContentResolver
-import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import android.os.Parcelable
-import android.provider.BaseColumns
 import android.provider.DocumentsContract
 import android.provider.MediaStore
-import androidx.core.content.FileProvider
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.functions.Coroutine
@@ -20,12 +16,12 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.records.Field
 import expo.modules.kotlin.records.Record
-import java.io.File
 
 private const val OPEN_DOCUMENT_TREE_REQUEST = 9401
 
 class ChatStampModule : Module() {
   private var pendingFolderPromise: Promise? = null
+  private var thumbnails: ThumbnailManager? = null
 
   private val context: Context
     get() = appContext.reactContext ?: appContext.throwingActivity.applicationContext
@@ -36,10 +32,14 @@ class ChatStampModule : Module() {
     Events("onImportProgress", "onSaveProgress", "onSharedZip")
 
     OnCreate {
+      thumbnails = ThumbnailManager.get(context.applicationContext)
       NativeOperations.addListener(this@ChatStampModule) { name, value -> sendEvent(name, value) }
       SharedZipInbox.captureLaunch(context, appContext.currentActivity?.intent)
     }
-    OnDestroy { NativeOperations.removeListener(this@ChatStampModule) }
+    OnDestroy {
+      NativeOperations.removeListener(this@ChatStampModule)
+      thumbnails?.cancelAll()
+    }
     OnActivityEntersForeground { SharedZipInbox.captureLaunch(context, appContext.currentActivity?.intent) }
     OnNewIntent { intent -> SharedZipInbox.captureNew(context, intent) }
     OnStartObserving("onSharedZip") {
@@ -110,6 +110,18 @@ class ChatStampModule : Module() {
 
     AsyncFunction("openScannedMediaAsync") { contentUri: String, mimeType: String? ->
       openScannedMedia(contentUri, mimeType)
+    }
+    AsyncFunction("getThumbnailAsync") Coroutine { uri: String, sizePx: Double ->
+      nativeCall { ThumbnailManager.get(context.applicationContext).get(uri, ThumbnailPolicy.normalizedSize(sizePx)) }
+    }
+    AsyncFunction("invalidateThumbnailAsync") { uri: String ->
+      nativeCallSync { ThumbnailManager.get(context.applicationContext).invalidate(uri) }
+    }
+    AsyncFunction("openFileInOtherAppAsync") Coroutine { file: PreviewFileRecord ->
+      nativeCall { ExternalFileOpener(context.applicationContext).open(file) }
+    }
+    AsyncFunction("awaitMediaReleaseAsync") Coroutine { ->
+      nativeCall { awaitMediaRelease() }
     }
 
     OnActivityResult { _, (requestCode, resultCode, intent) ->
@@ -287,13 +299,7 @@ class ChatStampModule : Module() {
     uri, arrayOf(MediaStore.MediaColumns.OWNER_PACKAGE_NAME), null, null, null
   )?.use { it.moveToFirst() && it.getString(0) == context.packageName } == true
 
-  private fun ownedMediaUriForPath(path: String): Uri? = runCatching {
-    val collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-    context.contentResolver.query(collection, arrayOf(BaseColumns._ID),
-      "${MediaStore.MediaColumns.DATA}=? AND ${MediaStore.MediaColumns.OWNER_PACKAGE_NAME}=?",
-      arrayOf(path, context.packageName), null
-    )?.use { if (it.moveToFirst()) ContentUris.withAppendedId(collection, it.getLong(0)) else null }
-  }.getOrNull()
+  private fun ownedMediaUriForPath(path: String): Uri? = PreviewFileAccess(context).ownedMediaUriForPath(path)
 
   private fun openScannedMedia(contentUri: String, mimeType: String?): Map<String, Any?> {
     val uri = Uri.parse(contentUri)
@@ -306,18 +312,7 @@ class ChatStampModule : Module() {
     return mapOf("opened" to opened, "uri" to contentUri, "reason" to if (opened) null else "No activity could open this media item.")
   }
 
-  private fun shareUriForFile(file: ShareOutputFile): Uri? = runCatching {
-    val content = file.uri?.let(Uri::parse)?.takeIf { it.scheme == ContentResolver.SCHEME_CONTENT }
-    if (content != null) {
-      return@runCatching context.contentResolver.openInputStream(content)?.use { content }
-    }
-    val path = file.path ?: file.uri?.let(Uri::parse)?.path ?: return@runCatching null
-    val diskFile = File(path).canonicalFile
-    val cache = File(context.cacheDir, "chatstamp").canonicalPath + File.separator
-    if (diskFile.path.startsWith(cache) && diskFile.isFile) {
-      FileProvider.getUriForFile(context, "${context.packageName}.ChatStampFileProvider", diskFile)
-    } else ownedMediaUriForPath(diskFile.path)
-  }.getOrNull()
+  private fun shareUriForFile(file: ShareOutputFile): Uri? = PreviewFileAccess(context).shareableUri(file.uri, file.path)
 
   private fun tryStartActivity(intent: Intent): Boolean {
     return try {

@@ -6,6 +6,7 @@ import { normalizeFilename } from '../lib/filename';
 import { CHAT_TRANSCRIPT_SENDER, getMediaSender } from '../lib/mediaMetadata';
 import { logger } from '../lib/logger';
 import { extractSupportedZipEntries } from '../native/zipExtractor';
+import { getChatStampNativeModule } from '../native/chatStampNativeModule';
 import { chooseBestTranscriptCandidate } from '../lib/transcriptDetection';
 import { PipelineError, asPipelineError } from '../lib/pipelineErrors';
 import { createOperationId } from '../lib/operationProgress';
@@ -204,7 +205,7 @@ export async function clearWorkingDirectory(workingDirectory?: string): Promise<
   if (!workingDirectory) return false;
 
   try {
-    await FileSystem.deleteAsync(workingDirectory, { idempotent: true });
+    await getChatStampNativeModule().releaseImportAsync('', workingDirectory, '');
     logger.debug('Cache cleanup', { workingDirectory, ok: true });
     return true;
   } catch (error) {

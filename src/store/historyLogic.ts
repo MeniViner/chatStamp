@@ -4,7 +4,7 @@ import { getSelectedSaveCandidates } from './selectionLogic';
 export function createExportHistoryItem(params: {
   completion: CompletionSummary;
   files: ExtractedMediaFile[];
-  selectedFileIds: string[];
+  selectedFileIds: ReadonlySet<string> | readonly string[];
   selectedMediaTypes: MediaTypeSelection;
   selectedSenders: string[];
   chatName: string;
