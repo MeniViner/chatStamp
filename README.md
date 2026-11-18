@@ -6,7 +6,7 @@ chatStamp is an Android app for importing a WhatsApp export ZIP, selecting attac
 
 The source candidate is **0.2.0 / versionCode 6**, with Expo **55.0.32**, expo-modules-core **55.0.27**, React Native **0.83.10**, React 19.2, TypeScript, Material Design 3 and a local Kotlin Expo module. Android **11/API 30 or later** is required; compile/target SDK is **36**. The source pins build-tools **36.0.0** and NDK **27.1.12297006**.
 
-The candidate's dependency changes, final CI run, signed artifacts and device runtime are **UNVERIFIED until their new checks finish**. Earlier synthetic tests on a Samsung Galaxy A30 SM-A305F (Android 11/API 30) and an API 36 emulator are recorded in [VERIFICATION.md](docs/VERIFICATION.md); they do not certify every later binary or device. Current requested API 33 physical coverage and an owner-provided real WhatsApp export remain unverified. No Play upload, qualifying tester count or closed-test interval is established.
+The final dependency-updated candidate passed431 host tests,40 JVM tests and39 connected tests on each available device, plus81 verification-tool tests and fresh-checkout Android CI. Signed production/QA artifact checks and the executed minified runtime scope passed. Earlier synthetic tests on a Samsung Galaxy A30 SM-A305F (Android 11/API 30) and an API 36 emulator are recorded in [VERIFICATION.md](docs/VERIFICATION.md); they do not certify every later binary or device. Current requested API 33 physical coverage and an owner-provided real WhatsApp export remain unverified. No Play upload, qualifying tester count or closed-test interval is established.
 
 The dependency audit snapshot fell from 37 to **11 package findings: 9 moderate and 2 high**. The remaining reported paths are build/development tooling; this is a scoped dependency assessment, not a claim of zero vulnerabilities. See [known risks](docs/KNOWN_RISKS.md) and the dated [rebuild log](docs/REBUILD_LOG.md).
 
@@ -59,9 +59,9 @@ Run native regression tests against an authorized test device/emulator:
   -PreactNativeArchitectures=arm64-v8a
 ```
 
-Both native tasks must execute a nonzero test count. Record actual results; these commands are instructions, not a claim they passed for code 6. Follow the [verification guide](scripts/android-verification/README.md) for manifest inspection, synthetic inputs, locked-device handling, run-scoped cleanup and restoring device settings. Do not unlock the owner's phone or commit private exports.
+Both native tasks must execute a nonzero test count. Record actual results; the recorded code6 full smoke executed40 JVM and39 connected cases on each available device. Follow the [verification guide](scripts/android-verification/README.md) for manifest inspection, synthetic inputs, locked-device handling, run-scoped cleanup and restoring device settings. Do not unlock the owner's phone or commit private exports.
 
-[Android CI](.github/workflows/ci.yml) defines pinned tooling, host checks, generated Android, native JVM execution and merged release-manifest policy. Its presence is not evidence of a successful fresh-checkout run or device acceptance.
+[Android CI](.github/workflows/ci.yml) defines pinned tooling, host checks, generated Android, native JVM execution and merged release-manifest policy. Its fresh-checkout run passed; exact source, counts and the separately scoped device/artifact results are in VERIFICATION.md.
 
 ## Privacy and release
 

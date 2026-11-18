@@ -1,6 +1,6 @@
 # Google Play listing package
 
-G1 text prepared **2026-11-18** for **0.2.0 (3)**. This folder is the tracked listing output set. No Console upload or live listing is established by its presence. The linked privacy policy was published and anonymously verified HTTP200 on2026-11-18; its in-app action still needs installed-device verification. Start the owner handoff at [PLAY_UPLOAD_STEPS.md](../../docs/PLAY_UPLOAD_STEPS.md); declarations and release gates are in [PLAY_RELEASE_CHECKLIST.md](../../docs/PLAY_RELEASE_CHECKLIST.md).
+Final listing updated **2026-11-19** for **0.2.0 (6)**. This folder is the tracked listing output set. No Console upload or live listing is established by its presence. The linked privacy policy was published and anonymously verified HTTP200 on2026-11-18; its in-app action still needs installed-device verification. Start the owner handoff at [PLAY_UPLOAD_STEPS.md](../../docs/PLAY_UPLOAD_STEPS.md); declarations and release gates are in [PLAY_RELEASE_CHECKLIST.md](../../docs/PLAY_RELEASE_CHECKLIST.md).
 
 ## Text files
 
@@ -9,7 +9,7 @@ G1 text prepared **2026-11-18** for **0.2.0 (3)**. This folder is the tracked li
 | English (United States), `en-US` | [en-US/](en-US/) | `title.txt`, `short-description.txt`, `full-description.txt`, `release-notes.txt` |
 | Hebrew, `he-IL` | [he-IL/](he-IL/) | Same four fields; Hebrew text is authored, not an automatic translation. |
 
-Paste file contents only, without filenames or Markdown fences. Title≤30, short description≤80 and full description≤4000 characters; release notes≤500 characters per language. Recheck counts after editing. The contact chosen by the owner is **meniviner@gmail.com**. The listing describes current functionality and explicitly limits date guarantees; it does not advertise the later D/E redesign. Replace release notes/version references for each later candidate.
+Paste file contents only, without filenames or Markdown fences. Title≤30, short description≤80 and full description≤4000 characters; release notes≤500 characters per language. Recheck counts after editing. The contact chosen by the owner is **meniviner@gmail.com**. The listing describes current functionality and explicitly limits date guarantees; it includes the implemented three-step picker/preview/RTL redesign. Replace release notes/version references for each later candidate.
 
 ## Asset map and required verification
 
@@ -42,4 +42,4 @@ Before handoff inspect image dimensions/channels and every screen, validate text
 
 קובצי הטקסט באנגלית ובעברית מוכנים להעתקה, אך אין בכך אישור שהחנות או הבדיקה הסגורה פורסמו. יש לוודא שקיימים ונבדקו סמל 512×512, תמונת נושא 1024×500 וארבעה צילומי מסך אמיתיים מכל שפה, עם מידע מלאכותי בלבד. יש לעדכן גרסה, הערות הפצה וצילומים בכל העלאה עתידית ולפעול לפי [הוראות ההעלאה](../../docs/PLAY_UPLOAD_STEPS.md). עמוד הפרטיות פורסם ואומת לציבור; יש לבדוק גם את פתיחתו מהאפליקציה המותקנת.
 
-G1 eight actual-phone synthetic screenshots and hashes are in `screenshots/provenance.json`. Their six-step baseline UI will be replaced after Stage E.
+All eight actual-phone screenshots were replaced on2026-11-19 with the minified code6 three-step UI. Exact device, synthetic runs, native direction, dimensions and hashes are in `screenshots/provenance.json`. Results intentionally show the actual distinct runs: English4/4 background demo and Hebrew5/5 Gallery regression. Both Saving images show the actual initial four-video operation, not fabricated progress.

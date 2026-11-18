@@ -8,33 +8,33 @@ instants. Saved and verified dates remain separate facts. Local-only; no DB,
 accounts, analytics, cloud or server. Existing production identity/signing stay
 com.menis.chatstamp and the owner's external upload key.
 
-## Current state — 2026-11-18
+## Current state — 2026-11-19
 
-The user-authorized v4 work proceeds R → B-close → C → G1 → D → E → F → G2 on
-fix/core-rebuild. R/B/C/G1/D are accepted and pushed. E's three-step flow,
-two-page onboarding, native RTL restart, localized durable folder profiles,
-settings/Save policy fencing and Results are implemented. Its full preflight
-smoke passed448 host/40 JVM/35 connected per API30 and API36. Later policy and
-physical accessibility corrections require the final rebuilt candidate; do not
-claim their runtime checks from the earlier artifact.
+R/B/C/G1/D and E/F implementation are complete on fix/core-rebuild. Final app
+source3f4ab91, version0.2.0/code6, passes431 host/40 executed JVM/39 connected
+per API30/API36,81Python, lint/typecheck, clean prebuild, Knip/i18n and fresh
+GitHub Android CI. Signed production/QA artifacts and the executed minified
+phone/emulator scopes pass. Latest receipts/logs name exact binaries and limits.
 
-The connected phone is Samsung A30/SM-A305F, Android11/API30, Gallery12.1.09.1;
-API36 is an emulator. The earlier API33 Note20 is not connected. Owner unlocks
-have permitted physical checks; API33 physical and real WhatsApp exports remain
-UNVERIFIED. Synthetic five-file MediaStore/embedded dates and Samsung creation-
-date order passed, including minified release and duplicate/language reruns.
+Physical A30/API30 final five-file save/readback/Gallery, duplicate language
+reruns, native RTL/a11y, two512MiB backgrounds and40-video0grid/peak1viewer pass.
+API36 final reviewer confirms5/5 readback with notifications denied, actual
+native directions/modals,130% phone/wide controls and MP4/OPUS playback/seek.
+All8 real-phone store screenshots are refreshed. QA/helper/test material and
+saved outputs are removed, settings restored; production installation untouched.
 
-F source cleanup and criterion-preserving test migration are frozen; host count
-is431 after retiring test-only legacy wrappers and testing actual Screen/List/
-Viewer boundaries. CI, exact resolved-toolchain checks and compatible SDK55
-patches are being verified. Code6 is the final candidate under preparation,
-not yet an accepted/uploaded artifact. See the append-only progress below and
-REBUILD_LOG/VERIFICATION for precise heads, counts and artifact scopes.
+E's complete every-screen×8configuration matrix is not claimed. API33 physical,
+owner real WhatsApp closed/warm shares, actual16KiB runtime, arbitrary providers/
+Galleries/codecs and browser first-run rendering remain unverified. Deferred
+provider-revocation/process-death-window cases remain deferred per v4.
 
-A signed G1 code3 bundle/manual Play package exists, followed by D code4 and E
-code5 preflight. No Play service-account credentials, upload, live track, opted-in
-testers or14-day period is established. Public privacy Pages is enabled; keep
-its source on fix/core-rebuild/docs until the owner merges and switches it.
+G2 final signed AAB/manual upload, isolated QA installer, demo, declarations,
+production-access input drafts and owner real-export procedure are packaged.
+No Play credentials/upload/live track/tester clock or production access exists
+in this task. Account is personal; creation date remains unknown. One final PR
+is opened without merge, with its exact head/link recorded in the closeout log.
+Pages is already public from fix/core-rebuild/docs; after owner merge switch to
+main/docs before deleting the branch. Older candidates remain dated history.
 
 ## Implemented decisions and boundaries
 
@@ -68,14 +68,14 @@ its source on fix/core-rebuild/docs until the owner merges and switches it.
 
 ## Remaining gates
 
-- Finish the final full smoke from npm ci after each fix; native JVM/connected
+- Completed: final full smoke from npm ci after each fix; native JVM/connected
  tests must actually execute a nonzero count on both available devices.
-- Fresh-checkout Android CI must pass on the pushed head; Pages CI is separate.
-- Verify final production and QA-ID minified code6 AAB/APK, owner certificate,
+- Completed: fresh-checkout Android CI passed on the pushed app source; Pages CI is separate.
+- Completed: verified production and QA-ID minified code6 AAB/APK, owner certificate,
  strict permissions/backup/SDKs and all packaged ELF/static16 KiB alignment.
-- Repeat affected policy/a11y/RTL/preview/Save and five-file Gallery runtime on
+- Completed within recorded scope: affected a11y/RTL/preview/Save/five-file Gallery runtime on
  the exact final QA release; refresh four real phone screenshots per language.
-- Remove this run's QA/helper/test packages, fixtures, own saved rows/cache and
+- Completed: removed this run's QA/helper/test packages, fixtures, own saved rows/cache and
  restore phone/emulator settings. Curated evidence cumulatively under10 MB.
 - G2: final signed manual upload package and one PR to main, no agent merge.
  Owner real-export closed/warm procedure and production-access answers remain
@@ -673,3 +673,6 @@ retiringtest-onlyhelpers; root ownsdocs,currentExecPlan,CI/policyguards andpacka
 changes afterlease; reviewer laterreviewsfinaldiff. F release candidatewilluse
 highercode6. NativeZIPsample-budget suspicion wasrefuted byowningsource (64KiB/TXT,
 16MiBglobal,20kentries); do notchangeaworkingguard orreportit asadefect.
+
+
+-2026-11-19: E/F final code6 acceptance recorded above and in VERIFICATION.md:431host/40JVM/39connected each,81Python, fresh Android CI,64ELF staticpolicy, final minified scopes and device hygiene pass. G2 packaged owner fallback; real-export/Play production-access facts remain unverified.

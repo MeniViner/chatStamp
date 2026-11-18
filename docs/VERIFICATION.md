@@ -557,3 +557,100 @@ or relaxing native metadata parsing. Full cycle restarts at npm ci.
  try another way: scope the temporary task override to builds that actually own
  that project. No product assertion or connected test was weakened. Full cycle
  restarts from npm ci; CI uses its separate resolved-toolchain task.
+
+
+## 2026-11-19 — E/F accepted in the executed scope; final code6 handoff
+
+Final app source3f4ab91 (later changes are documentation/listing/check config).
+The wholecycle4 passed npm ci, strict TypeScript,431 Vitest/46files, lint,
+clean prebuild,226 executed QA build tasks, arm64 QA manifest/APK checks,
+40 freshly executed JVM cases and39 connected cases on EACH API30/API36,
+zero failures/skips. Debug QA cold launches rendered onboarding on both, with
+empty per-process crash buffers. Python verifier/CI-harness81 tests pass;
+strict i18n318 keys/zero issues and pinned Knip6.46.0 files/exports/types scan
+zero issues. The tracked Knip config makes its Expo/native entries reproducible.
+Fresh GitHub Android CI44406963599 on3f4ab91 passed431host/81Python/40JVM,
+93 executed build tasks, actual resolved SDK36/min30/build-tools36/NDK27.1.12297006
+and strict merged release permission/backup checks. Pages CI is separate.
+
+Role closure: implementer caller-checked cleanup froze18edited/16deleted files;
+test author moved duplicated legacy wrapper tests onto actual Screen/List/Viewer
+boundaries (451→431 is an explained migration, not relaxed parser/date/cancel/
+hidden-selection criteria); reviewer corrected the inert NDK pin and AGP getter
+shape, then cleared source/docs review. The8 signing cases, C17 cancellation/
+summary cases, atomic history and real500/5000 cell/player suites remain.
+
+Both code6 signed production and QA artifacts pass verify-release.py with the
+established upload certificate efe36695cfc6a3d9ea8471527103f29e3374322ab09890af41692412d76a66c8.
+Production AAB dist/play/chatstamp-0.2.0-6.aab SHA256
+591654c0bbe5c7e118acfe32e68e45156559251f12738a9c2bfb780cf5062394.
+Production universal APK aec0ad7f0b9f737f6a6c20b349d7c34045442df4bc6f5d16646b4e87c5b0ef5b.
+QA AAB3dde63f217d3991f603f9dd2217a81fa7a19ff672f038c481870d376a4600fec;
+QA APK33031bd87f77a5bfa8cbb374be3a392c48dc471eb54a3f22da21a5cad4071fed.
+Identity0.2.0/code6/min30/target36/nondebug/signature/payload/backup/permissions
+pass. Every64 packaged ELF is inventoried:32 ELF64 required16KiB cases pass;
+32 genuine32-bit cases retain raw values and explicit NOT_APPLICABLE. Bundle
+alignment and universal APK zipalign pass. Actual16KiB-device runtime is still
+UNVERIFIED; this is static verification, not a substituted runtime claim.
+
+Final physical A30/API30 minified run:5new saved/5message dates verified agree
+with independent MediaStore DATE_TAKEN/DATE_MODIFIED, filesystem mtime, JPEG/PNG
+EXIF and both MP4 creation times. Samsung Gallery default creation-date descending
+shows purple,yellow,blue,green,red in RTL reading order; red details15Feb2019
+10:30. Same-language and HE→EN duplicate runs preserve all5URIs/paths and one
+folder, with0new saved and Already saved details. Native same-bundle restarts
+apply actual LTR/RTL in both directions without Metro. Native aggregate labels
+clear mixed on all/none/narrowed/empty states;130% empty scope is disabled and
+hidden TXT stays unchecked. Actual image double-tap grows the yellow area810→1552px.
+
+Both EN/HE fresh512MiB four-video saves complete4saved/4verified after Back/Home.
+Own foreground service remains active after Home; own progress notification is
+observed, and expanding the Hebrew notification exposes Cancel. Eight independent
+full-size output rows match expected indexed dates/modified dates. English11.17s
+actual final demo shows Save/Cancel, own2/4 background notification and4/4results.
+Variable-frame recording export was corrected by applying CFR before trim;
+only the own notification rectangle is retained at its original position, with
+black redaction elsewhere. Raw full-shade media was temporary and removed.
+
+Final physical40-video regression:0 grid players after scrolling,1Init/1Release,
+peak1/final0, actual native playback00:00→00:02. No final QA crash-buffer entries.
+All8 store screenshots replaced with direct physical code6 captures (1080x2160,
+RGB24, synthetic, native language direction); exact hashes/provenance tracked.
+API36 final reviewer run independently passed5/5 readback with notifications
+denied, actual EN↔HE root/modal restarts,130% phone/600dp modal actions, native
+aggregate transitions, MP4/OPUS playback+seek,3Init/3Release peak1/final0.
+
+Limits remain explicit: unavailable API33 physical; owner WhatsApp own-share
+closed/warm real export; full every-screen×8configuration matrix; arbitrary
+providers/Galleries/codecs, dark/wallpaper palette refresh and actual16KiB
+runtime. Concurrent policy-race injection is host-tested, not claimed as a
+minified runtime injection. Provider revocation and the narrow process-death
+row-record window remain deferred per v4. Owner Chrome first-run blocked actual
+policy-page rendering, although public URL and installed intent were verified.
+
+Cleanup passed: phone13owned rows,4source ZIPs, recordings/window XML and QA/helper
+removed; no own run rows or chatStamp/test packages remain. Original phone
+1080x2340/density420/font1.1/timeout600000/stay-awake7 restored, no reverse ports.
+Emulator reviewer removed5owned rows/fixtures/QA/helper, restored original
+1080x2400/density420/font1/stay-awake1/timezone and removed reverse/scratch.
+App-level discards preceded OS uninstall; release private cache was not read
+through run-as. Production package stayed absent and was never installed/replaced.
+
+Audit37→11 findings (9moderate/2high/0critical), all remaining packages have a
+one-line disposition. Exact production Hermes map1016sources includes26Expo
+runtime modules and one @expo/cli standalone Metro loader; reviewed loader has
+no advised implementation, and glob/minimatch/zod plus other seven affected
+Node-tooling packages are absent. See DEPENDENCY_AUDIT.md and the artifact-scoped
+receipt; no universal dependency-safety or zero-audit claim is made.
+
+G2 manual handoff is concrete: signed production AAB, isolated QA installer,
+privacy-safe demo, bilingual refreshed listing/declarations, exact owner upload/
+real-export steps and truthful production-access inputs. Play service-account
+path remains unset. try another way: owner manual upload; no Console automation,
+Play upload/live track/tester opt-in clock, production approval or merge claimed.
+One final PR and head/CI receipts are recorded by the G2 closeout entry.
+
+Small current proof is together under ignored dist/android-verification/rebuild-20261118;
+requested binary/demo product files are separate under ignored dist/play. Store
+assets and docs/screens are tracked. Combined proof/listing/screens remain under
+10,000,000bytes; final exact size is recorded at handoff.

@@ -1,78 +1,98 @@
 {
-  "captured_on": "2026-11-18",
-  "device": "Samsung Galaxy A30 SM-A305F, Android11/API30",
-  "package": "com.menis.chatstamp.qa",
-  "version": "0.2.0 (3)",
-  "apk_sha256": "3151927af160166cb15737050d0eb949228db5ed07a2ad3e483dc74a48359640",
-  "synthetic_only": true,
-  "capture": "ADB screencap; RGB conversion only; no UI compositing or retouching",
-  "temporary_display": "1080x2160, density420, font1.0; restored after run",
-  "fresh_saves": "Hebrew rows244\u2013248 were deliberately removed before English fresh-save rows249\u2013253; duplicate preservation is separately proven by Stage B, not this reset.",
-  "pending_redesign": "Current six-step UI; replace after Stage E.",
+  "updatedAt": "2026-11-19",
+  "candidate": {
+    "version": "0.2.0",
+    "versionCode": 6,
+    "appSource": "3f4ab911ed8daa741bd9b92eec43d849403481ac",
+    "qaApkSha256": "33031bd87f77a5bfa8cbb374be3a392c48dc471eb54a3f22da21a5cad4071fed",
+    "productionAabSha256": "591654c0bbe5c7e118acfe32e68e45156559251f12738a9c2bfb780cf5062394"
+  },
+  "device": {
+    "model": "Samsung Galaxy A30 SM-A305F",
+    "api": 30,
+    "gallery": "12.1.09.1",
+    "systemLanguage": "Hebrew",
+    "timezone": "Asia/Jerusalem",
+    "captureSize": [
+      1080,
+      2160
+    ],
+    "density": 420,
+    "fontScale": 1.0
+  },
+  "capture": "Actual physical ADB screencap; FFmpeg RGB24 conversion only. No image generation, content edits, crop or rescaling. Temporary display size was set before the run to satisfy Play 2:1 aspect. Native RTL restart applied separately for each app language.",
+  "syntheticRuns": {
+    "01-import": "Empty import screen.",
+    "02-selection": "chatstamp-qa-f-1119-mixed; five Gallery files selected, TXT unchecked.",
+    "03-saving": "Fresh four-video512MiB export for the corresponding language; actual preparation/progress state, not a staged completed run.",
+    "04-results-en": "Actual4saved/4verified background demo.",
+    "04-results-he": "Actual5saved/5verified mixed regression."
+  },
   "files": [
     {
-      "file": "en-US/01-import.png",
+      "file": "screenshots/en-US/01-import.png",
+      "sha256": "7f631be385730533ab99a1610d119c73531fa8a43562a89f9a5fa780b8a3e7f0",
+      "bytes": 118118,
       "width": 1080,
       "height": 2160,
-      "color": "RGB24",
-      "bytes": 189008,
-      "sha256": "57a46fe805f48e9fec3345c83b684520adeaf1343b2d265b1fb45f4335c5c9d6"
+      "pix_fmt": "rgb24"
     },
     {
-      "file": "en-US/02-selection.png",
+      "file": "screenshots/en-US/02-selection.png",
+      "sha256": "b2760b17463dd808273ae3d43f979bf6f5ed6689338a75c3d7337fc306f0c139",
+      "bytes": 140761,
       "width": 1080,
       "height": 2160,
-      "color": "RGB24",
-      "bytes": 188396,
-      "sha256": "a58ce9653f5531e9cd97d8f6ee1045b661d00d3e16c9373983c375513638cc65"
+      "pix_fmt": "rgb24"
     },
     {
-      "file": "en-US/03-saving.png",
+      "file": "screenshots/en-US/03-saving.png",
+      "sha256": "069cd946920d6b56bebfef095464f3d028533b0ffdd2db58f2b44576247d88b2",
+      "bytes": 61985,
       "width": 1080,
       "height": 2160,
-      "color": "RGB24",
-      "bytes": 74613,
-      "sha256": "15530967add2cb74a2c418ccbeae7a9400aa042cd69e4e0f5d9369e4a1718acf"
+      "pix_fmt": "rgb24"
     },
     {
-      "file": "en-US/04-results.png",
+      "file": "screenshots/en-US/04-results.png",
+      "sha256": "09e28960674fc3be7143704027d5643d4d4e05e2ae0c34dbc84f425834dc27f8",
+      "bytes": 96936,
       "width": 1080,
       "height": 2160,
-      "color": "RGB24",
-      "bytes": 137344,
-      "sha256": "fea28739d0f80518d665ea02d5710b6301261c14779f865ef888ccc3b08fa2c8"
+      "pix_fmt": "rgb24"
     },
     {
-      "file": "he-IL/01-import.png",
+      "file": "screenshots/he-IL/01-import.png",
+      "sha256": "531692906efd22ca695dc77616ad61775ae4990e6a2038f29b5737a0affbf513",
+      "bytes": 123376,
       "width": 1080,
       "height": 2160,
-      "color": "RGB24",
-      "bytes": 157417,
-      "sha256": "a0d8e18135f9b86d42f8d10bdb39728ea59dec39e630b46c8cd4534221f67d99"
+      "pix_fmt": "rgb24"
     },
     {
-      "file": "he-IL/02-selection.png",
+      "file": "screenshots/he-IL/02-selection.png",
+      "sha256": "f233b5bec432cdf13d2853413d94145dd6514f32360f1fb2d5893843674fbb09",
+      "bytes": 128379,
       "width": 1080,
       "height": 2160,
-      "color": "RGB24",
-      "bytes": 171362,
-      "sha256": "1909d9349d7614cc4e8da239cd7b8d4085f4ebaf39600a59edd1c7619a90eb05"
+      "pix_fmt": "rgb24"
     },
     {
-      "file": "he-IL/03-saving.png",
+      "file": "screenshots/he-IL/03-saving.png",
+      "sha256": "bb97069bd9d25b73233bdc4bbc6c200bed0da50604d54b375654ddbb87b84a34",
+      "bytes": 54000,
       "width": 1080,
       "height": 2160,
-      "color": "RGB24",
-      "bytes": 70028,
-      "sha256": "fa3edb2e863fb5a02cd86d772faea1218648da78c974ae3dcfa696ab87f950aa"
+      "pix_fmt": "rgb24"
     },
     {
-      "file": "he-IL/04-results.png",
+      "file": "screenshots/he-IL/04-results.png",
+      "sha256": "717c8c007d256d698b01c11f1d19c6c0d099ff29cc90585cab227b0e4fca656a",
+      "bytes": 85047,
       "width": 1080,
       "height": 2160,
-      "color": "RGB24",
-      "bytes": 126202,
-      "sha256": "e4336085179d423f06bf4dc1d30bdb8e4a4f3a40c08afae6557b1bfc815c59d0"
+      "pix_fmt": "rgb24"
     }
-  ]
+  ],
+  "scope": "Replaces all eight older G1 six-step screenshots with the current three-step minified release. No emulator screenshot substitutes for phone assets."
 }

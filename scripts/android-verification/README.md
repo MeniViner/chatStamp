@@ -139,3 +139,17 @@ Keep all curated reports/readbacks and essential synthetic screenshots in one ou
 set below 10,000,000 bytes, cumulatively across the current answer. Exclude build
 outputs, ZIP fixtures, pulled media, raw logs and videos from that evidence set.
 Only retain evidence newly generated or materially updated during the current run.
+
+
+## Reproduce the unused-source check
+
+From the repository root, run the exact version and reviewed Expo/native entries:
+
+```sh
+npm exec --yes --package=knip@6.46.0 -- knip --config scripts/android-verification/knip.json --include files,exports,types --no-progress
+```
+
+This checks source/test callers, not native autolinking reachability. Keep the
+native package entry and SDK-matched peer dependencies even when a JS-only
+heuristic cannot see their consumer. Do not use bare production mode without
+Expo entry discovery or automatically delete intentional production test seams.

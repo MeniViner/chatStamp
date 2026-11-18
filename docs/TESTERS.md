@@ -42,6 +42,26 @@ This is a test build. Date support varies by file/provider/Gallery, and a file c
 
 Report expected/actual behavior, steps, version, device/Android, language and whether the issue repeats. Do not claim tests you did not run. / יש לדווח מה ציפיתם שיקרה ומה קרה, שלבים, גרסה, מכשיר, שפה והאם התקלה חוזרת. אין לדווח על בדיקה שלא בוצעה.
 
+## Final isolated installer for owner acceptance
+
+Code6's verified QA installer is `dist/play/chatstamp-0.2.0-6-qa.apk`, SHA256
+`33031bd87f77a5bfa8cbb374be3a392c48dc471eb54a3f22da21a5cad4071fed`.
+It installs only `com.menis.chatstamp.qa`, alongside production. Agent-run
+synthetic QA is removed at handoff; the owner can reinstall this exact candidate
+for the real-export checks below, or use the delivered code6 Play build after
+upload. Keep which identity/build was tested in the private result record.
+
+```sh
+adb devices -l
+adb -s YOUR_SERIAL install --no-incremental dist/play/chatstamp-0.2.0-6-qa.apk
+adb -s YOUR_SERIAL shell am start -W -n com.menis.chatstamp.qa/com.menis.chatstamp.MainActivity
+```
+
+After owner QA, remove only those test outputs through the app/Files, clear its
+working data and uninstall the QA copy with `adb -s YOUR_SERIAL uninstall
+com.menis.chatstamp.qa`. The production package is never replaced by this
+installer. Installation alone does not complete real-export or Play acceptance.
+
 ## Owner real-export acceptance — still UNVERIFIED
 
 Run this privately on the **Samsung Galaxy A30 (SM-A305F), Android 11 / API 30**, after the final **0.2.0 (6)** QA installation is confirmed. Record the actual installed version and package; the side-by-side QA package is `com.menis.chatstamp.qa`. Do not replace or uninstall the owner's production app. The requested physical **API 33 device is unavailable: UNVERIFIED**. API 30 results and synthetic emulator results do not fill that gap.
