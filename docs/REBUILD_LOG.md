@@ -165,3 +165,38 @@ Record the rendered first screen and QA process crash log. Complete or skip onbo
 - Owner reported physical unlock; policy confirmed showing=false. Temporarily
   changed screen_off_timeout from 600000 to 1800000 ms for physical UI tests;
   restore 600000 and prior stay-awake 7 after device cleanup.
+
+
+## Stage B-close · physical Galaxy A30 acceptance · PASS · 2026-11-18
+
+- Accepted the retained QA APK built from `fe7be66` on Samsung Galaxy A30
+  SM-A305F, Android 11 / API 30, Samsung Gallery 12.1.09.1, Asia/Jerusalem.
+  Its SHA-256 is recorded in the new acceptance JSON. Stage B product code was
+  unchanged during this run; the working branch's Stage C source is `25a9abc`.
+- The baseline smoke remains green: npm ci, typecheck, 112 Vitest tests, ESLint,
+  clean prebuild, arm64 QA assembly, min30/target36/permission inspection, five
+  JVM tests and three connected tests. The physical app regression imported the
+  five-media export through the system picker with Always use message date
+  enabled and no broad storage access.
+- Independent MediaStore readback matched all five chat instants in DATE_TAKEN
+  and DATE_MODIFIED. Reopened JPEG/PNG metadata and both saved MP4 creation times
+  matched; the intentionally wrong source MP4 dates were replaced. Results showed
+  five saved, five dates verified and zero failures.
+- Samsung Gallery's default Date created, descending sort showed purple, yellow,
+  blue, green, red in the Hebrew RTL grid's reading order. Red JPEG details showed
+  15 February 2019 at 10:30. The verification report links the synthetic screenshots.
+- Skip-existing reruns in Hebrew and then English retained row IDs 121–125 and
+  `Pictures/chatStamp/chatstamp-qa-b-20261118-mixed/`, with no additional copy or
+  destination folder. The first, second and language-rerun inventories agree.
+- An unmatched undated VCF published as row 128 in the run's Documents folder.
+  Results showed one saved, zero dates verified, zero failures, Date unavailable
+  and Saved without a date. The app did not invent date success.
+- Cleanup passed: QA app and disposable UI helper uninstalled, both synthetic
+  source exports and saved run rows removed, stay-awake restored to 7 and screen
+  timeout restored to 600000 ms. Independent review reported no findings on the
+  five-file, duplicate or Gallery cases.
+- New proof stays in the existing compact
+  [rebuild evidence folder](../dist/android-verification/rebuild-20261118/), with
+  `stage-b-acceptance.json` as its B-close summary. No artifact copies were added
+  to the evidence set by this documentation update. Stage C physical/runtime
+  acceptance continues separately; G1 awaits accepted C and its release checks.

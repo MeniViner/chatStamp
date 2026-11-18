@@ -187,3 +187,64 @@ single `dist/android-verification/rebuild-20261118/` curated output set.
 Physical B-close and the C warm/cold share, background save, notification denial,
 mid-save cancel and API 36 dataSync timeout UI cases are still being executed.
 No Play release or Gallery acceptance is inferred from the automated checks.
+
+
+## B-close · physical app and Gallery acceptance · PASS · 2026-11-18
+
+The system-picker-to-Gallery regression passed on Samsung Galaxy A30 SM-A305F,
+Android 11 / API 30, Samsung Gallery 12.1.09.1, timezone Asia/Jerusalem. The
+installed side-by-side package was `com.menis.chatstamp.qa`, using the retained
+APK from `fe7be660d69c2a1fd26a57983fd06fa375afc999`, SHA-256
+`0065af3cab31781d83c90682da839d58fae1d5bd17f963fdbd833a53d351386c`.
+No Stage B product-code changes were needed. This acceptance is scoped to that
+APK and handset. The branch's subsequent Stage C source `25a9abc` has separate
+runtime acceptance in progress.
+
+The baseline's complete smoke passed with 112 Vitest tests, five JVM tests and
+three API 30 connected tests, plus typecheck, lint, clean prebuild, arm64 QA build
+and min30/target36/no-broad-storage-permission inspection. With Always use message
+date enabled, the app imported the synthetic ZIP through the picker and saved
+all five selected media files without special storage access.
+
+| Fixture / saved row | Chat instant (UTC) | DATE_TAKEN (ms) | DATE_MODIFIED (s) | Reopened metadata |
+| --- | --- | --- | --- | --- |
+| Red JPEG / 121 | 2019-02-15 08:30:00Z | 1550219400000 | 1550219400 | EXIF 2019:02:15 10:30:00, +02:00 |
+| Green MP4 / 124 | 2019-02-16 09:30:00Z | 1550309400000 | 1550309400 | FFprobe creation_time 2019-02-16T09:30:00Z |
+| Blue JPEG / 122 | 2020-03-16 13:15:00Z | 1584364500000 | 1584364500 | EXIF 2020:03:16 15:15:00, +02:00 |
+| Yellow PNG / 123 | 2020-03-16 13:16:00Z | 1584364560000 | 1584364560 | EXIF 2020:03:16 15:16:00, +02:00 |
+| Purple MP4 / 125 | 2020-03-17 10:00:00Z | 1584439200000 | 1584439200 | FFprobe creation_time 2020-03-17T10:00:00Z |
+
+All indexed values matched exactly, satisfying the two-second tolerance. The
+[app results](../dist/android-verification/rebuild-20261118/stage-b-five-results-api30.png)
+show five saved, five dates verified and zero failures. The saved videos carry
+the chat instants despite their deliberately wrong source creation dates.
+
+Samsung Gallery's default
+[Date created, descending setting](../dist/android-verification/rebuild-20261118/stage-b-gallery-sort-api30.png)
+produced [purple, yellow, blue, green, red](../dist/android-verification/rebuild-20261118/stage-b-gallery-order-api30.png).
+The Hebrew grid reads right-to-left: purple through green occupy the first row,
+then red is first on the next row. The
+[red JPEG detail view](../dist/android-verification/rebuild-20261118/stage-b-red-details-api30.png)
+shows 15 February 2019, 10:30.
+
+The [first inventory](../dist/android-verification/rebuild-20261118/stage-b-first.json),
+[Hebrew rerun](../dist/android-verification/rebuild-20261118/stage-b-second.json), and
+[English language rerun](../dist/android-verification/rebuild-20261118/stage-b-language-rerun.json)
+retain exactly IDs 121–125 and one destination,
+`Pictures/chatStamp/chatstamp-qa-b-20261118-mixed/`. Skip existing created neither
+another media copy nor another folder after the language change.
+
+The unmatched `undated.vcf` saved as published row 128 (`IS_PENDING=0`) under
+`Documents/chatStamp/chatstamp-qa-b-20261118-undated/`. The
+[undated results screen](../dist/android-verification/rebuild-20261118/stage-b-undated-result-api30.png)
+reports one saved, zero dates verified, zero failures, Date unavailable and
+Saved without a date. Its
+[URI/path record](../dist/android-verification/rebuild-20261118/stage-b-undated.json)
+keeps successful publication distinct from unavailable date verification.
+
+The [acceptance and cleanup record](../dist/android-verification/rebuild-20261118/stage-b-acceptance.json)
+confirms QA/helper uninstallation, source-fixture removal, no remaining saved run
+rows, stay-awake restored to 7 and screen timeout restored to 600000 ms.
+Independent review found no remaining B-close findings. Earlier pending-unlock
+entries remain as run history. Stage C physical/runtime acceptance and the
+minified release's five-file regression remain required before G1 acceptance.

@@ -183,7 +183,7 @@ Earlier dated observations above remain historical evidence, not current accepta
 
 - [x] R: run the complete host/native smoke with nonzero test counts, update
   repository instructions, remove obsolete prompts, review, commit `stage-r:`, push.
-- [ ] B-close: five-file picker save; separate saved/date-verified UI outcomes;
+- [x] B-close: five-file picker save; separate saved/date-verified UI outcomes;
   independent MediaStore and MP4 readback; Samsung Gallery order and red-photo
   details; duplicate and language-change reruns; undated-document save.
 - [ ] C: single-pass content-URI streaming and fingerprint; bounded extraction;
@@ -221,7 +221,8 @@ fixture archives, dependencies, and full logs are development intermediates and
 must not be placed in that evidence set. Check the final cumulative byte count.
 Keep tracked stage summaries in REBUILD_LOG.md and VERIFICATION.md current.
 
-- B app/Gallery acceptance remains open until the current run completes.
+- B app/Gallery acceptance passed on the retained `fe7be66` QA APK and physical
+  API 30 handset; current Stage C runtime and release-build acceptance continue.
 - API 33 and API 36 are not established by API 30 results.
 - Defer arbitrary provider-revocation simulation and crash recovery beyond cleanup
   of the operation's own orphaned pending MediaStore rows.
@@ -260,3 +261,35 @@ B-close remains unaccepted: physical app/Gallery evidence requires owner unlock.
 Stage C UI/cache/background/notification/cancel/timeout acceptance is being run
 on the disposable API 36 emulator and remains distinct from physical coverage.
 G1 is still gated. No Play version bump, upload, or publication is claimed.
+
+
+### Stage B-close accepted on the physical Galaxy A30 — 2026-11-18
+
+- [x] Retained QA APK from `fe7be66` passed the app-driven five-file save with
+  Always use message date and no broad storage access. APK SHA-256:
+  `0065af3cab31781d83c90682da839d58fae1d5bd17f963fdbd833a53d351386c`.
+  Product code for this baseline was unchanged while Stage C source reached
+  `25a9abc` on the working branch.
+- [x] On SM-A305F / Android 11 / API 30 / Samsung Gallery 12.1.09.1 in
+  Asia/Jerusalem, all five MediaStore capture/modification dates and reopened
+  image/video metadata matched their chat instants. UI showed five saved,
+  five dates verified and zero failures. Default Date created, descending Gallery
+  order was purple, yellow, blue, green, red; red details showed 15 February 2019,
+  10:30. The RTL grid's reading order is recorded in the verification report.
+- [x] Hebrew and English skip-existing reruns kept row IDs 121–125 and the same
+  single Pictures destination, with no duplicate file or folder. The undated VCF
+  saved as published row 128 with one saved, zero dates verified and no failure;
+  Date unavailable / Saved without a date remained explicit.
+- [x] QA and disposable UI helper removed; synthetic sources and saved run rows
+  removed; stay-awake 7 and screen timeout 600000 ms restored. Fresh B-close
+  review found no remaining findings. Baseline smoke counts remain 112 Vitest,
+  five JVM and three connected tests; no extra build was needed for documentation.
+- [ ] Stage C physical/runtime acceptance is still in progress. Repeat applicable
+  save/Gallery checks for the changed pipeline and the eventual minified release.
+  G1 awaits accepted C. Real-export owner acceptance remains UNVERIFIED.
+
+Current B-close evidence is summarized by
+[stage-b-acceptance.json](../dist/android-verification/rebuild-20261118/stage-b-acceptance.json),
+with its readbacks and synthetic screenshots in the same existing folder.
+See [the verification report](../docs/VERIFICATION.md#b-close--physical-app-and-gallery-acceptance--pass--2026-11-18)
+for exact dates, Gallery interpretation, duplicate inventories and cleanup.
