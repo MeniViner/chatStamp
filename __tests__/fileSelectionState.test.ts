@@ -303,12 +303,12 @@ describe('pipeline selection integration and durable save-scope snapshot', () =>
     expect(usePipelineStore.getState().selectedFileIds.has('undated')).toBe(false);
   });
 
-  it('snapshots only the active ordered save IDs before output options without discarding hidden Set members', () => {
+  it('snapshots only the active ordered save IDs for direct Save without navigating or discarding hidden Set members', () => {
     importFiles();
     const activeOrder = ['document', 'photo', 'document'];
     usePipelineStore.getState().prepareSave(activeOrder);
     const prepared = usePipelineStore.getState();
-    expect(prepared.stage).toBe('outputOptions');
+    expect(prepared.stage).toBe('selectFiles');
     expect(prepared.pendingSaveIds).toEqual(['document', 'photo']);
     expect(prepared.selectedFileIds.size).toBe(files.length);
     activeOrder.reverse();

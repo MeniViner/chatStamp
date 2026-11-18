@@ -27,14 +27,16 @@ export function buildPaperTheme(
   const baseTheme = colorScheme === 'dark' ? MD3DarkTheme : MD3LightTheme;
   const colors = colorScheme === 'dark' ? materialTheme.dark : materialTheme.light;
   const appColors = appColorTokens[colorScheme];
+  const dynamic = metadata.dynamicColorsAvailable && metadata.dynamicColorsEnabled !== false;
 
   return {
     ...baseTheme,
     dark: colorScheme === 'dark',
-    roundness: 24,
+    roundness: 4,
     colors: {
       ...baseTheme.colors,
       ...colors,
+      ...(dynamic ? {} : {
       background: appColors.background,
       surface: appColors.surface,
       surfaceVariant: appColors.elevatedSurface,
@@ -50,7 +52,13 @@ export function buildPaperTheme(
       onSurface: appColors.textPrimary,
       onSurfaceVariant: appColors.textSecondary,
       outline: appColors.textMuted,
-      outlineVariant: appColors.border
+      outlineVariant: appColors.border,
+      onBackground: appColors.textPrimary,
+      surfaceContainer: appColors.surface,
+      surfaceContainerLow: appColors.surface,
+      surfaceContainerHigh: appColors.elevatedSurface,
+      surfaceContainerHighest: appColors.elevatedSurface
+      })
     },
     metadata
   };

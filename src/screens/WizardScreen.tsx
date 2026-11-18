@@ -35,7 +35,7 @@ export function WizardScreen({
   const { t } = useTranslation();
   const stepIndex = getWizardStepIndex(stage);
   const progress = (stepIndex + 1) / wizardSteps.length;
-  const isWizardStage = wizardSteps.includes(stage);
+  const isWizardStage = stage === 'welcome' || stage === 'analyzing' || stage === 'selectFiles' || stage === 'saving' || stage === 'results';
 
   return (
     <AppScreenScaffold
@@ -95,9 +95,6 @@ const styles = StyleSheet.create({
   },
   progress: {
     height: 3
-  },
-  rtlProgress: {
-    transform: [{ scaleX: -1 }]
   },
   header: {
     paddingHorizontal: spacing.screenHorizontal,

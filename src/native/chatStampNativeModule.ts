@@ -2,6 +2,7 @@ import { requireOptionalNativeModule } from 'expo-modules-core';
 import type { DateSource, DuplicateHandlingMode, MediaType, OutputOrganizationMode, PickedFolderResult, SaveFileResult } from '../types/media';
 import type { OperationProgress } from '../lib/operationProgress';
 import type { PipelineErrorCode } from '../lib/pipelineErrors';
+import type { OutputFolderLabels } from '../lib/outputOrganization';
 
 export type NativeExtractedMediaFile = {
   filename: string;
@@ -40,7 +41,7 @@ export type NativeSaveMediaItem = {
   timestampMillis?: number;
   dateSource: DateSource;
   timeZone?: string;
-  relativeFolder?: string;
+  senderName?: string;
   whatsAppDateIso?: string;
   dateAmbiguous?: boolean;
 };
@@ -58,6 +59,8 @@ export type ScopedSaveOptions = {
   timestampFolder: boolean;
   organizationMode: OutputOrganizationMode;
   alwaysUseMessageDate: boolean;
+  folderLabels?: OutputFolderLabels;
+  chatFolderName?: string;
 };
 
 export type NativeSavedMediaFileResult = Omit<SaveFileResult, 'dateCorrectionVerified' | 'galleryMaySortByImportTime'> & {

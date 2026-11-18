@@ -8,7 +8,7 @@
     "android": "expo run:android",
     "prebuild:android": "expo prebuild --platform android",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --pool=threads --no-file-parallelism --maxWorkers=1 --no-isolate",
+    "test": "vitest run --pool=threads --no-file-parallelism --maxWorkers=1",
     "test:watch": "vitest",
     "lint": "eslint . --ext .ts,.tsx"
   },

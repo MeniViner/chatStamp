@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { runSavePipeline, summarizeNativeSave } from '../src/services/pipelineService';
 import { saveMediaNative } from '../src/native/nativeMediaSaver';
 import type { ExtractedMediaFile, MediaTypeSelection } from '../src/types/media';
+import { defaultSettings } from '../src/store/settingsLogic';
 
 vi.mock('../src/native/nativeMediaSaver', () => ({ saveMediaNative: vi.fn() }));
 vi.mock('../src/services/importService', () => ({ clearWorkingDirectory: vi.fn(async () => true) }));
@@ -47,6 +48,12 @@ describe('scoped save pipeline', () => {
     expect(summary).toMatchObject({ saved: 1, dateCorrected: 0, dateCorrectionFailed: 0, mayShowImportTime: 0 });
   });
 
+  it('forwards an older explicit message-date false without replacing it with the new true default', async () => {
+    vi.mocked(saveMediaNative).mockResolvedValue({ mode: 'scoped-media-store', results: [{ ...saved, dateVerification: 'unverified' }] });
+    await runSavePipeline({ ...photoSelection, settings: { ...defaultSettings, alwaysUseMessageDate: false } });
+    expect(saveMediaNative).toHaveBeenLastCalledWith(expect.any(Array), expect.objectContaining({ alwaysUseMessageDate: false }), undefined);
+  });
+
   it('keeps the selected same-minute ordering offset verified in the live save and native snapshot', async () => {
     const adjusted = { ...photo, saveDateIso: '2019-02-15T08:30:03.000Z' };
     const readback = { ...saved, targetTimestampMillis: saved.targetTimestampMillis + 3000,
@@ -76,7 +83,7 @@ describe('scoped save pipeline', () => {
     const summary = await runSavePipeline({ ...photoSelection, files: [document], selectedFileIds: [document.id] });
     expect(saveMediaNative).toHaveBeenLastCalledWith(
       [expect.objectContaining({ entryId: document.id, timestampMillis: undefined, mimeType: 'text/plain' })],
-      expect.objectContaining({ archiveFingerprint, alwaysUseMessageDate: false, duplicateHandling: 'skip-existing' }),
+      expect.objectContaining({ archiveFingerprint, alwaysUseMessageDate: true, duplicateHandling: 'skip-existing' }),
       undefined
     );
     expect(summary).toMatchObject({ saved: 1, failed: 0, dateCorrected: 0 });

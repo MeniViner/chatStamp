@@ -95,7 +95,7 @@ export function MediaViewer({ items, currentId, selectedIds, onPage, onDismiss, 
   }), [page]);
   React.useEffect(() => { zoomed.current = false; }, [currentId]);
   return <Modal visible={Boolean(item)} animationType="fade" onRequestClose={onDismiss} statusBarTranslucent navigationBarTranslucent>
-    {item ? <View style={[styles.viewer, { backgroundColor: theme.colors.background, paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    {item ? <View style={[styles.viewer, { backgroundColor: theme.colors.background, paddingTop: insets.top, paddingBottom: insets.bottom + 8 }]}>
       <View style={styles.toolbar}>
         <IconButton icon="close" accessibilityLabel={t('common.close')} onPress={onDismiss} />
         <View style={styles.heading}><Text variant="titleMedium">{item.sender}</Text><Text variant="bodySmall">{item.dateLabel}</Text></View>
@@ -285,9 +285,9 @@ function FileFallback({ item, failed = false }: { item: MediaCellItem; failed?: 
 }
 
 const styles = StyleSheet.create({
-  viewer: { flex: 1 }, toolbar: { minHeight: 64, flexDirection: 'row', alignItems: 'center' }, heading: { flex: 1 }, touch: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  viewer: { flex: 1, minHeight: 0 }, toolbar: { minHeight: 64, flexShrink: 0, flexDirection: 'row', alignItems: 'center' }, heading: { flex: 1 }, touch: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   filename: { paddingHorizontal: 16, paddingBottom: 8 }, page: { flex: 1, overflow: 'hidden', justifyContent: 'center' }, full: { flex: 1 },
-  loading: { ...StyleSheet.absoluteFillObject, justifyContent: 'center' }, paging: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  loading: { ...StyleSheet.absoluteFillObject, justifyContent: 'center' }, paging: { minHeight: 56, flexShrink: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   audio: { alignItems: 'center', padding: 16, gap: 12 }, fileCard: { margin: 16, padding: 16, borderRadius: 16, gap: 8 },
   seek: { width: 260, minHeight: 48, justifyContent: 'center', backgroundColor: '#80808044', borderRadius: 16, overflow: 'hidden' },
   seekFill: { height: 8, backgroundColor: '#af7653' },

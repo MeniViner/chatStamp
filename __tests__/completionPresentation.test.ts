@@ -48,7 +48,7 @@ describe('truthful completion presentation', () => {
   it('reports the observed four saved and twenty cancelled instead of twenty-four saved', () => {
     expect(completionPresentation(completion())).toMatchObject({
       status: 'partial', savedCount: 4, cancelledCount: 20, failedCount: 0, resultCount: 24, dateVerifiedCount: 4,
-      titleKey: 'results.partialSaveTitle', summaryKey: 'results.headlineCancelled',
+      titleKey: 'results.partialSaveTitle', summaryKey: 'results.summaryCounts',
       summaryValues: { saved: 4, cancelled: 20, failed: 0, verified: 4 }
     });
   });
@@ -75,7 +75,7 @@ describe('truthful completion presentation', () => {
     }));
     expect(presentation).toMatchObject({
       status: 'cancelled', savedCount: 0, dateVerifiedCount: 0, cancelledCount: 24,
-      titleKey: 'results.cancelledTitle', summaryKey: 'results.headlineCancelled'
+      titleKey: 'results.cancelledTitle', summaryKey: 'results.summaryCounts'
     });
     expect(presentation.titleKey).not.toBe('results.successTitle');
   });
@@ -91,7 +91,7 @@ describe('truthful completion presentation', () => {
     }));
     expect(presentation).toMatchObject({ status: 'partial', savedCount: 4, cancelledCount: 0, failedCount: 1, resultCount: 5 });
     expect(presentation.titleKey).toBe('results.savedWithIssues');
-    expect(presentation.summaryKey).toBe('results.headlineIssues');
+    expect(presentation.summaryKey).toBe('results.summaryCounts');
   });
 
   it('does not use a saved-success title when every write failed', () => {
@@ -99,7 +99,7 @@ describe('truthful completion presentation', () => {
       saved: 0, cancelled: 0, failed: 2, dateCorrected: 0,
       results: [0, 1].map((index) => ({ ...cancelled(`failed-${index}.mp4`), outcome: 'failed' as const }))
     }));
-    expect(presentation).toMatchObject({ status: 'failed', savedCount: 0, failedCount: 2, summaryKey: 'results.headlineNoneSaved' });
+    expect(presentation).toMatchObject({ status: 'failed', savedCount: 0, failedCount: 2, summaryKey: 'results.summaryCounts' });
     expect(presentation.titleKey).not.toBe('results.successTitle');
   });
 
@@ -109,7 +109,7 @@ describe('truthful completion presentation', () => {
       results: [0, 1, 2].map((index) => ({ ...saved(`existing-${index}.mp4`), outcome: 'skipped' as const }))
     }));
     expect(presentation).toMatchObject({ status: 'skipped', savedCount: 0, dateVerifiedCount: 0, resultCount: 3 });
-    expect(presentation.summaryKey).toBe('results.headlineAlreadySaved');
+    expect(presentation.summaryKey).toBe('results.summaryCounts');
   });
 
   it('permits a success presentation when all actual writes completed', () => {
@@ -130,7 +130,7 @@ describe('truthful completion presentation', () => {
     }));
     expect(presentation.savedCount).toBe(1);
     expect(presentation.dateVerifiedCount).toBe(0);
-    expect(presentation.summaryKey).not.toBe('results.headlineAllGood');
+    expect(presentation.summaryKey).toBe('results.summaryCounts');
   });
 
   it('counts legacy successful rows without an outcome as saved without inventing date verification', () => {
@@ -147,7 +147,7 @@ describe('truthful completion presentation', () => {
   it('does not claim a completed save before any completion exists', () => {
     expect(completionPresentation()).toMatchObject({
       status: 'empty', savedCount: 0, cancelledCount: 0, failedCount: 0, dateVerifiedCount: 0,
-      titleKey: 'results.title', summaryKey: 'results.title'
+      titleKey: 'results.title', summaryKey: 'results.summaryCounts'
     });
   });
 

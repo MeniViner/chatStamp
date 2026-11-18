@@ -178,17 +178,7 @@ class SaveForegroundService : Service() {
     }
 
     private fun writeInput(context: Context, items: List<ScopedSaveItem>, options: ScopedSaveOptions) {
-      val json = JSONObject().put("items", JSONArray(items.map { item ->
-        JSONObject().put("entryId", item.entryId).put("sourceUri", item.sourceUri).put("filename", item.filename)
-          .put("mediaType", item.mediaType).put("mimeType", item.mimeType).put("timestampMillis", item.timestampMillis)
-          .put("dateSource", item.dateSource).put("timeZone", item.timeZone).put("relativeFolder", item.relativeFolder)
-          .put("whatsAppDateIso", item.whatsAppDateIso).put("dateAmbiguous", item.dateAmbiguous)
-      })).put("options", JSONObject().put("archiveFingerprint", options.archiveFingerprint).put("chatName", options.chatName)
-        .put("treeUri", options.treeUri).put("duplicateHandling", options.duplicateHandling)
-        .put("timestampFolder", options.timestampFolder).put("organizationMode", options.organizationMode)
-        .put("alwaysUseMessageDate", options.alwaysUseMessageDate).put("operationId", options.operationId)
-        .put("workingDirectory", options.workingDirectory).put("notificationTitle", options.notificationTitle)
-        .put("notificationCancelLabel", options.notificationCancelLabel).put("sourceUri", options.sourceUri))
+      val json = encodeInput(items, options)
       val file = AtomicFile(inputFile(context, options.operationId))
       val stream = file.startWrite()
       try {
@@ -197,21 +187,40 @@ class SaveForegroundService : Service() {
       } catch (error: Exception) { file.failWrite(stream); throw error }
     }
 
+    internal fun encodeInput(items: List<ScopedSaveItem>, options: ScopedSaveOptions): JSONObject =
+      JSONObject().put("items", JSONArray(items.map { item ->
+        JSONObject().put("entryId", item.entryId).put("sourceUri", item.sourceUri).put("filename", item.filename)
+          .put("mediaType", item.mediaType).put("mimeType", item.mimeType).put("timestampMillis", item.timestampMillis)
+          .put("dateSource", item.dateSource).put("timeZone", item.timeZone).put("relativeFolder", item.relativeFolder)
+          .put("whatsAppDateIso", item.whatsAppDateIso).put("dateAmbiguous", item.dateAmbiguous).put("senderName", item.senderName)
+      })).put("options", JSONObject().put("archiveFingerprint", options.archiveFingerprint).put("chatName", options.chatName)
+        .put("treeUri", options.treeUri).put("duplicateHandling", options.duplicateHandling)
+        .put("timestampFolder", options.timestampFolder).put("organizationMode", options.organizationMode)
+        .put("alwaysUseMessageDate", options.alwaysUseMessageDate).put("operationId", options.operationId)
+        .put("workingDirectory", options.workingDirectory).put("notificationTitle", options.notificationTitle)
+        .put("notificationCancelLabel", options.notificationCancelLabel).put("sourceUri", options.sourceUri)
+        .put("folderLabels", options.folderLabels?.toJson()).put("chatFolderName", options.chatFolderName))
+
     private fun readInput(context: Context, id: String): Pair<List<ScopedSaveItem>, ScopedSaveOptions> {
       val json = JSONObject(AtomicFile(inputFile(context, id)).openRead().use { it.readBytes().toString(Charsets.UTF_8) })
+      return decodeInput(json)
+    }
+
+    internal fun decodeInput(json: JSONObject): Pair<List<ScopedSaveItem>, ScopedSaveOptions> {
       val array = json.getJSONArray("items")
       val items = (0 until array.length()).map { index ->
         val item = array.getJSONObject(index)
         ScopedSaveItem(item.getString("entryId"), item.getString("sourceUri"), item.getString("filename"),
           item.getString("mediaType"), item.getString("mimeType"), item.nullableDouble("timestampMillis"),
           item.optString("dateSource", "none"), item.nullableString("timeZone"), item.nullableString("relativeFolder"),
-          item.nullableString("whatsAppDateIso"), item.optBoolean("dateAmbiguous", false))
+          item.nullableString("whatsAppDateIso"), item.optBoolean("dateAmbiguous", false), item.nullableString("senderName"))
       }
       val value = json.getJSONObject("options")
       val options = ScopedSaveOptions(value.getString("archiveFingerprint"), value.getString("chatName"),
         value.nullableString("treeUri"), value.getString("duplicateHandling"), value.getBoolean("timestampFolder"),
         value.getString("organizationMode"), value.getBoolean("alwaysUseMessageDate"), value.getString("operationId"),
-        value.getString("workingDirectory"), value.getString("notificationTitle"), value.getString("notificationCancelLabel"), value.nullableString("sourceUri"))
+        value.getString("workingDirectory"), value.getString("notificationTitle"), value.getString("notificationCancelLabel"), value.nullableString("sourceUri"),
+        value.optJSONObject("folderLabels")?.let { OutputFolderLabels.fromJson(it) }, value.nullableString("chatFolderName"))
       return items to options
     }
   }

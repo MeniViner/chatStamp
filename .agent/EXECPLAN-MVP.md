@@ -572,3 +572,80 @@ Known E work: filter-sheet Reset is still clipped at default dimensions, and
 footer/viewer native touch bounds need the E inset pass. Do not claim all-controls
 accessibility. API33 physical remains UNVERIFIED (actualA30API30 substitute).
 E/F/G2 now continue; real owner WhatsApp export and Play actions remain external.
+
+
+## Stage E implementation plan · 2026-11-18
+
+D accepted atce0acb3. E uses0.2.0/code5. Root owns direct Import→Select→Save,
+two-page onboarding,shared scaffold/insets,Settings/restart prompt/theme,Results
+virtualized Details,History dateformat and bilingualresources. Implementer owns
+native-I18n-only direction/reload adapter,BottomSheet constrainedbody/footer,
+serializedatomicsettings/date default and localized save-record compatibility.
+Test author derives real production-consumer tests and strict finite i18n usage
+checks independently; reviewer checks the full final diff/CODE_REVIEW.
+
+Language text changes only after preference commits; layout direction changes by
+actual native restart,with Restart now/Later and recoverable failures. Native
+I18nManager.isRTL alone controls currentdirection; no root override/key remount.
+Restart waits for explicit discard/cleanup and cannot interrupt running work.
+New installs/missing datepreference use message date; explicit old false persists.
+New output records capturelocalizedlabels; existingrecords/paths/duplicate keys
+remain exact. No date/verifier policy change. Dynamicpalette must visiblycontrol
+actualroles where supported,with honest API30 fallback.
+
+Acceptance includes retained C/D suites,full smoke,actual directfilteredSave,
+Back/modalpriority,inset/130%font/wide600dp EN+HE matrix on actual API30phone and
+API36emu,actualminifiedreloadbothdirections,updated phone-only syntheticstore
+screens plus curateddocs/screens. API33phone remainsUNVERIFIED with exactowner
+steps. No Play credentials: signedcode5/manualhigher-codeupdate,not track claim.
+E remains OPEN until these checks,reviews anddevicecleanup are observed.
+
+
+### E review and first full-cycle corrections
+
+Fresh review found and fixed: deferred audio-release Save could target a replaced
+import (revision/identity+component-generation guards); restart cancellation could
+resume intake while cleanup continued (committed non-dismissable/disabled dialog);
+queued Settings UI patches could restore stale nested organization fields (typed
+nested partials); result rows conflated indexed fallback dates with verified
+message dates (one predicate+approximate context); native English error messages
+bypassed bilingual copy (typed/generic localized errors, rawdeveloperdisclosure).
+Meaningful actual component/coordinator/store regressions cover these cases.
+
+First fullcycle `stage-e-final-1` passed npmci/typecheck then stopped at448tests:
+440pass/8fail. Six assertions expected the old completion summary-key names even
+though E now uses the shared four-count sentence; preserve all saved/cancelled/
+failed/verified counts and actual EN/HE rendering tests while updating that UI
+contract. Two Processing Back cases passed in isolation but failed in the whole
+suite because `--no-isolate` reused a component module with another file's mocked
+BackHandler listener. **try another way:** restore Vitest's normal per-file module
+isolation, retaining single worker/thread execution and every behavior assertion.
+Restart the complete cycle from npmci; these failures are not an accepted cycle.
+
+
+The second E cycle passed448TS/50files,prebuild,QAarm64APK,manifestchecks and40JVM,
+then35connectedtests executed perAPI30/API36 with3failures each in new profile
+path assertions. Save outcomes, same-URI reruns and profile equality had passed;
+the new assertions wrongly expected a trailing slash on outputDirectory, while
+the established MediaStoreFolder.label trims it and feeds duplicate identity.
+**try another way:** assert the exact expected directory and independent indexed
+RELATIVE_PATH/count,without changing production labels or weakening duplication
+criteria. Fix the cleanup-ref lint warning in the same correction batch and
+restart the complete cycle from npmci. No E device acceptance is claimed yet.
+
+
+### E implementation checkpoint · full smoke green · 2026-11-18
+
+Wholecycle `stage-e-final-3` PASS:448Vitest/50files,strictTS,zero-warninglint,
+cleanprebuild/QAarm64assemble,mergedSDK/permission/servicechecks,40JVM and35
+connected tests on EACH API30phone/API36emu,zero failures/errors/skips. DebugQA
+APK SHA256`1a76dbcbc4cbf6d41428b7edecbb783f5c1dafe04344eee4ce2b455bf6416af2`. Nativeprofiletests now independently verifyexact paths,
+indexed relativepaths,published state and0→1/1→2rowcounts acrosslanguagechanges.
+Reviewer source review clear; allreportedrace,bilingual-error,settingsmerge and
+message-dateverification findings haveactualregressions. Standardper-fileVitest
+isolation retainsoneworker; no acceptanceassertionsremoved.
+
+Code5 source is checkpointed for signed release/runtime acceptance. This is not
+E closure: actual minified restart/RTLbothdirections,Back/insets/font130/wideENHE,
+updatedrealphone-onlysyntheticstoreimages,manualsignedupdate andcleanup remain.
+Physicalphoneunlock wasrequestedagain; API33physical remains unavailable.

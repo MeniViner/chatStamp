@@ -16,6 +16,7 @@ import { WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
 import { ExpandableTechnicalDetails, FilePathText, PremiumCard, PrimaryButton, SecondaryButton, StatusBadge, textStyles } from '../components/AppUi';
 import { spacing } from '../theme/designTokens';
+import { formatAppDate } from '../lib/localeDateFormat';
 
 export function HistoryScreen() {
   const { t } = useTranslation();
@@ -142,7 +143,7 @@ function HistoryCard({
   onDeleteWithFiles: () => void;
   onFallbackNotice: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useAppTheme();
   const [shareOpen, setShareOpen] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -164,7 +165,7 @@ function HistoryCard({
       <View style={styles.header}>
         <View style={styles.flex}>
           <Text variant="titleMedium" numberOfLines={2} style={[styles.cardTitle, textStyles.start]}>
-            {t('history.saveFrom', { date: new Date(item.exportTimestampIso).toLocaleString() })}
+            {t('history.saveFrom', { date: formatAppDate(item.exportTimestampIso, i18n.resolvedLanguage ?? 'en') })}
           </Text>
         </View>
         <View style={styles.headerActions}>
@@ -172,7 +173,7 @@ function HistoryCard({
           <Menu
             visible={menuOpen}
             onDismiss={() => setMenuOpen(false)}
-            anchor={<IconButton icon="dots-vertical" size={20} style={styles.iconButton} onPress={() => setMenuOpen(true)} />}
+            anchor={<IconButton icon="dots-vertical" size={20} style={styles.iconButton} accessibilityLabel={t('history.actions')} onPress={() => setMenuOpen(true)} />}
           >
             <Menu.Item
               leadingIcon="delete-outline"

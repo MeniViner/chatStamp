@@ -144,7 +144,7 @@ export const usePipelineStore = create<PipelineState>((set) => ({
   setSelectedFiles: (selection) => set((state) => ({ selectedFileIds: selection.size === state.selectedFileIds.size && [...selection].every((id) => state.selectedFileIds.has(id)) ? state.selectedFileIds : new Set(selection) })),
   prepareSave: (fileIds) => set((state) => {
     const eligible = new Set(state.mediaFiles.filter((file) => isSaveableMediaType(file.mediaType)).map((file) => file.id));
-    return { pendingSaveIds: [...new Set(fileIds)].filter((id) => state.selectedFileIds.has(id) && eligible.has(id)), stage: 'outputOptions' };
+    return { pendingSaveIds: [...new Set(fileIds)].filter((id) => state.selectedFileIds.has(id) && eligible.has(id)) };
   }),
   setProgress: (progress) => set((state) => ({ progress: reduceProgress(state.progress ?? null, progress) })),
   startProgress: (operationId, kind) => set({ progress: startOperation(operationId, kind) }),

@@ -5,7 +5,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Appbar, Button, Chip, IconButton, ProgressBar, RadioButton, Surface, Switch, Text } from 'react-native-paper';
 import { Image as ExpoImage } from 'expo-image';
 import { useTranslation } from 'react-i18next';
-import { useAppLayoutDirection } from '../i18n/AppLayoutDirectionContext';
 import { spacing, radius, size, appTypography, appColorTokens } from '../theme/designTokens';
 import { useAppTheme } from '../theme/useAppTheme';
 import type { ExtractedMediaFile, MediaType } from '../types/media';
@@ -49,19 +48,19 @@ export function AppScreenScaffold({
   contentStyle?: StyleProp<ViewStyle>;
 }) {
   const theme = useAppTheme();
-  const layoutDirection = useAppLayoutDirection();
+  const { t } = useTranslation();
   const statusBarStyle = theme.dark ? 'light-content' : 'dark-content';
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.scaffoldSafeArea, { backgroundColor: theme.colors.background }]}>
       <StatusBar translucent backgroundColor="transparent" barStyle={statusBarStyle} />
       <Appbar.Header mode="small" elevated={false} statusBarHeight={0} style={[styles.scaffoldAppbar, { backgroundColor: theme.colors.background }]}>
-        {onBack ? <Appbar.BackAction disabled={backDisabled} onPress={onBack} /> : null}
+        {onBack ? <Appbar.BackAction accessibilityLabel={t('common.back')} disabled={backDisabled} onPress={onBack} /> : null}
         <CompactStepHeader stepLabel={stepLabel} title={title} />
         {actions}
       </Appbar.Header>
       {showProgress && typeof progress === 'number' ? (
-        <ProgressBar progress={progress} color={theme.colors.primary} style={[styles.scaffoldProgress, layoutDirection === 'rtl' ? styles.rtlProgress : null]} />
+        <ProgressBar progress={progress} color={theme.colors.primary} style={styles.scaffoldProgress} />
       ) : null}
       {subtitle ? <StepHeader title="" subtitle={subtitle} compact /> : null}
       <View style={[styles.scaffoldContent, contentStyle]}>{children}</View>
@@ -74,12 +73,12 @@ export function CompactStepHeader({ stepLabel, title }: { stepLabel?: string; ti
   const theme = useAppTheme();
   return (
     <View style={styles.compactStepHeader}>
-      <Text variant="titleMedium" numberOfLines={1} ellipsizeMode="tail" style={[styles.compactAppbarTitle, textStyles.start]}>
+      <Text variant="titleMedium" style={[styles.compactAppbarTitle, textStyles.start]}>
         {title}
       </Text>
       {stepLabel ? (
         <View style={[styles.compactStepPill, { backgroundColor: theme.colors.secondaryContainer }]}>
-          <Text variant="labelSmall" numberOfLines={1} style={[styles.tabular, { color: theme.colors.onSecondaryContainer }]}>
+          <Text variant="labelSmall" style={[styles.tabular, { color: theme.colors.onSecondaryContainer }]}>
             {stepLabel}
           </Text>
         </View>
@@ -113,13 +112,13 @@ export function StepHeader({
               </Text>
             </View>
           ) : null}
-          <Text variant="titleSmall" numberOfLines={1} ellipsizeMode="tail" style={[styles.screenTitle, textStyles.start]}>
+          <Text variant="titleSmall" style={[styles.screenTitle, textStyles.start]}>
             {title}
           </Text>
         </View>
       ) : null}
       {subtitle ? (
-        <Text variant="bodySmall" numberOfLines={1} ellipsizeMode="tail" style={[styles.scaffoldSubtitle, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+        <Text variant="bodySmall" style={[styles.scaffoldSubtitle, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
           {subtitle}
         </Text>
       ) : null}
@@ -137,7 +136,7 @@ export function PrimaryBottomActionBar({ children, style }: { children: React.Re
         styles.primaryBottomActionBar,
         {
           backgroundColor: theme.colors.surface,
-          paddingBottom: Math.max(insets.bottom, spacing.compactInner)
+          paddingBottom: insets.bottom + spacing.compactInner
         },
         style
       ]}
@@ -284,6 +283,7 @@ export function PrimaryButton({
       style={[styles.fullButton, style]}
       contentStyle={styles.primaryButtonContent}
       labelStyle={styles.buttonLabel}
+      maxFontSizeMultiplier={2}
     >
       {children}
     </Button>
@@ -318,6 +318,7 @@ export function SecondaryButton({
       style={[styles.secondaryButton, style]}
       contentStyle={styles.secondaryButtonContent}
       labelStyle={styles.secondaryButtonLabel}
+      maxFontSizeMultiplier={2}
     >
       {children}
     </Button>
@@ -406,10 +407,10 @@ export function SettingsSectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <PremiumCard>
+    <View style={{ gap: spacing.gap }}>
       <SectionHeader icon={icon} label={title} />
       {children}
-    </PremiumCard>
+    </View>
   );
 }
 
@@ -440,7 +441,7 @@ export function PremiumCard({
             </View>
           ) : null}
           {title ? (
-            <Text variant="titleMedium" numberOfLines={3} style={[styles.sectionTitle, textStyles.start]}>
+            <Text variant="titleMedium" style={[styles.sectionTitle, textStyles.start]}>
               {title}
             </Text>
           ) : (
@@ -470,7 +471,7 @@ export function SectionHeader({
       <View style={[styles.smallIconBubble, { backgroundColor: colors.peachSoft }]}>
         <MaterialCommunityIcons name={icon} size={20} color={colors.primaryBrown} />
       </View>
-      <Text variant="titleMedium" numberOfLines={3} style={[styles.sectionTitle, textStyles.start, { color: colors.primaryBrown }]}>
+      <Text variant="titleMedium" style={[styles.sectionTitle, textStyles.start, { color: colors.primaryBrown }]}>
         {label}
       </Text>
     </View>
@@ -572,7 +573,7 @@ export function OptionChoiceCard({
               <StatusBadge label={badge} selected={selected} />
             </View>
           ) : null}
-          <Text variant="bodyMedium" numberOfLines={2} style={[styles.optionTitle, textStyles.start]}>
+          <Text variant="bodyMedium" style={[styles.optionTitle, textStyles.start]}>
             {title}
           </Text>
         </View>
@@ -581,7 +582,6 @@ export function OptionChoiceCard({
       {description ? (
         <Text
           variant="bodySmall"
-          numberOfLines={3}
           style={[styles.optionDescription, textStyles.start, { color: selected ? theme.colors.onPrimaryContainer : colors.textSecondary }]}
         >
           {description}
@@ -674,11 +674,11 @@ export function SettingRow({
         </View>
       ) : null}
       <View style={styles.settingText}>
-        <Text variant="titleSmall" numberOfLines={2} style={[textStyles.start, styles.settingTitle]}>
+        <Text variant="titleSmall" style={[textStyles.start, styles.settingTitle]}>
           {title}
         </Text>
         {description ? (
-          <Text variant="bodySmall" numberOfLines={3} style={[textStyles.start, { color: colors.textSecondary }]}>
+          <Text variant="bodySmall" style={[textStyles.start, { color: colors.textSecondary }]}>
             {description}
           </Text>
         ) : null}
@@ -918,15 +918,15 @@ function createStyles() {
     flex: 1
   },
   scaffoldAppbar: {
-    height: 48,
+    minHeight: 64,
+    height: 'auto',
+    flexShrink: 0,
+    paddingVertical: 4,
     paddingHorizontal: 8,
     gap: 4
   },
   scaffoldProgress: {
     height: 3
-  },
-  rtlProgress: {
-    transform: [{ scaleX: -1 }]
   },
   stepHeader: {
     paddingHorizontal: spacing.screenHorizontal,
@@ -942,23 +942,23 @@ function createStyles() {
   compactStepHeader: {
     flex: 1,
     minWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: spacing.smallGap
+    alignItems: 'stretch',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    gap: 2
   },
   compactAppbarTitle: {
-    flexShrink: 1,
+    flexShrink: 0,
     minWidth: 0,
     fontWeight: '800',
     letterSpacing: 0
   },
   compactStepPill: {
     flexShrink: 0,
-    borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    maxWidth: 116
+    alignSelf: 'flex-start',
+    borderRadius: 16,
+    paddingHorizontal: 6,
+    paddingVertical: 2
   },
   stepHeaderLine: {
     flexDirection: 'row',
@@ -983,10 +983,12 @@ function createStyles() {
   },
   scaffoldContent: {
     flex: 1,
+    minHeight: 0,
     paddingHorizontal: spacing.screenHorizontal,
     paddingTop: spacing.tinyGap
   },
   primaryBottomActionBar: {
+    flexShrink: 0,
     paddingHorizontal: spacing.screenHorizontal,
     paddingTop: spacing.compactInner,
     minHeight: size.stickyFooterMinHeight,
@@ -1011,6 +1013,8 @@ function createStyles() {
     writingDirection: 'auto'
   },
   fullButton: {
+    minHeight: size.buttonHeight,
+    flexShrink: 0,
     borderRadius: radius.button
   },
   primaryButtonContent: {
@@ -1020,6 +1024,8 @@ function createStyles() {
     ...appTypography.button
   },
   secondaryButton: {
+    minHeight: size.smallButtonHeight,
+    flexShrink: 0,
     borderRadius: radius.smallButton
   },
   secondaryButtonContent: {
@@ -1035,13 +1041,13 @@ function createStyles() {
     height: 44,
     margin: 0,
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 22
+    borderRadius: 16
   },
   filteredCountBadge: {
     height: 44,
     minWidth: 74,
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 22,
+    borderRadius: 16,
     paddingHorizontal: 10,
     flexDirection: 'row',
     alignItems: 'center',
@@ -1066,7 +1072,7 @@ function createStyles() {
   smallIconBubble: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -1102,7 +1108,7 @@ function createStyles() {
     flexWrap: 'wrap'
   },
   codePathContainer: {
-    borderRadius: 14,
+    borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 8
   },
@@ -1125,7 +1131,7 @@ function createStyles() {
   rowIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -1140,7 +1146,7 @@ function createStyles() {
   metricTile: {
     flex: 1,
     minWidth: 98,
-    borderRadius: 18,
+    borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 12,
     gap: 4
@@ -1148,7 +1154,7 @@ function createStyles() {
   summaryMetricCard: {
     flex: 1,
     minWidth: 112,
-    borderRadius: 20,
+    borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 12,
     flexDirection: 'row',
@@ -1165,7 +1171,7 @@ function createStyles() {
     gap: spacing.smallGap
   },
   expandableBody: {
-    borderRadius: 18,
+    borderRadius: 16,
     padding: spacing.compactInner,
     gap: spacing.smallGap
   },

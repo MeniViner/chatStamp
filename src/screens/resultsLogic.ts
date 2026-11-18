@@ -1,5 +1,11 @@
 import type { CompletionSummary, SaveFileResult } from '../types/media';
 
+export function isMessageDateVerified(result: SaveFileResult): boolean {
+  return result.ok && result.dateCorrectionVerified && result.dateAmbiguous !== true
+    && result.dateVerification !== 'unverified' && result.dateVerification !== 'mtime-only'
+    && result.verificationReason !== 'date-unavailable';
+}
+
 export function getResultsHeadlineKey(completion?: CompletionSummary): string {
   if (!completion) return 'results.title';
   const cancelled = Math.max(completion.cancelled ?? 0, completion.results?.filter((result) => result.outcome === 'cancelled').length ?? 0);
@@ -38,16 +44,14 @@ export function completionPresentation(completion?: CompletionSummary): Completi
     result.outcome === 'failed' || (!result.ok && result.outcome !== 'cancelled' && result.outcome !== 'skipped')
   ).length);
   const dateVerifiedCount = rows.length > 0
-    ? savedRows.filter((result) => result.dateCorrectionVerified && result.dateAmbiguous !== true && result.dateVerification !== 'unverified'
-      && result.dateVerification !== 'mtime-only' && result.verificationReason !== 'date-unavailable').length
+    ? savedRows.filter(isMessageDateVerified).length
     : Math.min(savedCount, completion?.dateCorrected ?? 0);
   const resultCount = rows.length > 0 ? rows.length : savedCount + cancelledCount + failedCount;
   const counts = { savedCount, cancelledCount, failedCount, resultCount, dateVerifiedCount,
     summaryValues: { saved: savedCount, cancelled: cancelledCount, failed: failedCount, verified: dateVerifiedCount } };
 
-  if (!completion) return { ...counts, status: 'empty', titleKey: 'results.title', summaryKey: 'results.title' };
-  const summaryKey = getResultsHeadlineKey({ ...completion, saved: savedCount, failed: failedCount,
-    cancelled: cancelledCount, dateCorrected: dateVerifiedCount });
+  const summaryKey = 'results.summaryCounts';
+  if (!completion) return { ...counts, status: 'empty', titleKey: 'results.title', summaryKey };
   if (cancelledCount > 0) return { ...counts, status: savedCount > 0 ? 'partial' : 'cancelled',
     titleKey: savedCount > 0 ? 'results.partialSaveTitle' : 'results.cancelledTitle', summaryKey };
   if (failedCount > 0) return { ...counts, status: savedCount > 0 ? 'partial' : 'failed',
@@ -62,12 +66,13 @@ export function completionPresentation(completion?: CompletionSummary): Completi
 export function getResultStatusKey(result: SaveFileResult): string {
   if (result.outcome === 'skipped') return 'results.status.alreadySaved';
   if (result.outcome === 'cancelled') return 'results.status.cancelled';
-  if (!result.ok) return result.failureReason ? 'results.status.failedWithReason' : 'results.status.failed';
-  if (result.timestampSource === 'capture' && result.dateVerification === 'verified') return 'results.status.capturePreserved';
-  if (result.dateVerification === 'mtime-only') return 'results.status.modificationTime';
+  if (!result.ok) return 'results.status.failed';
+  if (isMessageDateVerified(result)) return 'results.status.dateFixed';
   if (result.verificationReason === 'date-unavailable') return 'results.status.dateUnavailable';
-  if (result.dateCorrectionVerified) return 'results.status.dateFixed';
-  if (result.dateVerification === 'verified') return 'results.status.dateVerified';
+  if (result.timestampSource === 'capture' && result.dateVerification === 'verified' && !result.dateAmbiguous) return 'results.status.capturePreserved';
+  if (result.dateAmbiguous || result.timestampSource === 'filename' || result.timestampSource === 'zip-entry') return 'results.status.approximateDate';
+  if (result.dateVerification === 'mtime-only') return 'results.status.modificationTime';
+  if (result.dateVerification === 'verified') return 'results.status.dateUnverified';
   if (result.dateVerification === 'unverified') return 'results.status.dateUnverified';
   if (result.filesystemTimestampFixed && !result.mediaScannerCompleted) return 'results.status.scanPending';
   if (result.galleryMaySortByImportTime) return 'results.status.mayShowImportTime';

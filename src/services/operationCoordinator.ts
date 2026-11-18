@@ -8,7 +8,7 @@ import { clearWorkingDirectory, importWhatsAppZip } from './importService';
 import { runSavePipeline, summarizeNativeSave } from './pipelineService';
 import { asPipelineError, PipelineError } from '../lib/pipelineErrors';
 import { createOperationId, isTerminalProgress } from '../lib/operationProgress';
-import { outputChatName } from '../lib/outputOrganization';
+import { displayOutputChatName, localizedOutputFolderLabels, outputChatName } from '../lib/outputOrganization';
 import type { CompletionSummary } from '../types/media';
 import i18n from '../i18n';
 import { logger } from '../lib/logger';
@@ -22,7 +22,36 @@ let drainingShare = false;
 let shareSignalPending = false;
 let startupTask: Promise<void> | null = null;
 let incomingShare: NativeSharedZipResult | null = null;
+let restartingApp = false;
+let drainIdle: Promise<void> = Promise.resolve();
+let importRevision = 0;
 const shareListeners = new Set<() => void>();
+
+export type SaveIntent = Readonly<{
+  revision: number; importOperationId?: string; workingDirectory: string; archiveFingerprint: string;
+}>;
+
+export function captureSaveIntent(): SaveIntent | null {
+  const state = usePipelineStore.getState();
+  return state.stage === 'selectFiles' && state.workingDirectory && state.archiveFingerprint
+    ? { revision: importRevision, importOperationId: state.importOperationId,
+      workingDirectory: state.workingDirectory, archiveFingerprint: state.archiveFingerprint } : null;
+}
+
+/** Hold share intake in native storage until the next JS runtime starts. */
+export async function reserveAppRestart(): Promise<() => void> {
+  if (restartingApp) throw new PipelineError('IO_ERROR', 'A restart is already pending.');
+  restartingApp = true;
+  let released = false;
+  const release = () => { if (released) return; released = true; restartingApp = false; void drainSharedZip(); };
+  try {
+    await drainIdle;
+    if (startingImport || importTask || saveTask || restoreTask || incomingShare) {
+      throw new PipelineError('IO_ERROR', 'Finish the current operation or shared import first.');
+    }
+    return release;
+  } catch (error) { release(); throw error; }
+}
 
 export function pendingSharedZip(): NativeSharedZipResult | null { return incomingShare; }
 export function observePendingShare(listener: () => void): () => void {
@@ -32,6 +61,7 @@ export function observePendingShare(listener: () => void): () => void {
 function changedShare() { shareListeners.forEach((listener) => listener()); }
 
 export async function chooseZip(): Promise<void> {
+  if (restartingApp) return;
   try {
     const result = await DocumentPicker.getDocumentAsync({
       type: ['application/zip', 'application/x-zip-compressed'], copyToCacheDirectory: false, multiple: false
@@ -41,7 +71,7 @@ export async function chooseZip(): Promise<void> {
 }
 
 export async function beginImport(uri: string, name: string): Promise<void> {
-  if (startingImport || saveTask || usePipelineStore.getState().stage === 'saving') return;
+  if (restartingApp || startingImport || saveTask || usePipelineStore.getState().stage === 'saving') return;
   startingImport = true;
   try { await discardImport(uri === usePipelineStore.getState().zipUri); }
   catch (error) { startingImport = false; usePipelineStore.getState().setError(error); return; }
@@ -71,6 +101,7 @@ export async function discardImport(keepSource = false): Promise<void> {
   const state = usePipelineStore.getState();
   const native = getChatStampNativeModule();
   if (state.stage === 'saving' || saveTask) return;
+  importRevision++;
   const retained = await native.getOperationSnapshotAsync();
   if (retained?.progress.kind === 'save' && retained.result) {
     await restoreSave();
@@ -107,14 +138,20 @@ export async function cancelCurrentOperation(): Promise<void> {
   }
 }
 
-export async function startSaving(): Promise<void> {
+export async function startSaving(intent?: SaveIntent): Promise<void> {
+  if (restartingApp || startingImport || importTask) return;
   if (saveTask) return saveTask;
   const initial = usePipelineStore.getState();
+  if (intent && (incomingShare || initial.stage !== 'selectFiles' || intent.revision !== importRevision
+    || intent.importOperationId !== initial.importOperationId || intent.workingDirectory !== initial.workingDirectory
+    || intent.archiveFingerprint !== initial.archiveFingerprint)) return;
   if (!initial.archiveFingerprint || !initial.workingDirectory) {
     initial.setError(new PipelineError('IO_ERROR'));
     return;
   }
   const operationId = createOperationId('save');
+  const folderLabels = localizedOutputFolderLabels((key) => i18n.t(key));
+  const chatFolderName = displayOutputChatName(initial.zipName, folderLabels);
   initial.startProgress(operationId, 'save');
   initial.setStage('saving');
   const task = (async () => {
@@ -127,6 +164,7 @@ export async function startSaving(): Promise<void> {
         selectedMediaTypes: initial.selectedMediaTypes, selectedFileIds: initial.pendingSaveIds ?? initial.selectedFileIds,
         archiveFingerprint: initial.archiveFingerprint!, workingDirectory: initial.workingDirectory,
         sourceUri: initial.zipUri, operationId, chatName: outputChatName(initial.zipName),
+        folderLabels, chatFolderName,
         settings: useSettingsStore.getState().settings,
         notificationTitle: i18n.t('operation.notificationTitle'), notificationCancelLabel: i18n.t('operation.cancel'),
         onProgress: (event) => usePipelineStore.getState().setProgress(event)
@@ -207,15 +245,21 @@ export async function dismissSharedZip(): Promise<void> {
 }
 
 async function drainSharedZip(): Promise<void> {
+  if (restartingApp) { shareSignalPending = true; return; }
   if (drainingShare) { shareSignalPending = true; return; }
   if (incomingShare || saveTask || usePipelineStore.getState().stage === 'saving') return;
   drainingShare = true;
+  let resolveIdle: () => void = () => undefined;
+  drainIdle = new Promise<void>((resolve) => { resolveIdle = resolve; });
   try {
     const share = await getChatStampNativeModule().consumePendingSharedZipAsync();
     if (!share.received) return;
     if (share.errorCode || !share.sourceUri) throw new PipelineError(share.errorCode ?? 'PERMISSION_LOST');
+    if (restartingApp) {
+      incomingShare = share; changedShare(); return;
+    }
     const state = usePipelineStore.getState();
-    if (startingImport || importTask || state.stage === 'selectFiles' || state.stage === 'outputOptions'
+    if (startingImport || importTask || state.stage === 'selectFiles'
       || (state.workingDirectory && (state.stage === 'settings' || state.stage === 'history'))) {
       incomingShare = share;
       changedShare();
@@ -225,7 +269,8 @@ async function drainSharedZip(): Promise<void> {
   } catch (error) { usePipelineStore.getState().setError(error); }
   finally {
     drainingShare = false;
-    if (shareSignalPending) { shareSignalPending = false; void drainSharedZip(); }
+    resolveIdle();
+    if (shareSignalPending && !restartingApp) { shareSignalPending = false; void drainSharedZip(); }
   }
 }
 
@@ -242,7 +287,7 @@ export function attachPipelineRuntime(): () => void {
     else state.setStage('saving');
   });
   const active = AppState.addEventListener('change', (value) => {
-    if (value === 'active') void restoreSave().then(drainSharedZip);
+    if (value === 'active' && !restartingApp) void restoreSave().then(drainSharedZip);
   });
   if (!startupTask) startupTask = (async () => {
       await restoreSave();

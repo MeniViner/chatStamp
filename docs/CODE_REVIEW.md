@@ -89,3 +89,5 @@ npx expo run:android
   timeout cleanup passed. API33 physical and real WhatsApp export remain unverified.
 
 - 2026-11-18: D final source review clear after bounded thumbnails, actual Set/cell/lifecycle tests, clipping replay and native gesture fixes. Full smoke305TS/35JVM/27connected perAPI30/API36 passes; signed code4 artifact checks and physical scoped runtime pass. E still owns sheet/footer accessibility; OEM HTML Viewer limitation and API33/real-export/Play gaps remain explicit.
+
+- 2026-11-18: E source review clear after Save-intent/restart/share-intake races, serialized partial settings patches, native localized-profile compatibility and consistent message-date facts/bilingual errors were fixed. Wholecycle448TS/40JVM/35connected perAPI30/API36 passed; minified UI/RTL and screenshots remain OPEN.

@@ -35,8 +35,9 @@ describe('settings and history helpers', () => {
     expect(merged.outputOrganization.mode).toBe('by-type');
     expect(merged.outputOrganization.createExportTimestampFolder).toBe(false);
     expect(merged.outputOrganization.duplicateHandling).toBe('skip-existing');
-    expect(merged.alwaysUseMessageDate).toBe(false);
+    expect(merged.alwaysUseMessageDate).toBe(true);
     expect(mergeSettings({ alwaysUseMessageDate: true }).alwaysUseMessageDate).toBe(true);
+    expect(mergeSettings({ alwaysUseMessageDate: false }).alwaysUseMessageDate).toBe(false);
   });
 
   it('persists developer mode as an explicit opt-in', () => {

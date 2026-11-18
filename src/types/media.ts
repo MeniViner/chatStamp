@@ -238,4 +238,5 @@ export type SaveFileResult = {
   debugOriginalPath?: string | null;
   debugRewrittenPath?: string | null;
   failureReason?: string | null;
+  failureCode?: import('../lib/pipelineErrors').PipelineErrorCode;
 };

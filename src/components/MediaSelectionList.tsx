@@ -29,6 +29,7 @@ export type DaySelectionHeaderProps = Readonly<{
   groupKey: string; label: string; state: SelectionState; onToggleDay: (key: string) => void;
 }>;
 export type SelectionFooterProps = Readonly<{
+  saving?: boolean;
   selected: number; total: number; selectedBytes: number; unknownSizeCount: number;
   state: SelectionState; onToggleAll: () => void; onSave: () => void;
 }>;
@@ -127,7 +128,7 @@ export const DaySelectionHeader = React.memo(function DaySelectionHeader({ group
   </Pressable>;
 });
 
-export const SelectionFooter = React.memo(function SelectionFooter({ selected, total, selectedBytes, unknownSizeCount, state, onToggleAll, onSave }: SelectionFooterProps) {
+export const SelectionFooter = React.memo(function SelectionFooter({ selected, total, selectedBytes, unknownSizeCount, state, onToggleAll, onSave, saving = false }: SelectionFooterProps) {
   const { t } = useTranslation();
   const theme = useAppTheme();
   return <View style={styles.footer}>
@@ -136,7 +137,7 @@ export const SelectionFooter = React.memo(function SelectionFooter({ selected, t
       <MaterialCommunityIcons name={state === 'all' ? 'checkbox-marked' : state === 'some' ? 'minus-box' : 'checkbox-blank-outline'} size={24} color={theme.colors.primary} />
       <Text style={styles.footerCount}>{t('picker.selectionCount', { selected, total })} · {formatSelectionBytes(selectedBytes)}{unknownSizeCount ? ` + ${t('picker.unknownSize', { count: unknownSizeCount })}` : ''}</Text>
     </Pressable>
-    <PrimaryButton disabled={!selected} onPress={onSave} icon="content-save-outline">{t('picker.save')}</PrimaryButton>
+    <PrimaryButton disabled={!selected || saving} onPress={onSave} icon="content-save-outline">{t('picker.save')}</PrimaryButton>
   </View>;
 });
 
@@ -231,8 +232,8 @@ const styles = StyleSheet.create({
   list: { flex: 1 }, gridRow: { flexDirection: 'row', gap: 4, marginBottom: 4 },
   gridCell: { flex: 1, overflow: 'hidden', borderRadius: 16 }, placeholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   corner: { position: 'absolute', top: 0, end: 0 }, checkTouch: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
-  checkIcon: { backgroundColor: '#00000099', borderRadius: 16 }, mediaBadge: { position: 'absolute', bottom: 6, start: 6, backgroundColor: '#000000aa', borderRadius: 4, paddingHorizontal: 4 },
-  overlayText: { color: 'white', fontSize: 11 }, dateBadge: { position: 'absolute', bottom: 6, end: 6, backgroundColor: '#000000aa', borderRadius: 4 },
+  checkIcon: { backgroundColor: '#00000099', borderRadius: 16 }, mediaBadge: { position: 'absolute', bottom: 6, start: 6, backgroundColor: '#000000aa', borderRadius: 16, paddingHorizontal: 4 },
+  overlayText: { color: 'white', fontSize: 11 }, dateBadge: { position: 'absolute', bottom: 6, end: 6, backgroundColor: '#000000aa', borderRadius: 16 },
   compact: { flex: 1, flexDirection: 'row', alignItems: 'center', height: 64, borderBottomWidth: StyleSheet.hairlineWidth },
   documentIcon: { marginHorizontal: 10 }, rowText: { flex: 1, justifyContent: 'center' },
   dayHeader: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },

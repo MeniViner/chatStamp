@@ -10,7 +10,7 @@ android {
   namespace "com.chatstamp.nativebridge"
   defaultConfig {
     consumerProguardFiles 'consumer-rules.pro'
-    versionCode 4
+    versionCode 5
     versionName "0.2.0"
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
   }

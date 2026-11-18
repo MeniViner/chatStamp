@@ -481,3 +481,20 @@ Known E work: filter-sheet Reset is still clipped at default dimensions, and
 footer/viewer native touch bounds need the E inset pass. Do not claim all-controls
 accessibility. API33 physical remains UNVERIFIED (actualA30API30 substitute).
 E/F/G2 now continue; real owner WhatsApp export and Play actions remain external.
+
+
+### E implementation checkpoint · full smoke green · 2026-11-18
+
+Wholecycle `stage-e-final-3` PASS:448Vitest/50files,strictTS,zero-warninglint,
+cleanprebuild/QAarm64assemble,mergedSDK/permission/servicechecks,40JVM and35
+connected tests on EACH API30phone/API36emu,zero failures/errors/skips. DebugQA
+APK SHA256`1a76dbcbc4cbf6d41428b7edecbb783f5c1dafe04344eee4ce2b455bf6416af2`. Nativeprofiletests now independently verifyexact paths,
+indexed relativepaths,published state and0→1/1→2rowcounts acrosslanguagechanges.
+Reviewer source review clear; allreportedrace,bilingual-error,settingsmerge and
+message-dateverification findings haveactualregressions. Standardper-fileVitest
+isolation retainsoneworker; no acceptanceassertionsremoved.
+
+Code5 source is checkpointed for signed release/runtime acceptance. This is not
+E closure: actual minified restart/RTLbothdirections,Back/insets/font130/wideENHE,
+updatedrealphone-onlysyntheticstoreimages,manualsignedupdate andcleanup remain.
+Physicalphoneunlock wasrequestedagain; API33physical remains unavailable.

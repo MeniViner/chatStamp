@@ -12,7 +12,7 @@ export const defaultSettings: AppSettings = {
   languagePreference: 'system',
   appearance: 'system',
   useDynamicColors: true,
-  alwaysUseMessageDate: false,
+  alwaysUseMessageDate: true,
   developerMode: false,
   showTechnicalLogs: false,
   keepCacheAfterFailedRun: false,
@@ -24,7 +24,7 @@ export function mergeSettings(value: Partial<AppSettings> | null | undefined): A
   return {
     ...defaultSettings,
     ...value,
-    alwaysUseMessageDate: value?.alwaysUseMessageDate === true,
+    alwaysUseMessageDate: typeof value?.alwaysUseMessageDate === 'boolean' ? value.alwaysUseMessageDate : true,
     outputOrganization,
     saveDestinationMode: value?.saveDestinationMode ?? (value?.useDefaultFolder === false ? 'custom-folder' : defaultSettings.saveDestinationMode)
   };

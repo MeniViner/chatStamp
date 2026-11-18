@@ -1,5 +1,5 @@
 import React from 'react';
-import { BackHandler, FlatList, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { BackHandler, FlatList, Keyboard, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Button, Chip, IconButton, Searchbar, Text, TextInput } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { usePipelineStore } from '../store/pipelineStore';
@@ -13,7 +13,8 @@ import { MediaViewer, useSharedMediaAudio, useViewerVideoController } from '../c
 import { useMediaThumbnails } from '../components/useMediaThumbnails';
 import { PremiumBottomSheet } from '../components/BottomSheet';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { discardImport } from '../services/operationCoordinator';
+import { captureSaveIntent, discardImport, startSaving } from '../services/operationCoordinator';
+import { PrimaryButton } from '../components/AppUi';
 import { WizardScreen } from './WizardScreen';
 
 type Tab = 'all' | 'photos' | 'videos' | 'voice' | 'documents';
@@ -25,6 +26,8 @@ export function FileSelectionScreen() {
   const { t, i18n } = useTranslation();
   const theme = useAppTheme(), dimensions = useWindowDimensions();
   const mediaFiles = usePipelineStore((state) => state.mediaFiles), selectedIds = usePipelineStore((state) => state.selectedFileIds);
+  const active = usePipelineStore((state) => state.stage === 'selectFiles');
+  const openOverlay = usePipelineStore((state) => state.openOverlayStage);
   const zipName = usePipelineStore((state) => state.zipName), importSummary = usePipelineStore((state) => state.importSummary);
   const toggle = usePipelineStore((state) => state.toggleFile), setSelection = usePipelineStore((state) => state.setSelectedFiles);
   const [query, setQuery] = React.useState(''), [tab, setTab] = React.useState<Tab>('all');
@@ -33,6 +36,15 @@ export function FileSelectionScreen() {
   const [senders, setSenders] = React.useState<ReadonlySet<string> | null>(null);
   const [from, setFrom] = React.useState(''), [to, setTo] = React.useState(''), [newest, setNewest] = React.useState(true);
   const [currentId, setCurrentId] = React.useState<string | null>(null), [listWidth, setListWidth] = React.useState(dimensions.width - 48);
+  const saveReserved = React.useRef(false);
+  const saveGeneration = React.useRef(0), alive = React.useRef(true);
+  const [startingSave, setStartingSave] = React.useState(false);
+  const cancelPendingSave = React.useCallback(() => { saveGeneration.current++; saveReserved.current = false; setStartingSave(false); }, []);
+  React.useEffect(() => {
+    const generation = saveGeneration;
+    alive.current = true;
+    return () => { alive.current = false; generation.current++; };
+  }, []);
   const video = useViewerVideoController(), audio = useSharedMediaAudio();
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const allItems = React.useMemo<readonly MediaCellItem[]>(() => mediaFiles.filter((file) => isSaveableMediaType(file.mediaType)).map((file) => {
@@ -72,6 +84,9 @@ export function FileSelectionScreen() {
     }, () => { if (request === pageGeneration.current) video.failClosed(); });
   }, [video]);
   const dismissViewer = React.useCallback(() => { pageGeneration.current++; current.current.audio.stop(); video.request(null); setCurrentId(null); }, [video]);
+  React.useEffect(() => {
+    if (!active) { cancelPendingSave(); dismissViewer(); void current.current.audio.release().catch(() => undefined); }
+  }, [active, cancelPendingSave, dismissViewer]);
   const playAudio = React.useCallback((id: string) => {
     const p = current.current, item = p.visibleItems.find((entry) => entry.id === id); if (item) { video.request(null); p.audio.play(item); }
   }, [video]);
@@ -79,20 +94,33 @@ export function FileSelectionScreen() {
     const p = current.current; setSelection(setIdsSelected(p.selectedIds, p.visibleIds, selectionState(p.selectedIds, p.visibleIds) !== 'all'));
   }, [setSelection]);
   const save = React.useCallback(() => {
+    if (saveReserved.current) return;
     const p = current.current;
-    usePipelineStore.getState().prepareSave([...selectedIdsInOrder(p.visibleIds, p.selectedIds)]);
+    const ids = [...selectedIdsInOrder(p.visibleIds, p.selectedIds)];
+    const intent = captureSaveIntent();
+    if (!ids.length || !intent) return;
+    const request = ++saveGeneration.current;
+    saveReserved.current = true; setStartingSave(true);
+    usePipelineStore.getState().prepareSave(ids);
     p.audio.stop();
-  }, []);
+    video.request(null);
+    void p.audio.release().then(() => {
+      if (alive.current && request === saveGeneration.current) return startSaving(intent);
+      return undefined;
+    }).catch((error: unknown) => {
+      if (alive.current && request === saveGeneration.current) usePipelineStore.getState().setError(error);
+    }).finally(() => { if (alive.current && request === saveGeneration.current) cancelPendingSave(); });
+  }, [cancelPendingSave, video]);
   React.useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (currentId) dismissViewer(); else if (filters) setFilters(false); else if (search) setSearch(false); else setDiscard(true);
+      if (currentId) dismissViewer(); else if (filters) setFilters(false); else if (search) setSearch(false); else { cancelPendingSave(); setDiscard(true); }
       return true;
     }); return () => sub.remove();
-  }, [currentId, dismissViewer, filters, search]);
+  }, [cancelPendingSave, currentId, dismissViewer, filters, search]);
   React.useEffect(() => { if (currentId && !visibleIds.includes(currentId)) dismissViewer(); }, [currentId, dismissViewer, visibleIds]);
-  return <WizardScreen stage="selectFiles" title={outputChatName(zipName)} onBack={() => setDiscard(true)}
-    actions={<><IconButton icon="magnify" accessibilityLabel={t('picker.search')} onPress={() => setSearch((value) => !value)} /><IconButton icon="filter-variant" accessibilityLabel={t('picker.filters')} onPress={() => setFilters(true)} /></>}
-    footer={<SelectionFooter {...totals} state={allState} onToggleAll={toggleAll} onSave={save} />}>
+  return <WizardScreen stage="selectFiles" title={zipName ? outputChatName(zipName) : t('outputFolders.importedChat')} onBack={() => { cancelPendingSave(); setDiscard(true); }}
+    actions={<><IconButton icon="magnify" accessibilityLabel={t('picker.search')} onPress={() => setSearch((value) => !value)} /><IconButton icon="filter-variant" accessibilityLabel={t('picker.filters')} onPress={() => setFilters(true)} /><IconButton icon="cog-outline" accessibilityLabel={t('settings.title')} onPress={() => { cancelPendingSave(); Keyboard.dismiss(); openOverlay('settings'); }} /></>}
+    footer={<SelectionFooter {...totals} saving={startingSave} state={allState} onToggleAll={toggleAll} onSave={save} />}>
     {search ? <Searchbar value={query} onChangeText={setQuery} placeholder={t('picker.search')} accessibilityLabel={t('picker.search')} /> : null}
     <ScrollView horizontal style={styles.tabs} contentContainerStyle={styles.tabContent} showsHorizontalScrollIndicator={false}>
       {tabs.map((kind) => { const count = baseItems.filter((item) => inTab(item, kind)).length;
@@ -107,7 +135,7 @@ export function FileSelectionScreen() {
         playingAudioId={audio.status.playing ? audio.activeId : undefined} onPlayAudio={playAudio} />
     </View>
     {audio.activeId && !currentId ? <View style={styles.inlineAudio}><Text>{t(audio.error ? 'viewer.audioError' : !audio.status.isLoaded ? 'viewer.loading' : 'viewer.audioProgress', { current: Math.floor(audio.status.currentTime), total: Math.floor(audio.status.duration) })}</Text><Button onPress={audio.stop}>{t('viewer.pause')}</Button></View> : null}
-    <PremiumBottomSheet visible={filters} title={t('picker.filters')} onDismiss={() => setFilters(false)} footer={<Button mode="contained" onPress={() => setFilters(false)} disabled={!datesValid}>{t('picker.apply')}</Button>}>
+    <PremiumBottomSheet visible={filters} title={t('picker.filters')} onDismiss={() => setFilters(false)} footer={<PrimaryButton onPress={() => setFilters(false)} disabled={!datesValid}>{t('picker.apply')}</PrimaryButton>}>
       <Text variant="titleMedium">{t('picker.senders')}</Text>
       <View style={styles.senderChips}>{senderOptions.map((sender) => <Chip key={sender} selected={!senders || senders.has(sender)} onPress={() => setSenders((old) => {
         const next = new Set(old ?? senderOptions); if (next.has(sender)) next.delete(sender); else next.add(sender); return next;
@@ -125,7 +153,7 @@ export function FileSelectionScreen() {
       <FlatList data={importSummary?.skippedEntries ?? []} keyExtractor={(entry, index) => `${index}:${entry.sourcePath}`}
         renderItem={({ item }) => <View style={styles.skipped}><Text>{item.sourcePath}</Text><Text>{t(`picker.skippedReasons.${item.reason}`)}</Text></View>} />
     </PremiumBottomSheet>
-    <MediaViewer items={visibleItems} currentId={currentId} selectedIds={selectedIds} onPage={page} onDismiss={dismissViewer} onToggle={toggle} video={video} audio={audio} />
+    <MediaViewer items={visibleItems} currentId={active ? currentId : null} selectedIds={selectedIds} onPage={page} onDismiss={dismissViewer} onToggle={toggle} video={video} audio={audio} />
     <ConfirmDialog visible={discard} title={t('session.discardTitle')} body={t('session.discardBody')} confirmLabel={t('session.discard')} cancelLabel={t('common.cancel')}
       onDismiss={() => setDiscard(false)} onConfirm={() => { audio.stop(); video.request(null); void discardImport(); }} />
   </WizardScreen>;

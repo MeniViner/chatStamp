@@ -45,8 +45,9 @@ internal class ScopedMediaSaver(private val context: Context, private val operat
         }
         val destination = SaveFolders(context, tree)
         val recordKey = hash(listOf(archiveFingerprint, tree?.toString(), chat, options.organizationMode, options.timestampFolder))
-        val records = SaveRecords(File(context.filesDir, "chatstamp-store/save-records"), recordKey, options.timestampFolder)
-        val root = listOf(chat, records.folder).filter(String::isNotEmpty).joinToString("/")
+        val records = SaveRecords(File(context.filesDir, "chatstamp-store/save-records"), recordKey, options.timestampFolder,
+          chat, options.chatFolderName, options.folderLabels)
+        val root = listOf(records.chatFolderName, records.folder).filter(String::isNotEmpty).joinToString("/")
         val results = mutableListOf<JSONObject>()
         val sizes = items.map { runCatching { cacheFile(it.sourceUri).length() }.getOrNull() }
         val totalBytes = if (sizes.all { it != null }) sizes.filterNotNull().sum() else null
@@ -55,8 +56,8 @@ internal class ScopedMediaSaver(private val context: Context, private val operat
           operation?.advance(operation.progress.copy(phase = "saving", filesDone = index,
             totalFiles = items.size, totalBytes = totalBytes, currentFileName = item.filename))
           val result = try {
-            val relative = item.relativeFolder.orEmpty().split('/').filter(String::isNotBlank).map(::cleanSegment)
-            val folder = (listOf(root) + relative).joinToString("/")
+            val relative = relativeOutputFolder(item, options.organizationMode, records.labels, options.folderLabels != null)
+            val folder = listOf(root, relative).filter(String::isNotEmpty).joinToString("/")
             val target = destination.forItem(item.mediaType, folder)
             try {
               saveOne(item, options, records, target, archiveFingerprint)
@@ -412,9 +413,6 @@ private fun chooseName(folder: SaveFolder, filename: String, suffix: String): St
   return candidate
 }
 
-private fun cleanSegment(value: String): String = value.replace(Regex("[\\\\/:*?\"<>|\\p{Cc}]"), "_")
-  .trim().trim('.').ifBlank { "Imported Chat" }.take(54)
-
 private fun cleanFilename(value: String): String {
   val normalized = value.replace('\\', '/').substringAfterLast('/').replace(Regex("[:*?\"<>|\\p{Cc}]"), "_")
     .trim().trim('.').ifBlank { "whatsapp-media" }
@@ -444,7 +442,8 @@ data class ScopedSaveItem(
   @Field val timeZone: String? = null,
   @Field val relativeFolder: String? = null,
   @Field val whatsAppDateIso: String? = null,
-  @Field val dateAmbiguous: Boolean = false
+  @Field val dateAmbiguous: Boolean = false,
+  @Field val senderName: String? = null
 ) : Record
 
 data class ScopedSaveOptions(
@@ -459,5 +458,7 @@ data class ScopedSaveOptions(
   @Field val workingDirectory: String,
   @Field val notificationTitle: String,
   @Field val notificationCancelLabel: String,
-  @Field val sourceUri: String? = null
+  @Field val sourceUri: String? = null,
+  @Field val folderLabels: OutputFolderLabels? = null,
+  @Field val chatFolderName: String? = null
 ) : Record

@@ -1,7 +1,7 @@
 import type { AppSettings, CompletionSummary, ExtractedMediaFile, MediaTypeSelection, ProcessingProgress, SaveFileResult } from '../types/media';
 import { getMimeTypeForMedia } from '../lib/mediaClassifier';
 import { getSelectedSaveCandidates } from '../store/selectionLogic';
-import { defaultOutputOrganization, outputChatName, relativeOutputFolderForFile } from '../lib/outputOrganization';
+import { defaultOutputOrganization, legacyOutputFolderLabels, outputChatName, type OutputFolderLabels } from '../lib/outputOrganization';
 import { clearWorkingDirectory } from './importService';
 import { buildSaveSummary } from './saveSummary';
 import { saveMediaNative } from '../native/nativeMediaSaver';
@@ -21,17 +21,20 @@ export type RunSavePipelineParams = {
   notificationCancelLabel?: string;
   workingDirectory?: string;
   chatName?: string;
+  chatFolderName?: string;
+  folderLabels?: OutputFolderLabels;
   settings?: AppSettings;
   onProgress?: (progress: ProcessingProgress) => void;
 };
 
 export async function runSavePipeline({
   files, selectedSenders, selectedMediaTypes, selectedFileIds,
-  archiveFingerprint, sourceUri, operationId = createOperationId('save'), workingDirectory, chatName, settings, onProgress,
+  archiveFingerprint, sourceUri, operationId = createOperationId('save'), workingDirectory, chatName, chatFolderName, folderLabels, settings, onProgress,
   notificationTitle = 'chatStamp', notificationCancelLabel = ''
 }: RunSavePipelineParams): Promise<CompletionSummary> {
   const selected = getSelectedSaveCandidates(files, selectedSenders, selectedMediaTypes, selectedFileIds);
   const organization = settings?.outputOrganization ?? defaultOutputOrganization;
+  const labels = { ...(folderLabels ?? legacyOutputFolderLabels) };
   const treeUri = settings?.saveDestinationMode === 'custom-folder' ? settings.customFolder?.treeUri : undefined;
   if (settings?.saveDestinationMode === 'custom-folder' && !treeUri) {
     throw new PipelineError('PERMISSION_LOST');
@@ -48,7 +51,7 @@ export async function runSavePipeline({
     timeZone: file.timeZone,
     whatsAppDateIso: file.matchedRecord?.messageDateIso,
     dateAmbiguous: file.dateAmbiguous ?? false,
-    relativeFolder: relativeOutputFolderForFile(file, organization)
+    senderName: file.matchedRecord?.sender
   })), {
     archiveFingerprint,
     operationId,
@@ -57,11 +60,13 @@ export async function runSavePipeline({
     notificationTitle,
     notificationCancelLabel,
     chatName: outputChatName(chatName),
+    chatFolderName: chatFolderName ?? outputChatName(chatName),
+    folderLabels: labels,
     treeUri,
     duplicateHandling: organization.duplicateHandling,
     timestampFolder: organization.createExportTimestampFolder,
     organizationMode: organization.mode,
-    alwaysUseMessageDate: settings?.alwaysUseMessageDate ?? false
+    alwaysUseMessageDate: settings?.alwaysUseMessageDate ?? true
   }, onProgress);
 
   const sources = new Map(selected.map((candidate) => [candidate.file.id, candidate]));

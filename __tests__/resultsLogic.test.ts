@@ -53,7 +53,7 @@ describe('resultsLogic', () => {
       galleryMaySortByImportTime: false
     };
 
-    expect(getResultStatusKey(failed)).toBe('results.status.failedWithReason');
+    expect(getResultStatusKey(failed)).toBe('results.status.failed');
     expect(getResultStatusKey(fixed)).toBe('results.status.dateFixed');
   });
 

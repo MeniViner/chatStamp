@@ -11,8 +11,9 @@ import { useSettingsStore } from './src/store/settingsStore';
 import { useHistoryStore } from './src/store/historyStore';
 import { useOnboardingStore } from './src/store/onboardingStore';
 import { useTranslation } from 'react-i18next';
-import { getCurrentLayoutDirection, onRtlLayoutChange, syncI18nLanguage, type AppLayoutDirection } from './src/i18n';
-import { AppLayoutDirectionProvider } from './src/i18n/AppLayoutDirectionContext';
+import { syncI18nLanguage } from './src/i18n';
+import { useLanguageRestartStore } from './src/store/languageRestartStore';
+import { LanguageRestartPrompt } from './src/components/LanguageRestartPrompt';
 
 type AppAssetState = 'loading' | 'ready' | 'failed';
 
@@ -25,7 +26,7 @@ export default function App() {
   const developerMode = useSettingsStore((state) => state.settings.developerMode);
   const loadHistory = useHistoryStore((state) => state.loadHistory);
   const replayRequested = useOnboardingStore((state) => state.replayRequested);
-  const [layoutDirection, setLayoutDirection] = React.useState<AppLayoutDirection>(() => getCurrentLayoutDirection());
+  const translate = React.useRef(t); translate.current = t;
 
   useEffect(() => {
     logger.setDebugEnabled(developerMode);
@@ -47,17 +48,18 @@ export default function App() {
         }),
         loadSettings()
       ]);
-      await syncI18nLanguage(useSettingsStore.getState().settings.languagePreference);
+      const restartRequired = await syncI18nLanguage(useSettingsStore.getState().settings.languagePreference);
+      useLanguageRestartStore.getState().setRequired(restartRequired, restartRequired);
       await loadHistory();
       logger.debug('Font/icon asset loading success');
       setAssetState('ready');
     } catch (error) {
-      const message = error instanceof Error ? error.message : t('bootstrap.unknownLoadError');
+      const message = error instanceof Error ? error.message : translate.current('bootstrap.unknownLoadError');
       logger.error('Font/icon asset loading failure', { message });
       setAssetError(message);
       setAssetState('failed');
     }
-  }, [loadHistory, loadSettings, t]);
+  }, [loadHistory, loadSettings]);
 
   useEffect(() => {
     logger.debug('App startup', { dev: __DEV__ });
@@ -66,17 +68,13 @@ export default function App() {
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') {
-        void syncI18nLanguage(useSettingsStore.getState().settings.languagePreference);
+      if (state === 'active' && useSettingsStore.getState().loaded) {
+        void syncI18nLanguage(useSettingsStore.getState().settings.languagePreference)
+          .then((required) => useLanguageRestartStore.getState().setRequired(required))
+          .catch((error: unknown) => logger.warn('Language sync failed', error));
       }
     });
     return () => subscription.remove();
-  }, []);
-
-  useEffect(() => {
-    return onRtlLayoutChange((isRtl) => {
-      setLayoutDirection(isRtl ? 'rtl' : 'ltr');
-    });
   }, []);
 
   if (assetState !== 'ready') {
@@ -107,12 +105,12 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <View key={`layout-${layoutDirection}`} style={[styles.appRoot, layoutDirection === 'rtl' ? styles.rtlRoot : styles.ltrRoot]}>
-        <AppLayoutDirectionProvider direction={layoutDirection}>
-          <AppThemeProvider>
-            {!onboardingCompleted || replayRequested ? <OnboardingFlow /> : <AppNavigator />}
-          </AppThemeProvider>
-        </AppLayoutDirectionProvider>
+      <View style={styles.appRoot}>
+        <AppThemeProvider>
+          {onboardingCompleted ? <View style={{ flex: 1, display: replayRequested ? 'none' : 'flex' }}><AppNavigator /></View> : null}
+          {!onboardingCompleted || replayRequested ? <OnboardingFlow /> : null}
+          <LanguageRestartPrompt />
+        </AppThemeProvider>
       </View>
     </SafeAreaProvider>
   );
@@ -121,12 +119,6 @@ export default function App() {
 const styles = StyleSheet.create({
   appRoot: {
     flex: 1
-  },
-  ltrRoot: {
-    direction: 'ltr'
-  },
-  rtlRoot: {
-    direction: 'rtl'
   },
   container: {
     flex: 1,

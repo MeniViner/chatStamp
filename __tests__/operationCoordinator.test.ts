@@ -349,4 +349,84 @@ describe('pipeline runtime share and foreground-service coordination', () => {
     expect(mocks.appListeners.size).toBe(0);
     expect([...mocks.listeners.values()].every((listeners) => listeners.size === 0)).toBe(true);
   });
+
+  it('rejects restart when an already-consuming native share resolves, preserving that share for replacement', async () => {
+    const consuming = deferred<{ received: boolean; id: string; sourceUri: string; filename: string }>();
+    mocks.native.consumePendingSharedZipAsync.mockReturnValueOnce(consuming.promise);
+    detach.push(coordinator.attachPipelineRuntime());
+    await vi.waitFor(() => expect(mocks.native.consumePendingSharedZipAsync).toHaveBeenCalledOnce());
+    const reservation = coordinator.reserveAppRestart();
+    const rejection = expect(reservation).rejects.toThrow();
+    consuming.resolve({ received: true, id: 'arrived-before-reload', sourceUri: 'content://provider/retained.zip', filename: 'retained.zip' });
+    await rejection;
+    expect(coordinator.pendingSharedZip()).toMatchObject({ id: 'arrived-before-reload', sourceUri: 'content://provider/retained.zip' });
+    expect(mocks.importZip).not.toHaveBeenCalled();
+    expect(mocks.native.releaseSourceAsync).not.toHaveBeenCalled();
+    await coordinator.dismissSharedZip();
+    expect(mocks.native.releaseSourceAsync).toHaveBeenCalledExactlyOnceWith('content://provider/retained.zip');
+  });
+
+  it('holds native intake and every new user kickoff until its idempotent restart reservation releases', async () => {
+    store.getState().setZip({ uri: 'content://provider/first.zip', name: 'first.zip' });
+    store.getState().setImportResult(imported());
+    const release = await coordinator.reserveAppRestart();
+    mocks.native.consumePendingSharedZipAsync.mockResolvedValueOnce({ received: true, id: 'queued-during-reload', sourceUri: 'content://provider/second.zip', filename: 'second.zip' });
+    await attach(); emit('onSharedZip');
+    await coordinator.chooseZip(); await coordinator.beginImport('content://provider/ignored.zip', 'ignored.zip'); await coordinator.startSaving();
+    expect(mocks.pick).not.toHaveBeenCalled(); expect(mocks.importZip).not.toHaveBeenCalled(); expect(mocks.runSave).not.toHaveBeenCalled();
+    expect(mocks.native.consumePendingSharedZipAsync).not.toHaveBeenCalled();
+    expect(store.getState()).toMatchObject({ stage: 'selectFiles', zipUri: 'content://provider/first.zip' });
+    release(); release();
+    await vi.waitFor(() => expect(coordinator.pendingSharedZip()?.id).toBe('queued-during-reload'));
+    expect(mocks.native.consumePendingSharedZipAsync).toHaveBeenCalledOnce();
+    expect(mocks.importZip).not.toHaveBeenCalled();
+  });
+
+  it('cannot reserve a restart over a live import or cancel/drop its source', async () => {
+    const importing = deferred<ImportPipelineResult>(); mocks.importZip.mockReturnValueOnce(importing.promise);
+    const task = coordinator.beginImport('content://provider/live.zip', 'live.zip');
+    await vi.waitFor(() => expect(mocks.importZip).toHaveBeenCalledOnce());
+    await expect(coordinator.reserveAppRestart()).rejects.toThrow();
+    expect(mocks.native.cancelOperationAsync).not.toHaveBeenCalled(); expect(mocks.native.releaseSourceAsync).not.toHaveBeenCalled();
+    importing.resolve(imported()); await task;
+    expect(store.getState()).toMatchObject({ stage: 'selectFiles', zipUri: 'content://provider/live.zip' });
+  });
+
+  it('cannot reserve a restart over a live save and lets the same save finish durably', async () => {
+    store.getState().setZip({ uri: 'content://provider/first.zip', name: 'first.zip' }); store.getState().setImportResult(imported());
+    const saving = deferred<CompletionSummary>(); mocks.runSave.mockReturnValueOnce(saving.promise);
+    const task = coordinator.startSaving();
+    await vi.waitFor(() => expect(mocks.runSave).toHaveBeenCalledOnce());
+    await expect(coordinator.reserveAppRestart()).rejects.toThrow();
+    expect(mocks.native.cancelOperationAsync).not.toHaveBeenCalled();
+    saving.resolve(completion); await task;
+    expect(mocks.addHistory).toHaveBeenCalledOnce(); expect(mocks.native.acknowledgeOperationAsync).toHaveBeenCalledOnce();
+  });
+
+  it('invalidates Save A before discard cleanup awaits, and refuses that intent again after replacement B', async () => {
+    store.getState().setZip({ uri: 'content://provider/A.zip', name: 'A.zip' }); store.getState().setImportResult(imported());
+    const intent = coordinator.captureSaveIntent(); expect(intent).not.toBeNull();
+    const cleanup = deferred<null>(); mocks.native.getOperationSnapshotAsync.mockReturnValueOnce(cleanup.promise);
+    const discarding = coordinator.discardImport();
+    expect(store.getState().stage).toBe('selectFiles');
+    await coordinator.startSaving(intent!);
+    expect(mocks.runSave).not.toHaveBeenCalled(); expect(mocks.requestPermission).not.toHaveBeenCalled();
+    cleanup.resolve(null); await discarding;
+    mocks.importZip.mockImplementationOnce(async (params: ImportWhatsAppZipParams) => imported({ operationId: params.operationId, workingDirectory: 'file:///cache/chatstamp/B/', archiveFingerprint: 'b'.repeat(64) }));
+    await coordinator.beginImport('content://provider/B.zip', 'B.zip');
+    await coordinator.startSaving(intent!);
+    expect(mocks.runSave).not.toHaveBeenCalled(); expect(mocks.requestPermission).not.toHaveBeenCalled();
+    expect(store.getState()).toMatchObject({ stage: 'selectFiles', zipUri: 'content://provider/B.zip', workingDirectory: 'file:///cache/chatstamp/B/', error: undefined });
+  });
+
+  it('starts only one native save for two simultaneous valid requests from the same import intent', async () => {
+    store.getState().setZip({ uri: 'content://provider/A.zip', name: 'A.zip' }); store.getState().setImportResult(imported());
+    const intent = coordinator.captureSaveIntent(); expect(intent).not.toBeNull();
+    const saving = deferred<CompletionSummary>(); mocks.runSave.mockReturnValueOnce(saving.promise);
+    const first = coordinator.startSaving(intent!), second = coordinator.startSaving(intent!);
+    await vi.waitFor(() => expect(mocks.runSave).toHaveBeenCalledOnce());
+    expect(mocks.requestPermission).toHaveBeenCalledOnce();
+    saving.resolve(completion); await Promise.all([first, second]);
+    expect(mocks.addHistory).toHaveBeenCalledOnce(); expect(mocks.native.acknowledgeOperationAsync).toHaveBeenCalledOnce();
+  });
 });

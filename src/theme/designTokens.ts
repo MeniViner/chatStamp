@@ -11,17 +11,17 @@ export const spacing = {
 } as const;
 
 export const radius = {
-  card: 24,
-  largeCard: 32,
-  button: 28,
-  smallButton: 24,
-  chip: 18,
-  thumbnail: 14
+  card: 16,
+  largeCard: 16,
+  button: 16,
+  smallButton: 16,
+  chip: 16,
+  thumbnail: 16
 } as const;
 
 export const size = {
-  buttonHeight: 54,
-  smallButtonHeight: 46,
+  buttonHeight: 56,
+  smallButtonHeight: 48,
   chipHeight: 36,
   stickyFooterMinHeight: 92,
   iconContainer: 48,
@@ -38,12 +38,12 @@ export const appTypography = {
   sectionTitle: {
     fontSize: 16,
     lineHeight: 22,
-    fontWeight: '800' as const
+    fontWeight: '600' as const
   },
   cardTitle: {
     fontSize: 17,
     lineHeight: 24,
-    fontWeight: '800' as const
+    fontWeight: '600' as const
   },
   body: {
     fontSize: 16,

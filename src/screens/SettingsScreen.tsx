@@ -1,7 +1,6 @@
 import React from 'react';
 import { BackHandler, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import * as Application from 'expo-application';
-import { Directory, Paths } from 'expo-file-system';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Snackbar, Text } from 'react-native-paper';
 import { BottomSheet } from '../components/BottomSheet';
@@ -11,8 +10,11 @@ import { openOutputFolderPicker } from '../native/outputFolderPicker';
 import { usePipelineStore } from '../store/pipelineStore';
 import { useHistoryStore } from '../store/historyStore';
 import { useOnboardingStore } from '../store/onboardingStore';
-import { useSettingsStore } from '../store/settingsStore';
+import { useSettingsStore, type AppSettingsPatch } from '../store/settingsStore';
 import { syncI18nLanguage } from '../i18n';
+import { useLanguageRestartStore } from '../store/languageRestartStore';
+import { discardImport } from '../services/operationCoordinator';
+import { getChatStampNativeModule } from '../native/chatStampNativeModule';
 import { useAppTheme } from '../theme/useAppTheme';
 import { WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
@@ -45,6 +47,8 @@ export function SettingsScreen() {
   const [clearCacheOpen, setClearCacheOpen] = React.useState(false);
   const [clearHistoryOpen, setClearHistoryOpen] = React.useState(false);
   const [languageBusy, setLanguageBusy] = React.useState(false);
+  const languageReserved = React.useRef(false);
+  const restartRequired = useLanguageRestartStore((state) => state.required);
   const [organizationSheetOpen, setOrganizationSheetOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -56,6 +60,10 @@ export function SettingsScreen() {
       backSubscription.remove();
     };
   }, [closeOverlayStage]);
+
+  async function saveSettings(patch: AppSettingsPatch) {
+    try { await updateSettings(patch); } catch { setSnackbar(t('settings.saveFailed')); }
+  }
 
   async function chooseFolder() {
     try {
@@ -71,37 +79,43 @@ export function SettingsScreen() {
         customFolder: folder,
         customFolderTimestampSupport: null
       });
-    } catch (error) {
-      setSnackbar(error instanceof Error ? error.message : t('settings.folderPickFailed'));
+    } catch {
+      setSnackbar(t('settings.folderPickFailed'));
     }
   }
 
   async function applyLanguagePreference(languagePreference: AppLanguagePreference) {
-    setLanguageBusy(true);
+    if (languageReserved.current) return;
+    languageReserved.current = true; setLanguageBusy(true);
     try {
       await updateSettings({ languagePreference });
-      await syncI18nLanguage(languagePreference);
+      const required = await syncI18nLanguage(languagePreference);
+      useLanguageRestartStore.getState().setRequired(required, required);
+    } catch {
+      setSnackbar(t('settings.saveFailed'));
     } finally {
-      setLanguageBusy(false);
+      languageReserved.current = false; setLanguageBusy(false);
     }
   }
 
   async function clearCache() {
     try {
-      const cache = new Directory(Paths.cache);
-      if (cache.exists) cache.delete();
+      if (usePipelineStore.getState().workingDirectory) await discardImport();
+      await getChatStampNativeModule().cleanupStaleJobsAsync();
       setSnackbar(t('settings.cacheClearedBody'));
-    } catch (error) {
-      setSnackbar(error instanceof Error ? error.message : t('settings.couldNotClearCache'));
+    } catch {
+      setSnackbar(t('settings.couldNotClearCache'));
     } finally {
       setClearCacheOpen(false);
     }
   }
 
   async function confirmClearHistory() {
-    await clearHistory();
-    setClearHistoryOpen(false);
-    setSnackbar(t('settings.historyCleared'));
+    try {
+      await clearHistory();
+      setClearHistoryOpen(false);
+      setSnackbar(t('settings.historyCleared'));
+    } catch { setSnackbar(t('settings.saveFailed')); }
   }
 
   async function openSupportLink(url: string) {
@@ -123,7 +137,7 @@ export function SettingsScreen() {
             selected={settings.saveDestinationMode === 'default-accurate-folder'}
             badge={t('settings.recommended')}
             onPress={() =>
-              void updateSettings({
+              void saveSettings({
                 saveDestinationMode: 'default-accurate-folder',
                 useDefaultFolder: true
               })
@@ -143,7 +157,7 @@ export function SettingsScreen() {
             <SecondaryButton icon="folder-plus-outline" style={styles.compactButton} onPress={() => void chooseFolder()}>
               {t('settings.chooseFolder')}
             </SecondaryButton>
-            <SecondaryButton style={styles.compactButton} onPress={() => void resetSaveLocation()}>
+            <SecondaryButton style={styles.compactButton} onPress={() => { void resetSaveLocation().catch(() => setSnackbar(t('settings.saveFailed'))); }}>
               {t('settings.resetToDefault')}
             </SecondaryButton>
           </View>
@@ -155,7 +169,7 @@ export function SettingsScreen() {
             title={t('settings.alwaysUseMessageDate')}
             description={t('settings.alwaysUseMessageDateBody')}
             value={settings.alwaysUseMessageDate}
-            onValueChange={(alwaysUseMessageDate) => void updateSettings({ alwaysUseMessageDate })}
+            onValueChange={(alwaysUseMessageDate) => void saveSettings({ alwaysUseMessageDate })}
           />
         </Section>
 
@@ -175,8 +189,8 @@ export function SettingsScreen() {
             title={t('settings.createExportTimestampFolder')}
             value={settings.outputOrganization.createExportTimestampFolder}
             onValueChange={(value) =>
-              void updateSettings({
-                outputOrganization: { ...settings.outputOrganization, createExportTimestampFolder: value }
+              void saveSettings({
+                outputOrganization: { createExportTimestampFolder: value }
               })
             }
           />
@@ -190,11 +204,8 @@ export function SettingsScreen() {
                 selected={settings.outputOrganization.duplicateHandling === mode}
                 caution={mode === 'replace-existing'}
                 onPress={() =>
-                  void updateSettings({
-                    outputOrganization: {
-                      ...settings.outputOrganization,
-                      duplicateHandling: mode
-                    }
+                  void saveSettings({
+                    outputOrganization: { duplicateHandling: mode }
                   })
                 }
               />
@@ -206,6 +217,7 @@ export function SettingsScreen() {
           <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
             {t('settings.languageInfo')}
           </Text>
+          {restartRequired ? <SecondaryButton icon="restart" onPress={() => useLanguageRestartStore.getState().requestPrompt()}>{t('languageRestart.now')}</SecondaryButton> : null}
           <View style={styles.choiceList}>
             {languageOptions.map((languagePreference) => (
               <OptionChoiceCard
@@ -239,26 +251,26 @@ export function SettingsScreen() {
               title={t('settings.systemDefault')}
               description={t('settings.appearanceBodies.system')}
               selected={settings.appearance === 'system'}
-              onPress={() => void updateSettings({ appearance: 'system' })}
+              onPress={() => void saveSettings({ appearance: 'system' })}
             />
             <OptionChoiceCard
               title={t('settings.light')}
               description={t('settings.appearanceBodies.light')}
               selected={settings.appearance === 'light'}
-              onPress={() => void updateSettings({ appearance: 'light' })}
+              onPress={() => void saveSettings({ appearance: 'light' })}
             />
             <OptionChoiceCard
               title={t('settings.dark')}
               description={t('settings.appearanceBodies.dark')}
               selected={settings.appearance === 'dark'}
-              onPress={() => void updateSettings({ appearance: 'dark' })}
+              onPress={() => void saveSettings({ appearance: 'dark' })}
             />
           </View>
           <UiSettingRow
             title={t('settings.dynamicColors')}
             description={t('settings.dynamicColorsBody')}
             value={settings.useDynamicColors}
-            onValueChange={(value) => void updateSettings({ useDynamicColors: value })}
+            onValueChange={(value) => void saveSettings({ useDynamicColors: value })}
           />
         </Section>
 
@@ -277,7 +289,6 @@ export function SettingsScreen() {
           <SecondaryButton
             icon="play-circle-outline"
             onPress={() => {
-              closeOverlayStage('welcome');
               requestOnboardingReplay();
             }}
           >
@@ -287,12 +298,12 @@ export function SettingsScreen() {
             title={t('settings.developerModeToggle')}
             description={t('settings.developerModeBody')}
             value={settings.developerMode}
-            onValueChange={(value) => void updateSettings({ developerMode: value, showTechnicalLogs: value ? settings.showTechnicalLogs : false })}
+            onValueChange={(value) => void saveSettings(value ? { developerMode: true } : { developerMode: false, showTechnicalLogs: false })}
           />
           {settings.developerMode ? (
             <>
-              <UiSettingRow title={t('settings.showTechnicalLogs')} value={settings.showTechnicalLogs} onValueChange={(value) => void updateSettings({ showTechnicalLogs: value })} />
-              <UiSettingRow title={t('settings.keepCache')} value={settings.keepCacheAfterFailedRun} onValueChange={(value) => void updateSettings({ keepCacheAfterFailedRun: value })} />
+              <UiSettingRow title={t('settings.showTechnicalLogs')} value={settings.showTechnicalLogs} onValueChange={(value) => void saveSettings({ showTechnicalLogs: value })} />
+              <UiSettingRow title={t('settings.keepCache')} value={settings.keepCacheAfterFailedRun} onValueChange={(value) => void saveSettings({ keepCacheAfterFailedRun: value })} />
               <Detail icon="information-outline" label={t('settings.developerMode')} value={t('settings.developerModeBody')} />
             </>
           ) : null}
@@ -318,8 +329,8 @@ export function SettingsScreen() {
         settings={settings}
         onDismiss={() => setOrganizationSheetOpen(false)}
         onModeChange={(mode) =>
-          void updateSettings({
-            outputOrganization: { ...settings.outputOrganization, mode }
+          void saveSettings({
+            outputOrganization: { mode }
           })
         }
       />
