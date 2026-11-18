@@ -117,3 +117,33 @@ The QA APK passed package and permission inspection. It targets API 36, supports
 The Galaxy Note20 Ultra (SM-N986N, API 33) ran three connected tests with zero failures or skips. The connected tests used the app save service and verified original and rewritten JPEG, PNG, and WebP dates in the winter and summer offsets, an undated document, stable resumable entries and colliding names, and retention of a previous MP4 when a replacement date could not be verified. Five JVM tests verified both MP4 header widths, multiple tracks, extended size, the movie after media data, truncated headers, and replacement eligibility.
 
 The [Stage B app regression](../scripts/android-verification/README.md#stage-b-app-save-regression) uses the verified `com.menis.chatstamp.qa` APK. Expo installed it on the connected Samsung and ADB confirmed the QA activity. The handset then locked. The interactive app save, duplicate rerun, and Samsung Gallery order are `UNVERIFIED` until the fixture is imported and saved from the unlocked UI. The APK, manifest, Gradle logs, and fixture are under `dist/android-verification/stage-b/`.
+
+## Stage R · current physical baseline · 2026-11-18
+
+Recovered parent: `811a27561fc7733a7ccccbad25bab286013916e3`. Current device:
+Samsung Galaxy A30 SM-A305F, Android 11 / API 30, arm64, Gallery 12.1.09.1,
+Asia/Jerusalem. These results do not repeat or establish API 33 coverage.
+
+| Current command/check | Result |
+| --- | --- |
+| `npm ci` | PASS; 901 packages installed; audit reports 59 findings, triage deferred to F |
+| `npm run typecheck` | PASS |
+| `npm run test` | PASS; 112 tests / 28 files |
+| `npm run lint` | PASS |
+| `npx expo prebuild --platform android --clean` | PASS |
+| `./android/gradlew -p android --console=plain --max-workers=2 -I "$PWD/scripts/android-verification/device-test.init.gradle" :app:assembleDebug -PreactNativeArchitectures=arm64-v8a` | PASS; 252 executed tasks |
+| SDK `aapt dump badging android/app/build/outputs/apk/debug/app-debug.apk` | PASS; QA ID, min 30, target 36, no broad storage/media-read permission |
+| `./android/gradlew -p android --console=plain --max-workers=2 :chatstamp-native:testDebugUnitTest :chatstamp-native:connectedDebugAndroidTest -PreactNativeArchitectures=arm64-v8a` | PASS; XML: 5 JVM + 3 device tests; 0 failures/errors/skips |
+| QA install, cold `am start -W`, UI dump and process crash buffer | PASS; rendered onboarding; 2.919 s; no QA crash entries |
+| Baseline cleanup | PASS; QA uninstalled; stay-awake restored to 7 |
+
+Toolchain: Node 26.7.0, local Temurin 17, Android SDK/build-tools 36 and NDK
+27.1.12297006. Generated Android files and complete build logs are development
+intermediates, not evidence deliverables. New compact results use
+`dist/android-verification/rebuild-20261118/` across this continuation.
+
+B-close app save, Gallery, duplicate and undated-file acceptance remain
+`UNVERIFIED` until the next physical run. A passing connected storage test does
+not stand in for those app/Gallery cases.
+
+Verification tooling also passes 18 Python host tests (`python3 -m unittest discover -s scripts/android-verification -p 'test_*.py' -v`). The five-media and undated fixture generation passed using the installed cwebp fallback.

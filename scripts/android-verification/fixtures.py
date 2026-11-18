@@ -2,8 +2,9 @@ import argparse
 import shutil
 import struct
 import subprocess
+import tempfile
 from pathlib import Path
-from zipfile import ZIP_STORED, ZipFile
+from zipfile import ZIP_STORED, ZipFile, ZipInfo
 
 
 from qa import ROOT, STEM
@@ -25,8 +26,28 @@ def encode(name, *options):
 
 
 def image(name, color, codec):
-    return encode(name, "-f", "lavfi", "-i", f"color=c={color}:s=320x240",
-                  "-frames:v", "1", "-c:v", codec)
+    options = ("-f", "lavfi", "-i", f"color=c={color}:s=320x240", "-frames:v", "1", "-c:v")
+    try:
+        return encode(name, *options, codec)
+    except subprocess.CalledProcessError as error:
+        if codec != "libwebp":
+            raise
+        destination = assets / name
+        destination.unlink(missing_ok=True)
+        cwebp = shutil.which("cwebp")
+        if not cwebp:
+            raise RuntimeError("WebP fixtures require FFmpeg's libwebp encoder or the cwebp command.") from error
+        print("try another way: create a temporary PNG and encode the WebP fixture with cwebp.")
+        completed = False
+        try:
+            with tempfile.TemporaryDirectory(prefix="chatstamp-webp-", dir=assets) as temporary:
+                source = encode(Path(temporary) / "source.png", *options, "png")
+                subprocess.run([cwebp, "-quiet", str(source), "-o", str(destination)], check=True)
+            completed = True
+            return destination
+        finally:
+            if not completed:
+                destination.unlink(missing_ok=True)
 
 
 def video(name, color, embedded_date):
@@ -46,6 +67,16 @@ def export(suffix, transcript, files):
             else:
                 archive.writestr(name, content)
     print(f"{path.name} {path.stat().st_size} bytes")
+
+
+def export_undated():
+    path = zips / f"{STEM}-undated.zip"
+    with ZipFile(path, "w", ZIP_STORED) as archive:
+        archive.writestr("_chat.txt", "15/02/2019, 10:30 - Dana: An unmatched document follows.\n")
+        # Zero DOS time/date and no timestamp extra field represent an absent entry date.
+        archive.writestr(ZipInfo("undated.vcf", (1980, 0, 0, 0, 0, 0)), contact)
+    print(f"{path.name} {path.stat().st_size} bytes")
+    return path
 
 
 def storage_probe(photo_old, video_old, photo_new, preview_png, video_new, sticker, voice):
@@ -133,6 +164,7 @@ def main():
     export("mixed", transcript, mixed_files)
     export("text-only", "15/02/2019, 10:30 - Dana: Text-only import fixture.\n", {})
     export("no-transcript", None, {photo_old.name: photo_old})
+    export_undated()
     (zips / f"{STEM}-invalid.zip").write_bytes(b"Test data deliberately missing a ZIP header.\n")
 
     if args.probe:

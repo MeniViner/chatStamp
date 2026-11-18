@@ -156,3 +156,76 @@ Manual Android verification:
 ## Final acceptance criteria
 
 The MVP is accepted only when a real Android device shows selected media in Gallery sorted by original WhatsApp message date.
+
+## Active v4 continuation — 2026-11-18
+
+### Goal and recovered state
+
+Resume from the pushed scoped-storage implementation, accept its real app save,
+finish robust import/save and the picker, and prepare a truthful Google Play
+closed-test release. The authorized order is **R → B-close → C → G1 → D → E → F → G2**.
+Earlier dated observations above remain historical evidence, not current acceptance.
+
+- Recovery began on clean `main` at `2a76514`, with no stashes. `git fetch origin`
+  discovered `origin/fix/core-rebuild` at `811a27561fc7733a7ccccbad25bab286013916e3`.
+  Tracking checkout and `git pull --ff-only origin fix/core-rebuild` matched that head.
+- The currently attached and unlocked device is Samsung Galaxy A30 SM-A305F,
+  Android 11 / API 30, arm64, Samsung Gallery 12.1.09.1, Asia/Jerusalem.
+  The historical API 33 Note20 is not attached. Report device coverage separately.
+- Use only `com.menis.chatstamp.qa` for app acceptance. Preserve the production
+  package. Restore the prior stay-awake setting (7) after device runs and remove
+  the run's QA packages, fixtures, and saved files.
+- Existing release signing configuration and keystore are outside this repository.
+  Their presence does not establish a validated or uploaded release. Do not expose
+  their contents or create a replacement key.
+
+### Milestones and verification
+
+- [x] R: run the complete host/native smoke with nonzero test counts, update
+  repository instructions, remove obsolete prompts, review, commit `stage-r:`, push.
+- [ ] B-close: five-file picker save; separate saved/date-verified UI outcomes;
+  independent MediaStore and MP4 readback; Samsung Gallery order and red-photo
+  details; duplicate and language-change reruns; undated-document save.
+- [ ] C: single-pass content-URI streaming and fingerprint; bounded extraction;
+  TypeScript transcript selection; real progress; cancellation; dataSync foreground
+  save and reattachment; one-shot cold/warm share events; cache/grant cleanup;
+  coded errors; atomic split history with migration and orphan reconciliation.
+- [ ] G1: check current official Play requirements; build and validate signed
+  0.2.0 (3) AAB; verify 16 KiB native alignment and minified QA release save;
+  bilingual privacy policy, listing, declarations, tester invitation, and upload
+  or exact manual handoff. No Play Console UI automation.
+- [ ] D: baseline 40-video reproduction; bounded native thumbnails; virtualized
+  grid and compact rows; set selection; full-screen viewer with one video player;
+  filter-consistent aggregates; unit/render/device checks; increment test release.
+- [ ] E: Import → Select → Save; two-page onboarding; safe insets; accessible
+  bilingual visual system; I18nManager restart flow; API 30 physical checks and
+  requested API 33/API 36 checks reported according to actual availability.
+- [ ] F: remove replaced code; align docs; pinned CI and nonzero native tests;
+  shipped dependency audit disposition; fresh-checkout verification.
+- [ ] G2: final closed-track update or package; open one PR to main, do not merge;
+  prepare production-access answers and owner-run real-export acceptance steps.
+
+For every stage, separate implementer, acceptance-test author, and reviewer roles.
+Run `npm ci`, typecheck, Vitest, ESLint, clean Android prebuild, arm64 QA assembly
+with two workers, APK/manifest inspection, JVM and connected native tests, and
+the stage's device cases. Fix failures and restart the smoke cycle from npm ci.
+On macOS use `./android/gradlew -p android` in place of the Windows wrapper.
+Keep production native changes in the Expo module/config plugin, never generated
+`android/`. Commit and push each completed stage without force-pushing.
+
+### Evidence and open risks
+
+Keep only new concise reports/readbacks and essential synthetic screenshots in
+one curated evidence output set, below **10,000,000 bytes in total**. Build outputs,
+fixture archives, dependencies, and full logs are development intermediates and
+must not be placed in that evidence set. Check the final cumulative byte count.
+Keep tracked stage summaries in REBUILD_LOG.md and VERIFICATION.md current.
+
+- B app/Gallery acceptance remains open until the current run completes.
+- API 33 and API 36 are not established by API 30 results.
+- Defer arbitrary provider-revocation simulation and crash recovery beyond cleanup
+  of the operation's own orphaned pending MediaStore rows.
+- Real WhatsApp export acceptance requires the owner and remains UNVERIFIED until
+  performed. Never commit a real export or include it in evidence.
+- Play credentials, account type, app-entry existence, Pages publication and tester
+  recruitment have not yet been checked; none are assumed complete.

@@ -56,3 +56,36 @@ Record the rendered first screen and QA process crash log. Complete or skip onbo
 - Host smoke passed npm ci, typecheck, 112 Vitest tests, ESLint, clean Expo prebuild, and arm64 QA assembly. The current suite replaces legacy permission and date-diagnostic assertions with the scoped storage checks. The native test XML reports five JVM and three Samsung tests with zero failures or skips.
 - Reviewed against `docs/CODE_REVIEW.md`. The save code streams one file at a time, limits scratch preparation to available space, cleans failed owned rows, and restricts the app FileProvider to the import cache. History deletion targets individual files and checks ownership before deleting MediaStore rows.
 - Expo installed the verified QA APK on the connected Samsung and opened the QA activity. The interactive import, gallery sort, and duplicate rerun need an unlocked screen. See the [Stage B app regression steps](../scripts/android-verification/README.md#stage-b-app-save-regression).
+
+## Stage R · recovered macOS baseline · 2026-11-18
+
+- Recovery inspected status, stashes, branches, recent commits and origin before
+  editing. Clean `main` at `2a76514` had no stashes. Fetch discovered the pushed
+  `fix/core-rebuild` at `811a27561fc7733a7ccccbad25bab286013916e3`; tracking checkout
+  and fast-forward-only pull matched origin without discarding or rewriting work.
+- The current physical phone is Galaxy A30 SM-A305F, Android 11 / API 30, arm64,
+  Samsung Gallery 12.1.09.1, Asia/Jerusalem. The historical Note20/API33 results
+  remain historical. The phone was unlocked; its previous stay-awake value was 7.
+- Implementer updated AGENTS.md for the actual bilingual Kotlin/scoped-storage
+  stack and v4 release sequence and removed the four obsolete prompts. No active
+  callers reference those prompts; the already-obsolete FILE_TREE.txt is left
+  for Stage F. The active v4 continuation is appended to the ExecPlan.
+- Acceptance-test author added run-scoped working-directory support, an undated
+  VCF fixture, strict five-file timestamp and duplicate inventory assertions,
+  and namespace/ownership-checked cleanup. Reviewer caught a query that could
+  miss sibling duplicate folders; the query now searches the QA-owned run across
+  destinations before asserting the expected five identities.
+- Smoke passed: `npm ci`, TypeScript, 112 Vitest tests in 28 files, ESLint,
+  clean Expo Android prebuild, arm64 QA debug assembly with two workers, APK
+  inspection, five JVM tests and three connected tests, all with zero failures
+  or skips. The inspected APK is `com.menis.chatstamp.qa`, min SDK 30, target 36,
+  with no broad storage or media-read permission. QA cold launch took 2.919 s;
+  onboarding rendered and its process crash buffer was empty.
+- The QA app was uninstalled after the baseline run and stay-awake restored to 7.
+  The production package was absent and was not installed or changed. Build and
+  fixture intermediates stay outside the compact evidence set.
+- Fixture portability: the installed FFmpeg lacks `libwebp`. **try another way**:
+  use the available `cwebp` encoder with a temporary FFmpeg-generated PNG; retain
+  the requested WebP fixture and clean its intermediate. This is verification
+  tooling, not a change to application media/date behavior.
+- Final verification-helper validation: 18 Python host tests passed; the five-media and undated fixtures generated successfully with the WebP fallback. Final independent R diff review found no remaining actionable findings.

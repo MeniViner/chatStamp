@@ -103,3 +103,39 @@ In Samsung Gallery, open the run album and confirm the same order and red JPEG d
 ```powershell
 python scripts/android-verification/cleanup-device.py
 ```
+
+
+## macOS/Linux continuation and compact evidence
+
+Use JDK 17 and Android SDK 36. The local signing document records the existing
+macOS toolchain paths. Replace the Windows wrapper with `./android/gradlew -p android`
+and use an absolute path for `-I`. Keep the two-worker and arm64 settings above.
+Before a physical run record `adb shell settings get global stay_on_while_plugged_in`,
+run `adb shell svc power stayon usb`, wake with `adb shell input keyevent KEYCODE_WAKEUP`,
+and inspect `adb shell dumpsys window policy` for an unlocked keyguard. Do not unlock
+a locked phone. Restore the recorded setting when finished.
+
+Set a short run ID and a temporary **working** directory so large fixture archives,
+assets, pulled media and full build logs are not included in the curated evidence:
+
+```bash
+export CHATSTAMP_QA_RUN_ID=b-20261118
+export CHATSTAMP_QA_WORK_ROOT=/tmp/chatstamp-runtime-20261118/stage-b-work
+python3 -m unittest discover -s scripts/android-verification -p 'test_*.py' -v
+python3 scripts/android-verification/fixtures.py --skip-large --gallery-five
+python3 scripts/android-verification/device.py prepare mixed
+python3 scripts/android-verification/media-evidence.py --assert-gallery-five --snapshot /absolute/evidence/stage-b-first.json
+```
+
+After each duplicate rerun, repeat readback with `--compare /absolute/evidence/stage-b-first.json`
+and a new `--snapshot` path. Inventory covers QA-owned rows for the synthetic chat
+across roots and sibling folders, so unchanged original IDs cannot hide extra copies.
+The additional `undated` fixture contains an unmatched VCF without a filename date,
+message date, or raw ZIP date. Select only that document and verify saved/date-unavailable.
+Save its exact URI, filename and relative_path in a small JSON list and pass that
+file using `cleanup-device.py --evidence /absolute/evidence/undated.json`.
+
+Keep all curated reports/readbacks and essential synthetic screenshots in one output
+set below 10,000,000 bytes, cumulatively across the current answer. Exclude build
+outputs, ZIP fixtures, pulled media, raw logs and videos from that evidence set.
+Only retain evidence newly generated or materially updated during the current run.

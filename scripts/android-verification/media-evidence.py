@@ -7,7 +7,7 @@ import struct
 import subprocess
 from pathlib import Path
 
-from qa import GALLERY_FOLDER, ROOT, adb
+from qa import CHAT_SEGMENTS, GALLERY_FOLDER, PACKAGE, ROOT, adb
 
 
 EXPECTED_LOCAL = {
@@ -72,24 +72,61 @@ def probe_video(path):
 
 
 def query(collection):
-    where = shlex.quote(f"relative_path LIKE '{GALLERY_FOLDER}%'")
+    # Search this QA-owned synthetic run across destinations, including duplicate siblings.
+    where = shlex.quote(
+        f"owner_package_name = '{PACKAGE}' AND relative_path LIKE '%/{CHAT_SEGMENTS['mixed']}%'"
+    )
     uri = f"content://media/external/{collection}/media"
     projection = "_id:_display_name:relative_path:datetaken:date_modified:date_added"
     return adb("shell", f"content query --uri {uri} --projection {projection} --where {where}")
 
 
+def assert_gallery_five(saved, inventory):
+    if len(inventory) != 5 or {item["_display_name"] for item in inventory} != set(EXPECTED_LOCAL):
+        raise ValueError("Expected exactly five Gallery fixture rows, with no duplicate names or folders.")
+    if any(not item["relative_path"].startswith(GALLERY_FOLDER) for item in inventory):
+        raise ValueError("Gallery fixtures are outside the expected chat destination.")
+    if len(saved) != 5 or {item["file"] for item in saved} != set(EXPECTED_LOCAL):
+        raise ValueError("Expected readback for exactly five Gallery fixture rows.")
+    for item in saved:
+        expected = dt.datetime.fromisoformat(EXPECTED_LOCAL[item["file"]])
+        internal = item["internal_date"]
+        if isinstance(internal, str):
+            decoded = dt.datetime.fromisoformat(internal.replace("Z", "+00:00"))
+        else:
+            decoded = dt.datetime.fromisoformat(
+                dt.datetime.strptime(internal["DateTimeOriginal"], "%Y:%m:%d %H:%M:%S").isoformat()
+                + internal["OffsetTimeOriginal"]
+            )
+        if not item["matches_taken"] or not item["matches_modified"] or abs((decoded - expected).total_seconds()) > 2:
+            raise ValueError(f"Timestamp readback differs for {item['file']}.")
+
+
+def assert_same_rows(saved, baseline):
+    def identities(items):
+        return sorted((item["file"], item["uri"], item["relative_path"]) for item in items)
+    if identities(saved) != identities(baseline):
+        raise ValueError("The duplicate rerun changed MediaStore row IDs, file names, or destination folders.")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Capture MediaStore and file timestamps for the Gallery fixture")
     parser.add_argument("--assert-gallery-five", action="store_true", help="Require all five embedded and indexed timestamps")
+    parser.add_argument("--snapshot", type=Path, help="Also write the small readback JSON to this exact evidence path")
+    parser.add_argument("--compare", type=Path, help="Require the same row IDs, names and folders as this previous readback JSON")
     args = parser.parse_args()
     output = ROOT / "saved-files"
-    output.mkdir(exist_ok=True)
+    output.mkdir(parents=True, exist_ok=True)
     saved = []
+    inventory = []
     for collection in ("images", "video"):
         rows = query(collection)
         print(rows)
         for line in rows.splitlines():
             fields = dict(re.findall(r"(\w+)=([^,]+)", line))
+            if "_id" not in fields:
+                continue
+            inventory.append(fields)
             name = fields.get("_display_name", "")
             if name not in EXPECTED_LOCAL:
                 continue
@@ -104,6 +141,7 @@ def main():
             saved.append({
                 "file": name,
                 "uri": f"content://media/external/{collection}/media/{fields['_id']}",
+                "relative_path": fields["relative_path"],
                 "expected_utc": as_utc(expected),
                 "filesystem_utc": as_utc(fstat),
                 "date_taken_utc": as_utc(taken_seconds) if taken_seconds is not None else None,
@@ -115,22 +153,14 @@ def main():
             })
     evidence = json.dumps(saved, indent=2)
     (ROOT / "media-evidence.json").write_text(evidence + "\n", encoding="utf-8")
+    if args.snapshot:
+        args.snapshot.parent.mkdir(parents=True, exist_ok=True)
+        args.snapshot.write_text(evidence + "\n", encoding="utf-8")
     print(evidence)
     if args.assert_gallery_five:
-        if len(saved) != 5 or {item["file"] for item in saved} != set(EXPECTED_LOCAL):
-            raise SystemExit("Expected exactly five Gallery fixture rows.")
-        for item in saved:
-            expected = dt.datetime.fromisoformat(EXPECTED_LOCAL[item["file"]])
-            internal = item["internal_date"]
-            if isinstance(internal, str):
-                decoded = dt.datetime.fromisoformat(internal.replace("Z", "+00:00"))
-            else:
-                decoded = dt.datetime.fromisoformat(
-                    dt.datetime.strptime(internal["DateTimeOriginal"], "%Y:%m:%d %H:%M:%S").isoformat()
-                    + internal["OffsetTimeOriginal"]
-                )
-            if not item["matches_taken"] or not item["matches_modified"] or abs((decoded - expected).total_seconds()) > 2:
-                raise SystemExit(f"Timestamp readback differs for {item['file']}.")
+        assert_gallery_five(saved, inventory)
+    if args.compare:
+        assert_same_rows(saved, json.loads(args.compare.read_text(encoding="utf-8")))
 
 
 if __name__ == "__main__":
