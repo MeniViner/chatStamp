@@ -15,10 +15,7 @@ import androidx.core.app.ServiceCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -26,7 +23,8 @@ import java.io.File
 class SaveForegroundService : Service() {
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
   private var running: Job? = null
-  private var operationId: String? = null
+  @Volatile private var operationId: String? = null
+  private var stoppedOperationId: String? = null
   private var options: ScopedSaveOptions? = null
 
   override fun onCreate() {
@@ -42,63 +40,47 @@ class SaveForegroundService : Service() {
     }
   }
 
-  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = startSaveCommand(intent, startId)
+
+  private fun startSaveCommand(intent: Intent?, startId: Int): Int {
     val id = intent?.getStringExtra(idExtra) ?: run { stopSelf(startId); return START_NOT_STICKY }
     if (intent.action == cancelAction) {
-      scope.launch {
-        NativeOperations.cancelAndAwait(id)
-        ServiceCompat.stopForeground(this@SaveForegroundService, ServiceCompat.STOP_FOREGROUND_REMOVE)
+      if (operationId == null) {
+        NativeOperations.cancel(id)
         stopSelf(startId)
-      }
+      } else cancelAndStop(id)
       return START_NOT_STICKY
     }
-    if (running?.isActive == true) return START_NOT_STICKY
+    val previous = operationId?.let(NativeOperations::find)
+    if (saveWorkerIsBusy(running, previous)) return START_NOT_STICKY
     operationId = id
+    stoppedOperationId = null
     try {
       val (items, settings) = readInput(this, id)
       options = settings
       val operation = NativeOperations.find(id) ?: throw OperationFailure("IO_ERROR", "The save operation is unavailable.")
+      if (operation.progress.terminal) {
+        launchSaveFinalizer(scope) { stopIfOwned(id) }
+        return START_NOT_STICKY
+      }
       val manager = getSystemService(NotificationManager::class.java)
       manager.createNotificationChannel(NotificationChannel(channelId, settings.notificationTitle, NotificationManager.IMPORTANCE_LOW))
       ServiceCompat.startForeground(this, notificationId, notification(operation, settings), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-      val work = scope.launch {
-        try {
-          operation.checkCancelled()
-          val result = ScopedMediaSaver(applicationContext, operation).save(items, settings)
-          withContext(NonCancellable) { NativeOperations.finish(applicationContext, operation, "completed", result) }
-        } catch (error: Throwable) {
-          val failure = failureFor(error, operation.cancelled.get())
-          withContext(NonCancellable) {
-            // The saver finishes non-cancellable pending-row and scratch cleanup before unwinding here.
-            val completed = operation.completedResults()
-            val done = completed.mapNotNull { it["entryId"] as? String }.toSet()
-            val rest = items.filter { it.entryId !in done }.map { item ->
-              bridgeObject(echoDateContext(JSONObject()
-                .put("entryId", item.entryId).put("filename", item.filename)
-                .put("mediaType", item.mediaType).put("mimeType", item.mimeType)
-                .put("outcome", if (failure.code == "CANCELLED") "cancelled" else "failed")
-                .put("ok", false).put("dateVerification", "unverified")
-                .put("failureCode", failure.code).put("failureReason", failure.message), item))
-            }
-            val result = mapOf("mode" to if (settings.treeUri == null) "scoped-media-store" else "saf-custom-folder",
-              "results" to completed + rest)
-            NativeOperations.finish(applicationContext, operation,
-              if (failure.code == "CANCELLED") "cancelled" else "failed", result, failure)
-          }
-        } finally {
-          withContext(NonCancellable) {
-            ServiceCompat.stopForeground(this@SaveForegroundService, ServiceCompat.STOP_FOREGROUND_REMOVE)
-            stopSelf(startId)
-          }
-        }
-      }
+      val work = launchSaveWorker(scope, applicationContext, operation, items, settings,
+        onStopped = { stopIfOwned(id) })
       running = work
       operation.worker = work
     } catch (error: Throwable) {
-      val failure = failureFor(error)
-      NativeOperations.find(id)?.let { NativeOperations.finish(this, it, "failed", error = failure) }
-      ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
-      stopSelf(startId)
+      val operation = NativeOperations.find(id)
+      val work = launchSaveFinalizer(scope) {
+        var failure = failureFor(error)
+        try { stopIfOwned(id) } catch (stopping: Throwable) {
+          failure = OperationFailure("IO_ERROR", "The foreground save service could not be stopped.", cause = stopping)
+        }
+        operation?.let { NativeOperations.finish(applicationContext, it, "failed", error = failure) }
+      }
+      running = work
+      operation?.worker = work
     }
     return START_NOT_STICKY
   }
@@ -106,17 +88,32 @@ class SaveForegroundService : Service() {
   override fun onTimeout(startId: Int, fgsType: Int) {
     // Cancellation closes the current streams; the worker stops the service after awaited cleanup.
     val id = operationId
-    if (id == null || running?.isActive != true) {
-      ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
-      stopSelf(startId)
+    if (id == null) {
+      try { ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE) }
+      finally { stopSelf(startId) }
       return
     }
-    scope.launch {
+    cancelAndStop(id)
+  }
+
+  private fun cancelAndStop(id: String) {
+    val worker = if (operationId == id) running else null
+    NativeOperations.cancel(id)
+    launchSaveFinalizer(scope) {
       NativeOperations.cancelAndAwait(id)
-      ServiceCompat.stopForeground(this@SaveForegroundService, ServiceCompat.STOP_FOREGROUND_REMOVE)
-      stopSelf(startId)
+      worker?.join()
+      stopIfOwned(id)
     }
   }
+
+  private suspend fun stopIfOwned(id: String) = stopSaveIfOwned(id,
+    currentOperationId = { operationId.takeUnless { stoppedOperationId == it } },
+    onStop = {
+      try { ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE) }
+      finally {
+        try { stopSelf() } finally { stoppedOperationId = id }
+      }
+    })
 
   override fun onDestroy() {
     operationId?.let { NativeOperations.cancel(it) }
