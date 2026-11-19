@@ -14,7 +14,7 @@ R → B-close → C → G1 → D → E → F → G2 are implemented and accepted
 
 Code 11 closes the native pre-dispatch cancellation finding with atomic worker entry, cancellation checks inside try/finally, awaited cleanup and main-thread-owned service stop before terminal publication. Independent coverage adds 13 JVM and 5 native lifecycle cases; changing only ATOMIC to DEFAULT makes 4 JVM cases and the actual pre-start native case fail. Source review is CLEAR. On the exact minified code 11 QA build, the A30 passes five-file independent dates, existing Gallery order/Details, HE/EN duplicates, fresh native RTL and persisted English. Its new 1 GiB/four-video background run completes 4 saved/4 verified and supplies the fresh demo. API 36 passes notification-denied saves, two cold disjoint History copies and the actual OS dataSync timeout: 12 complete/verified, 12 cancelled, no foreground service or partial row afterward.
 
-The eight store PNGs retain their actual code 9 capture provenance for the unchanged depicted UI. The final video is a fresh actual code 11 recording. API 33 physical, the owner's real WhatsApp export, actual 16 KiB execution, the full UI matrix and Play/tester eligibility remain UNVERIFIED with exact steps. Manual upload is the authorized fallback without a service account. PR #1 is open and unmerged; production was never installed or replaced. Final cleanup and documentation-head CI are recorded in the closing dated verification entry.
+The eight store PNGs retain their actual code 9 capture provenance for the unchanged depicted UI. The final video is a fresh actual code 11 recording. API 33 physical, the owner's real WhatsApp export, actual 16 KiB execution, the full UI matrix and Play/tester eligibility remain UNVERIFIED with exact steps. The owner subsequently authorized Console UI setup: app4974511742201615518 is created, code11internal is active, Alpha11/listings/all5tester lists are saved, and IARC terms/content rating is the remaining submission gate. No closed availability or qualifying period is inferred. PR #1 is open and unmerged; production was never installed or replaced. Final cleanup and documentation-head CI are recorded in the closing dated verification entry.
 
 ## Implemented decisions and boundaries
 
@@ -51,7 +51,7 @@ The eight store PNGs retain their actual code 9 capture provenance for the uncha
 - Complete: final code 11 native fix, independent red-to-green controls, source review, full smoke, app-source CI, signed/static artifacts and affected minified runtime.
 - Complete: one dedicated final product set, fresh foreground demo, bilingual listing/declaration/tester/manual guides; eight screenshots preserve their actual code 9 provenance.
 - Complete: phone 17-output/two-ZIP cleanup and exact original settings restored; emulator 46-output/two-ZIP cleanup, control restoration, independent readback and shutdown. Final documentation/assets-head CI and measured evidence size are linked in the local REPORT.
-- G2 owner gates: PR review/merge decision, real-export acceptance, actual Play upload/availability and genuine account/tester facts remain UNVERIFIED. The agent does not merge or automate Console.
+- G2 owner gates: PR review/merge decision, real-export acceptance, actual Play upload/availability and genuine account/tester facts remain UNVERIFIED. The agent does not merge; subsequent Console UI work is owner-authorized, with additional IARC agreement still pending.
 
 ## Open risks and exact follow-up
 

@@ -1,6 +1,6 @@
 # Google Play listing package
 
-Final listing updated **2026-11-19** for **0.2.0 (11)**. This folder is the tracked listing output set. The eight screenshots retain their actual code 9 capture provenance for the unchanged depicted UI; the final code 11 demo is separate. No Console upload or live listing is established by these files. The public privacy page was reverified HTTP 200 on 2026-11-19; rendering from the installed app still needs the owner's browser first-run completion. Start with [PLAY_UPLOAD_STEPS.md](../../docs/PLAY_UPLOAD_STEPS.md); declarations and release gates are in [PLAY_RELEASE_CHECKLIST.md](../../docs/PLAY_RELEASE_CHECKLIST.md).
+Final listing updated **2026-11-19** for **0.2.0 (11)** and **saved in the actual Play Console** in English and Hebrew (`iw-IL` in Console). Logo, feature banner and four phone screenshots per language are assigned in Import/Select/Saving/Results order. The eight PNGs retain their actual code 9 capture provenance for the unchanged depicted UI. AI-assisted brand graphics were labeled individually; actual screenshots were not labeled AI. Internal code 11 is active; the public listing/Alpha changes remain pending submission, with content rating/IARC approval open. The fresh code 11 demo is separately hosted for review. Public policy HTTP 200 was verified; in-app browser rendering still needs owner acceptance. See [current Console steps](../../docs/PLAY_UPLOAD_STEPS.md).
 
 ## Text files
 

@@ -1,8 +1,8 @@
 # Closed-test invitations and owner test record
 
-Prepared **2026-11-19**. No tester count, opt-in period, live Play release or owner real-export result has been verified. The personal account's creation date is unknown. Plan for at least 12 testers continuously opted into closed testing for 14 days; the exact applicability and eligibility must be confirmed by the owner in Console. Internal testing does not satisfy that requirement. [Official personal-account requirements](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en).
+Updated **2026-11-19** after actual Console setup. **0.2.0 (11) is active on internal testing**; the [internal opt-in link](https://play.google.com/apps/internaltest/4700119235354966099) is enabled. Alpha code 11 is saved but **not yet submitted/available**, pending IARC terms approval/content rating. Console explicitly requires at least **12 testers continuously opted into closed testing for 14 days** and currently shows zero closed opt-ins. Internal participation and list membership do not satisfy this gate. No qualifying period, external feedback or owner real-export pass is established. The personal account creation date remains unknown. [Official requirement](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en).
 
-The verified local candidate is **0.2.0 (versionCode 11)**, ready for the private owner acceptance below. **No uploaded Play track or working opt-in URL is asserted.** Confirm that the exact final QA candidate is installed before starting; agent-run synthetic checks do not complete this owner run.
+The verified candidate is **0.2.0 (versionCode 11)**. All existing lists—**list1, list2, Tank Malle – Internal, חברים, משפחה**—were saved for internal and Alpha access. Their 20 listed memberships may overlap and are not 20 unique or opted-in testers. **No invitation email has been sent.** Deliver the actual closed link only after the closed release becomes available; do not send the internal link as a qualifying closed-test invitation. Confirm the exact installed build before the private owner run below.
 
 ## Owner setup
 
