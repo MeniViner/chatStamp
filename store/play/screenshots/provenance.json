@@ -2,10 +2,10 @@
   "updatedAt": "2026-11-19",
   "candidate": {
     "version": "0.2.0",
-    "versionCode": 6,
-    "appSource": "3f4ab911ed8daa741bd9b92eec43d849403481ac",
-    "qaApkSha256": "33031bd87f77a5bfa8cbb374be3a392c48dc471eb54a3f22da21a5cad4071fed",
-    "productionAabSha256": "591654c0bbe5c7e118acfe32e68e45156559251f12738a9c2bfb780cf5062394"
+    "versionCode": 9,
+    "appSource": "a3dea2a649af15d31bfce180880c50c2ebe8e623",
+    "qaApkSha256": "15a8b5561014d650f108fc97c3d3ddf3c79a44ebd540f734227d49104814e002",
+    "productionAabSha256": "242142cf2ab4d54b8e819380f3b69900713b69d7d563d29d79a103b4d971e752"
   },
   "device": {
     "model": "Samsung Galaxy A30 SM-A305F",
@@ -20,79 +20,85 @@
     "density": 420,
     "fontScale": 1.0
   },
-  "capture": "Actual physical ADB screencap; FFmpeg RGB24 conversion only. No image generation, content edits, crop or rescaling. Temporary display size was set before the run to satisfy Play 2:1 aspect. Native RTL restart applied separately for each app language.",
+  "capture": "Actual physical ADB screencap; FFmpeg RGB24 conversion only. No image generation, content edits, crop or rescaling. Temporary display size set before capture for Play2:1 aspect. Fresh system-HE first Import is RTL before Settings/remount; explicit EN native restart plus persisted cold first Import are LTR.",
   "syntheticRuns": {
-    "01-import": "Empty import screen.",
-    "02-selection": "chatstamp-qa-f-1119-mixed; five Gallery files selected, TXT unchecked.",
-    "03-saving": "Fresh four-video512MiB export for the corresponding language; actual preparation/progress state, not a staged completed run.",
-    "04-results-en": "Actual4saved/4verified background demo.",
-    "04-results-he": "Actual5saved/5verified mixed regression."
+    "01-import": "Actual empty Import; HE first surface, EN after explicit native restart.",
+    "02-selection": "chatstamp-qa-f9-1119-mixed; five Gallery media selected, transcript unchecked.",
+    "03-saving-he": "Actual four-video512MiB HE save.",
+    "03-saving-en": "Actual four-video1GiB EN save used for the demo.",
+    "04-results-en": "Actual4saved/4verified EN background demo.",
+    "04-results-he": "Actual5saved/5verified HE mixed regression."
   },
   "files": [
     {
       "file": "screenshots/en-US/01-import.png",
-      "sha256": "7f631be385730533ab99a1610d119c73531fa8a43562a89f9a5fa780b8a3e7f0",
-      "bytes": 118118,
+      "sha256": "9f05694b4be8d14cacbbb16a22ac227c5860b6ce78d8c4de72e39095bfe4cbad",
+      "bytes": 117520,
       "width": 1080,
       "height": 2160,
       "pix_fmt": "rgb24"
     },
     {
       "file": "screenshots/en-US/02-selection.png",
-      "sha256": "b2760b17463dd808273ae3d43f979bf6f5ed6689338a75c3d7337fc306f0c139",
-      "bytes": 140761,
+      "sha256": "47254badd6ed24f60a854fc9a76dc5e1aff18b832cd9bb63208c9c52494287b7",
+      "bytes": 140497,
       "width": 1080,
       "height": 2160,
       "pix_fmt": "rgb24"
     },
     {
       "file": "screenshots/en-US/03-saving.png",
-      "sha256": "069cd946920d6b56bebfef095464f3d028533b0ffdd2db58f2b44576247d88b2",
-      "bytes": 61985,
+      "sha256": "8319161048bcdc159ce99c6df0bb108309d11abc20b7936731f051c58654517b",
+      "bytes": 70530,
       "width": 1080,
       "height": 2160,
       "pix_fmt": "rgb24"
     },
     {
       "file": "screenshots/en-US/04-results.png",
-      "sha256": "09e28960674fc3be7143704027d5643d4d4e05e2ae0c34dbc84f425834dc27f8",
-      "bytes": 96936,
+      "sha256": "6ff25bd5ff2a2fedf32a5ba24981d696fd3b2cbf80fee1bb6ae28e11632d6d8e",
+      "bytes": 96373,
       "width": 1080,
       "height": 2160,
       "pix_fmt": "rgb24"
     },
     {
       "file": "screenshots/he-IL/01-import.png",
-      "sha256": "531692906efd22ca695dc77616ad61775ae4990e6a2038f29b5737a0affbf513",
-      "bytes": 123376,
+      "sha256": "3324f2ea538666c1520c6e4e1c98604ab49367a8f01fdf448a7bc14d0b651f7e",
+      "bytes": 123472,
       "width": 1080,
       "height": 2160,
       "pix_fmt": "rgb24"
     },
     {
       "file": "screenshots/he-IL/02-selection.png",
-      "sha256": "f233b5bec432cdf13d2853413d94145dd6514f32360f1fb2d5893843674fbb09",
-      "bytes": 128379,
+      "sha256": "39c9a18c304ae73b2c93310550c6b8c44c6ff75e01c5a330e64ae4bf5b9ae45e",
+      "bytes": 129440,
       "width": 1080,
       "height": 2160,
       "pix_fmt": "rgb24"
     },
     {
       "file": "screenshots/he-IL/03-saving.png",
-      "sha256": "bb97069bd9d25b73233bdc4bbc6c200bed0da50604d54b375654ddbb87b84a34",
-      "bytes": 54000,
+      "sha256": "a9e8b4f5393a1577c21e93f561dd8424d3f80ee56d6b86b25fa3fbad335b6266",
+      "bytes": 53845,
       "width": 1080,
       "height": 2160,
       "pix_fmt": "rgb24"
     },
     {
       "file": "screenshots/he-IL/04-results.png",
-      "sha256": "717c8c007d256d698b01c11f1d19c6c0d099ff29cc90585cab227b0e4fca656a",
-      "bytes": 85047,
+      "sha256": "de2167ac2d0ac498d53293dd664c23479bc6d21ac1627f901f9820026d95386b",
+      "bytes": 84482,
       "width": 1080,
       "height": 2160,
       "pix_fmt": "rgb24"
     }
   ],
-  "scope": "Replaces all eight older G1 six-step screenshots with the current three-step minified release. No emulator screenshot substitutes for phone assets."
+  "scope": "All eight files replaced with actual code9 physical-phone three-step UI captures. Candidate10 changes history identity/merging only; UI, native save and localized copy remain identical. No screenshot is claimed as a code10 capture.",
+  "appliesToCandidate": {
+    "versionCode": 11,
+    "appSource": "138e00c8bc3f991b9d984cf79075501b566b3f40",
+    "scope": "The depicted screens/locales are unchanged from actual code 9 captures. Code 10 corrects History output/session identity; code 11 corrects native save cancellation/finalization. A fresh code 11 foreground demo and its own runtime/artifact receipts are separate; these PNGs retain code 9 provenance."
+  }
 }

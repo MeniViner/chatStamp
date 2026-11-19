@@ -40,7 +40,7 @@ repositories/configuration to development servers as a substitute for package
 maintenance. This is a reviewed reachability disposition, not an assertion that
 an npm production-dependency flag establishes APK contents. The final minified
 Hermes source-map check must be recorded with its artifact in VERIFICATION.md; no raw
-map or dependency tree is included in curated evidence. The code6 production source map has1016 sources:26 Expo runtime sources and
+map or dependency tree is included in curated evidence. The code11 production source map has1018 sources:26 Expo runtime sources and
 one standalone @expo/cli Metro require bootstrap; none from glob, minimatch or
 zod, or the other seven affected Node tooling packages. The bootstrap source
 was reviewed for imports and includes none of those advised implementations.

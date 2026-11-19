@@ -876,3 +876,63 @@ notification denial is a scoped intermediate checkpoint, followed by cleanup.
   orreverse.105Python/unused-source checks pass. All source review findings are
   resolved. Signed code9/current CI and minified firstHE/Gallery/runtime gates
   remain separate; no older binary is substituted.
+
+
+- Code9 physical first-five PASS:5saved/5verified; independent MediaStore taken/
+  modified, filesystem mtime, image EXIF and both MP4 creation times match.
+  Samsung Gallery12.1.09.1 default Date created/descending was inspected without
+  changing it; RTL order purple/yellow/blue/green/red and red Details15Feb2019
+ 10:30 pass. HE duplicate run reports0new/0newdateverifications; external
+  comparison preserves all5URI/name/path identities and one folder.
+  Picker harness initially searched Downloads before entering its own run
+  folder. try another way: enter the exact run folder and select its ZIP. A
+  synthetic adb ACTION_SEND then lacked a usable source read grant and correctly
+  surfaced PERMISSION_LOST. try another way: use the actual system picker grant
+  for the large fixture. No app permission was broadened and no source change
+  was made for either harness correction; real WhatsApp own-share stays unverified.
+
+
+## 2026-11-19 — Code9 acceptance and code10 open follow-up
+
+Exact app sourcea3dea2a/code9 passed strict signed production/QA checks and CI44432611264 (472host/105Python/46fresh JVM plus resolved Android policy). Full local smoke472/46/47connected each passed. Physical fresh system-HE first surface is native RTL before Settings/remount; five-file indexed/mtime/EXIF/MP4 readback and Samsung creation-date order/2019Details pass. HE/EN Skip-existing retains all5identities. Actual HE512MiB/EN1GiB background saves each4/4 and physical101-file Done sharing exposes100+1; no destination/send chosen. Independent API36 scope includes persistedHE, both native direction changes, denied-notification5/5, exact101URI sharing/History,130%phone/600dp and MP4/OPUS lifetime. Phone removed114owned rows/4ZIPs and QA/helper; emulator removed106rows/3ZIPs and restored settings. Raw shade/recording remained temporary and was removed.
+
+Code9 screenshots and8.125s own1/4notification demo retain their exact provenance; they depict the unchanged UI/native FGS in code10, not captures10. Cloud review then found fingerprint-only history IDs could erase earlier keep-both/destination outputs; independent reviewer also caught loss of a known custom-tree handle on cold terminal replay. Code10 corrects these with stable import sessions and output identities, with new independent red→green cases. try another way: preserve same-session retries/replay and old records, rather than grouping separate imports by fingerprint. First code10 cycle reached489host/QA manifest then correctly stopped before native tests because prior physical cleanup had not yet completed; no gate was waived. Restart the full cycle after replay fix and cleanup.
+
+
+## 2026-11-19 — Code10 checkpoint and native11 gate
+
+App895cf0247f4c11126ee48e8462f8981d3338a777/code10 fullsmoke497host/50files,46fresh JVM/47connected each/105Python, i18n325/parity/zero-unused, configuredKnip0issues and offlinecold0crashes pass. FreshCI44441593832/job135283494659 independently passes497/105/46executed0skip/93all-executed and code10policy. Both exactsigned/static production/QA PASS; AABbd2dda4f…95114,QA c0fb4d26…1f8fc8,existingcert reused.
+
+Physical10freshHE firstsurface nativeRTL atfont1.1/0crashes,5saved5verified withindependentall5indexed+mtime+EXIF/MP4 dates and SamsungredDetails15Feb2019 10:30.10defaultalbumorder/dupereruns notclaimed. API36actual10keep-both twoimports retain10datedrows, two5savedHistoryrecords aftercold and disjoint5URIchoosers; Done/History100+1all101IDs, EN↔HE/persistedHE/subsetlayout pass. No destination/send. CleanupPASS:phone5outputs/oneZIP, emulator111outputs/twoZIPs, ownpackages/scratch andoriginalsettingsrestored. Receiptsf10-* andstage-f10-emulator.
+
+Code10is superseded by validcloudP2r4623456277: cancelling a default coroutine beforeIO body dispatch can skip catch/finally/terminalpromise. try another way: code11guaranteed worker finalization, control/owned-stop ordering and deterministicprestart/cleanup/new-operation tests, thenfreshwholecycle/signing/runtime.11acceptanceisOPEN; earlier passesdo notcoverthatwindow.
+
+## 2026-11-19 — E/F accepted in the executed scope; final code11 handoff
+
+Final app source **138e00c8bc3f991b9d984cf79075501b566b3f40**, **0.2.0 (11)**, branch **fix/core-rebuild**. R → B-close → C → G1 → D → E → F → G2 are complete within their explicitly executed scopes and the task's manual-upload fallback. PR #1 is open and unmerged. No Play upload, available track, qualifying tester clock or production approval is asserted.
+
+**Complete code 11 smoke:** `stage-f-final-11-1` passes npm ci, TypeScript, **497 tests/50 files**, lint, clean prebuild, native pre-React RTL hook/supportsRtl, **226 executed QA assembly tasks**, exact SDK/manifest/dataSync policy, **59 fresh JVM and 52 connected cases on each API 30/API 36 device**, zero failures/errors/skips, and offline first screens with zero QA crashes. **105 Python verifier cases**, 325-key i18n parity/zero unused and configured Knip 6.46.0 with zero issues (five hints) pass. Fresh app-source [CI 44447719684](https://github.com/MeniViner/chatStamp/actions/runs/44447719684), job 135303820924, passes 497 host/105 Python/59 executed JVM/zero skipped, four official pinned Maven files, all 93 Gradle tasks executed and exact code 11 release policy. Final documentation/assets-head CI is linked from the local REPORT; it does not change the binary app source.
+
+**Native regression:** atomic worker entry checks cancellation inside try/finally, awaits cleanup and main-thread-owned service stop before terminal publication, and handles stale owners/startup failures. Independent source review is CLEAR; cloud review on `138e00c8` has no findings or unresolved findings. All 13 new JVM and five connected lifecycle cases pass on both devices. An isolated ATOMIC→DEFAULT control fails four JVM cases and the actual native pre-start case. `save-worker-prestart-code11.json` records source hashes/results. The 25 independent History regressions retain original-source **13 FAIL/4 PASS** and replay-safeguard-only backout **4 FAIL/21 PASS** controls, then final **25/25 PASS**.
+
+**Exact products**, together in `dist/play/release-0.2.0-11/` with README/SHA256SUMS:
+
+| Product | Bytes | SHA256 |
+| --- | ---: | --- |
+| Production AAB | 50,956,189 | `999cbcc1883377bc5965a7665ec20b837eb76ce9ae9597530de0b3ed149fd4ab` |
+| Isolated QA APK | 69,623,951 | `d4ae6f8143068ff7c6c29d869c04021827f4d251afa35a8b4c2c66b0f935c74f` |
+| Fresh actual code 11 foreground demo | 81,486 | `d319af658e5a35e16e7bea13ce0af8d74902f4bf12415f19efe60bcca29b7519` |
+
+Both exact artifact reports PASS signature/full payload, identity/version, nondebug/minified, min 30/target 36, intended permissions/backup, all 64 ELF static checks (32 required ELF64 16 KiB passes; 32 genuine 32-bit N/A), bundle configuration and APK ZIP alignment. Existing upload certificate `efe36695cfc6a3d9ea8471527103f29e3374322ab09890af41692412d76a66c8` was reused; no replacement key. **Actual 16 KiB execution remains UNVERIFIED.** The exact 1,018-source Hermes map includes 26 Expo runtime sources and one standalone CLI require bootstrap; the other ten affected Node owners are absent. Locked audit remains 11 findings (nine moderate/two high/zero critical), with explicit tooling dispositions.
+
+**Minified physical 11:** A30/API 30/Gallery 12.1.09.1; fresh system-HE first surface is native RTL with zero crashes. Five saved/five verified files independently pass indexed dates, filesystem mtime, EXIF and both MP4 dates. Existing Date created/Descending choices remain unchanged; actual album order is purple→yellow→blue→green→red and red Details shows 15 February 2019, 10:30. HE/EN Skip-existing retains all five identities/dates with zero new copies. Native HE→EN reload and separate persisted-English cold start pass. Expo's native React reload may retain its PID; the harness's PID-change expectation was corrected without a product change. A fresh 1 GiB/four-video background run survives Back/Home, shows foreground admission/one Cancel action and an own live 1/4 notification, then finishes 4 saved/4 verified with no FGS. All four large outputs independently match complete size, indexed dates and actual mtime; full internal MP4 readback is separately covered by the core five-file/API 36 timeout scopes.
+
+**Minified API 36:** notification-denied 5/5; a Keep-both second import retains ten dated outputs, two cold History records and disjoint five-URI choosers. Actual official dataSync timeout on 24 videos yields **12 saved/12 verified/0 failed/12 cancelled**; service stop follows ActivityManager's real timeout by 9 ms, Home stays resumed, all 12 published files pass independent full-size/frame/date readback, and no pending/partial output or FGS remains. First attempt had an inconclusive admission precondition. **try another way:** wait for actual foreground admission, then apply the real platform control; no callback was faked. Historical code 9/10 receipts separately own 101-file batch sharing, selected layouts/fonts, both language directions and playback; these are not claimed as rerun on 11.
+
+**Physical Cancel-selection limit:** the final notification harness never reached SystemUI; an alternate visible-app harness missed the Saving accessibility window. No Cancel action was selected, so no final physical UI-action pass is claimed. Both extra Keep-both runs completed 4/4 and their eight outputs were full-sized/dated. `f11-phone-cancel-scope.json` gives exact next steps. Native lifecycle and actual API 36 timeout passes remain separately scoped.
+
+**Demo/assets:** the fresh 8.25-second code 11 clip is H.264 540×1080/24 fps without audio. Actual Saving/visible Cancel, own live 1/4 notification and actual 4/4 Results frames were inspected. Cuts remove waiting/Home transitions; notification crop/pad blacks out unrelated content in its original position. No UI/progress is invented. Raw recording/full shade files were deleted. No reviewer URL is published; the owner must host it. Eight PNGs retain exact code 9 source/binary/1080×2160 RGB24 provenance for the unchanged depicted UI. All eight hashes/dimensions and EN 9/69/1852 versus HE 9/61/1603 text limits pass.
+
+**Cleanup:** app-level Start over returned to Import, then 17 exact owned outputs/two ZIPs/QA/helper/scratch were removed. A strict query found two stale directory index rows. **try another way:** verify exact run paths, directory types and absent files, delete only IDs 777/784, then repeat the complete zero-result check. Original phone 1080×2340/density 420/font 1.1/timeout 600000/stay-awake 7/Asia-Jerusalem was restored; no run MediaStore/Downloads/QA package/reverse remains. API 36 removed 46 outputs (24 inconclusive + ten normal/Keep-both + 12 timeout), two ZIPs/packages/scratch and restored all captured settings/timeout controls. Root independently read the originals and shut down the emulator. Production was absent before QA and untouched. OS uninstall removes private data after app discard; no release run-as inspection is claimed. Receipts: `f11-phone-runtime.json`, `f11-phone-cleanup.json`, `stage-f11-emulator/f11-emulator-runtime.json`.
+
+**Owner gates:** real WhatsApp own-share closed/warm, API 33 physical/full UI matrix, actual 16 KiB execution, installed-browser policy rendering, arbitrary providers/Galleries/codecs, dark dynamic palette and final physical Cancel selection remain UNVERIFIED with exact steps. Mid-read revocation and the narrow process-death window remain deferred per v4. Manual upload, hosted reviewer URL, account creation date/audience/legal facts, actual track availability and genuine 12-tester/14-day eligibility where applicable remain owner actions, available 19 November. No Console automation was used. Public policy returned HTTP 200 on 19 November with 14,306 bytes/SHA256 `637d43fb8a8665bcc02d86bc66521094d8a2e5e658eee5436862940867649040`; authorized support is meniviner@gmail.com. The local REPORT lists every gap/next step and the measured cumulative evidence total below 10,000,000 bytes.

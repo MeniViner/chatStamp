@@ -10,21 +10,11 @@ com.menis.chatstamp and the owner's external upload key.
 
 ## Current state — 2026-11-19
 
-R/B/C/G1/D and E/F implementation are complete on fix/core-rebuild. Code9
-closes the first-launch Hebrew surface gap with native language policy before
-React startup, preserving explicit/system preferences and invalid settings.
-Independent source review is clear. Full cycle2 from npm ci passes472 host in49
-files,46fresh JVM/47connected per API30/API36, typecheck/lint, clean prebuild,
-QA assembly/manifest and offline cold launch. Fresh physical system-HE first
-onboarding is RTL before Settings/remount, with0app crash entries.105Python and
-unused-source/i18n checks pass. Code6/code8 evidence remains historical/scoped.
+R → B-close → C → G1 → D → E → F → G2 are implemented and accepted within the executed scope on fix/core-rebuild. Final app source **138e00c8bc3f991b9d984cf79075501b566b3f40**, version **0.2.0 (11)**, passes the complete npm-ci smoke: **497 host / 59 fresh JVM / 52 connected on each API 30/API 36 device / 105 Python**, clean prebuild, manifest policy, offline first screens and fresh Android CI run 44447719684. Exact production/QA signed artifacts independently pass their signature, identity, permission, backup and static 16 KiB checks.
 
-Signed code9 artifacts, fresh-checkout CI and final minified phone/emulator
-acceptance are in progress. The owner unlocked the A30; original settings are
-recorded and temporary display/timeout settings will be restored after cleanup.
-API33, owner real WhatsApp, actual16KiB runtime, full UI matrix and actual Play/
-tester eligibility remain unverified. Manual upload is the authorized fallback
-because no service-account path was supplied. PR1 remains open/unmerged.
+Code 11 closes the native pre-dispatch cancellation finding with atomic worker entry, cancellation checks inside try/finally, awaited cleanup and main-thread-owned service stop before terminal publication. Independent coverage adds 13 JVM and 5 native lifecycle cases; changing only ATOMIC to DEFAULT makes 4 JVM cases and the actual pre-start native case fail. Source review is CLEAR. On the exact minified code 11 QA build, the A30 passes five-file independent dates, existing Gallery order/Details, HE/EN duplicates, fresh native RTL and persisted English. Its new 1 GiB/four-video background run completes 4 saved/4 verified and supplies the fresh demo. API 36 passes notification-denied saves, two cold disjoint History copies and the actual OS dataSync timeout: 12 complete/verified, 12 cancelled, no foreground service or partial row afterward.
+
+The eight store PNGs retain their actual code 9 capture provenance for the unchanged depicted UI. The final video is a fresh actual code 11 recording. API 33 physical, the owner's real WhatsApp export, actual 16 KiB execution, the full UI matrix and Play/tester eligibility remain UNVERIFIED with exact steps. Manual upload is the authorized fallback without a service account. PR #1 is open and unmerged; production was never installed or replaced. Final cleanup and documentation-head CI are recorded in the closing dated verification entry.
 
 ## Implemented decisions and boundaries
 
@@ -58,16 +48,10 @@ because no service-account path was supplied. PR1 remains open/unmerged.
 
 ## Remaining gates
 
-- Complete: code9 full source/debug smoke, actual native execution, first HE
-  surface and independent source review.
-- Pending: current source fresh-checkout Android CI; Pages CI is separate.
-- Pending: code9 signed production/QA identity, certificate, SDK/permission/backup,
-  packaged ELF/static16KiB policy and affected minified runtime/Gallery acceptance.
-- Pending: final phone assets/demo, exact owner artifact hashes and manual guide.
-- Pending: remove own QA/helper/test packages/fixtures/rows/cache, restore device
-  settings and verify cumulative evidence below10MB.
-- G2: one open PR to main without agent merge. Real owner export and actual
-  Play/tester/account-date facts remain explicitly unverified with exact steps.
+- Complete: final code 11 native fix, independent red-to-green controls, source review, full smoke, app-source CI, signed/static artifacts and affected minified runtime.
+- Complete: one dedicated final product set, fresh foreground demo, bilingual listing/declaration/tester/manual guides; eight screenshots preserve their actual code 9 provenance.
+- Complete: phone 17-output/two-ZIP cleanup and exact original settings restored; emulator 46-output/two-ZIP cleanup, control restoration, independent readback and shutdown. Final documentation/assets-head CI and measured evidence size are linked in the local REPORT.
+- G2 owner gates: PR review/merge decision, real-export acceptance, actual Play upload/availability and genuine account/tester facts remain UNVERIFIED. The agent does not merge or automate Console.
 
 ## Open risks and exact follow-up
 
@@ -670,3 +654,8 @@ highercode6. NativeZIPsample-budget suspicion wasrefuted byowningsource (64KiB/T
 
 
 -2026-11-19 CI-only transport repair: repeated final-head MavenGson failures now use an authenticated-byte, exact-GAV local plugin bootstrap from official Central; runtime code6 artifacts unchanged.24new fail-closed tests bring verifier suite to105; actual local CI hooks/toolchain/40JVM/release-manifest policy pass. Fresh GitHub CI remains the final gate.
+
+
+## 2026-11-19 — Final code 11 owner handoff
+
+Final 138e00c8 source, independent red-to-green controls,497host/59JVM/52connected each/105Python, freshCI44447719684, exact signed/static products and affected minified runtime are accepted within their recorded scopes. Fresh code11demo and all hashes verified; phone17outputs/twoZIPs/QAhelper removed and originalsettings restored; emulator46outputs/twoZIPs/controls restored/rootchecked/shutdown. Final physicalCancelselection remains UNVERIFIED with a concrete follow-up; no actual gesture was selected by the two final harness attempts. Owner realWhatsApp/Play/account/tester and device/fullmatrix/16KiB/provider gaps remain explicit. G2 completes via authorizedmanualpackaging, not an uploadedrelease or productionapproval. See the closing VERIFICATION entry and local REPORT for exact source, products, CI and measured evidence size.

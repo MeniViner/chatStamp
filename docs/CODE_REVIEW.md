@@ -31,6 +31,10 @@ older implementations and do not authorize their superseded storage/RTL paths.
   reports the remainder as cancelled. Startup reconciles own stale job state.
 - Import cancel/discard/replacement ownership is serialized; old continuations
   cannot release or reset a replacement. Empty recovered retries require reimport.
+- Save workers enter finalization even when cancelled before dispatch. Await
+  pending output cleanup and stop the foreground service on Main only while
+  the operation owns it, then publish terminal state/promise. Startup failures,
+  stale Cancel deliveries and acknowledged-owner handover follow the same rules.
 - Atomic JSON details-before-index writes; no settings publication before commit.
 - Backup and device transfer disabled/excluded; temporary external read grants
   only on explicit user open/share actions.
@@ -139,3 +143,18 @@ exports; a local bundle does not establish upload, tester counts or 14 days.
   manifest capability. Root full472host/46JVM/47connected each plus105Python and
   fresh offline firstHE native bounds pass. Signed/minified acceptance follows
   separately on the exact source; no Play upload or merge is asserted.
+
+- 2026-11-19 code10/11 follow-up: independent25history regressions preserve
+  separate outputs/destinations and safe same-session replay. Native11source
+  review CLEAR after prestart cancellation, awaited cleanup/stop ordering, Main
+  ownership checks, startup failure and stale delivery fixes. Independent13JVM
+  and5native cases pass; isolatedDEFAULT fails4JVM+1native cases. Full11cycle
+  passes497host/59freshJVM/52connected each/105Python and offline0crash launches.
+  SourceCI44447719684 passes497/105/59executed0skip/93tasksall-executed, with
+  exact11manifest policy. Both signed/static11reports PASS. Physical current5/5
+  readback/Samsungcreationorder/2019Details and HE/ENduplicates pass; API36
+  notification-denied5/5, keep-both10/coldHistory and officialtimeout12saved/
+  12cancelled/no pending rows pass with fullcleanup/restoration. Fresh11demo,
+  finalphonecleanup and owner-handoff review finish separately. NoPlayupload.
+
+- 2026-11-19 final handoff closure: reviewed the exact code 11 fix, independent negative controls, full smoke/CI, signed/static receipts and scoped minified phone/emulator results against this checklist. Fresh11demo and hashes verified. Phone17outputs/2ZIPs and QA/helper removed; originals restored; emulator46outputs/2ZIPs removed, controls restored and root verified before shutdown. Final physicalCancel selection remains UNVERIFIED after two harness precondition/observation failures, with exact steps; no false pass. Manual package/declarations/tester guide and all remaining owner/device/provider gates are explicit. Store PNGs retain actual code9provenance; no Play upload or agent merge.

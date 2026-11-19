@@ -4,11 +4,11 @@ chatStamp is an Android app for importing a WhatsApp export ZIP, selecting attac
 
 ## Current status
 
-The source candidate is **0.2.0 / versionCode 9**, with Expo **55.0.32**, expo-modules-core **55.0.27**, React Native **0.83.10**, React 19.2, TypeScript, Material Design 3 and a local Kotlin Expo module. Android **11/API 30 or later** is required; compile/target SDK is **36**. The source pins build-tools **36.0.0** and NDK **27.1.12297006**.
+The rebuild is on **fix/core-rebuild**. [PR #1](https://github.com/MeniViner/chatStamp/pull/1) is open and unmerged. The signed **0.2.0 (11)** package is ready for manual owner upload; its exact app source is **138e00c8bc3f991b9d984cf79075501b566b3f40**. Production is **com.menis.chatstamp**; isolated device testing uses **com.menis.chatstamp.qa**.
 
-The code9 source passes **472 host tests in 49 files, 46 executed JVM tests and 47 connected tests on each available device**, plus105 verification-tool cases, TypeScript/lint, clean prebuild and offline QA cold launch. Native startup policy now applies committed language before the first React surface; a fresh system-Hebrew first screen is correctly RTL before any Settings navigation. Source review is clear. Signed code9 artifact/runtime acceptance and current fresh-checkout CI are in progress; code6/code7/code8 are superseded candidates. Earlier scopes remain dated in [VERIFICATION.md](docs/VERIFICATION.md). API33 physical coverage, the full UI matrix and an owner real WhatsApp export remain unverified. No Play upload, qualifying tester count or closed-test interval is established.
+Code 11 passes **497 host tests in 50 files, 59 executed JVM tests, 52 connected tests on each available API 30/API 36 device and 105 verification-tool tests**, a complete clean-prebuild smoke and [fresh app-source CI](https://github.com/MeniViner/chatStamp/actions/runs/44447719684). Exact signed artifacts passed signature, manifest and static 16 KiB checks. On the Samsung A30, five saved files passed independent date readback, visible Gallery order/Details and duplicate/language reruns. API 36 passed notification-denied saves, separate cold History copies and the real platform dataSync timeout. Native cancellation before dispatch and cleanup-before-terminal ordering have independent negative controls. The dated results and limits are in [VERIFICATION.md](docs/VERIFICATION.md).
 
-The dependency audit snapshot fell from 37 to **11 package findings: 9 moderate and 2 high**. The remaining reported paths are build/development tooling; this is a scoped dependency assessment, not a claim of zero vulnerabilities. See [known risks](docs/KNOWN_RISKS.md) and the dated [rebuild log](docs/REBUILD_LOG.md).
+**No Play upload, qualifying tester period or production approval is established.** Open the local product set at `dist/play/release-0.2.0-11/README.md`, then follow the [manual upload steps](docs/PLAY_UPLOAD_STEPS.md). The owner's real WhatsApp export, API 33 physical/full UI matrix and actual 16 KiB execution remain **UNVERIFIED**, with exact follow-up steps. Synthetic QA and a packaged release do not establish those results.
 
 ## Use the app
 
@@ -59,7 +59,7 @@ Run native regression tests against an authorized test device/emulator:
   -PreactNativeArchitectures=arm64-v8a
 ```
 
-Both native tasks must execute a nonzero test count. Record actual results; the recorded code6 full smoke executed40 JVM and39 connected cases on each available device. Follow the [verification guide](scripts/android-verification/README.md) for manifest inspection, synthetic inputs, locked-device handling, run-scoped cleanup and restoring device settings. Do not unlock the owner's phone or commit private exports.
+Both native tasks must execute a nonzero test count. The final code 11 smoke executed 59 JVM tests and 52 connected cases on each available device, with no skips. Follow the [verification guide](scripts/android-verification/README.md) for manifest inspection, synthetic inputs, locked-device handling, run-scoped cleanup and restoring device settings. Do not unlock the owner's phone or commit private exports.
 
 [Android CI](.github/workflows/ci.yml) defines pinned tooling, host checks, generated Android, native JVM execution and merged release-manifest policy. Its fresh-checkout run passed; exact source, counts and the separately scoped device/artifact results are in VERIFICATION.md.
 

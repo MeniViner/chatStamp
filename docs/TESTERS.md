@@ -2,7 +2,7 @@
 
 Prepared **2026-11-19**. No tester count, opt-in period, live Play release or owner real-export result has been verified. The personal account's creation date is unknown. Plan for at least 12 testers continuously opted into closed testing for 14 days; the exact applicability and eligibility must be confirmed by the owner in Console. Internal testing does not satisfy that requirement. [Official personal-account requirements](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en).
 
-The intended candidate is **0.2.0 (versionCode 6)**, still under validation. **No uploaded Play track or working opt-in URL is asserted.** The owner run below starts only after the release owner confirms that the final QA candidate is installed. Preparing this guide does not complete that run.
+The verified local candidate is **0.2.0 (versionCode 11)**, ready for the private owner acceptance below. **No uploaded Play track or working opt-in URL is asserted.** Confirm that the exact final QA candidate is installed before starting; agent-run synthetic checks do not complete this owner run.
 
 ## Owner setup
 
@@ -44,16 +44,16 @@ Report expected/actual behavior, steps, version, device/Android, language and wh
 
 ## Final isolated installer for owner acceptance
 
-Code6's verified QA installer is `dist/play/chatstamp-0.2.0-6-qa.apk`, SHA256
-`33031bd87f77a5bfa8cbb374be3a392c48dc471eb54a3f22da21a5cad4071fed`.
+Code11's verified QA installer is `dist/play/release-0.2.0-11/chatstamp-0.2.0-11-qa.apk`, SHA256
+`d4ae6f8143068ff7c6c29d869c04021827f4d251afa35a8b4c2c66b0f935c74f`.
 It installs only `com.menis.chatstamp.qa`, alongside production. Agent-run
 synthetic QA is removed at handoff; the owner can reinstall this exact candidate
-for the real-export checks below, or use the delivered code6 Play build after
+for the real-export checks below, or use the delivered code11 Play build after
 upload. Keep which identity/build was tested in the private result record.
 
 ```sh
 adb devices -l
-adb -s YOUR_SERIAL install --no-incremental dist/play/chatstamp-0.2.0-6-qa.apk
+adb -s YOUR_SERIAL install --no-incremental dist/play/release-0.2.0-11/chatstamp-0.2.0-11-qa.apk
 adb -s YOUR_SERIAL shell am start -W -n com.menis.chatstamp.qa/com.menis.chatstamp.MainActivity
 ```
 
@@ -64,7 +64,7 @@ installer. Installation alone does not complete real-export or Play acceptance.
 
 ## Owner real-export acceptance — still UNVERIFIED
 
-Run this privately on the **Samsung Galaxy A30 (SM-A305F), Android 11 / API 30**, after the final **0.2.0 (6)** QA installation is confirmed. Record the actual installed version and package; the side-by-side QA package is `com.menis.chatstamp.qa`. Do not replace or uninstall the owner's production app. The requested physical **API 33 device is unavailable: UNVERIFIED**. API 30 results and synthetic emulator results do not fill that gap.
+Run this privately on the **Samsung Galaxy A30 (SM-A305F), Android 11 / API 30**, after the final **0.2.0 (11)** QA installation is confirmed. Record the actual installed version and package; the side-by-side QA package is `com.menis.chatstamp.qa`. Do not replace or uninstall the owner's production app. The requested physical **API 33 device is unavailable: UNVERIFIED**. API 30 results and synthetic emulator results do not fill that gap.
 
 Use **PASS**, **FAIL** or **UNVERIFIED (not run / blocked)** for each case. Until the owner runs these steps, every owner real-export result remains **UNVERIFIED**.
 
@@ -110,7 +110,7 @@ Use **PASS**, **FAIL** or **UNVERIFIED (not run / blocked)** for each case. Unti
 2. This UI check alone does **not** prove that private bytes were removed. Before uninstalling or clearing app data, ask the release owner to verify the discarded QA import's private working directory and associated temporary files through the approved local QA inspection. Record only a nonpersonal removed/remaining count. If not inspected, keep **private import cleanup UNVERIFIED**, even if the app reopens cleanly. Do not confuse unrelated persistent settings/history or a general cache count with the discarded import's files.
 3. When no longer wanted, remove only the output copies and temporary export created for this test, after checking their locations privately. Keep the original WhatsApp conversation/media safe. The release owner handles QA uninstall and any test-setting restoration. Never clear the owner's production app or unrelated files as a cleanup shortcut.
 
-**לבעל החשבון:** יש להתחיל רק אחרי אישור שהותקן מועמד QA סופי 0.2.0 (6). הבדיקה המתוכננת היא ב-Galaxy A30 עם Android 11; מכשיר API 33 אינו זמין והבדיקה בו לא אומתה. יש להפעיל במפורש את Always use message date בהגדרות, לשתף מתוך WhatsApp כשהאפליקציה סגורה ופתוחה, ולבדוק שמתחיל ייבוא אחד לכל שיתוף. שומרים קבצים מוכרים דרך Import → Select → Save ומשווים בנפרד את הכמות שנשמרה, הכמות שתאריכיה אומתו, סדר ברירת המחדל ופרטי התאריך בגלריה. לבדיקת כפילויות ושינוי שפה משתמשים באותו ZIP שמור, ללא שינוי יעד או ארגון. פתיחה נקייה אחרי Discard אינה לבדה הוכחה לניקוי קובצי העבודה הפרטיים. הייצוא והמידע האישי נשארים מחוץ ל-Git; מדווחים רק סיכום ללא פרטים מזהים. כל בדיקה שטרם בוצעה נשארת **UNVERIFIED / לא אומתה**.
+**לבעל החשבון:** יש להתחיל רק אחרי אישור שהותקן מועמד QA סופי 0.2.0 (11). הבדיקה המתוכננת היא ב-Galaxy A30 עם Android 11; מכשיר API 33 אינו זמין והבדיקה בו לא אומתה. יש להפעיל במפורש את Always use message date בהגדרות, לשתף מתוך WhatsApp כשהאפליקציה סגורה ופתוחה, ולבדוק שמתחיל ייבוא אחד לכל שיתוף. שומרים קבצים מוכרים דרך Import → Select → Save ומשווים בנפרד את הכמות שנשמרה, הכמות שתאריכיה אומתו, סדר ברירת המחדל ופרטי התאריך בגלריה. לבדיקת כפילויות ושינוי שפה משתמשים באותו ZIP שמור, ללא שינוי יעד או ארגון. פתיחה נקייה אחרי Discard אינה לבדה הוכחה לניקוי קובצי העבודה הפרטיים. הייצוא והמידע האישי נשארים מחוץ ל-Git; מדווחים רק סיכום ללא פרטים מזהים. כל בדיקה שטרם בוצעה נשארת **UNVERIFIED / לא אומתה**.
 
 ## Copyable owner result — nonpersonal, initially UNVERIFIED
 
@@ -119,7 +119,7 @@ Copy this template into the private owner record and fill only observed facts. A
 ```text
 Owner real-export run: UNVERIFIED — NOT RUN
 Run date/time and time zone: UNVERIFIED
-Installed candidate: expected 0.2.0 (6); actual version/code: UNVERIFIED
+Installed candidate: expected 0.2.0 (11); actual version/code: UNVERIFIED
 Installed package/build identifier confirmed by release owner: UNVERIFIED
 Play track/upload/opt-in URL: NOT VERIFIED; this guide asserts no uploaded track
 Device: Samsung Galaxy A30 SM-A305F, Android 11/API 30 — actual confirmed: UNVERIFIED

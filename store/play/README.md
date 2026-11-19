@@ -1,6 +1,6 @@
 # Google Play listing package
 
-Final listing updated **2026-11-19** for **0.2.0 (6)**. This folder is the tracked listing output set. No Console upload or live listing is established by its presence. The linked privacy policy was published and anonymously verified HTTP200 on2026-11-18; its in-app action still needs installed-device verification. Start the owner handoff at [PLAY_UPLOAD_STEPS.md](../../docs/PLAY_UPLOAD_STEPS.md); declarations and release gates are in [PLAY_RELEASE_CHECKLIST.md](../../docs/PLAY_RELEASE_CHECKLIST.md).
+Final listing updated **2026-11-19** for **0.2.0 (11)**. This folder is the tracked listing output set. The eight screenshots retain their actual code 9 capture provenance for the unchanged depicted UI; the final code 11 demo is separate. No Console upload or live listing is established by these files. The public privacy page was reverified HTTP 200 on 2026-11-19; rendering from the installed app still needs the owner's browser first-run completion. Start with [PLAY_UPLOAD_STEPS.md](../../docs/PLAY_UPLOAD_STEPS.md); declarations and release gates are in [PLAY_RELEASE_CHECKLIST.md](../../docs/PLAY_RELEASE_CHECKLIST.md).
 
 ## Text files
 
@@ -42,4 +42,6 @@ Before handoff inspect image dimensions/channels and every screen, validate text
 
 קובצי הטקסט באנגלית ובעברית מוכנים להעתקה, אך אין בכך אישור שהחנות או הבדיקה הסגורה פורסמו. יש לוודא שקיימים ונבדקו סמל 512×512, תמונת נושא 1024×500 וארבעה צילומי מסך אמיתיים מכל שפה, עם מידע מלאכותי בלבד. יש לעדכן גרסה, הערות הפצה וצילומים בכל העלאה עתידית ולפעול לפי [הוראות ההעלאה](../../docs/PLAY_UPLOAD_STEPS.md). עמוד הפרטיות פורסם ואומת לציבור; יש לבדוק גם את פתיחתו מהאפליקציה המותקנת.
 
-All eight actual-phone screenshots were replaced on2026-11-19 with the minified code6 three-step UI. Exact device, synthetic runs, native direction, dimensions and hashes are in `screenshots/provenance.json`. Results intentionally show the actual distinct runs: English4/4 background demo and Hebrew5/5 Gallery regression. Both Saving images show the actual initial four-video operation, not fabricated progress.
+All eight actual-phone screenshots were replaced on2026-11-19 with the minified code9 three-step UI. Exact device, synthetic runs, native direction, dimensions and hashes are in `screenshots/provenance.json`. Results intentionally show the actual distinct runs: English4/4 background demo and Hebrew5/5 Gallery regression. Both Saving images show the actual initial four-video operation, not fabricated progress.
+
+The eight PNGs were recaptured on the physical Samsung A30 using the signed code9 QA build. Its exact source and binary hashes are in screenshots/provenance.json. The final code11 includes the history/session correction and native save finalization fixes; these screenshots depict the unchanged UI. A fresh actual code11foreground demonstration accompanies the final package. They are explicitly code9 captures, with no relabeling or duplicate copies.

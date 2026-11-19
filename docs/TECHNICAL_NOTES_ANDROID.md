@@ -105,3 +105,24 @@ native bridge reject oversized requests rather than silently dropping later file
 Representative regression sources include [StreamingImportTest](../modules/chatstamp-native/android/src/androidTest/java/com/chatstamp/nativebridge/StreamingImportTest.kt), [ZipIntegrityTest](../modules/chatstamp-native/android/src/androidTest/java/com/chatstamp/nativebridge/ZipIntegrityTest.kt), [ScopedMediaSaverTest](../modules/chatstamp-native/android/src/androidTest/java/com/chatstamp/nativebridge/ScopedMediaSaverTest.kt), [SaveFolderProfileTest](../modules/chatstamp-native/android/src/androidTest/java/com/chatstamp/nativebridge/SaveFolderProfileTest.kt), [MediaPreviewsTest](../modules/chatstamp-native/android/src/androidTest/java/com/chatstamp/nativebridge/MediaPreviewsTest.kt), [SharedZipInboxTest](../modules/chatstamp-native/android/src/androidTest/java/com/chatstamp/nativebridge/SharedZipInboxTest.kt), and host [fixtures](../__tests__/chatArchive.test.ts), [actual selection](../__tests__/stageEFlow.test.ts), [Results](../__tests__/resultsPresentation.test.ts), [language persistence](../__tests__/languageRestart.test.ts) and [locale dates](../__tests__/localeDates.test.ts). Their presence does not assert their latest execution or universal provider/Gallery compatibility.
 
 Use the [README QA commands](../README.md#local-development-and-isolated-qa) and [verification guide](../scripts/android-verification/README.md). Android CI is configured for pinned tools, host/native JVM checks and merged-manifest policy; a successful run on the new dependency graph remains a separate gate. See [known risks](KNOWN_RISKS.md), [release checklist](PLAY_RELEASE_CHECKLIST.md) and [external signing](ANDROID_RELEASE_SIGNING.md) before describing a candidate as ready for Play.
+
+## History output identity
+
+Each import session has a bounded, stable history identity derived from its native working-directory operation ID and archive fingerprint. Reimports remain separate records, including keep-both copies, different destinations and later failures. Retries and cold terminal replay update the same session. Per-output URI/path identities preserve distinct saved copies; resolving a failed entry removes only that session's pending attempt. A same-URI skip retains the original saved/date evidence. Unknown cold replay retains a previous custom-folder tree URI only for the same session, SAF method and exact nonempty destination; an explicit incoming tree wins. This does not regrant a permission revoked by the provider. Legacy history IDs and output handles remain intact.
+
+## Native save finalization and language reload
+
+The save worker starts atomically, checks cancellation before invoking the saver,
+and always enters non-cancellable finalization. It preserves completed results,
+classifies remaining entries, awaits cleanup and an ownership check plus service
+stop on Main, then publishes terminal progress/completion. Cancellation waiters
+also finalize after their scope is cancelled. A previous acknowledged job's last
+bookkeeping cannot block a registered replacement; late stop callbacks cannot
+remove the replacement's foreground service. Startup failures attempt shutdown
+before terminal publication. Stop failures still attempt both shutdown calls and
+produce IO_ERROR in the native snapshot.
+
+App-language restart uses Expo reloadAppAsync after committing settings and native
+I18n direction. It may retain the process PID. Verify the actual new native React
+surface/layout, then force-stop/cold-launch separately to check committed language
+before opening Settings. PID change is not a language-reload requirement.
