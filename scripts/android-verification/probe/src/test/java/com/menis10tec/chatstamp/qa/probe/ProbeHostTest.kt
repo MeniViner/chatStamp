@@ -1,4 +1,4 @@
-package com.menis.chatstamp.qa.probe
+package com.menis10tec.chatstamp.qa.probe
 
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals

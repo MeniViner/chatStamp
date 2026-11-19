@@ -16,7 +16,7 @@ const feature = (required?: string, extra: Record<string, string> = {}): Element
 
 function manifest(features?: Element[]): Manifest {
   return {
-    $: { package: 'com.menis.chatstamp', 'xmlns:android': 'http://schemas.android.com/apk/res/android' },
+    $: { package: 'com.menis10tec.chatstamp', 'xmlns:android': 'http://schemas.android.com/apk/res/android' },
     ...(features === undefined ? {} : { 'uses-feature': features }),
     'uses-permission': ['FOREGROUND_SERVICE', 'FOREGROUND_SERVICE_DATA_SYNC', 'POST_NOTIFICATIONS']
       .map((name) => ({ $: { 'android:name': `android.permission.${name}` } })),

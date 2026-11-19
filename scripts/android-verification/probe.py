@@ -12,7 +12,7 @@ from zipfile import ZipFile
 from qa import ROOT, STEM, WINDOW_PNG, WINDOW_XML, adb, adb_executable
 
 
-PACKAGE = "com.menis.chatstamp.qa.probe"
+PACKAGE = "com.menis10tec.chatstamp.qa.probe"
 TEST_PACKAGE = f"{PACKAGE}.test"
 RUNNER = "androidx.test.runner.AndroidJUnitRunner"
 OUTPUTS = Path(__file__).resolve().parent / "probe" / "build" / "outputs" / "apk"

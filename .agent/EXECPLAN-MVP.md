@@ -5,20 +5,29 @@
 Import a WhatsApp export ZIP on Android, map attachments to original message
 instants, select/filter files and save them so the tested Gallery sorts by those
 instants. Saved and verified dates remain separate facts. Local-only; no DB,
-accounts, analytics, cloud or server. Existing production identity/signing stay
-com.menis.chatstamp and the owner's external upload key.
+accounts, analytics, cloud or server. Current requested production identity is com.menis10tec.chatstamp; retain the owner's external upload key. Earlier com.menis.chatstamp artifacts remain historical.
 
-## Current state — 2026-11-19
+## Current state — 2026-11-19, identity migration in progress
 
-Signed **0.2.0 (12)** is **active and available to internal testers**. The same uploaded AAB was selected from the library for **Alpha**, replacing the pending code 11 release. **All 16 changes are submitted and shown “Changes in review”**, including Alpha 12, both listings, content rating and the other prepared declarations. The owner completed IARC; the former portrait hardware issue is resolved. No closed availability, invitation-email delivery, qualifying tester period or production approval is inferred.
+Meni explicitly requests production application ID **com.menis10tec.chatstamp**.
+This supersedes the previous fixed-ID instruction. Code 13 keeps version 0.2.0,
+uses isolated **com.menis10tec.chatstamp.qa**, and retains the existing upload key.
+The bridge library namespace stays com.chatstamp.nativebridge. Update current
+harness/verifier identities and regenerate Android; never relabel an old artifact.
 
-Exact code 12 app/config source: **b2b88e9d3ef8292d00ef695f328a225cbb9b2418**. The complete restarted smoke passes npm ci, TypeScript, **504 host tests/51 files**, lint, **116 Python cases**, clean prebuild,226 executed QA assembly tasks, **59 fresh JVM tests/zero skipped**,52 connected cases on **each API 30/API 36** and offline startup. Production/QA signature, identity, permissions/backup, all 64 ELF static checks and ZIP/bundle16 KiB policy pass. AAPT2 independently lists portrait only as optional. [PR CI](https://github.com/MeniViner/chatStamp/actions/runs/44526874420) passed; the simultaneous push run initially failed before tests on unavailable official Central Kotlin artifacts, then its unchanged failed-job retry passed. No assertion or dependency version was relaxed.
+Google Play treats a changed application ID as a separate app. The existing
+4974511742201615518 entry belongs permanently to com.menis.chatstamp. Its code 12
+acceptance and earlier store/runtime proof keep their historical identities.
+The new package needs its own Play entry, current artifact identity verification,
+and actual new-track availability. No old private settings/history/grants or
+MediaStore ownership migrate automatically between Android sandboxes.
 
-Exact minified12 QA passes fresh system-HE first native RTL on the A30 at the original font1.1, picker import and five saved/five independently verified dates. The API 36 emulator passes the same five-file check at actual2560×1600 / density 320 (1280×800 dp), with notification permission denied. Both readbacks cover MediaStore, actual mtime and embedded JPEG/PNG/MP4 dates. New12 Gallery visual order, background/timeout, duplicate/language-restart and101-file sharing are not claimed as rerun; their earlier11/10/9 receipts retain their exact scope. Core src/ and native Kotlin files are unchanged from11.
-
-Code 12 adds one durable optional portrait feature while retaining the portrait activity request; Expo/native version codes are12 and versionName is0.2.0. Production package, security/FGS/backup policy, dependencies and existing upload key are unchanged. Source review including new plugin/artifact guard is CLEAR. Earlier11prestart/cleanup controls and Gallery/FGS acceptance retain their own dated scope.
-
-Phone and emulator cleanup/restoration are verified in the current Console receipt. PR #1 remains open/unmerged; production installation was untouched. API 33physical, owner real WhatsApp, actual16 KiB execution, full UI matrix, browser rendering and scoped provider/Cancel gaps remain unverified. The Google review is an external gate; no tester opt-ins or14-day period is fabricated.
+Implementation, independent identity tests and review are in progress. Root owns
+fresh npm-ci smoke, generated manifest/authority/receiver checks, both-device
+native and affected minified runtime, signing, current docs and Play continuation.
+Do not report new-package upload, availability, real-export acceptance or tester
+participation until actually observed. Previous API 33/full UI, actual 16 KiB,
+browser/provider/Cancel/real-export gaps remain explicitly scoped.
 
 ## Implemented decisions and boundaries
 
@@ -699,3 +708,19 @@ Production12 AAB50,956,257 bytes/SHA2560d2efc0cb86b2ba5657fee04e57484aac3fb6847c
 try another way: the phone's DocumentsUI CardView stayed on Downloads after the coordinate/accessibility attempt. Use the guarded exact-label80 ms FINGER helper to enter only this run's folder/ZIP and receive the real picker grant. Pass multiword Hebrew through a single shlex-quoted remote command; the first split command failed before any action. No source/permission change or product assertion was relaxed. AAPT2's indented optional-feature line was whitespace-normalized before interpreting it.
 
 Both app-level Start over flows returned to Import. Cleanup/restoration outcomes are recorded in the current compact Console receipt, with the two new five-file date readbacks and artifact reports; no raw logs, binaries or old proof are repackaged as evidence. Source CI is green; documentation-head CI is tracked separately there. All previous owner real-export, API 33/full UI,16 KiB, browser/provider/physicalCancel gaps retain their explicit scope.
+
+
+## 2026-11-19 — Requested package identity correction, code 13
+
+The owner explicitly requested com.menis10tec.chatstamp after seeing the old Play
+URL. **try another way:** Play package names are immutable after upload, so build
+and verify the new identity and use a separate Play app entry instead of pretending
+the old URL can be renamed. Retain the existing upload key and immutable old
+products. Current QA/probe/verifier/defaults and generated Activity namespace must
+follow the new identity; provider/receiver names remain runtime-scoped. No data
+migration, broad permission, cloud feature or production replacement is added.
+
+Roles: implementer owns runtime/config/harness migration, test author owns current
+identity guards and historical explicit-artifact compatibility, reviewer checks
+namespace/authority/sandbox/provenance. Root owns smoke/signing/device hygiene and
+Console/current docs. All new identity outcomes remain UNVERIFIED until observed.

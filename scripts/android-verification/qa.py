@@ -16,8 +16,8 @@ if os.environ.get("CHATSTAMP_QA_WORK_ROOT"):
 else:
     ROOT = Path(__file__).resolve().parents[2] / "dist" / "android-verification" / RUN_ID
 STEM = f"chatstamp-qa-{RUN_ID}"
-PACKAGE = os.environ.get("CHATSTAMP_QA_PACKAGE", "com.menis.chatstamp.qa")
-if PACKAGE not in ("com.menis.chatstamp.qa", "com.menis.chatstamp.qa.probe"):
+PACKAGE = os.environ.get("CHATSTAMP_QA_PACKAGE", "com.menis10tec.chatstamp.qa")
+if PACKAGE not in ("com.menis10tec.chatstamp.qa", "com.menis10tec.chatstamp.qa.probe"):
     raise ValueError("Choose the dedicated QA or storage probe package")
 
 DOWNLOAD_FOLDER = f"Download/{STEM}/"

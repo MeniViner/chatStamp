@@ -1,4 +1,4 @@
-package com.menis.chatstamp.qa.probe
+package com.menis10tec.chatstamp.qa.probe
 
 import android.content.Context
 import android.content.pm.PackageManager
@@ -16,7 +16,7 @@ import java.security.MessageDigest
 import java.time.Instant
 import java.time.ZoneId
 
-internal const val PROBE_PACKAGE = "com.menis.chatstamp.qa.probe"
+internal const val PROBE_PACKAGE = "com.menis10tec.chatstamp.qa.probe"
 internal const val PROBE_TAG = "ChatStampProbe"
 
 internal fun json(vararg fields: Pair<String, Any?>): JSONObject = JSONObject().apply {

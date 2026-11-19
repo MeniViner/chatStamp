@@ -11,16 +11,16 @@ def evidence = file("../../../dist/android-verification/${probeRun}")
 def fixtureAssets = new File(evidence, 'probe-assets')
 
 android {
-    namespace 'com.menis.chatstamp.qa.probe'
+    namespace 'com.menis10tec.chatstamp.qa.probe'
     compileSdk 36
 
     defaultConfig {
-        applicationId 'com.menis.chatstamp.qa.probe'
+        applicationId 'com.menis10tec.chatstamp.qa.probe'
         minSdk 30
         targetSdk 36
         versionCode 1
         versionName '1.0'
-        testApplicationId 'com.menis.chatstamp.qa.probe.test'
+        testApplicationId 'com.menis10tec.chatstamp.qa.probe.test'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 

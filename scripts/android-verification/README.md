@@ -9,7 +9,7 @@ npx expo prebuild --platform android --clean
 .\android\gradlew.bat -p android --console=plain --max-workers=2 -I "$PWD\scripts\android-verification\device-test.init.gradle" :app:assembleDebug '-PreactNativeArchitectures=arm64-v8a'
 ```
 
-Check `android/app/build/outputs/apk/debug/output-metadata.json` for the QA application ID `com.menis.chatstamp.qa` before installing. Use the SDK's ADB for installation and the scripts.
+Check `android/app/build/outputs/apk/debug/output-metadata.json` for the QA application ID `com.menis10tec.chatstamp.qa` before installing. Use the SDK's ADB for installation and the scripts.
 
 ```powershell
 $adb = Join-Path $env:ANDROID_HOME 'platform-tools\adb.exe'
@@ -17,7 +17,7 @@ $adb = Join-Path $env:ANDROID_HOME 'platform-tools\adb.exe'
 $env:CHATSTAMP_QA_RUN_ID = 'stage-a'
 python scripts/android-verification/fixtures.py
 $zip = python scripts/android-verification/device.py prepare mixed
-& $adb shell am force-stop com.menis.chatstamp.qa
+& $adb shell am force-stop com.menis10tec.chatstamp.qa
 python scripts/android-verification/device.py share $zip
 python scripts/android-verification/device.py dump qa-selection
 ```
@@ -56,7 +56,7 @@ On the unlocked Samsung, use the SDK ADB to confirm the serial and API level. Ru
 ```powershell
 $adb = Join-Path $env:ANDROID_HOME 'platform-tools\adb.exe'
 & $adb devices -l
-.\android\gradlew.bat @probe '-Pandroid.testInstrumentationRunnerArguments.class=com.menis.chatstamp.qa.probe.ProbeIdentityTest' connectedDebugAndroidTest
+.\android\gradlew.bat @probe '-Pandroid.testInstrumentationRunnerArguments.class=com.menis10tec.chatstamp.qa.probe.ProbeIdentityTest' connectedDebugAndroidTest
 & $adb logcat -d -s 'ChatStampProbe:I' '*:S' | Set-Content -Encoding UTF8 "dist/android-verification/$env:CHATSTAMP_QA_RUN_ID/probe-identity-log.txt"
 ```
 
@@ -86,7 +86,7 @@ Use the result matrix in [the verification log](../../docs/VERIFICATION.md) to r
 Build and inspect the QA APK using the commands above. Confirm min SDK 30, target SDK 36, and no broad storage permissions. With only the test handset connected, the checked QA binary can also be installed and launched through Expo.
 
 ```powershell
-npx expo run:android --binary android/app/build/outputs/apk/debug/app-debug.apk --app-id com.menis.chatstamp.qa --no-bundler
+npx expo run:android --binary android/app/build/outputs/apk/debug/app-debug.apk --app-id com.menis10tec.chatstamp.qa --no-bundler
 $env:CHATSTAMP_QA_RUN_ID = 'stage-b'
 python scripts/android-verification/fixtures.py --skip-large --gallery-five
 python scripts/android-verification/device.py prepare mixed

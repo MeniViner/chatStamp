@@ -1,5 +1,6 @@
 """CI adapter acceptance: missing/skipped results and unsafe merged inputs fail closed."""
 import importlib.util
+import json
 from pathlib import Path
 import sys
 import tempfile
@@ -55,20 +56,22 @@ class CiPolicyTest(unittest.TestCase):
         self.report()
         self.manifest = self.root / 'AndroidManifest.xml'
         self.manifest.write_text('''<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.menis.chatstamp" android:versionName="0.2.0" android:versionCode="6">
+          package="com.menis10tec.chatstamp" android:versionName="0.2.0" android:versionCode="13">
           <uses-sdk android:minSdkVersion="30" android:targetSdkVersion="36"/>
+          <uses-feature android:name="android.hardware.screen.portrait" android:required="false"/>
           <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
           <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
           <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
           <application android:allowBackup="false" android:fullBackupContent="false"
             android:dataExtractionRules="@xml/chatstamp_data_extraction_rules">
+            <activity android:name="com.menis10tec.chatstamp.MainActivity" android:screenOrientation="portrait"/>
             <service android:name="com.chatstamp.nativebridge.SaveForegroundService" android:exported="false" android:foregroundServiceType="dataSync"/>
           </application></manifest>''')
         return Path(__file__).resolve().parents[2] / 'modules/chatstamp-native/android/src/main/res/xml/chatstamp_data_extraction_rules.xml'
 
     def test_merged_release_policy_is_enforced_without_an_apk_or_signing_key(self):
         rules = self.inputs()
-        expected = ci.release.Expected(code=6)
+        expected = ci.release.Expected()
         self.assertEqual(ci.inspect_inputs(self.manifest, rules, self.junit, expected)['status'], 'PASS')
         root = ET.parse(self.manifest).getroot()
         ET.SubElement(root, 'uses-permission', {ci.release.ANDROID + 'name': 'android.permission.INTERNET'})
@@ -82,7 +85,38 @@ class CiPolicyTest(unittest.TestCase):
         root.find('application').set(ci.release.ANDROID + 'dataExtractionRules', '@xml/other_rules')
         ET.ElementTree(root).write(self.manifest)
         with self.assertRaisesRegex(ValueError, 'checked backup'):
-            ci.inspect_inputs(self.manifest, rules, self.junit, ci.release.Expected(code=6))
+            ci.inspect_inputs(self.manifest, rules, self.junit, ci.release.Expected())
+
+    def sources(self, package='com.menis10tec.chatstamp'):
+        (self.root / 'package.json').write_text(json.dumps({'version': '0.2.0'}))
+        (self.root / 'package-lock.json').write_text(json.dumps({'packages': {'': {'version': '0.2.0'}}}))
+        (self.root / 'app.config.ts').write_text(
+            "export default { version: '0.2.0', android: { package: '" + package + "', versionCode: 13 } };\n")
+        native = self.root / 'modules/chatstamp-native/android/build.gradle'
+        native.parent.mkdir(parents=True, exist_ok=True)
+        native.write_text('android { defaultConfig { versionCode 13\n versionName "0.2.0" } }\n')
+
+    def test_current_ci_source_identity_is_the_new_owner_package_and_code13(self):
+        self.sources()
+        expected = ci.source_expected(self.root)
+        self.assertEqual((expected.package, expected.version, expected.code), ('com.menis10tec.chatstamp', '0.2.0', 13))
+        self.assertEqual((expected.min_sdk, expected.target_sdk), (30, 36))
+
+    def test_old_package_is_rejected_by_current_ci_even_with_consistent_versions(self):
+        self.sources('com.menis.chatstamp')
+        with self.assertRaisesRegex(ValueError, 'Production package identity'):
+            ci.source_expected(self.root)
+
+    def test_old_merged_manifest_cannot_pass_current_new_identity_ci(self):
+        self.sources()
+        expected = ci.source_expected(self.root)
+        rules = self.inputs()
+        root = ET.parse(self.manifest).getroot()
+        root.set('package', 'com.menis.chatstamp')
+        root.find('./application/activity').set(ci.release.ANDROID + 'name', 'com.menis.chatstamp.MainActivity')
+        ET.ElementTree(root).write(self.manifest)
+        with self.assertRaisesRegex(ValueError, 'MANIFEST_IDENTITY'):
+            ci.inspect_inputs(self.manifest, rules, self.junit, expected)
 
 
 if __name__ == '__main__':

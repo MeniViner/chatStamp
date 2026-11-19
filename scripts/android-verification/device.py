@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 from qa import DEVICE_ROOT, FIXTURES, PACKAGE, ROOT, STEM, WINDOW_PNG, WINDOW_XML, adb, downloads, row_ids
 
 
-ACTIVITY = f"{PACKAGE}/com.menis.chatstamp.MainActivity"
+ACTIVITY = f"{PACKAGE}/com.menis10tec.chatstamp.MainActivity"
 
 
 def screen(save_as=None):

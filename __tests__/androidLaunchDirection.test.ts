@@ -3,7 +3,7 @@ import { runInNewContext } from 'node:vm';
 import { describe, expect, it } from 'vitest';
 
 const policyCall = 'com.chatstamp.nativebridge.NativeLanguagePolicy.apply';
-const template = `package com.menis.chatstamp
+const template = `package com.menis10tec.chatstamp
 
 import android.app.Application
 import com.facebook.react.ReactApplication
@@ -20,13 +20,13 @@ class MainApplication : Application(), ReactApplication {
 `;
 
 /** Execute the public plugin's real MainApplication/manifest mods, without prebuild. */
-function applyPlugin(contents: string, language = 'kt') {
+function applyPlugin(contents: string, language = 'kt', applicationId = 'com.menis10tec.chatstamp') {
   let generated: string | undefined;
   const application = { $: { 'android:supportsRtl': 'false' } as Record<string, string> };
   const plugins = {
     AndroidConfig: { Manifest: { getMainApplicationOrThrow: () => application } },
     withAndroidManifest: (config: object, action: (value: { modResults: object }) => unknown) => {
-      action({ ...config, modResults: { manifest: {} } }); return config;
+      action({ ...config, modResults: { manifest: { $: { package: applicationId } } } }); return config;
     },
     withMainApplication: (config: object, action: (value: { modResults: { language: string; contents: string } }) => { modResults: { contents: string } }) => {
       generated = action({ ...config, modResults: { language, contents } }).modResults.contents;
@@ -130,9 +130,9 @@ describe('durable native language policy before the first React surface', () => 
   });
 
   it('uses the same native startup policy for the side-by-side QA application', () => {
-    const generated = applyPlugin(template.replace('package com.menis.chatstamp', 'package com.menis.chatstamp.qa')).contents;
+    const generated = applyPlugin(template, 'kt', 'com.menis10tec.chatstamp.qa').contents;
     assertStartupPolicy(generated);
-    expect(generated.startsWith('package com.menis.chatstamp.qa\n')).toBe(true);
+    expect(generated.startsWith('package com.menis10tec.chatstamp\n')).toBe(true);
   });
 
   it('cannot mistake a commented-out policy call for an installed executable hook', () => {

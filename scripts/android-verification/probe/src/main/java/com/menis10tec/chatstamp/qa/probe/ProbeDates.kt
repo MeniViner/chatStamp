@@ -1,4 +1,4 @@
-package com.menis.chatstamp.qa.probe
+package com.menis10tec.chatstamp.qa.probe
 
 import java.time.DateTimeException
 import java.time.Duration

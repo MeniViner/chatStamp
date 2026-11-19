@@ -9,6 +9,7 @@ import sys
 import tempfile
 import unittest
 from unittest import mock
+from contextlib import redirect_stdout
 import xml.etree.ElementTree as ET
 import zipfile
 
@@ -23,19 +24,26 @@ def codes(result):
     return {value['code'] for value in result['issues']}
 
 
-def manifest():
+CURRENT_PACKAGE = 'com.menis10tec.chatstamp'
+HISTORICAL_PACKAGE = 'com.menis.chatstamp'
+
+
+def manifest(package=CURRENT_PACKAGE, code=13):
     """Acceptance fixture, independent of the generated Gradle manifest."""
-    return ET.fromstring('''<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        package="com.menis.chatstamp" android:versionName="0.2.0" android:versionCode="3">
+    namespace = package.removesuffix('.qa')
+    return ET.fromstring(f'''<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        package="{package}" android:versionName="0.2.0" android:versionCode="{code}">
       <uses-sdk android:minSdkVersion="30" android:targetSdkVersion="36" />
+      <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
       <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
       <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
       <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-      <permission android:name="com.menis.chatstamp.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+      <permission android:name="{package}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
           android:protectionLevel="signature" />
-      <uses-permission android:name="com.menis.chatstamp.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+      <uses-permission android:name="{package}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
       <application android:debuggable="false" android:allowBackup="false"
           android:fullBackupContent="false" android:dataExtractionRules="@xml/chatstamp_data_extraction_rules">
+        <activity android:name="{namespace}.MainActivity" android:screenOrientation="portrait" />
         <service android:name="com.chatstamp.nativebridge.SaveForegroundService"
             android:foregroundServiceType="dataSync" android:exported="false" />
       </application>
@@ -107,7 +115,7 @@ class ManifestAcceptanceTest(unittest.TestCase):
         result = check_manifest(manifest())
         self.assertEqual(result['status'], 'PASS', result)
         self.assertEqual(result['platform_permissions'], sorted(release.PLATFORM_PERMISSIONS))
-        self.assertEqual(result['own_signature_permission'], 'com.menis.chatstamp.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION')
+        self.assertEqual(result['own_signature_permission'], CURRENT_PACKAGE + '.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION')
 
     def test_androidx_signature_permission_is_optional_and_never_a_platform_capability(self):
         root = manifest()
@@ -129,9 +137,9 @@ class ManifestAcceptanceTest(unittest.TestCase):
                 self.assertIn('MANIFEST_IDENTITY', codes(check_manifest(root)))
 
     def test_expected_package_and_version_are_configurable(self):
-        root = manifest()
-        xml = ET.tostring(root).replace(b'com.menis.chatstamp', b'com.menis.chatstamp.qa').replace(b'0.2.0', b'0.3.1')
-        self.assertEqual(release.inspect_manifest(xml, release.Expected(package='com.menis.chatstamp.qa', version='0.3.1'))['status'], 'PASS')
+        root = manifest(CURRENT_PACKAGE + '.qa')
+        root.set(release.ANDROID + 'versionName', '0.3.1')
+        self.assertEqual(check_manifest(root, expected=release.Expected(package=CURRENT_PACKAGE + '.qa', version='0.3.1'))['status'], 'PASS')
 
     def test_debuggable_true_or_unresolved_is_rejected(self):
         for value in ('true', '0xffffffff', '@bool/debuggable'):
@@ -232,11 +240,8 @@ class ManifestAcceptanceTest(unittest.TestCase):
 
 class PortraitFeatureAcceptanceTest(unittest.TestCase):
     def future_manifest(self, required='false', include_feature=True):
-        root = manifest()
-        root.set(release.ANDROID + 'versionCode', '12')
-        ET.SubElement(root.find('application'), 'activity', {
-            release.ANDROID + 'name': '.MainActivity', release.ANDROID + 'screenOrientation': 'portrait',
-        })
+        root = manifest(HISTORICAL_PACKAGE, 12)
+        root.remove(root.find('uses-feature'))
         if include_feature:
             attributes = {release.ANDROID + 'name': 'android.hardware.screen.portrait'}
             if required is not None:
@@ -245,7 +250,7 @@ class PortraitFeatureAcceptanceTest(unittest.TestCase):
         return root
 
     def check(self, root, **kwargs):
-        return check_manifest(root, expected=release.Expected(code=12), **kwargs)
+        return check_manifest(root, expected=release.Expected(package=HISTORICAL_PACKAGE, code=12), **kwargs)
 
     def test_code12_optional_portrait_and_unchanged_activity_pass(self):
         self.assertEqual(self.check(self.future_manifest())['status'], 'PASS')
@@ -294,7 +299,7 @@ class PortraitFeatureAcceptanceTest(unittest.TestCase):
     def test_historical_code11_keeps_its_original_policy(self):
         root = self.future_manifest('true')
         root.set(release.ANDROID + 'versionCode', '11')
-        self.assertEqual(check_manifest(root, expected=release.Expected(code=11))['status'], 'PASS')
+        self.assertEqual(check_manifest(root, expected=release.Expected(package=HISTORICAL_PACKAGE, code=11))['status'], 'PASS')
 
     def test_optional_portrait_does_not_relax_existing_permission_policy(self):
         root = self.future_manifest()
@@ -310,6 +315,58 @@ class PortraitFeatureAcceptanceTest(unittest.TestCase):
                 node.set(release.ANDROID + 'name', 'com.menis.chatstamp.qa.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION')
         root.find('./application/activity').set(release.ANDROID + 'name', 'com.menis.chatstamp.MainActivity')
         self.assertEqual(check_manifest(root, expected=release.Expected(package='com.menis.chatstamp.qa', code=12))['status'], 'PASS')
+
+
+class CurrentIdentityAcceptanceTest(unittest.TestCase):
+    def test_default_expectations_are_the_new_production_identity_and_code13(self):
+        expected = release.Expected()
+        self.assertEqual((expected.package, expected.code), (CURRENT_PACKAGE, 13))
+        self.assertEqual(check_manifest(manifest())['status'], 'PASS')
+
+    def test_public_cli_uses_the_same_current_defaults_without_building_or_signing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fixture = root / 'synthetic.apk'
+            fixture.write_bytes(b'No artifact parsing occurs in this CLI-routing test')
+            with mock.patch.object(release, 'verify_artifact', return_value={'kind': 'apk', 'status': 'PASS', 'issues': []}) as verify, redirect_stdout(io.StringIO()):
+                result = release.main(['--apk', str(fixture), '--sdk-root', str(root / 'sdk'),
+                                       '--work-dir', str(root / 'work'), '--expected-cert-sha256', 'a' * 64])
+            self.assertEqual(result, 0)
+            expected = verify.call_args.args[2]
+            self.assertEqual((expected.package, expected.code), (CURRENT_PACKAGE, 13))
+
+    def test_old_package_does_not_pass_new_default_identity(self):
+        result = check_manifest(manifest(HISTORICAL_PACKAGE, release.Expected().code))
+        self.assertIn('MANIFEST_IDENTITY', codes(result))
+
+    def test_new_qa_uses_the_new_production_activity_namespace(self):
+        root = manifest(CURRENT_PACKAGE + '.qa')
+        expected = release.Expected(package=CURRENT_PACKAGE + '.qa', code=13)
+        self.assertEqual(check_manifest(root, expected=expected)['status'], 'PASS')
+
+    def test_old_or_qa_activity_class_is_never_accepted_for_new_code13(self):
+        cases = [(CURRENT_PACKAGE, HISTORICAL_PACKAGE + '.MainActivity'),
+                 (CURRENT_PACKAGE + '.qa', HISTORICAL_PACKAGE + '.MainActivity'),
+                 (CURRENT_PACKAGE + '.qa', CURRENT_PACKAGE + '.qa.MainActivity')]
+        for package, activity in cases:
+            with self.subTest(package=package, activity=activity):
+                root = manifest(package)
+                root.find('./application/activity').set(release.ANDROID + 'name', activity)
+                self.assertIn('MAIN_ACTIVITY_ORIENTATION', codes(check_manifest(root, expected=release.Expected(package=package, code=13))))
+
+    def test_historical_code11_and_code12_keep_explicit_old_identity_support(self):
+        for code in (11, 12):
+            with self.subTest(code=code):
+                root = manifest(HISTORICAL_PACKAGE, code)
+                expected = release.Expected(package=HISTORICAL_PACKAGE, code=code)
+                self.assertEqual(check_manifest(root, expected=expected)['status'], 'PASS')
+
+    def test_relative_production_activity_is_resolved_under_its_actual_package(self):
+        for name in ('.MainActivity', 'MainActivity'):
+            with self.subTest(name=name):
+                root = manifest()
+                root.find('./application/activity').set(release.ANDROID + 'name', name)
+                self.assertEqual(check_manifest(root)['status'], 'PASS')
 
 
 class BackupResourceTest(unittest.TestCase):

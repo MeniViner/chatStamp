@@ -27,7 +27,7 @@ def source_expected(root):
 
     version = package['version']
     code = int(one(r'\bversionCode:\s*(\d+)', config))
-    if one(r"\bpackage:\s*'([^']+)'", config) != 'com.menis.chatstamp':
+    if one(r"\bpackage:\s*'([^']+)'", config) != release.CURRENT_PACKAGE:
         raise ValueError('Production package identity changed')
     if one(r"\bversion:\s*'([^']+)'", config) != version or lock['packages']['']['version'] != version:
         raise ValueError('Expo, package and lockfile versions differ')

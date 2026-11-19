@@ -10,7 +10,7 @@ chatStamp imports WhatsApp chat export ZIPs, matches supported attachments to th
 - Strict TypeScript with zero `any`, react-native-paper / Material Design 3, Zustand for session state, i18next / react-i18next, and Vitest.
 - Expo document picker, file system, image, video, and audio modules.
 - The local Kotlin Expo module at `modules/chatstamp-native` performs native ZIP extraction, scoped MediaStore / explicit folder-provider saves, EXIF and MP4 date handling, and output operations. The app uses neither expo-media-library nor react-native-zip-archive.
-- Android min SDK 30 and target SDK 36. The production application ID is always `com.menis.chatstamp`.
+- Android min SDK 30 and target SDK 36. The production application ID is always `com.menis10tec.chatstamp`.
 
 ## Non-negotiable rules
 
@@ -61,7 +61,7 @@ The MVP is accepted only after a real Android device processes a real WhatsApp e
 
 ## Device and secrets safety
 
-- Install only the isolated QA copy `com.menis.chatstamp.qa`, built with `scripts/android-verification/device-test.init.gradle`. Never replace the owner's production app during normal testing. For the explicitly authorized G1 release check, install the production package only when it is absent or the owner explicitly permits replacement; otherwise build a release variant with the QA ID.
+- Install only the isolated QA copy `com.menis10tec.chatstamp.qa`, built with `scripts/android-verification/device-test.init.gradle`. Never replace the owner's production app during normal testing. For the explicitly authorized G1 release check, install the production package only when it is absent or the owner explicitly permits replacement; otherwise build a release variant with the QA ID.
 - Before UI tests record the previous `stay_on_while_plugged_in` value, run `adb shell svc power stayon usb`, and check wake / keyguard state. Do not unlock a locked phone. State the owner action and continue work that does not need the device; re-check at each later stage.
 - At the end of each device run remove only that run's QA packages, synthetic fixtures, and saved test files, verify removal, and restore the previous stay-awake value. Use synthetic data for screenshots and never commit a real chat export.
 - Release keystores, passwords, and signing properties stay outside the repository. Use `~/.chatstamp/android-release-signing.properties` or `CHATSTAMP_RELEASE_*` variables as documented in `docs/ANDROID_RELEASE_SIGNING.md`. Never print, copy, log, or commit their contents. Reuse the existing upload key; do not create a replacement key.

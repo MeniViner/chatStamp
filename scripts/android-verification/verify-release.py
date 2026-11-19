@@ -27,6 +27,8 @@ ANDROID = '{http://schemas.android.com/apk/res/android}'
 PAGE_SIZE = 16 * 1024
 EVIDENCE_LIMIT = 10_000_000
 MAX_XML_BYTES = 2 * 1024 * 1024
+CURRENT_PACKAGE = 'com.menis10tec.chatstamp'
+CURRENT_VERSION_CODE = 13
 PORTRAIT_OPTIONAL_FROM_CODE = 12
 PORTRAIT_FEATURE = 'android.hardware.screen.portrait'
 PLATFORM_PERMISSIONS = {
@@ -52,9 +54,9 @@ SOURCES = {
 
 @dataclasses.dataclass(frozen=True)
 class Expected:
-    package: str = 'com.menis.chatstamp'
+    package: str = CURRENT_PACKAGE
     version: str = '0.2.0'
-    code: int = 3
+    code: int = CURRENT_VERSION_CODE
     min_sdk: int = 30
     target_sdk: int = 36
 
@@ -119,8 +121,15 @@ def inspect_manifest(xml, expected=Expected(), additional_xml=()):
             issues.append(issue('PORTRAIT_FEATURE_COUNT', 'Code 12+ requires exactly one explicit optional portrait feature'))
         if any(not is_false(feature['required']) for feature in portrait):
             issues.append(issue('PORTRAIT_FEATURE_REQUIRED', 'Portrait must explicitly set android:required=false'))
-        main_names = {'.MainActivity', 'MainActivity', 'com.menis.chatstamp.MainActivity', expected.package + '.MainActivity'}
-        main = [activity for activity in activities if activity['name'] in main_names]
+        expected_main = expected.package.removesuffix('.qa') + '.MainActivity'
+
+        def activity_class(activity):
+            name = activity['name'] or ''
+            if name.startswith('.'):
+                return (package or '') + name
+            return (package or '') + '.' + name if '.' not in name else name
+
+        main = [activity for activity in activities if activity_class(activity) == expected_main]
         if len(main) != 1 or (main[0]['screen_orientation'] != 'portrait' and number(main[0]['screen_orientation']) != 1):
             issues.append(issue('MAIN_ACTIVITY_ORIENTATION', 'Code 12+ must retain exactly one portrait MainActivity'))
 
@@ -657,9 +666,9 @@ def main(argv=None):
     parser.add_argument('--jdk-home', type=Path, default=Path(os.environ['JAVA_HOME']) if os.environ.get('JAVA_HOME') else None)
     for tool in ('java', 'jarsigner', 'keytool', 'apkanalyzer', 'aapt2', 'apksigner', 'zipalign'):
         parser.add_argument('--' + tool, type=Path)
-    parser.add_argument('--expected-package', default='com.menis.chatstamp')
-    parser.add_argument('--expected-version', default='0.2.0')
-    parser.add_argument('--expected-code', type=int, default=3)
+    parser.add_argument('--expected-package', default=Expected.package)
+    parser.add_argument('--expected-version', default=Expected.version)
+    parser.add_argument('--expected-code', type=int, default=Expected.code)
     parser.add_argument('--expected-cert-sha256', required=True, help='Public certificate SHA256 only; never a keystore or password')
     parser.add_argument('--work-dir', type=Path)
     parser.add_argument('--report', type=Path)

@@ -35,7 +35,7 @@ function applyPlugin(contents: string): string {
   const configPlugins = {
     AndroidConfig: { Manifest: { getMainApplicationOrThrow: () => application } },
     withAndroidManifest: (config: object, action: (value: { modResults: object }) => unknown) => {
-      action({ ...config, modResults: { manifest: {} } });
+      action({ ...config, modResults: { manifest: { $: { package: 'com.menis10tec.chatstamp' } } } });
       return config;
     },
     withGradleProperties: (config: object, action: (value: { modResults: object[] }) => unknown) => {
