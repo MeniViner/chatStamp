@@ -287,4 +287,60 @@ describe('actual runtime recovery, retry UI and asynchronous import ownership', 
     expect(control.releaseImport).toHaveBeenLastCalledWith(oldId, `file:///cache/chatstamp/${oldId}/`, source);
     expect(store.getState()).toMatchObject({ stage: 'welcome', workingDirectory: undefined });
   });
+
+  function expectReplacementOwnedByB() {
+    const nextUri = 'content://synthetic/next.zip';
+    expect(control.extract).toHaveBeenCalledTimes(2);
+    const nextId = control.extract.mock.calls[1][2] as string;
+    const nextDirectory = `file:///cache/chatstamp/${nextId}/`;
+    expect(store.getState()).toMatchObject({ stage: 'selectFiles', zipUri: nextUri, workingDirectory: nextDirectory, importOperationId: nextId });
+    expect(store.getState().mediaFiles).toHaveLength(2);
+    expect(store.getState().selectedFileIds.size).toBe(2);
+    expect(control.releaseImport.mock.calls.some((args) => args[1] === nextDirectory || args[2] === nextUri)).toBe(false);
+    expect(control.releaseSource.mock.calls.some((args) => args[0] === nextUri)).toBe(false);
+  }
+
+  it('an old cancellation cannot discard an accepted replacement share after its native cancel finally returns', async () => {
+    await attach();
+    const parseGate = deferred<ChatParseResult>(), cancelGate = deferred<void>();
+    control.parse.mockReturnValueOnce(parseGate.promise);
+    const first = coordinator.beginImport(source, 'first.zip');
+    await vi.waitFor(() => expect(control.parse).toHaveBeenCalledOnce());
+    const oldId = control.extract.mock.calls[0][2] as string;
+    control.cancel.mockReturnValueOnce(cancelGate.promise);
+    const cancellingA = coordinator.cancelCurrentOperation();
+    await vi.waitFor(() => expect(control.cancel).toHaveBeenCalledWith(oldId));
+    control.consume.mockResolvedValueOnce({ received: true, id: 'replacement-during-cancel', sourceUri: 'content://synthetic/next.zip', filename: 'next.zip' });
+    emit('onSharedZip');
+    await vi.waitFor(() => expect(coordinator.pendingSharedZip()?.id).toBe('replacement-during-cancel'));
+    const replacingWithB = coordinator.acceptSharedZip();
+    finishParse(parseGate);
+    await first; await flush();
+    // A valid implementation may serialize B behind the pending cancel. If B
+    // already completed, the old continuation must preserve that exact owner.
+    if (control.extract.mock.calls.length === 2) expectReplacementOwnedByB();
+    else expect(control.extract).toHaveBeenCalledOnce();
+    cancelGate.resolve();
+    await Promise.all([cancellingA, replacingWithB]);
+    expectReplacementOwnedByB();
+  });
+
+  it.each(['source grant', 'import job'] as const)('a discarded import awaiting %s release cannot reset replacement B', async (releaseKind) => {
+    if (releaseKind === 'source grant') control.extract.mockRejectedValueOnce(new Error('Synthetic invalid archive'));
+    await coordinator.beginImport(source, 'first.zip');
+    expect(store.getState()).toMatchObject({ stage: releaseKind === 'source grant' ? 'error' : 'selectFiles', zipUri: source });
+    const gate = deferred<void>();
+    const release = releaseKind === 'source grant' ? control.releaseSource : control.releaseImport;
+    const previousReleases = release.mock.calls.length;
+    release.mockReturnValueOnce(gate.promise);
+    const discardingA = coordinator.discardImport();
+    await vi.waitFor(() => expect(release).toHaveBeenCalledTimes(previousReleases + 1));
+    const replacingWithB = coordinator.beginImport('content://synthetic/next.zip', 'next.zip');
+    await flush();
+    if (control.extract.mock.calls.length === 2) expectReplacementOwnedByB();
+    else expect(control.extract).toHaveBeenCalledOnce();
+    gate.resolve();
+    await Promise.all([discardingA, replacingWithB]);
+    expectReplacementOwnedByB();
+  });
 });

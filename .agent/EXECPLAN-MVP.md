@@ -10,31 +10,21 @@ com.menis.chatstamp and the owner's external upload key.
 
 ## Current state — 2026-11-19
 
-R/B/C/G1/D and E/F implementation are complete on fix/core-rebuild. Final app
-source3f4ab91, version0.2.0/code6, passes431 host/40 executed JVM/39 connected
-per API30/API36,105Python, lint/typecheck, clean prebuild, Knip/i18n and fresh
-GitHub Android CI. Signed production/QA artifacts and the executed minified
-phone/emulator scopes pass. Latest receipts/logs name exact binaries and limits.
+R/B/C/G1/D and E/F implementation are complete on fix/core-rebuild. The new
+code8 source is independently reviewed after three PR P2 fixes and the P1
+cancel/discard/replacement ownership follow-up. Full smoke from npm ci passes
+459 host/48 files,40 freshly executed JVM/39 connected per API30/API36,
+TypeScript/lint/clean prebuild/QA manifest and offline cold launch on both.
+105 Python cases and unused-source/i18n checks pass. Code6/code7 are superseded;
+their dated evidence below describes only their actual source and binaries.
 
-Physical A30/API30 final five-file save/readback/Gallery, duplicate language
-reruns, native RTL/a11y, two512MiB backgrounds and40-video0grid/peak1viewer pass.
-API36 final reviewer confirms5/5 readback with notifications denied, actual
-native directions/modals,130% phone/wide controls and MP4/OPUS playback/seek.
-All8 real-phone store screenshots are refreshed. QA/helper/test material and
-saved outputs are removed, settings restored; production installation untouched.
-
-E's complete every-screen×8configuration matrix is not claimed. API33 physical,
-owner real WhatsApp closed/warm shares, actual16KiB runtime, arbitrary providers/
-Galleries/codecs and browser first-run rendering remain unverified. Deferred
-provider-revocation/process-death-window cases remain deferred per v4.
-
-G2 final signed AAB/manual upload, isolated QA installer, demo, declarations,
-production-access input drafts and owner real-export procedure are packaged.
-No Play credentials/upload/live track/tester clock or production access exists
-in this task. Account is personal; creation date remains unknown. One final PR
-is opened without merge, with its exact head/link recorded in the closeout log.
-Pages is already public from fix/core-rebuild/docs; after owner merge switch to
-main/docs before deleting the branch. Older candidates remain dated history.
+Signed code8 artifacts, fresh-checkout CI and final minified phone/emulator
+acceptance are in progress. The owner unlocked the A30; its original settings
+are recorded and the temporary screen timeout will be restored after cleanup.
+API33, real owner WhatsApp shares, actual16KiB runtime, full UI matrix and
+actual Play/tester eligibility remain unverified. Manual upload remains the
+explicit authorized fallback because no service-account path was supplied.
+PR1 is open against main, unmerged; Pages is already public.
 
 ## Implemented decisions and boundaries
 

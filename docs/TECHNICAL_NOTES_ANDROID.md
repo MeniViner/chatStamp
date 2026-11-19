@@ -40,6 +40,15 @@ Free-space checks run before/while writing. Limit/space errors are coded and par
 
 [`NativeOperations.kt`](../modules/chatstamp-native/android/src/main/java/com/chatstamp/nativebridge/NativeOperations.kt) supplies import/save progress, Cancel and snapshots. JS recreation can reattach to an operation still owned by the live native registry. Terminal save acknowledgment follows durable History publication; it must not launch a second save. This does **not** promise automatic recovery after full process death.
 
+Import cancellation, discard and replacement setup use one serialized ownership
+queue; extraction and transcript parsing run outside it so Cancel remains usable.
+Old cleanup finishes before a replacement can publish its session. Pending
+transitions block Save and language restart. A successful stale parse releases its
+actual working directory; cleanup failure retains its context and blocks replacement.
+After JS recreation, failed/cancelled Results offer reimport when valid retry inputs
+are unavailable. Cancelling the picker preserves the retained result/cache, and an
+empty save cannot acknowledge or clear that work.
+
 [`SaveForegroundService.kt`](../modules/chatstamp-native/android/src/main/java/com/chatstamp/nativebridge/SaveForegroundService.kt) uses an unexported, user-started **dataSync** foreground service with progress and Cancel notification. Android 13+ notification permission denial does not create a fake successful save. Cancellation/timeout closes tracked streams and waits for pending-output/scratch cleanup before terminal reporting. Fully published files remain saved and untouched remaining files are reported cancelled/failed; cleanup failures remain errors. Source-revocation simulation and process-death reconciliation beyond the implemented owned-record cases remain deferred.
 
 ## Destinations, duplicates and dates
@@ -77,6 +86,11 @@ Native **I18nManager.isRTL** is the direction source for the current runtime. Se
 ## Storage, testing and release boundaries
 
 There is no database or server. Zustand owns the session; small atomic JSON files hold settings, History summaries/per-file details and native save records. Failed/cancelled work can retain private files for retry until discard/cleanup. Source policy disables OS backup/transfer and application network/recording/broad-storage permissions; verify the merged manifest and final artifact.
+
+Results and History share the same file-sharing sheet. It displays explicit ranges
+of at most 100 files with Previous/Next controls; each batch needs its own Share
+gesture. Opening the Android chooser is not a delivery receipt. JavaScript and the
+native bridge reject oversized requests rather than silently dropping later files.
 
 Representative regression sources include [StreamingImportTest](../modules/chatstamp-native/android/src/androidTest/java/com/chatstamp/nativebridge/StreamingImportTest.kt), [ZipIntegrityTest](../modules/chatstamp-native/android/src/androidTest/java/com/chatstamp/nativebridge/ZipIntegrityTest.kt), [ScopedMediaSaverTest](../modules/chatstamp-native/android/src/androidTest/java/com/chatstamp/nativebridge/ScopedMediaSaverTest.kt), [SaveFolderProfileTest](../modules/chatstamp-native/android/src/androidTest/java/com/chatstamp/nativebridge/SaveFolderProfileTest.kt), [MediaPreviewsTest](../modules/chatstamp-native/android/src/androidTest/java/com/chatstamp/nativebridge/MediaPreviewsTest.kt), [SharedZipInboxTest](../modules/chatstamp-native/android/src/androidTest/java/com/chatstamp/nativebridge/SharedZipInboxTest.kt), and host [fixtures](../__tests__/chatArchive.test.ts), [actual selection](../__tests__/stageEFlow.test.ts), [Results](../__tests__/resultsPresentation.test.ts), [language persistence](../__tests__/languageRestart.test.ts) and [locale dates](../__tests__/localeDates.test.ts). Their presence does not assert their latest execution or universal provider/Gallery compatibility.
 

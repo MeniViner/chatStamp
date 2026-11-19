@@ -26,8 +26,22 @@ let incomingShare: NativeSharedZipResult | null = null;
 let restartingApp = false;
 let drainIdle: Promise<void> = Promise.resolve();
 let importRevision = 0;
+let importTransition: Promise<void> = Promise.resolve();
+let pendingImportTransitions = 0;
 const shareListeners = new Set<() => void>();
 const retainedImportSources = new Set<string>();
+
+/** Serialize ownership changes, without holding the queue during extraction. */
+function transitionImport<T>(action: () => Promise<T>): Promise<T> {
+  pendingImportTransitions++;
+  startingImport = true;
+  const transition = importTransition.then(action);
+  importTransition = transition.then(() => undefined, () => undefined);
+  return transition.finally(() => {
+    pendingImportTransitions--;
+    startingImport = pendingImportTransitions > 0;
+  });
+}
 
 export type SaveIntent = Readonly<{
   revision: number; importOperationId?: string; workingDirectory: string; archiveFingerprint: string;
@@ -51,6 +65,7 @@ function captureSavePolicy(zipName?: string): SavePolicy {
 }
 
 export function captureSaveIntent(): SaveIntent | null {
+  if (restartingApp || startingImport || importTask || saveTask) return null;
   const state = usePipelineStore.getState();
   return state.stage === 'selectFiles' && state.workingDirectory && state.archiveFingerprint
     ? { revision: importRevision, importOperationId: state.importOperationId,
@@ -91,47 +106,63 @@ export async function chooseZip(): Promise<void> {
 }
 
 export async function beginImport(uri: string, name: string): Promise<void> {
-  if (restartingApp || startingImport || saveTask || usePipelineStore.getState().stage === 'saving') return;
-  startingImport = true;
-  try { await discardImport(uri === usePipelineStore.getState().zipUri); }
-  catch (error) { startingImport = false; usePipelineStore.getState().setError(error); return; }
-  const id = createOperationId('import');
-  importId = id;
-  const state = usePipelineStore.getState();
-  state.setZip({ uri, name });
-  state.startProgress(id, 'import');
-  state.setStage('analyzing');
-  const task = (async () => {
-    let cleaningStaleResult = false;
-    let staleWorkingDirectory: string | undefined;
+  if (restartingApp || saveTask || usePipelineStore.getState().stage === 'saving') return;
+  const started = await transitionImport(async () => {
     try {
-      const result = await importWhatsAppZip({ zipUri: uri, zipName: name, operationId: id,
-        onProgress: (event) => { if (importId === id) usePipelineStore.getState().setProgress(event); } });
-      if (importId === id) usePipelineStore.getState().setImportResult(result);
-      else {
-        cleaningStaleResult = true;
-        staleWorkingDirectory = result.workingDirectory;
-        await getChatStampNativeModule().releaseImportAsync(id, result.workingDirectory,
-          retainedImportSources.has(id) ? '' : uri);
-      }
+      if (restartingApp || saveTask || usePipelineStore.getState().stage === 'saving') return null;
+      await discardImportLocked(uri === usePipelineStore.getState().zipUri);
+      if (saveTask || usePipelineStore.getState().stage === 'saving') return null;
+      const id = createOperationId('import');
+      importId = id;
+      const state = usePipelineStore.getState();
+      state.setZip({ uri, name });
+      state.startProgress(id, 'import');
+      state.setStage('analyzing');
+      const task = (async () => {
+        let cleaningStaleResult = false;
+        let staleWorkingDirectory: string | undefined;
+        try {
+          const result = await importWhatsAppZip({ zipUri: uri, zipName: name, operationId: id,
+            onProgress: (event) => { if (importId === id) usePipelineStore.getState().setProgress(event); } });
+          if (importId === id) usePipelineStore.getState().setImportResult(result);
+          else {
+            cleaningStaleResult = true;
+            staleWorkingDirectory = result.workingDirectory;
+            await getChatStampNativeModule().releaseImportAsync(id, result.workingDirectory,
+              retainedImportSources.has(id) ? '' : uri);
+          }
+        } catch (error) {
+          if (cleaningStaleResult) {
+            usePipelineStore.setState({ workingDirectory: staleWorkingDirectory, importOperationId: id });
+            throw error;
+          }
+          if (importId !== id) return;
+          if (asPipelineError(error).code === 'CANCELLED') usePipelineStore.getState().reset();
+          else usePipelineStore.getState().setError(error);
+        }
+      })();
+      importTask = task;
+      return { id, task };
     } catch (error) {
-      if (cleaningStaleResult) {
-        usePipelineStore.setState({ workingDirectory: staleWorkingDirectory, importOperationId: id });
-        throw error;
-      }
-      if (importId !== id) return;
-      if (asPipelineError(error).code === 'CANCELLED') usePipelineStore.getState().reset();
-      else usePipelineStore.getState().setError(error);
+      usePipelineStore.getState().setError(error);
+      return null;
     }
-  })();
-  importTask = task;
-  startingImport = false;
+  });
+  if (!started) return;
+  const { id, task } = started;
   try { await task; }
-  catch (error) { usePipelineStore.getState().setError(error); }
+  catch (error) {
+    if (importId === id || usePipelineStore.getState().importOperationId === id) usePipelineStore.getState().setError(error);
+  }
   finally { if (importTask === task) importTask = null; }
 }
 
 export async function discardImport(keepSource = false): Promise<void> {
+  return transitionImport(() => discardImportLocked(keepSource));
+}
+
+/** Called only inside transitionImport so cleanup cannot reset a replacement. */
+async function discardImportLocked(keepSource = false): Promise<void> {
   const native = getChatStampNativeModule();
   if (usePipelineStore.getState().stage === 'saving' || saveTask) return;
   importRevision++;
@@ -175,13 +206,22 @@ export async function discardImport(keepSource = false): Promise<void> {
 
 export async function cancelCurrentOperation(): Promise<void> {
   const state = usePipelineStore.getState();
-  const pendingImport = importTask;
-  if (state.stage === 'analyzing') importId = null;
-  if (state.progress) await getChatStampNativeModule().cancelOperationAsync(state.progress.operationId);
-  if (state.stage === 'analyzing') {
-    try { await pendingImport; await discardImport(); }
-    catch (error) { usePipelineStore.getState().setError(error); }
+  if (state.stage !== 'analyzing') {
+    if (state.progress) await getChatStampNativeModule().cancelOperationAsync(state.progress.operationId);
+    return;
   }
+  const cancelledId = state.progress?.operationId ?? importId ?? state.importOperationId;
+  const pendingImport = importTask;
+  await transitionImport(async () => {
+    const current = usePipelineStore.getState();
+    if (!cancelledId || (importId ?? current.importOperationId ?? current.progress?.operationId) !== cancelledId) return;
+    try {
+      importId = null;
+      await getChatStampNativeModule().cancelOperationAsync(cancelledId);
+      await pendingImport;
+      await discardImportLocked();
+    } catch (error) { usePipelineStore.getState().setError(error); }
+  });
 }
 
 export async function startSaving(intent?: SaveIntent): Promise<void> {

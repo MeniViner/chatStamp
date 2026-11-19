@@ -29,6 +29,8 @@ older implementations and do not authorize their superseded storage/RTL paths.
   activity recreation, service timeout and restart preserve correct ownership.
 - Cancellation removes own partial/pending output, retains complete files and
   reports the remainder as cancelled. Startup reconciles own stale job state.
+- Import cancel/discard/replacement ownership is serialized; old continuations
+  cannot release or reset a replacement. Empty recovered retries require reimport.
 - Atomic JSON details-before-index writes; no settings publication before commit.
 - Backup and device transfer disabled/excluded; temporary external read grants
   only on explicit user open/share actions.
@@ -47,6 +49,8 @@ older implementations and do not authorize their superseded storage/RTL paths.
 - Check Back, dialogs/sheets, keyboard and inset-safe primary actions on phone
   and 600 dp layouts, 100/130% font sizes, both languages. Aggregate accessibility
   checked/disabled/mixed transitions must agree with actual native descriptions.
+- Results and History expose every sharing batch with an explicit range and
+  separate user gesture; no truncation above 100 or chooser-as-delivery claim.
 
 ## Required validation and custody
 
@@ -120,3 +124,9 @@ exports; a local bundle does not establish upload, tester counts or 14 days.
   and valid step-scoped runner path preserve all existing gates. Root actual
   fresh CI44421242295 passes431host/105Python/40JVM and release policy. Three
   later PR product findings remain under implementation/independent review.
+
+
+- 2026-11-19 code8 source follow-up clear after independent P1 ownership review.
+  Deferred cancel/source/job-release regressions preserve replacement B. Recovery
+  reimport/no-empty-save and complete bounded sharing remain clear. Root full
+  smoke and signed code8 runtime are separate acceptance gates.

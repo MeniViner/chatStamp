@@ -766,3 +766,51 @@ parity/zero-unused assertions. Final source review, phone debug cold launch,
 signed code7 artifact checks and minified runtime are separate pending gates.
 The phone is locked; the owner unlock request is pending while builds and
 emulator work continue. Earlier code6 artifacts remain historical candidates.
+
+
+- 2026-11-19 code7 review gate failed despite green smoke: reviewer found that
+  an old import cancellation can resume after replacement and discard the new
+  import; async discard cleanup can similarly reset replacement state. try
+  another way: fence or serialize lifecycle ownership, and add independently
+  deferred cancellation/release regressions before rebuilding code8. Code7
+  signed production/QA strict artifact checks passed, but code7 is superseded
+  and was not accepted for final handoff or uploaded. No code7 media save was
+  performed. Debug cold screens rendered on both devices with zero app crash
+  entries; those checks do not waive the review finding. The first QA bundle
+  command used the debug-only hook and stayed production-ID; this was caught
+  before any installation. try another way: use release-test.init.gradle,
+  then require the QA identity in strict artifact verification before install.
+
+
+- Code7 UI harness correction: the isolated UI helper installation was rejected
+  as TEST_ONLY before launch. try another way: install that known test APK
+  with adb install -t; do not alter the product APK or testOnly policy. This
+  tooling failure did not change product source or save any media.
+
+
+- Code7 fresh CI44423400404/job135221916850 passed456host/105Python and native
+  execution, then correctly rejected Native and application versions differ:
+  root had raised Expo versionCode without updating the durable module Gradle
+  versionCode. try another way: synchronize both to8 before the next complete
+  clean-prebuild cycle; retain the source/manifest identity guard unchanged.
+  The failed gate was not treated as a successful current CI run.
+
+
+- 2026-11-19 code8 ownership fix: independent source reviewer reports no remaining
+  material finding. A serialized transition queue covers cancellation, discard
+  and replacement setup without holding extraction/parsing; captured identity
+  and synchronous pending-transition fences protect the replacement, Save and
+  language restart. Test author independently reran49/49 focused cases: recovery13,
+  sharing15 and coordinator21. All3P1 regressions changed from red to green with
+  unchanged assertions. Root restarted the entire smoke at npmci;459host/48files,
+  typecheck/lint and cleanprebuild pass so far. Native, signed artifacts and final
+  minified runtime gates are still pending; no code7 acceptance is substituted.
+
+
+- 2026-11-19 code8 full smoke accepted: npmci→typecheck→459Vitest/48files→lint
+  →cleanprebuild→two-worker arm64QA(226executed)→strictQAmanifest→40freshJVM
+  /39connected on each API30/API36(0fail/skip)→actual offline cold onboarding on
+  both devices with zero PID crash entries. No Metro or ADB reverse was needed.
+ 105Python and unused-source checks pass. Independent source review is clear.
+  App and durable module both use versionCode8; signed artifact/current fresh CI
+  and minified runtime follow on this exact source. No Play upload or merge.
