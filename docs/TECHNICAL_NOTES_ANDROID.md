@@ -81,7 +81,17 @@ Thumbnails are native JPEG descriptors, never list-cell video players. Images ar
 
 Only the active full-screen video owns a player. Video handoffs and explicit audio release await the native MAIN-queue release barrier. This is a bounded preview lifecycle, not a claim that every Android codec can decode every supported extension. Nonseekable/unsupported files can fall back to a narrow FileProvider read grant in another app; missing or unsuitable external handlers remain a truthful fallback.
 
-Native **I18nManager.isRTL** is the direction source for the current runtime. Settings writes are serialized/atomic and publish state only after success; a failed read does not permit overwriting with defaults. Language sync applies persisted allowRTL/forceRTL flags and translations, reports mismatch and offers a real same-bundle Expo reload. There is no ExpoUpdates/cloud reload or custom direction provider. Restart waits for persistence, safe operation/discard handling and media release; actual RTL application must be checked in the restarted minified runtime. App-language formatting preserves the source instant/time-zone/provenance rather than manufacturing a date.
+Android applies `NativeLanguagePolicy` from the regenerated MainApplication,
+after `super.onCreate()` and before `loadReactNative`, so the first native surface
+uses the committed language direction. The policy reads only
+`filesDir/chatstamp-store/settings.v1.json`, bounded to64KiB; explicit EN/HE wins,
+and system/missing follows the same locale source as Expo. Invalid, unreadable,
+nonobject, trailing or oversized content preserves existing flags and file bytes.
+The config plugin durably asserts `supportsRtl=true` and rejects ambiguous or
+misplaced executable startup hooks; comments and strings cannot suppress insertion.
+
+Native **I18nManager.isRTL** describes the current JS runtime's cached native
+constant; it alone does not prove the already mounted surface direction. Settings writes are serialized/atomic and publish state only after success; a failed read does not permit overwriting with defaults. Language sync applies persisted allowRTL/forceRTL flags and translations, reports mismatch and offers a real same-bundle Expo reload. There is no ExpoUpdates/cloud reload or custom direction provider. Restart waits for persistence, safe operation/discard handling and media release; actual RTL application must be checked in the restarted minified runtime. App-language formatting preserves the source instant/time-zone/provenance rather than manufacturing a date.
 
 ## Storage, testing and release boundaries
 

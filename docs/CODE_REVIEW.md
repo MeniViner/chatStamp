@@ -42,6 +42,9 @@ older implementations and do not authorize their superseded storage/RTL paths.
 - Bounded native thumbnails; zero cell video players, at most one viewer video
   player and one shared audio controller. Release on page/unmount/background.
 - Real progress with unknown totals supported; no fabricated steps/percentages.
+- Native policy before the first React surface, honoring committed language and
+  preserving unreadable/invalid settings; verify a fresh system-HE first screen
+  before any Settings navigation, language change or remount.
 - Native I18nManager direction only, explicit safe restart for direction changes,
   app-language dates and actual dynamic palette or honest fallback.
 - English/Hebrew parity and zero unreachable keys; plain Hebrew without raw
@@ -130,3 +133,9 @@ exports; a local bundle does not establish upload, tester counts or 14 days.
   Deferred cancel/source/job-release regressions preserve replacement B. Recovery
   reimport/no-empty-save and complete bounded sharing remain clear. Root full
   smoke and signed code8 runtime are separate acceptance gates.
+
+
+- 2026-11-19 code9 final source clear, including lexical hook safety and module
+  manifest capability. Root full472host/46JVM/47connected each plus105Python and
+  fresh offline firstHE native bounds pass. Signed/minified acceptance follows
+  separately on the exact source; no Play upload or merge is asserted.

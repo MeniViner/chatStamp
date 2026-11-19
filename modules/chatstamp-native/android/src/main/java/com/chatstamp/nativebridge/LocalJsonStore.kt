@@ -12,9 +12,27 @@ internal class LocalJsonStore(context: Context) {
     if (!isDirectory && !mkdirs()) throw OperationFailure("IO_ERROR", "Could not create local storage.")
   }.canonicalFile
 
-  fun read(name: String): String? = guarded {
+  fun read(name: String, maxBytes: Int? = null): String? = guarded {
     val file = file(name)
-    if (file.isFile) file.readText(Charsets.UTF_8) else null
+    if (!file.exists()) null
+    else {
+      if (!file.isFile) throw OperationFailure("IO_ERROR", "Local storage is not a regular file.")
+      if (maxBytes == null) file.readText(Charsets.UTF_8)
+      else {
+        require(maxBytes > 0 && maxBytes < Int.MAX_VALUE)
+        file.inputStream().use { stream ->
+          val bytes = ByteArray(maxBytes + 1)
+          var count = 0
+          while (count < bytes.size) {
+            val read = stream.read(bytes, count, bytes.size - count)
+            if (read < 0) break
+            count += read
+          }
+          if (count > maxBytes) throw OperationFailure("IO_ERROR", "Local storage exceeds its read limit.")
+          String(bytes, 0, count, Charsets.UTF_8)
+        }
+      }
+    }
   }
 
   fun write(name: String, contents: String) = guarded {

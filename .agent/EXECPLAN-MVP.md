@@ -10,21 +10,21 @@ com.menis.chatstamp and the owner's external upload key.
 
 ## Current state — 2026-11-19
 
-R/B/C/G1/D and E/F implementation are complete on fix/core-rebuild. The new
-code8 source is independently reviewed after three PR P2 fixes and the P1
-cancel/discard/replacement ownership follow-up. Full smoke from npm ci passes
-459 host/48 files,40 freshly executed JVM/39 connected per API30/API36,
-TypeScript/lint/clean prebuild/QA manifest and offline cold launch on both.
-105 Python cases and unused-source/i18n checks pass. Code6/code7 are superseded;
-their dated evidence below describes only their actual source and binaries.
+R/B/C/G1/D and E/F implementation are complete on fix/core-rebuild. Code9
+closes the first-launch Hebrew surface gap with native language policy before
+React startup, preserving explicit/system preferences and invalid settings.
+Independent source review is clear. Full cycle2 from npm ci passes472 host in49
+files,46fresh JVM/47connected per API30/API36, typecheck/lint, clean prebuild,
+QA assembly/manifest and offline cold launch. Fresh physical system-HE first
+onboarding is RTL before Settings/remount, with0app crash entries.105Python and
+unused-source/i18n checks pass. Code6/code8 evidence remains historical/scoped.
 
-Signed code8 artifacts, fresh-checkout CI and final minified phone/emulator
-acceptance are in progress. The owner unlocked the A30; its original settings
-are recorded and the temporary screen timeout will be restored after cleanup.
-API33, real owner WhatsApp shares, actual16KiB runtime, full UI matrix and
-actual Play/tester eligibility remain unverified. Manual upload remains the
-explicit authorized fallback because no service-account path was supplied.
-PR1 is open against main, unmerged; Pages is already public.
+Signed code9 artifacts, fresh-checkout CI and final minified phone/emulator
+acceptance are in progress. The owner unlocked the A30; original settings are
+recorded and temporary display/timeout settings will be restored after cleanup.
+API33, owner real WhatsApp, actual16KiB runtime, full UI matrix and actual Play/
+tester eligibility remain unverified. Manual upload is the authorized fallback
+because no service-account path was supplied. PR1 remains open/unmerged.
 
 ## Implemented decisions and boundaries
 
@@ -58,18 +58,16 @@ PR1 is open against main, unmerged; Pages is already public.
 
 ## Remaining gates
 
-- Completed: final full smoke from npm ci after each fix; native JVM/connected
- tests must actually execute a nonzero count on both available devices.
-- Completed: fresh-checkout Android CI passed on the pushed app source; Pages CI is separate.
-- Completed: verified production and QA-ID minified code6 AAB/APK, owner certificate,
- strict permissions/backup/SDKs and all packaged ELF/static16 KiB alignment.
-- Completed within recorded scope: affected a11y/RTL/preview/Save/five-file Gallery runtime on
- the exact final QA release; refresh four real phone screenshots per language.
-- Completed: removed this run's QA/helper/test packages, fixtures, own saved rows/cache and
- restore phone/emulator settings. Curated evidence cumulatively under10 MB.
-- G2: final signed manual upload package and one PR to main, no agent merge.
- Owner real-export closed/warm procedure and production-access answers remain
- truthful pending actual execution and tester facts.
+- Complete: code9 full source/debug smoke, actual native execution, first HE
+  surface and independent source review.
+- Pending: current source fresh-checkout Android CI; Pages CI is separate.
+- Pending: code9 signed production/QA identity, certificate, SDK/permission/backup,
+  packaged ELF/static16KiB policy and affected minified runtime/Gallery acceptance.
+- Pending: final phone assets/demo, exact owner artifact hashes and manual guide.
+- Pending: remove own QA/helper/test packages/fixtures/rows/cache, restore device
+  settings and verify cumulative evidence below10MB.
+- G2: one open PR to main without agent merge. Real owner export and actual
+  Play/tester/account-date facts remain explicitly unverified with exact steps.
 
 ## Open risks and exact follow-up
 

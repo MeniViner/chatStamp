@@ -814,3 +814,65 @@ emulator work continue. Earlier code6 artifacts remain historical candidates.
  105Python and unused-source checks pass. Independent source review is clear.
   App and durable module both use versionCode8; signed artifact/current fresh CI
   and minified runtime follow on this exact source. No Play upload or merge.
+
+
+- Code8 pre-install harness guard matched the helper's package prefix as if
+  production were present. try another way: compare exact package-list entries
+  instead of substrings; production remains absent and protected. No install
+  occurred before that assertion was corrected; no source/test criterion changed.
+
+
+## 2026-11-19 — Code8 fresh-install Hebrew surface gate
+
+Code8 source1992c38 full smoke459/40/39each+105, fresh CI44425759475
+/job135230045587 and both signed strict artifacts passed. Production AAB SHA256
+c9ba6655fb222871351a9014216dd011e3088b097dd7e862cbfce3dc46097d38;
+QA APK7a7beb7371d4eb9757ed67871b53df5e5d7b7876f55ea8fc3b8085da6c1122de.
+However fresh minified API30/systemHE onboarding and first Import rendered
+LTR (badge x36–233, actions right), without the initial restart prompt.
+Settings rendered RTL; returning to Import remounted it with badge x846–1043
+and actions left, without a language change or restart. The reviewer traced
+ReactSurface native direction capture before JS versus cached I18nManager
+constants: awaiting the JS sync does not establish mounted surface direction.
+This first-launch E case is a real failed acceptance, not a verified RTL pass.
+
+try another way: configure native language policy before ReactSurface creation
+through durable source/plugin integration, preserving committed EN/HE/system
+preferences and failing safely on invalid/unreadable settings without data
+overwrite. Do not add a JS direction override or another Promise around the
+same cached constant. Code9 is the next candidate; whole smoke, signed checks
+and actual fresh-HE first-screen proof must repeat. No code8 Play upload or
+physical media save occurred. Its API36 reviewer five-file readback5/5 with
+notification denial is a scoped intermediate checkpoint, followed by cleanup.
+
+
+- Code9 independent startup tests exposed a plugin recognition bug: a commented
+  native policy call was counted as installed. try another way: mask comments
+  (including nested blocks), strings/raw strings and quoted literals while
+  preserving offsets, then require exactly one executable hook as the first
+  statement after super.onCreate and before React startup. Unknown/ambiguous
+  templates fail closed. The unchanged13newVM+8existing signing tests now21/21
+  pass; source reviewer clear.6newJVM and8connected criteria cases are authored.
+  Root restarted full cycle:472host/49files, typecheck/lint, cleanprebuild with
+  actual generated-hook ordering/supportsRtl assertion, arm64QA226executed and
+  QAmanifest pass. Actual native execution and first-surface runtime follow.
+
+
+- Code9 cycle1 reached native execution:46JVM pass, but8new connected setup
+  cases fail on each device because the standalone native-module test host
+  lacks FLAG_SUPPORTS_RTL. The other39 cases per device pass. The generated
+  product QA manifest already declares RTL support; the standalone target does
+  not execute the Expo config plugin. try another way: declare supportsRtl=true
+  on the module's own application manifest, keeping the actual-manifest/native
+  direction assertions unchanged. Restart the whole cycle from npmci after
+  this source manifest correction; do not treat the failed connected gate as pass.
+
+
+- 2026-11-19 code9 cycle2 accepted: npmci→typecheck→472Vitest/49files→lint
+  →cleanprebuild with actual startup-hook/manifest ordering→arm64QA226executed
+  →QAidentity/SDK/FGSpolicy→46fresh JVM/47connected EACH API30/API36,0fail/skip.
+  Offline cold onboarding renders on both; physical firstHE badge x846–1043 is
+  correct before Settings/language change/remount,0PID crash entries and noMetro
+  orreverse.105Python/unused-source checks pass. All source review findings are
+  resolved. Signed code9/current CI and minified firstHE/Gallery/runtime gates
+  remain separate; no older binary is substituted.

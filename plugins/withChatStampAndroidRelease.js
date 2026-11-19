@@ -1,4 +1,4 @@
-const { AndroidConfig, withAndroidManifest, withAppBuildGradle, withGradleProperties, withProjectBuildGradle } = require('expo/config-plugins');
+const { AndroidConfig, withAndroidManifest, withAppBuildGradle, withGradleProperties, withMainApplication, withProjectBuildGradle } = require('expo/config-plugins');
 
 const propsBlock = `
 def chatstampReleaseProps = new Properties()
@@ -82,12 +82,76 @@ function applyReleaseSigning(buildGradle) {
   return contents;
 }
 
+function executableKotlin(contents) {
+  const code = contents.split('');
+  let offset = 0;
+  while (offset < contents.length) {
+    const start = offset;
+    if (contents.startsWith('//', offset)) {
+      const end = contents.indexOf('\n', offset + 2);
+      offset = end < 0 ? contents.length : end;
+    } else if (contents.startsWith('/*', offset)) {
+      let depth = 1;
+      offset += 2;
+      while (offset < contents.length && depth > 0) {
+        if (contents.startsWith('/*', offset)) { depth++; offset += 2; }
+        else if (contents.startsWith('*/', offset)) { depth--; offset += 2; }
+        else offset++;
+      }
+      if (depth !== 0) throw new Error('chatStamp found an unterminated Kotlin comment.');
+    } else if (contents.startsWith('"""', offset)) {
+      const end = contents.indexOf('"""', offset + 3);
+      if (end < 0) throw new Error('chatStamp found an unterminated Kotlin string.');
+      offset = end + 3;
+    } else if ('"\'`'.includes(contents[offset])) {
+      const quote = contents[offset++];
+      while (offset < contents.length && contents[offset] !== quote) {
+        offset += contents[offset] === '\\' ? 2 : 1;
+      }
+      if (offset >= contents.length) throw new Error('chatStamp found an unterminated Kotlin literal.');
+      offset++;
+    } else { offset++; continue; }
+    for (let index = start; index < offset; index++) {
+      if (code[index] !== '\n' && code[index] !== '\r') code[index] = ' ';
+    }
+  }
+  return code.join('');
+}
+
+function applyLaunchLanguagePolicy(contents) {
+  const hook = 'com.chatstamp.nativebridge.NativeLanguagePolicy.apply(this)';
+  const code = executableKotlin(contents);
+  const starts = [...code.matchAll(/\boverride\s+fun\s+onCreate\s*\(\s*\)\s*\{\s*super\.onCreate\(\s*\)/g)];
+  const loads = [...code.matchAll(/\bloadReactNative\(\s*this\s*\)/g)];
+  if (starts.length !== 1 || loads.length !== 1) {
+    throw new Error('chatStamp requires a reviewed MainApplication startup template for language direction.');
+  }
+  const insertion = starts[0].index + starts[0][0].length;
+  const load = loads[0].index;
+  if (load <= insertion) throw new Error('chatStamp language direction must be installed before React Native startup.');
+  const installed = [...code.matchAll(/\bcom\.chatstamp\.nativebridge\.NativeLanguagePolicy\.apply\s*\(\s*this\s*\)/g)];
+  if (installed.length > 0) {
+    const position = installed[0].index;
+    if (installed.length !== 1 || position < insertion || position >= load || code.slice(insertion, position).trim()) {
+      throw new Error('chatStamp found an unsafe or duplicate language startup hook.');
+    }
+    return contents;
+  }
+  return `${contents.slice(0, insertion)}\n    ${hook}${contents.slice(insertion)}`;
+}
+
 const withChatStampAndroidRelease = (config) => {
   config = withAndroidManifest(config, (config) => {
     const application = AndroidConfig.Manifest.getMainApplicationOrThrow(config.modResults);
     application.$['android:allowBackup'] = 'false';
     application.$['android:fullBackupContent'] = 'false';
     application.$['android:dataExtractionRules'] = '@xml/chatstamp_data_extraction_rules';
+    application.$['android:supportsRtl'] = 'true';
+    return config;
+  });
+  config = withMainApplication(config, (config) => {
+    if (config.modResults.language !== 'kt') throw new Error('chatStamp requires a reviewed Kotlin MainApplication template.');
+    config.modResults.contents = applyLaunchLanguagePolicy(config.modResults.contents);
     return config;
   });
   config = withGradleProperties(config, (config) => {

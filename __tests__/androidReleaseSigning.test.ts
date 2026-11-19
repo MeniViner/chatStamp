@@ -42,6 +42,7 @@ function applyPlugin(contents: string): string {
       action({ ...config, modResults: [] });
       return config;
     },
+    withMainApplication: (config: object) => config,
     withProjectBuildGradle: (config: object, action: (value: { modResults: { language: string; contents: string } }) => unknown) => {
       action({ ...config, modResults: { language: 'groovy', contents: 'apply plugin: "expo-root-project"\n' } });
       return config;
