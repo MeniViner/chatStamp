@@ -1137,3 +1137,49 @@ small fresh summaries in the proof set. No assertion or evidence cap was weakene
 The optional screenshot conversion lacked Pillow; use macOS sips without adding
 a dependency. Fresh proof remains in dist/play/identity-0.2.0-13-20261119/;
 products are separate in dist/play/release-0.2.0-13/. Earlier proof is not copied.
+
+
+## 2026-11-19 — New package created, internal 13 active, IARC gate isolated
+
+Owner confirmed the two new-app creation declarations at action time. Created
+**4975002762311404414 / com.menis10tec.chatstamp** in menis 10tec. Uploaded exact
+accepted signed code 13 (AAB SHA256 0b7950c0d42fdcb716382ffcd180cf15250e25f2754702c471ac114290e7a5c2).
+Internal **4701429810228968626** is active/available after two-step publish and
+five-list assignment. Alpha **4699420811279917961** reuses the same library AAB;
+preview ready, bilingual notes, 177 countries plus Rest of World, five lists and
+feedback saved. The 20 memberships may overlap. No emails or qualifying period.
+
+Saved EN/iw-IL listing texts and icon/banner/four phone PNGs per locale. Reopened
+the editor to compare every text against source and confirm both image orders.
+Public AI labels apply only to brand graphics, never real screenshots. Screens
+remain actual 9; foreground video remains actual 11 of unchanged behavior.
+All factual declarations, support/Tools/18+ and local Import/export dataSync with
+body-verified public demo are saved. Policy/demo HTTP 200 and original SHA256 match.
+
+Publishing has **15 saved changes**, Send disabled and **one exact issue: missing
+content rating**. New IARC checkbox is unchecked; separate owner agreement approval
+was requested at that actual gate and remains pending. Creation approval does not
+accept IARC. Do not bypass the agreement or claim new closed availability. New
+closed/store links are disabled. The new dashboard requires 12 continuous closed
+opt-ins/14 days and showed zero. PR #1 stays unmerged; no production access request.
+
+After new internal availability, old com.menis.chatstamp internal was paused;
+old Alpha pause submitted and still under review at final readback. Old records
+are retained. No permanent deletion or private-data/tester-clock migration.
+App source/bytes/device scope unchanged; documentation head 63890b397867d50799355ec73b190dfcc22e1e46
+has successful PR44593327255, push44593315713 and Pages44593313897.
+
+try another way: the browser's multi-file chooser did not support a batch; serial
+uploads reached most files before the control runtime stopped. Recover the same
+Chrome profile/tabs, reconcile actual library contents and upload only missing
+he-04-results.png separately; no security preference changed by the agent.
+Inherited default images ignore removal; adding the first Hebrew image creates
+the localized set, then append the other three in order. Custom Advertising ID
+controls needed fresh AX actions/readback; No was verified before Save. Private
+asset-organization tags and public AI declaration are separate; public review
+confirmed only the two graphics checked and all eight screenshots unchecked.
+
+Fresh receipt dist/play/new-package-console-20261119/ contains compact state,
+listing/resource readbacks and only relevant JPEGs. Earlier proof is referenced
+in place. All previous real-export/device/browser/provider/16 KiB/Cancel gaps stay
+explicit; no additional native or device run is claimed for this Console-only work.

@@ -2,7 +2,7 @@
 
 Official requirements were checked on **2026-11-18**; candidate and Console identity refreshed **2026-11-19**. Current candidate: **0.2.0 / versionCode 13**, package **com.menis10tec.chatstamp**, min SDK **30**, target SDK **36**. Use [VERIFICATION.md](VERIFICATION.md) for exact source/artifact evidence. Later different uploaded bytes require a higher versionCode.
 
-The new package is available in the prepared Create app form. Its two legal declarations await owner confirmation; **no new entry/track ID, upload or availability exists yet**. The old com.menis.chatstamp entry now shows closed testing and a latest publication on 19 November. Its earlier review receipt is historical; its ratings, assets, tester assignments and participation period do not establish new-package setup. Follow [the current continuation](PLAY_UPLOAD_STEPS.md).
+The new app **4975002762311404414 / com.menis10tec.chatstamp** is created and exact signed 13 is active/available internally. Alpha **4699420811279917961** reuses that uploaded AAB; both store languages/assets, 177 countries plus Rest of World, all five tester lists and factual declarations are saved. **15 changes are not submitted: one exact Google issue is missing content rating.** Separate owner IARC agreement confirmation is pending. New closed links are disabled, no invitations or qualifying period claimed. Old internal is paused; old Alpha pause is submitted/in review. Follow [the continuation](PLAY_UPLOAD_STEPS.md).
 
 ## Release gates
 
@@ -13,9 +13,11 @@ The new package is available in the prepared Create app form. Its two legal decl
 - [x] Exact minified code 13 QA installed/started and passed five-file independent date readback on A30 and wide API 36. Actual new-authority sharing passed through an independent receiver. Gallery visual order/Details retains code 11 scope; code 13 reached the Android resolver without selecting a handler. Existing debug-only coverage does not replace these minified checks.
 - [x] `store/play/` contains both listing languages, icon, feature graphic and four actual-phone synthetic screenshots per language. Check formats/dimensions against [its README](../store/play/README.md).
 - [x] Privacy page publicly returns the policy over HTTPS without login. Add its URL in Console **and inside the app**; verify the in-app Privacy policy action is accessible and opens it. Expected URL: `https://meniviner.github.io/chatStamp/privacy-policy.html` — **PUBLIC: HTTP200 verified2026-11-18; installed action launches Chrome; page rendering UNVERIFIED because browser setup blocks it**.
-- [ ] Complete the new entry's content rating, factual declarations, Free/Tools/18+, countries, support and FGS demo. Old-entry completion does not prove the new form was saved; obtain owner action for any new legal agreement.
-- [ ] Upload exact code 13 to the new entry and observe internal availability and its actual opt-in URL.
-- [ ] Assign intended lists, reuse uploaded code 13 for Alpha and submit the new listing/content changes. Observe actual closed availability before invitations; no new-package qualifying period is established.
+- [x] New factual declarations, Free/Tools/18+, countries, support and verified FGS demo are saved.
+- [ ] Complete the new content rating after the pending owner IARC agreement confirmation; old-entry completion does not accept this new agreement.
+- [x] Exact 13 uploaded to the new entry; internal 4701429810228968626 is active/available and its actual enabled opt-in URL recorded.
+- [x] All five lists assigned to new internal/Alpha; same uploaded 13 saved for Alpha, bilingual listing/assets and 15 changes prepared.
+- [ ] Finish content rating, submit the new changes and observe actual closed availability before invitations; no new-package qualifying period is established.
 
 ## Ready-to-paste app and Data safety facts / פרטי האפליקציה ובטיחות נתונים
 
@@ -33,17 +35,17 @@ Submit these facts only after the artifact/SDK audit above matches them. Console
 
 The [Data safety definitions](https://support.google.com/googleplay/android-developer/answer/10787469?hl=en) exclude solely on-device processing from collection and provide an exception for expected user-initiated sharing. Device-local transfers are not universally exempt. Do not claim encryption in transit for an app with no app data transmissions, security certification or completed deletion requests that did not occur. Voluntary support email and a chosen cloud provider are described in the policy. Complete any conditional form fields according to the actual practice. Closed testing needs Data safety; an exclusively internal-track app is exempt.
 
-## Content rating and audience — owner-only / דירוג תוכן וקהל יעד — בעל החשבון בלבד
+## Content rating and audience — legal consent / דירוג תוכן וקהל יעד — הסכמה משפטית
 
 | Questionnaire area | Facts available for the owner / מידע לבעל החשבון |
 | --- | --- |
 | Rating contact and category | Contact `meniviner@gmail.com`; utility/app, not a game. / כתובת לפניות: `meniviner@gmail.com`; כלי שימושי, לא משחק. |
 | Developer-provided content | No developer-provided violence, sexual content, gambling, controlled-substance promotion or real-money transactions. Imported private files can contain arbitrary user-selected content. / אין תוכן כזה מטעם המפתח או עסקאות בכסף אמיתי. קבצים פרטיים שהמשתמש מייבא עשויים להכיל כל תוכן. |
 | User interaction/content | Local previews and user-started Android sharing; no hosted public feed, chat service, matchmaking or online community. Answer the form's exact user-generated-content/file-access questions using this distinction. / תצוגה מקומית ושיתוף ביוזמת המשתמש דרך אנדרואיד; אין פיד ציבורי, שירות צ׳אט או קהילה מקוונת. יש לענות לפי הניסוח המדויק בטופס. |
-| Intended age groups | **18+ previously selected for the old entry**; repeat the intended setting in the new entry. No Families eligibility is claimed. / **18 ומעלה הוגדרו ברשומה הקודמת**; יש להגדיר שוב ברשומה החדשה. אין טענה להתאמה לתוכנית המשפחות. |
+| Intended age groups | **18+ saved for the new entry**. No Families eligibility is claimed. / **18 ומעלה נשמרו ברשומה החדשה**; אין טענה להתאמה לתוכנית המשפחות. |
 | Final rating | **New-entry questionnaire pending.** The owner completed the old questionnaire; no new regional rating is inferred. / **השאלון ברשומה החדשה טרם הושלם.** בעל החשבון השלים את השאלון הקודם; אין להסיק מכך דירוג לרשומה החדשה. |
 
-Owner must also confirm free/paid status, distribution countries, official developer identity and all legal declarations. The app has no news, health, financial or government-service feature; answer any related category form according to the actual app. [Play review preparation](https://support.google.com/googleplay/android-developer/answer/9859455?hl=en) explains the required App content sections and the public, in-app-linked privacy page.
+Free status and distribution countries are saved under the authorized setup. Preserve the actual developer identity and obtain action-time owner confirmation for any additional legal agreement; do not re-request already given creation or routine setup authorization. The app has no news, health, financial or government-service feature; answer any related category form according to the actual app. [Play review preparation](https://support.google.com/googleplay/android-developer/answer/9859455?hl=en) explains the required App content sections and the public, in-app-linked privacy page.
 
 ## Foreground service declaration / הצהרה על שירות בחזית
 
@@ -118,11 +120,11 @@ Use the final build/version and the private record in TESTERS.md.
 | Format | New apps use AAB; see [Play app bundles](https://support.google.com/googleplay/android-developer/answer/9844279?hl=en). Enroll/use Play App Signing and preserve the existing upload key. |
 | Target API | Phone new apps and updates target API 36 from 31 Aug 2026; the extension ended 1 Nov 2026. [Target API requirements](https://support.google.com/googleplay/android-developer/answer/11926878?hl=en). |
 | Native page size | API 35+ native apps must support 16 KiB on 64-bit devices. Current guidance names 1 Feb 2027 for blocking incompatible updates, differing from older November 2025 launch wording. The task still requires G1 alignment verification now. [Android page-size guide](https://developer.android.com/guide/practices/page-sizes). |
-| Personal account testing | For accounts created after 13 Nov 2023: at least 12 testers continuously opted into closed testing for the 14 days immediately before applying. Internal testing does not count toward that gate; eligibility permits an application, not automatic approval. Plan for this until the owner confirms applicability. [Personal-account test requirements](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en). |
+| Personal account testing | The new app's actual Console requires at least 12 testers continuously opted into closed testing for 14 days. Account creation date remains unknown; internal testing does not satisfy this observed gate, and eligibility is not automatic approval. [Personal-account test requirements](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en). |
 | Listing | Limits and current image requirements are linked in [store/play/README.md](../store/play/README.md). |
 
 ## Owner summary / סיכום לבעל החשבון
 
-**English:** Verify the already published privacy page and its in-app action, confirm the audience and account date, complete the declarations, publish the synthetic FGS demo, manually upload the verified candidate to internal then closed testing, invite testers and record real opt-in/feedback evidence. Do not request production access before its actual testing gate is met.
+**English:** The new app is created and exact 13 is active internally; both listings/assets and Alpha are saved. Confirm the pending new IARC agreement, finish content rating and submit the prepared changes. Verify actual new Alpha availability before sending the authorized invitations, then record genuine opt-in/usage/feedback. Owner real-export and in-app browser acceptance remain separate. Do not request production access before the observed 12-tester/14-day gate is genuinely met.
 
-**עברית:** עמוד הפרטיות פורסם ואומת; יש לבדוק את הכפתור באפליקציה, לאשר את קהל היעד ואת מועד פתיחת החשבון, להשלים הצהרות, לפרסם סרטון הדגמה עם מידע מלאכותי, להעלות ידנית את הגרסה המאומתת לבדיקה פנימית ולאחר מכן סגורה, להזמין בודקים ולתעד הצטרפות ומשוב אמיתיים. אין לבקש גישה להפצה לפני שדרישות הבדיקה התקיימו בפועל.
+**עברית:** הרשומה החדשה נוצרה וגרסה 13 פעילה בבדיקה הפנימית. שני דפי החנות, התמונות ומסלול Alpha נשמרו. נותר לאשר את הסכם IARC החדש, להשלים דירוג תוכן ולשלוח את השינויים המוכנים לבדיקה. לאחר אישור Google יש לאמת זמינות בפועל של הבדיקה הסגורה, לשלוח את ההזמנות שאושרו ולתעד הצטרפות, שימוש ומשוב אמיתיים. בדיקת ייצוא WhatsApp אמיתי ופתיחת מדיניות הפרטיות בדפדפן נשארות בנפרד. אין לבקש גישה להפצה לפני ש-12 בודקים השתתפו ברציפות למשך 14 ימים כנדרש.

@@ -1,6 +1,6 @@
 # Code review checklist
 
-Current acceptance rules, 2026-11-18. Historical dated reviews below describe
+Current acceptance rules, 2026-11-19. Historical dated reviews below describe
 older implementations and do not authorize their superseded storage/RTL paths.
 
 ## Product and dates
@@ -16,7 +16,9 @@ older implementations and do not authorize their superseded storage/RTL paths.
 
 ## Android and lifecycle
 
-- Production ID com.menis.chatstamp stays fixed. Test only .qa side-by-side.
+- Production ID com.menis10tec.chatstamp; test only the isolated
+  com.menis10tec.chatstamp.qa side-by-side. Historical old-package artifacts keep
+  their original identity; the native bridge library namespace is unchanged.
 - min SDK30, target/compile36, build-tools36.0.0, NDK27.1.12297006 resolve from
   durable source after clean prebuild; generated android/ is ignored.
 - Only FGS/dataSync/notification platform permissions and the app-owned AndroidX
@@ -184,3 +186,13 @@ exports; a local bundle does not establish upload, tester counts or 14 days.
   ExecPlan gate distinguishes new-entry legal approval from the old entry's
   refreshed closed-testing state. New legal screenshot link and three-JPEG proof
   count verified. No remaining material findings in the narrow re-review.
+
+- 2026-11-19 new Console checkpoint documentation review CLEAR. Independent
+  Test author and Reviewer found two stale current instructions: the owner
+  continuation still requested the already completed upload/demo work, and this
+  checklist retained the superseded package rule. Both are corrected; narrow
+  re-review is CLEAR. Internal 13 availability, saved Alpha/listings/five lists,
+  pending IARC and 15 unsent changes remain distinct from closed availability,
+  invitations and a qualifying period. Review was read-only document consistency;
+  Console observations belong to the root's fresh UI readback. No new native,
+  device or binary validation is implied.

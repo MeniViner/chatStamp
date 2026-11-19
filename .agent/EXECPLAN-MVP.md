@@ -7,7 +7,7 @@ instants, select/filter files and save them so the tested Gallery sorts by those
 instants. Saved and verified dates remain separate facts. Local-only; no DB,
 accounts, analytics, cloud or server. Current requested production identity is com.menis10tec.chatstamp; retain the owner's external upload key. Earlier com.menis.chatstamp artifacts remain historical.
 
-## Current state — 2026-11-19, code 13 verified; new Play creation pending
+## Current state — 2026-11-19, new Play internal 13 active; IARC pending
 
 Meni explicitly requests production application ID **com.menis10tec.chatstamp**.
 This supersedes the previous fixed-ID instruction. Code 13 keeps version 0.2.0,
@@ -25,8 +25,9 @@ MediaStore ownership migrate automatically between Android sandboxes.
 Implementation, independent identity tests and source review are complete. Root
 verified the full npm-ci smoke, generated/final identity and provider checks,
 both-device native/minified runtime, signing and actual independent read grant.
-Both source CI runs pass. The prepared new Play form confirms package availability;
-its two legal declarations await owner confirmation before creation/upload.
+Both source CI runs pass. New app 4975002762311404414 is created after owner-approved declarations; exact
+13 is active internally. Alpha/listings/declarations/lists are saved, with 15
+changes unsent because content rating awaits separate owner IARC agreement.
 Do not report new-package upload, availability, real-export acceptance or tester
 participation until actually observed. Previous API 33/full UI, actual 16 KiB,
 browser/provider/Cancel/real-export gaps remain explicitly scoped.
@@ -66,7 +67,8 @@ browser/provider/Cancel/real-export gaps remain explicitly scoped.
 - Complete: code 13 identity migration, independent source review, full smoke, both source CI runs, signed/static artifacts, new provider read grant and affected minified runtime. Earlier native fixes and broader runtime receipts keep their original binary scope.
 - Complete: dedicated code 13 product and fresh proof sets, current bilingual listing/declaration/tester guides. Eight screenshots remain actual code 9; the public foreground demo remains actual code 11. No relabeling.
 - Complete: code 13 five-output/one-ZIP cleanup per device, QA/helper removal, original control restoration and owned emulator shutdown. Private release-cache byte inspection remains UNVERIFIED.
-- G2 owner/external gates: confirm two new-app legal declarations, create/upload the requested package, reapply listing/declarations/tester lists and verify internal then closed availability. The old entry now shows closed testing/latest publication 19 November; old IARC completion does not complete the new form. Owner real-export acceptance, PR decision and genuine new-package opt-in/usage/period remain open. The agent does not merge or request production access before its genuine gate.
+- Complete: new app creation/upload/internal availability, bilingual listing/assets, factual declarations and five lists on internal/Alpha. Alpha reuses uploaded 13; 177 countries plus Rest of World saved. Old internal is paused; old Alpha pause submitted/in review.
+- G2 owner/external gates: confirm the new IARC agreement, finish content rating and submit 15 prepared changes plus that declaration, then verify actual closed availability before invitations. Owner real-export acceptance, PR decision and genuine new-package opt-in/usage/period remain open. The agent does not merge or request production access before its genuine gate.
 
 ## Open risks and exact follow-up
 
@@ -746,3 +748,20 @@ pause superseded old tracks reversibly, submit Alpha, and invite only after actu
 closed availability. Old package currently shows closed testing; no clock transfers.
 All owner real-export/device/browser/provider/16 KiB/Cancel gaps remain explicit;
 PR #1 stays unmerged. No pending source fix is inferred from the legal blocker.
+
+
+## 2026-11-19 — New Play app and testing preparation
+
+Owner approved both creation declarations. App 4975002762311404414 now binds the
+requested package; accepted 13 is uploaded and active on internal4701429810228968626.
+Alpha4699420811279917961 reuses uploaded13, with both notes, countries and five lists
+saved. Both listings/assets and factual declarations are saved; fresh UI readback
+matches text and screenshot order. No new code, build or device work performed.
+
+Publishing has 15 unsent changes and one exact content-rating issue. Separate new
+IARC agreement owner confirmation remains pending; do not accept terms or claim
+closed availability without it. After approval complete rating, submit, verify
+actual closed availability, then send authorized deduplicated invitations. New
+12-opt-in/14-day requirement observed; no old clock transfers. Old internal is
+paused, old Alpha pause in review. Source/docs CI63890 passes; later docs CI separate.
+Fresh Console proof is grouped separately; PR #1 remains open/unmerged.

@@ -1051,3 +1051,42 @@ duplicate/language-restart/background/101-file checks retain earlier exact scope
 Non-debug release private-cache bytes were not inspected after UI reset; uninstall
 is not that inspection. Mid-read provider revocation and narrow process-death
 reconciliation remain deferred. See TESTERS.md for exact owner steps.
+
+
+## 2026-11-19 — New Play identity continuation, no new app bytes
+
+Created **4975002762311404414 / com.menis10tec.chatstamp** after the owner's two
+creation declarations were confirmed. Exact accepted production **0.2.0 (13)** AAB
+uploaded/processed, SHA256 0b7950c0d42fdcb716382ffcd180cf15250e25f2754702c471ac114290e7a5c2.
+App/config source remains 1b82201792839d7925daee7dce4394fb0139bb6f. No rebuild or
+physical acceptance rerun is claimed. Documentation head 63890b397867d50799355ec73b190dfcc22e1e46
+has successful PR44593327255, push44593315713 and Pages44593313897.
+
+| New Console check | Observed result |
+| --- | --- |
+| Internal 4701429810228968626 | Active / available to internal testers, exact 13; enabled opt-in link |
+| Alpha 4699420811279917961 | Same uploaded 13 selected from library; preview ready; release/EN+iw-IL notes saved, not submitted |
+| Testers / countries | All five lists on both tracks, 20 potentially overlapping memberships; 177 countries plus Rest of World on Alpha |
+| Store text / images | EN+iw-IL saved; fresh reopening matches source text exactly; four actual phone images per locale in stage order |
+| AI declaration | Logo/banner checked; all eight screenshots unchecked; original 9/11 screenshot/demo provenance retained |
+| Factual declarations | Privacy/no restricted access/no ads/no reportable collection/sharing/no Advertising ID/no government/financial/health features; Tools/tag, support and 18+ saved |
+| Foreground service | Local processing Import/export only; existing actual 11 video URL saved and public body hash reverified |
+| Publishing | 15 saved changes; Send disabled; one problem: missing content rating |
+| Legal gate | New IARC checkbox unchecked; owner confirmation requested/pending; no bypass |
+| Old package | Internal paused/inactive; Alpha pause submitted and still Changes in review at final readback; no permanent deletion |
+
+Fresh compact receipt/readbacks/screens: dist/play/new-package-console-20261119/.
+The new closed/store URLs are displayed but disabled, so actual closed availability,
+Play-delivered installation, invitation emails and the qualifying period are not
+claimed. Initial new dashboard shows zero and requires 12 continuous closed opt-ins
+for 14 days. Internal membership does not establish that period. App source/runtime
+limitations and owner steps retain their earlier exact scope. PR #1 is unmerged.
+
+Documentation-only closure: independent Test author/Reviewer consistency findings
+were corrected and the narrow re-review is CLEAR. Root checked all 79 local
+Markdown links in the ten changed guides and three product/proof indexes; none
+are missing. All current proof JSON parses, git diff --check passes and the fresh
+nine-file Console proof set measures 328,341 bytes before final head bookkeeping,
+below the 10,000,000-byte ceiling. No new app tests or device runs were required
+for these documentation-only changes; accepted code 13 validation remains scoped
+to its original source and receipts.

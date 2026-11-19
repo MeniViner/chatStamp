@@ -1,10 +1,12 @@
 # Closed-test invitations and owner test record
 
-**Latest checkpoint, 2026-11-19:** The requested app is now **com.menis10tec.chatstamp**, signed **0.2.0 (13)**. The new Play creation form confirms this package is available; its two legal declarations await owner confirmation. No new app/track ID, upload, internal or closed availability is established yet. Follow [PLAY_UPLOAD_STEPS.md](PLAY_UPLOAD_STEPS.md). Do not send the old package's invitation for the new app.
+**Latest checkpoint, 2026-11-19:** New app **4975002762311404414 / com.menis10tec.chatstamp**, signed **0.2.0 (13)**, is created. Internal 13 is **active and available** at https://play.google.com/apps/internaltest/4701429810228968626 . The same uploaded artifact is saved for Alpha **4699420811279917961**, with 177 countries plus Rest of World, both release-note languages and feedback. Both listings/assets and factual declarations are saved. **15 changes remain unsent: Google reports one missing content-rating declaration.** Owner IARC agreement confirmation is pending. [Current continuation](PLAY_UPLOAD_STEPS.md).
 
-The old **com.menis.chatstamp** entry now shows closed testing and a latest publication on 19 November. Its five assigned lists were **list1, list2, Tank Malle – Internal, חברים, משפחה**, with 20 potentially overlapping memberships. They must be explicitly assigned to the new app after creation. No email has been sent by this task, and no private addresses are in Git/evidence.
+All five existing lists are explicitly saved on **both new tracks**: **list1(4), list2(7), Tank Malle – Internal(1), חברים(6), משפחה(2)**. Their 20 memberships may overlap; no private addresses are in Git/evidence. No invitation email has been sent. The new closed opt-in URL https://play.google.com/apps/testing/com.menis10tec.chatstamp is displayed but disabled in Console; verify actual availability before using it in invitations.
 
-The old Console required at least **12 continuously opted-in closed testers for 14 days**. A changed package is a separate app and does not inherit that participation period. Record the actual new Console requirement and genuine opt-ins after creation. Internal participation and list membership do not establish closed eligibility. The account is personal; its creation date remains unknown. [Official requirement](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en).
+The **new** dashboard requires at least **12 continuously opted-in closed testers for 14 days** and showed zero at the recorded checkpoint. Internal participation/list membership does not establish that gate. The personal account's creation date remains unknown. [Official requirement](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en).
+
+Old **com.menis.chatstamp** remains a separate record: internal is paused/inactive; its Alpha pause is submitted and still under review at final readback. No old participation clock or private settings/history/grants transfer to the new package. Do not send the old opt-in link for this app.
 
 ## Owner setup
 
