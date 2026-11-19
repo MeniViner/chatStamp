@@ -1000,3 +1000,54 @@ Production12 AAB50,956,257 bytes/SHA2560d2efc0cb86b2ba5657fee04e57484aac3fb6847c
 try another way: the phone's DocumentsUI CardView stayed on Downloads after the coordinate/accessibility attempt. Use the guarded exact-label80 ms FINGER helper to enter only this run's folder/ZIP and receive the real picker grant. Pass multiword Hebrew through a single shlex-quoted remote command; the first split command failed before any action. No source/permission change or product assertion was relaxed. AAPT2's indented optional-feature line was whitespace-normalized before interpreting it.
 
 Both app-level Start over flows returned to Import. Cleanup/restoration outcomes are recorded in the current compact Console receipt, with the two new five-file date readbacks and artifact reports; no raw logs, binaries or old proof are repackaged as evidence. Source CI is green; documentation-head CI is tracked separately there. All previous owner real-export, API 33/full UI,16 KiB, browser/provider/physicalCancel gaps retain their explicit scope.
+
+
+## 2026-11-19 — Exact requested identity, signed code 13
+
+**Production com.menis10tec.chatstamp; QA com.menis10tec.chatstamp.qa; 0.2.0 (13).**
+App/config source **1b82201792839d7925daee7dce4394fb0139bb6f** on fix/core-rebuild.
+Independent source review CLEAR. Native library namespace intentionally unchanged.
+Current identity defaults are strict; historical 11/12 checks need explicit old
+package/version. QA Activity resolves under the production namespace.
+
+| Fresh check | Result |
+| --- | --- |
+| npm ci / TypeScript / lint / clean prebuild / QA debug assembly | PASS |
+| Vitest / verification-tool Python | 504/51 files; 126; PASS |
+| Native JVM / connected API 30 / connected API 36 | 59 / 52 / 52; zero failures/errors/skips |
+| Migrated standalone probe | 6 JVM cases; new-ID APK checks PASS |
+| New QA Activity cold launch | PASS through Expo's actual observed AVD name |
+| Source PR CI / push CI | [44587342205](https://github.com/MeniViner/chatStamp/actions/runs/44587342205) / [44587326892](https://github.com/MeniViner/chatStamp/actions/runs/44587326892), both success |
+| Signed production and minified QA artifacts | PASS signatures, IDs/code, SDK, permission/backup, optional portrait, full ELF/ZIP/bundle static policy |
+| Final manifests and providers | New own production/QA authorities and signature receiver permission; zero old application-ID attribute values; grants remain scoped |
+| Independent receiver read | 612 bytes, actual new QA authority, separate UID, temporary read granted, exact synthetic transcript SHA256 matched |
+| A30 minified 13 | First system-HE native RTL/font 1.1; actual picker grant; 5 saved/5 verified/0 failed; independent dates PASS |
+| Wide API 36 minified 13 | 1280×800 dp EN; notifications denied; 5 saved/5 verified/0 failed; independent dates PASS |
+| App reset / cleanup | Both Start over → Import; five outputs/one ZIP/QA per device and phone helper removed; original controls restored; zero remaining run rows/matching crash records; owned emulator stopped |
+
+Production AAB **50,956,412 bytes**, SHA256
+`0b7950c0d42fdcb716382ffcd180cf15250e25f2754702c471ac114290e7a5c2`.
+Minified QA APK **75,225,206 bytes**, SHA256
+`c26eb11de77bb33b172ac73022f571480367c3958e2ec10d2ef8c63a6ad926c7`.
+Existing certificate SHA256
+`efe36695cfc6a3d9ea8471527103f29e3374322ab09890af41692412d76a66c8`.
+Products/README/SHA256SUMS: dist/play/release-0.2.0-13/.
+Fresh reports, two date readbacks, provider transport, hygiene and three relevant
+JPEGs: dist/play/identity-0.2.0-13-20261119/. Full diagnostics remain temporary,
+not curated evidence. Measure the whole current proof set before handoff.
+
+New Play form confirms package availability but creation is **PENDING owner
+confirmation of its two unchecked legal declarations**. No new entry ID, upload,
+internal/closed availability, list assignment, invitations or new tester period is
+established. Old entry 4974511742201615518 now shows closed testing/latest
+publication 19 November. This is a refreshed old-package fact, not new-package
+publication. Old tracks have not been paused. PR #1 is not merged.
+
+**UNVERIFIED:** real owner WhatsApp export/own cold and warm ShareSheet, physical
+API 33, full UI/configuration matrix, actual 16 KiB-page execution, installed-browser
+privacy rendering, arbitrary providers/Galleries/codecs and final physical Cancel
+selection. Code 13 Gallery action reached Android's resolver; visual order/Details,
+duplicate/language-restart/background/101-file checks retain earlier exact scope.
+Non-debug release private-cache bytes were not inspected after UI reset; uninstall
+is not that inspection. Mid-read provider revocation and narrow process-death
+reconciliation remain deferred. See TESTERS.md for exact owner steps.

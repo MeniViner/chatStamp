@@ -4,11 +4,11 @@ chatStamp is an Android app for importing a WhatsApp export ZIP, selecting attac
 
 ## Current status
 
-The requested production identity is **com.menis10tec.chatstamp**, with isolated **com.menis10tec.chatstamp.qa**. Code 13 is being verified on **fix/core-rebuild**; [PR #1](https://github.com/MeniViner/chatStamp/pull/1) remains open and unmerged. The existing external upload key is retained.
+The production identity is **com.menis10tec.chatstamp**, with isolated **com.menis10tec.chatstamp.qa**. Signed code 13 is verified on **fix/core-rebuild**; [PR #1](https://github.com/MeniViner/chatStamp/pull/1) remains open and unmerged. The existing external upload key is retained.
 
 Changing an Android application ID creates a separate app and sandbox. The existing Google Play entry and code 12 products belong to **com.menis.chatstamp** and cannot be renamed. Their signed artifacts, acceptance receipts and Console history remain unchanged. The new package requires its own Play entry and actual availability; it does not inherit old private settings, History, grants or MediaStore ownership.
 
-Current source review is CLEAR. New identity policy passes 126 Python cases and the host suite passes 504 tests/51 files, TypeScript and lint. Clean prebuild,59fresh JVM/zero skipped and52connected cases on each API30/API36 device pass; the new QA Activity cold-launched through Expo. Final signed-artifact/provider/receiver and affected minified acceptance are in progress. No new-package upload or publication is claimed yet. [Current migration steps](docs/PLAY_UPLOAD_STEPS.md) and [dated verification](docs/VERIFICATION.md) distinguish the two identities.
+Source review is CLEAR. The full smoke passes 504 host tests/51 files, 126 Python cases, 59 fresh JVM tests and 52 connected cases on each API 30/API 36 device, with no skips. Signed production/QA artifacts, packaged providers, actual new-authority read grants, both-device minified five-file dates and both source CI runs pass. The new Play creation form confirms package availability; its two legal declarations await owner confirmation. No new-package upload or publication is claimed. [Migration steps](docs/PLAY_UPLOAD_STEPS.md) and [dated verification](docs/VERIFICATION.md) distinguish the two identities.
 
 Owner real WhatsApp, API33physical/full UI matrix, actual16KiB execution and other explicitly scoped gaps remain **UNVERIFIED**. Original code9screenshots and code11foreground demo retain provenance for unchanged UI/behavior.
 
@@ -61,7 +61,7 @@ Run native regression tests against an authorized test device/emulator:
   -PreactNativeArchitectures=arm64-v8a
 ```
 
-Both native tasks must execute a nonzero test count. The code 12 smoke executed59 JVM tests and52 connected cases on each API 30/API 36 device, with no skips. Follow the [verification guide](scripts/android-verification/README.md) for manifest inspection, synthetic inputs, locked-device handling, run-scoped cleanup and restoring device settings. Do not unlock the owner's phone or commit private exports.
+Both native tasks must execute a nonzero test count. The code 13 smoke executed 59 JVM tests and 52 connected cases on each API 30/API 36 device, with no skips. Follow the [verification guide](scripts/android-verification/README.md) for manifest inspection, synthetic inputs, locked-device handling, run-scoped cleanup and restoring device settings. Do not unlock the owner's phone or commit private exports.
 
 [Android CI](.github/workflows/ci.yml) defines pinned tooling, host checks, generated Android, native JVM execution and merged release-manifest policy. Its fresh-checkout run passed; exact source, counts and the separately scoped device/artifact results are in VERIFICATION.md.
 

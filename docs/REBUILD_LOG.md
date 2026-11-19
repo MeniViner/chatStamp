@@ -1088,3 +1088,52 @@ Production12 AAB50,956,257 bytes/SHA2560d2efc0cb86b2ba5657fee04e57484aac3fb6847c
 try another way: the phone's DocumentsUI CardView stayed on Downloads after the coordinate/accessibility attempt. Use the guarded exact-label80 ms FINGER helper to enter only this run's folder/ZIP and receive the real picker grant. Pass multiword Hebrew through a single shlex-quoted remote command; the first split command failed before any action. No source/permission change or product assertion was relaxed. AAPT2's indented optional-feature line was whitespace-normalized before interpreting it.
 
 Both app-level Start over flows returned to Import. Cleanup/restoration outcomes are recorded in the current compact Console receipt, with the two new five-file date readbacks and artifact reports; no raw logs, binaries or old proof are repackaged as evidence. Source CI is green; documentation-head CI is tracked separately there. All previous owner real-export, API 33/full UI,16 KiB, browser/provider/physicalCancel gaps retain their explicit scope.
+
+
+## 2026-11-19 — Requested Android identity migrated, code 13 verified
+
+Meni explicitly replaces the old fixed ID with **com.menis10tec.chatstamp**.
+Production/config, QA/harness/probe identities and current verifier defaults now
+agree; QA uses **com.menis10tec.chatstamp.qa**, with MainActivity under the
+production namespace. The bridge library namespace stays com.chatstamp.nativebridge.
+Historical artifacts still require their explicit expected package/version. Eight
+probe Kotlin files moved with unchanged assertions. Existing upload key retained.
+Independent implementation/test/review roles report source CLEAR. App source:
+**1b82201792839d7925daee7dce4394fb0139bb6f**.
+
+Full smoke passes npm ci, typecheck, **504 host tests/51 files**, lint,
+**126 Python**, clean prebuild, QA assembly, **59 fresh JVM/zero skipped**,
+**52 connected cases on each API 30/API 36** and the new Activity cold launch.
+Six standalone probe JVM cases and APK identity checks pass. Both exact-source
+CI runs pass: PR44587342205 and push44587326892. Signed production/QA code 13
+artifacts pass identity/signature/SDK/permission/backup/portrait/static alignment.
+Final AAB/APK providers and signature receiver use their correct own new IDs.
+
+Exact minified QA passes A30 first system-HE RTL/font 1.1 and wide API 36 English
+1280×800 dp/notification-denied five-file saves; independent MediaStore/mtime/
+embedded dates match five of five. Actual Open in another app/chooser reached a
+separate UID receiver, which read all 612 synthetic TXT bytes through the new QA
+FileProvider with a temporary read grant and matching SHA256. No code 13 Gallery
+visual ordering, full UI, real-export or 16 KiB runtime is inferred. Both Start
+over flows returned to Import; five outputs/one ZIP/QA removed per device, phone
+helper removed, controls restored, zero run rows/crash records, owned AVD stopped.
+Private release-cache byte inspection is not claimed.
+
+Google Play requires a separate entry. Actual creation form confirms availability
+of the requested package; two legal declarations remain unchecked pending the
+owner's action-time confirmation. No new app/track ID or upload exists yet. The
+old entry now shows closed testing/latest publication 19 November; this updates
+its former review checkpoint only. Its tester period does not transfer. Prepared
+continuation preserves existing assets/code 9 screenshots/code 11 demo provenance,
+assigns intended lists to the new entry and pauses old tracks only after new
+internal availability. PR #1 remains unmerged; no production access requested.
+
+try another way: standalone probe assembly first lacked its documented fixture
+assets. Generate the tiny run-specific inputs and use -PchatStampProbeRun; all
+six cases then execute, and inputs are removed. Artifact reporting first correctly
+rejected a parent folder containing build products above the evidence ceiling;
+write diagnostic reports inside their temporary work directories and retain only
+small fresh summaries in the proof set. No assertion or evidence cap was weakened.
+The optional screenshot conversion lacked Pillow; use macOS sips without adding
+a dependency. Fresh proof remains in dist/play/identity-0.2.0-13-20261119/;
+products are separate in dist/play/release-0.2.0-13/. Earlier proof is not copied.

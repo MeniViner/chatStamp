@@ -166,3 +166,21 @@ exports; a local bundle does not establish upload, tester counts or 14 days.
 - 2026-11-19 code12 release closure: actual signed products, unchanged security policy, explicit optional portrait in generated/final manifests and AAPT2,504host/116Python/59JVM/52connected each, exact minified A30-HE and API36-wide-EN five-file date results and source CI reviewed. Internal12is visibly available; Alpha12/16changes visibly in review. No closed availability, invitation delivery, tester clock or production result is fabricated. App Start over and exact run-scoped hygiene are checked separately in the current receipt. Original11/10/9evidence keeps its provenance.
 
 - 2026-11-19 final code 12 documentation/checkpoint review CLEAR: identity/hashes/counts, minified runtime and cleanup scope agree; internal availability and submitted Alpha review remain distinct from closed availability, invitation delivery and a qualifying period. All 36 checked local Markdown/proof links exist. Documentation-head CI is tracked separately from the accepted binary source.
+
+
+- 2026-11-19 code 13 identity source review CLEAR: explicit owner ID correction,
+  production/QA/probe/config/verifier coherence, production MainActivity namespace
+  in QA, dynamic own-package providers and receiver permission, unchanged bridge
+  namespace and existing key. Independent identity regressions preserve explicit
+  historical verification while rejecting stale current IDs. Root full smoke,
+  signed/final manifest checks, both-device minified five-file dates and actual
+  separate-UID 612-byte read grant PASS. Both source CI runs pass. Cleanup/restoration
+  and remaining owner gaps are explicit. New Play creation awaits two legal
+  declarations; no new app/upload/availability/tester period is invented. Earlier
+  code 12 closed state is separately refreshed. Final documentation review follows.
+
+- 2026-11-19 code 13 final documentation review CLEAR after resolving two P2
+  handoff findings: the product index now selects signed code 13, and the current
+  ExecPlan gate distinguishes new-entry legal approval from the old entry's
+  refreshed closed-testing state. New legal screenshot link and three-JPEG proof
+  count verified. No remaining material findings in the narrow re-review.

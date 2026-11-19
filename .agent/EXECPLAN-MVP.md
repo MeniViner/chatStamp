@@ -7,7 +7,7 @@ instants, select/filter files and save them so the tested Gallery sorts by those
 instants. Saved and verified dates remain separate facts. Local-only; no DB,
 accounts, analytics, cloud or server. Current requested production identity is com.menis10tec.chatstamp; retain the owner's external upload key. Earlier com.menis.chatstamp artifacts remain historical.
 
-## Current state — 2026-11-19, identity migration in progress
+## Current state — 2026-11-19, code 13 verified; new Play creation pending
 
 Meni explicitly requests production application ID **com.menis10tec.chatstamp**.
 This supersedes the previous fixed-ID instruction. Code 13 keeps version 0.2.0,
@@ -22,9 +22,11 @@ The new package needs its own Play entry, current artifact identity verification
 and actual new-track availability. No old private settings/history/grants or
 MediaStore ownership migrate automatically between Android sandboxes.
 
-Implementation, independent identity tests and review are in progress. Root owns
-fresh npm-ci smoke, generated manifest/authority/receiver checks, both-device
-native and affected minified runtime, signing, current docs and Play continuation.
+Implementation, independent identity tests and source review are complete. Root
+verified the full npm-ci smoke, generated/final identity and provider checks,
+both-device native/minified runtime, signing and actual independent read grant.
+Both source CI runs pass. The prepared new Play form confirms package availability;
+its two legal declarations await owner confirmation before creation/upload.
 Do not report new-package upload, availability, real-export acceptance or tester
 participation until actually observed. Previous API 33/full UI, actual 16 KiB,
 browser/provider/Cancel/real-export gaps remain explicitly scoped.
@@ -61,10 +63,10 @@ browser/provider/Cancel/real-export gaps remain explicitly scoped.
 
 ## Remaining gates
 
-- Complete: final code 11 native fix, independent red-to-green controls, source review, full smoke, app-source CI, signed/static artifacts and affected minified runtime.
-- Complete: one dedicated final product set, fresh foreground demo, bilingual listing/declaration/tester/manual guides; eight screenshots preserve their actual code 9 provenance.
-- Complete: phone 17-output/two-ZIP cleanup and exact original settings restored; emulator 46-output/two-ZIP cleanup, control restoration, independent readback and shutdown. Final documentation/assets-head CI and measured evidence size are linked in the local REPORT.
-- G2 owner/external gates: PR review/merge decision, real-export acceptance, Google review/actual closed availability and genuine tester opt-in/usage/period remain open. Code12internal is available and Alpha12/16changes are under review; IARC is completed. The agent does not merge or request production access before its genuine gate.
+- Complete: code 13 identity migration, independent source review, full smoke, both source CI runs, signed/static artifacts, new provider read grant and affected minified runtime. Earlier native fixes and broader runtime receipts keep their original binary scope.
+- Complete: dedicated code 13 product and fresh proof sets, current bilingual listing/declaration/tester guides. Eight screenshots remain actual code 9; the public foreground demo remains actual code 11. No relabeling.
+- Complete: code 13 five-output/one-ZIP cleanup per device, QA/helper removal, original control restoration and owned emulator shutdown. Private release-cache byte inspection remains UNVERIFIED.
+- G2 owner/external gates: confirm two new-app legal declarations, create/upload the requested package, reapply listing/declarations/tester lists and verify internal then closed availability. The old entry now shows closed testing/latest publication 19 November; old IARC completion does not complete the new form. Owner real-export acceptance, PR decision and genuine new-package opt-in/usage/period remain open. The agent does not merge or request production access before its genuine gate.
 
 ## Open risks and exact follow-up
 
@@ -146,7 +148,7 @@ Earlier dated observations above remain historical evidence, not current accepta
 - The currently attached and unlocked device is Samsung Galaxy A30 SM-A305F,
   Android 11 / API 30, arm64, Samsung Gallery 12.1.09.1, Asia/Jerusalem.
   The historical API 33 Note20 is not attached. Report device coverage separately.
-- Use only `com.menis.chatstamp.qa` for app acceptance. Preserve the production
+- Use only `com.menis10tec.chatstamp.qa` for current app acceptance. Preserve the production
   package. Restore the prior stay-awake setting (7) after device runs and remove
   the run's QA packages, fixtures, and saved files.
 - Existing release signing configuration and keystore are outside this repository.
@@ -724,3 +726,23 @@ Roles: implementer owns runtime/config/harness migration, test author owns curre
 identity guards and historical explicit-artifact compatibility, reviewer checks
 namespace/authority/sandbox/provenance. Root owns smoke/signing/device hygiene and
 Console/current docs. All new identity outcomes remain UNVERIFIED until observed.
+
+
+## 2026-11-19 — Code 13 migration acceptance checkpoint
+
+Implementation, independent acceptance-derived identity tests and source review
+complete; root smoke 504 host/126 Python/59 JVM/52 connected each API 30/API 36,
+six standalone probe JVM cases, exact signed/static checks, actual new-authority
+612-byte transport and affected minified five-file dates pass. App source
+1b82201792839d7925daee7dce4394fb0139bb6f has two successful source CI runs.
+Both reset/cleanup/restoration flows pass; owner production remains untouched.
+Products and fresh compact proof are separately grouped under dist/play.
+
+New Play form package availability confirmed. Owner confirmation of the two legal
+declarations is the sole current creation/upload blocker; do not accept terms
+without it or claim a new app/track ID. Existing specific Console authorization
+continues after that gate. Reapply assets/declarations/lists, verify actual internal,
+pause superseded old tracks reversibly, submit Alpha, and invite only after actual
+closed availability. Old package currently shows closed testing; no clock transfers.
+All owner real-export/device/browser/provider/16 KiB/Cancel gaps remain explicit;
+PR #1 stays unmerged. No pending source fix is inferred from the legal blocker.
