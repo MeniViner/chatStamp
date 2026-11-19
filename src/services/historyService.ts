@@ -34,7 +34,7 @@ export class HistoryRepository {
       const items = await this.reconcile();
       const previous = await this.detail(item.id);
       const results = mergeResults(previous?.results ?? [], item.savedFiles ?? []);
-      const summary = historySummary(item, results);
+      const summary = historySummary(preserveFolderGrant(item, previous?.summary), results);
       const detail: Detail = { version: 2, summary, results };
       await this.storage.writeAtomic(historyDetailFileName(item.id), JSON.stringify(detail));
       const next = [summary, ...items.filter((entry) => entry.id !== item.id)].slice(0, historyLimit);
@@ -149,6 +149,16 @@ function parseDetail(text: string | null): Detail | null {
   return { version: 2, summary: value.summary, results: value.results as SaveFileResult[], deleted: value.deleted === true };
 }
 
+function preserveFolderGrant(item: ExportHistoryItem, previous?: ExportHistoryItem): ExportHistoryItem {
+  const destination = item.outputDirectory || item.outputFolderPath;
+  const oldDestination = previous?.outputDirectory || previous?.outputFolderPath;
+  if (item.folderTreeUri?.trim() || !previous?.folderTreeUri?.trim() || previous.id !== item.id
+    || item.saveMethod !== 'saf-custom-folder' || previous.saveMethod !== 'saf-custom-folder'
+    || !destination.trim() || destination !== oldDestination) return item;
+  // Cold completion replay lacks the grant; retain only this session's exact known destination.
+  return { ...item, folderTreeUri: previous.folderTreeUri };
+}
+
 function historySummary(item: ExportHistoryItem, results: SaveFileResult[]): ExportHistoryItem {
   const summary = withoutDetails(item);
   const saved = results.filter((result) => result.ok && (result.outcome === 'saved' || result.outcome === undefined));
@@ -163,12 +173,25 @@ function historySummary(item: ExportHistoryItem, results: SaveFileResult[]): Exp
 }
 
 function mergeResults(previous: SaveFileResult[], current: SaveFileResult[]): SaveFileResult[] {
-  const key = (result: SaveFileResult) => result.entryId ?? result.insertedUri ?? result.filename;
-  const merged = new Map(previous.map((result) => [key(result), result]));
-  for (const result of current) {
-    const old = merged.get(key(result));
-    if (result.outcome === 'skipped' && old?.outcome === 'saved' && old.insertedUri === result.insertedUri) continue;
-    merged.set(key(result), result);
+  const sourceKey = (result: SaveFileResult) => result.entryId !== undefined
+    ? ['entry', result.entryId] : ['filename', result.filename];
+  const outputKey = (result: SaveFileResult) => {
+    const uri = result.insertedUri || result.scannedUri || (result.outputPath?.startsWith('content://') ? result.outputPath : null);
+    return JSON.stringify(['output', uri ? ['uri', uri] : result.outputPath ? ['path', result.outputPath] : sourceKey(result)]);
+  };
+  const merged = new Map<string, SaveFileResult>();
+  for (const result of [...previous, ...current]) {
+    const pendingKey = JSON.stringify(['pending', sourceKey(result)]);
+    if (!result.ok || result.outcome === 'failed' || result.outcome === 'cancelled') {
+      merged.set(pendingKey, result);
+      continue;
+    }
+    // A retry resolves this session's pending entry, without discarding its other copies.
+    merged.delete(pendingKey);
+    const key = outputKey(result);
+    const old = merged.get(key);
+    if (result.outcome === 'skipped' && old?.ok && (old.outcome === 'saved' || old.outcome === undefined)) continue;
+    merged.set(key, result);
   }
   return [...merged.values()];
 }

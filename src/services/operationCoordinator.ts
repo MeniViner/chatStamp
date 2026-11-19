@@ -277,6 +277,7 @@ async function finishSave(completion: CompletionSummary, context: {
     completion, files: state.mediaFiles, selectedFileIds: state.pendingSaveIds ?? state.selectedFileIds,
     selectedMediaTypes: state.selectedMediaTypes, selectedSenders: state.selectedSenders,
     chatName: context.chatName, outputFolderPath: folder, archiveFingerprint: context.archiveFingerprint,
+    workingDirectory: context.workingDirectory,
     folderTreeUri: completion.saveMethod === 'saf-custom-folder' ? context.folderTreeUri ?? null : null
   }));
   if (folder) await settings.updateSettings({ lastOutputFolder: folder });

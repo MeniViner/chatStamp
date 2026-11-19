@@ -9,7 +9,7 @@ const config = {
   assetBundlePatterns: ['**/*'],
   android: {
     package: 'com.menis.chatstamp',
-    versionCode: 9,
+    versionCode: 10,
     allowBackup: false,
     icon: './assets/icon.png',
     adaptiveIcon: {

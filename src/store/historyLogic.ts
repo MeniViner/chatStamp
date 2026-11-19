@@ -12,6 +12,7 @@ export function createExportHistoryItem(params: {
   folderTreeUri?: string | null;
   now?: Date;
   archiveFingerprint?: string;
+  workingDirectory?: string;
 }): ExportHistoryItem {
   const selectedFiles = getSelectedSaveCandidates(
     params.files, params.selectedSenders, params.selectedMediaTypes, params.selectedFileIds
@@ -26,7 +27,7 @@ export function createExportHistoryItem(params: {
   const fixed = params.completion.dateCorrected;
 
   return {
-    id: params.archiveFingerprint ? `export-${params.archiveFingerprint}` : `${timestamp.toISOString()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: historyId(params.archiveFingerprint, params.workingDirectory, timestamp),
     exportFingerprint: params.archiveFingerprint,
     exportTimestampIso: timestamp.toISOString(),
     chatName: params.chatName,
@@ -50,6 +51,18 @@ export function createExportHistoryItem(params: {
       && (params.completion.results === undefined || historyDatesVerified(params.completion.results)),
     savedFiles: params.completion.results
   };
+}
+
+function historyId(fingerprint: string | undefined, workingDirectory: string | undefined, timestamp: Date): string {
+  if (workingDirectory !== undefined) {
+    // Native import directories are direct cache children named by their operation ID.
+    const session = workingDirectory.replace(/\/+$/, '').split('/').pop() ?? '';
+    if (!/^[A-Za-z0-9-]{1,48}$/.test(session) || (fingerprint && !/^[a-f0-9]{64}$/i.test(fingerprint))) {
+      throw new Error('The import session does not have a safe history identity.');
+    }
+    return fingerprint ? `export-${fingerprint}-${session}` : `export-session-${session}`;
+  }
+  return fingerprint ? `export-${fingerprint}` : `${timestamp.toISOString()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export function normalizeHistoryItem(item: ExportHistoryItem): ExportHistoryItem {
