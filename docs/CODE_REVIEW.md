@@ -196,3 +196,12 @@ exports; a local bundle does not establish upload, tester counts or 14 days.
   invitations and a qualifying period. Review was read-only document consistency;
   Console observations belong to the root's fresh UI readback. No new native,
   device or binary validation is implied.
+
+- 2026-11-20 IARC/submission documentation review CLEAR. Separate Test author
+  established agreement, exact rating, submission and availability criteria;
+  Reviewer checked the changed guides and fresh receipt after root's UI readback.
+  No stale current pending-IARC/15-unsent claims or approval/eligibility/invitation/
+  tester-period overclaims remain. IARC Completed,16submitted, quick checks running,
+  Alpha13in review and actual signed-in App not available remain separate facts.
+  Historical checkpoints and PR boundaries are explicit. Review was read-only
+  document consistency, not independent Console/device/native verification.

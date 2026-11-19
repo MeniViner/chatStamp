@@ -1,8 +1,8 @@
 # Google Play release checklist
 
-Official requirements were checked on **2026-11-18**; candidate and Console identity refreshed **2026-11-19**. Current candidate: **0.2.0 / versionCode 13**, package **com.menis10tec.chatstamp**, min SDK **30**, target SDK **36**. Use [VERIFICATION.md](VERIFICATION.md) for exact source/artifact evidence. Later different uploaded bytes require a higher versionCode.
+Official requirements were checked on **2026-11-18**; candidate identity refreshed **2026-11-19**, Console submission **2026-11-20**. Current candidate: **0.2.0 / versionCode 13**, package **com.menis10tec.chatstamp**, min SDK **30**, target SDK **36**. Use [VERIFICATION.md](VERIFICATION.md) for exact source/artifact evidence. Later different uploaded bytes require a higher versionCode.
 
-The new app **4975002762311404414 / com.menis10tec.chatstamp** is created and exact signed 13 is active/available internally. Alpha **4699420811279917961** reuses that uploaded AAB; both store languages/assets, 177 countries plus Rest of World, all five tester lists and factual declarations are saved. **15 changes are not submitted: one exact Google issue is missing content rating.** Separate owner IARC agreement confirmation is pending. New closed links are disabled, no invitations or qualifying period claimed. Old internal is paused; old Alpha pause is submitted/in review. Follow [the continuation](PLAY_UPLOAD_STEPS.md).
+The new app **4975002762311404414 / com.menis10tec.chatstamp** has owner-approved IARC **Completed** and **16 changes submitted** on 20 November. Publishing shows Changes in review with quick checks running; Alpha **4699420811279917961** shows exact 13 in review, 178 country/region entries and all five lists checked. The tested signed-in closed route reports App not available despite enabled copy-link buttons. No actual closed availability, invitations or qualifying period claimed. Internal 13 availability and old-track pause states retain their 19 November scope. Follow [the continuation](PLAY_UPLOAD_STEPS.md).
 
 ## Release gates
 
@@ -14,10 +14,10 @@ The new app **4975002762311404414 / com.menis10tec.chatstamp** is created and ex
 - [x] `store/play/` contains both listing languages, icon, feature graphic and four actual-phone synthetic screenshots per language. Check formats/dimensions against [its README](../store/play/README.md).
 - [x] Privacy page publicly returns the policy over HTTPS without login. Add its URL in Console **and inside the app**; verify the in-app Privacy policy action is accessible and opens it. Expected URL: `https://meniviner.github.io/chatStamp/privacy-policy.html` — **PUBLIC: HTTP200 verified2026-11-18; installed action launches Chrome; page rendering UNVERIFIED because browser setup blocks it**.
 - [x] New factual declarations, Free/Tools/18+, countries, support and verified FGS demo are saved.
-- [ ] Complete the new content rating after the pending owner IARC agreement confirmation; old-entry completion does not accept this new agreement.
+- [x] New owner-approved IARC agreement and factual questionnaire completed; status Completed and seven regional ratings read back on 20 November.
 - [x] Exact 13 uploaded to the new entry; internal 4701429810228968626 is active/available and its actual enabled opt-in URL recorded.
-- [x] All five lists assigned to new internal/Alpha; same uploaded 13 saved for Alpha, bilingual listing/assets and 15 changes prepared.
-- [ ] Finish content rating, submit the new changes and observe actual closed availability before invitations; no new-package qualifying period is established.
+- [x] All five lists assigned to new internal/Alpha; same uploaded 13 used for Alpha. All 16 changes, including rating and bilingual listings, submitted; actual publishing/Alpha states are in review.
+- [ ] Observe actual closed availability and a working eligible-account opt-in route before invitations; no new-package qualifying period is established.
 
 ## Ready-to-paste app and Data safety facts / פרטי האפליקציה ובטיחות נתונים
 
@@ -43,7 +43,14 @@ The [Data safety definitions](https://support.google.com/googleplay/android-deve
 | Developer-provided content | No developer-provided violence, sexual content, gambling, controlled-substance promotion or real-money transactions. Imported private files can contain arbitrary user-selected content. / אין תוכן כזה מטעם המפתח או עסקאות בכסף אמיתי. קבצים פרטיים שהמשתמש מייבא עשויים להכיל כל תוכן. |
 | User interaction/content | Local previews and user-started Android sharing; no hosted public feed, chat service, matchmaking or online community. Answer the form's exact user-generated-content/file-access questions using this distinction. / תצוגה מקומית ושיתוף ביוזמת המשתמש דרך אנדרואיד; אין פיד ציבורי, שירות צ׳אט או קהילה מקוונת. יש לענות לפי הניסוח המדויק בטופס. |
 | Intended age groups | **18+ saved for the new entry**. No Families eligibility is claimed. / **18 ומעלה נשמרו ברשומה החדשה**; אין טענה להתאמה לתוכנית המשפחות. |
-| Final rating | **New-entry questionnaire pending.** The owner completed the old questionnaire; no new regional rating is inferred. / **השאלון ברשומה החדשה טרם הושלם.** בעל החשבון השלים את השאלון הקודם; אין להסיק מכך דירוג לרשומה החדשה. |
+| Final rating | **Completed in the new entry on 20 November:** ClassInd All ages; ESRB Everyone; PEGI 3; USK All ages; IARC Generic, Russia and South Korea 3+. No content descriptors shown. / **הושלם ברשומה החדשה ב־20 בנובמבר:** כל הגילאים בברזיל ובגרמניה, כולם בצפון אמריקה, PEGI 3 באירופה ו־3+ בשאר האזורים המוצגים. לא הוצגו מתארי תוכן. |
+
+The actual nine questions were answered from app behavior. [Google's User Content
+guidance](https://support.google.com/googleplay/android-developer/answer/11070862?hl=en)
+excludes sharing performed through secondary apps; [Online Content guidance](https://support.google.com/googleplay/android-developer/answer/11070055?hl=en)
+excludes content privately imported by users. No hosted communications, promoted
+online catalog, purchases, location-sharing, rewards, browser/search or news/education
+feature is introduced. The 18+ audience choice does not change the generated ratings.
 
 Free status and distribution countries are saved under the authorized setup. Preserve the actual developer identity and obtain action-time owner confirmation for any additional legal agreement; do not re-request already given creation or routine setup authorization. The app has no news, health, financial or government-service feature; answer any related category form according to the actual app. [Play review preparation](https://support.google.com/googleplay/android-developer/answer/9859455?hl=en) explains the required App content sections and the public, in-app-linked privacy page.
 
@@ -125,6 +132,6 @@ Use the final build/version and the private record in TESTERS.md.
 
 ## Owner summary / סיכום לבעל החשבון
 
-**English:** The new app is created and exact 13 is active internally; both listings/assets and Alpha are saved. Confirm the pending new IARC agreement, finish content rating and submit the prepared changes. Verify actual new Alpha availability before sending the authorized invitations, then record genuine opt-in/usage/feedback. Owner real-export and in-app browser acceptance remain separate. Do not request production access before the observed 12-tester/14-day gate is genuinely met.
+**English:** The new IARC questionnaire is Completed and all 16 changes were submitted. Publishing and Alpha 13 show in review; quick checks were still running at the checkpoint. No further owner agreement is pending. Google review and actual closed access remain before the authorized invitations. Then record genuine opt-in/usage/feedback; owner real-export and in-app browser acceptance remain separate. Do not request production access before the observed 12-tester/14-day gate is genuinely met.
 
-**עברית:** הרשומה החדשה נוצרה וגרסה 13 פעילה בבדיקה הפנימית. שני דפי החנות, התמונות ומסלול Alpha נשמרו. נותר לאשר את הסכם IARC החדש, להשלים דירוג תוכן ולשלוח את השינויים המוכנים לבדיקה. לאחר אישור Google יש לאמת זמינות בפועל של הבדיקה הסגורה, לשלוח את ההזמנות שאושרו ולתעד הצטרפות, שימוש ומשוב אמיתיים. בדיקת ייצוא WhatsApp אמיתי ופתיחת מדיניות הפרטיות בדפדפן נשארות בנפרד. אין לבקש גישה להפצה לפני ש-12 בודקים השתתפו ברציפות למשך 14 ימים כנדרש.
+**עברית:** שאלון IARC הושלם וכל 16 השינויים נשלחו. סיכום הפרסום ו־Alpha 13 מציגים מצב בבדיקה; הבדיקות המהירות עדיין רצו בזמן התיעוד. אין אישור משפטי נוסף שממתין כרגע. לאחר אישור Google יש לאמת הצטרפות בפועל לבדיקה הסגורה, לשלוח את ההזמנות שאושרו ולתעד הצטרפות, שימוש ומשוב אמיתיים. בדיקת ייצוא WhatsApp אמיתי ופתיחת מדיניות הפרטיות בדפדפן נשארות בנפרד. אין לבקש גישה להפצה לפני ש-12 בודקים השתתפו ברציפות למשך 14 ימים כנדרש.

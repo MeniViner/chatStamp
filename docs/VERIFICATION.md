@@ -1090,3 +1090,40 @@ nine-file Console proof set measures 328,341 bytes before final head bookkeeping
 below the 10,000,000-byte ceiling. No new app tests or device runs were required
 for these documentation-only changes; accepted code 13 validation remains scoped
 to its original source and receipts.
+
+## 2026-11-20 — Owner-approved IARC and actual submission readback
+
+Console-only continuation for **4975002762311404414 / com.menis10tec.chatstamp**.
+Existing exact0.2.0(13) AAB/source/key unchanged; no app build, test or device run.
+Owner's specific new IARC agreement/questionnaire approval received before action.
+Separate Test author derived acceptance criteria from the release checklist and
+tester guide before final submission. Root performed the actual UI actions/readback.
+
+| Check | Actual readback |
+| --- | --- |
+| IARC | Completed, All other app types, meniviner@gmail.com; submitted20November01:38local |
+| Regional ratings | ClassInd All ages; ESRB Everyone; PEGI3; USK All ages; IARC Generic/Russia/South Korea3+; descriptors '-' |
+| Questionnaire scope | Nine actual factual No answers; official user-content/online-content guidance checked; imported private files and secondary-app sharing kept distinct |
+| Certificate / audience | IARC ID still '-'; no identifier invented. Saved18+ audience is separate from generated rating |
+| Submission | Missing-rating blocker cleared;16changes submitted through both confirmation steps |
+| Publishing | Changes in review; quick checks running, not inferred successful or main review approved |
+| Alpha4699420811279917961 | Enabled track, exact13(0.2.0) in review,178country/region entries |
+| Testers | All five lists freshly checked,20potentially overlapping memberships; feedback preserved |
+| Actual opt-in route | Copy buttons enabled; signed-in page App not available; account eligibility not independently established |
+| Invitations / production | No emails or production access request; no closed availability or qualifying period claimed |
+
+Fresh concise README/state and four relevant JPEGs are grouped in
+dist/play/iarc-submission-20261120/. No prior evidence or app binaries copied.
+The prior19November receipt remains an accurate historical pending checkpoint.
+Internal availability, old-track review and zero opt-ins retain their19November
+scope; no current count inferred. App/runtime acceptance and owner gaps remain
+unchanged. Previous docs head4c44ef6 PR44610925844/push44610913049/Pages44610911578
+all show success at fresh exact-head readback. Current docs CI is separate.
+Google review and actual closed access are external gates; no recurring monitor
+or automatic resumption. PR #1 remains open/unmerged.
+
+Documentation-only closure: Reviewer reports CLEAR, with no stale current legal
+gate or unsent15claims. Root checked77local Markdown links across the ten current
+guides and three product/proof indexes; none missing. JSON parses and diff checking
+pass. Fresh six-file proof measures254,752bytes before final head bookkeeping;
+no binary/source tests repeated for this Console/documentation-only continuation.

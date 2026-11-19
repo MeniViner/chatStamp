@@ -1183,3 +1183,36 @@ Fresh receipt dist/play/new-package-console-20261119/ contains compact state,
 listing/resource readbacks and only relevant JPEGs. Earlier proof is referenced
 in place. All previous real-export/device/browser/provider/16 KiB/Cancel gaps stay
 explicit; no additional native or device run is claimed for this Console-only work.
+
+## 2026-11-20 — IARC complete and 16 changes submitted
+
+Owner explicitly approved the new app's IARC terms and factual questionnaire.
+Accepted that agreement, saved contact meniviner@gmail.com / All other app types
+and answered the nine actual questions from shipped app behavior. Google's
+question-specific official guidance excludes secondary-app sharing and privately
+imported content from native interaction/promoted online content. The app does
+not provide a hosted communication service or online catalog.
+
+Final IARC status is Completed, submitted 20 November at 01:38 local. Actual
+ratings: ClassInd All ages, ESRB Everyone, PEGI3, USK All ages, IARC Generic/Russia/
+South Korea3+; no descriptors shown and certificate ID still '-'. The saved 18+
+audience remains separate. Missing-rating blocker cleared and Send enabled for16.
+Completed both submission confirmations. Publishing shows Changes in review with
+quick checks running; Alpha4699420811279917961 shows exact13 in review, an enabled
+track and178country/region entries. No successful quick checks or approval inferred.
+
+All five Alpha lists remain checked with the same20potentially overlapping
+memberships. Copy-link buttons are now enabled; actual signed-in web opt-in shows
+App not available. That page permits unpublished build/account eligibility as
+explanations; eligibility was not independently established. No invitations sent,
+qualifying period or closed availability claimed. Google review and actual closed
+access remain the external gate; no recurring monitoring or auto-resumption started.
+
+try another way: create-tab visibility was unsupported for selected Chrome.
+Used the documented tabs API, reconciled its one blank tab and navigated to the
+actual opt-in URL. No browser setting changed. Fresh proof is grouped in
+dist/play/iarc-submission-20261120/; earlier receipts remain untouched in place.
+No app source/assets/binary or device state changed. Previous documentation head
+4c44ef6 has successful PR44610925844/push44610913049/Pages44610911578, freshly read.
+PR #1 remains open/unmerged; no production access request. Old-track review and
+internal availability retain their19November checkpoint scope.

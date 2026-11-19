@@ -7,7 +7,7 @@ instants, select/filter files and save them so the tested Gallery sorts by those
 instants. Saved and verified dates remain separate facts. Local-only; no DB,
 accounts, analytics, cloud or server. Current requested production identity is com.menis10tec.chatstamp; retain the owner's external upload key. Earlier com.menis.chatstamp artifacts remain historical.
 
-## Current state — 2026-11-19, new Play internal 13 active; IARC pending
+## Current state — 2026-11-20, IARC complete; Alpha 13 submitted/in review
 
 Meni explicitly requests production application ID **com.menis10tec.chatstamp**.
 This supersedes the previous fixed-ID instruction. Code 13 keeps version 0.2.0,
@@ -25,11 +25,13 @@ MediaStore ownership migrate automatically between Android sandboxes.
 Implementation, independent identity tests and source review are complete. Root
 verified the full npm-ci smoke, generated/final identity and provider checks,
 both-device native/minified runtime, signing and actual independent read grant.
-Both source CI runs pass. New app 4975002762311404414 is created after owner-approved declarations; exact
-13 is active internally. Alpha/listings/declarations/lists are saved, with 15
-changes unsent because content rating awaits separate owner IARC agreement.
-Do not report new-package upload, availability, real-export acceptance or tester
-participation until actually observed. Previous API 33/full UI, actual 16 KiB,
+Both source CI runs pass. New app 4975002762311404414 is created after owner-approved declarations;
+internal 13 was available at the 19 November checkpoint. On 20 November the owner
+approved IARC; the factual questionnaire completed and all 16 prepared changes
+were submitted. Publishing shows Changes in review, with quick checks running;
+Alpha 13 is in review. The signed-in closed opt-in page reports App not available.
+No closed availability, real-export acceptance or tester participation is inferred.
+Previous API 33/full UI, actual 16 KiB,
 browser/provider/Cancel/real-export gaps remain explicitly scoped.
 
 ## Implemented decisions and boundaries
@@ -68,7 +70,8 @@ browser/provider/Cancel/real-export gaps remain explicitly scoped.
 - Complete: dedicated code 13 product and fresh proof sets, current bilingual listing/declaration/tester guides. Eight screenshots remain actual code 9; the public foreground demo remains actual code 11. No relabeling.
 - Complete: code 13 five-output/one-ZIP cleanup per device, QA/helper removal, original control restoration and owned emulator shutdown. Private release-cache byte inspection remains UNVERIFIED.
 - Complete: new app creation/upload/internal availability, bilingual listing/assets, factual declarations and five lists on internal/Alpha. Alpha reuses uploaded 13; 177 countries plus Rest of World saved. Old internal is paused; old Alpha pause submitted/in review.
-- G2 owner/external gates: confirm the new IARC agreement, finish content rating and submit 15 prepared changes plus that declaration, then verify actual closed availability before invitations. Owner real-export acceptance, PR decision and genuine new-package opt-in/usage/period remain open. The agent does not merge or request production access before its genuine gate.
+- Complete: owner-approved new IARC agreement and factual questionnaire; status Completed and seven regional ratings read back. All 16 changes submitted on 20 November; publishing and Alpha 13 show in review. Quick checks were running at the recorded snapshot.
+- G2 owner/external gates: Google review, actual closed availability and a working eligible-account opt-in route before invitations. Owner real-export acceptance, PR decision and genuine new-package opt-in/usage/period remain open. The agent does not merge or request production access before its genuine gate.
 
 ## Open risks and exact follow-up
 
@@ -76,8 +79,8 @@ See KNOWN_RISKS.md and PLAY_UPLOAD_STEPS.md: API33 physical, real owner WhatsApp
 share, arbitrary Gallery/provider/codec combinations, actual16 KiB runtime and
 owner browser first-run rendering remain unverified. Provider-revocation
 simulation and the narrow process-death row-record window are deferred per v4.
-Play account is personal; creation date, actual track/tester count and eligibility
-must be supplied/recorded by the owner. Never substitute synthetic/device tests
+Play account is personal; creation date remains unknown. Exact new tracks are
+recorded, while genuine qualifying opt-ins/usage/period must be observed. Never substitute synthetic/device tests
 for a real closed-test period.
 
 ## Verification
@@ -765,3 +768,21 @@ actual closed availability, then send authorized deduplicated invitations. New
 12-opt-in/14-day requirement observed; no old clock transfers. Old internal is
 paused, old Alpha pause in review. Source/docs CI63890 passes; later docs CI separate.
 Fresh Console proof is grouped separately; PR #1 remains open/unmerged.
+
+## 2026-11-20 — Owner-approved IARC completion and Alpha submission
+
+Accepted the new IARC agreement only after the owner's specific confirmation.
+All other app types, meniviner@gmail.com and nine factual No answers were saved;
+official guidance excludes secondary-app sharing and privately imported content
+from native user interaction/promoted online content respectively. Status Completed
+and seven actual ratings read back; audience remains the separate saved 18+ setting.
+
+Submitted all 16 changes through both confirmation steps. Publishing shows Changes
+in review with quick checks running; Alpha4699420811279917961 shows exact13 in review.
+All five lists remain checked, with 20 potentially overlapping memberships and
+178 country/region entries. Copy-link buttons are enabled after submission, but
+the actual signed-in route shows App not available; eligibility was not independently
+established. No invitations or qualifying period claimed. Google review and actual
+closed availability are external gates; no recurring monitoring is started.
+Fresh compact proof: dist/play/iarc-submission-20261120/. No app bytes, source,
+assets or device state changed; prior receipts stay historical. PR #1 stays unmerged.
