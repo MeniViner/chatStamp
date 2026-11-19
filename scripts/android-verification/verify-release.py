@@ -27,6 +27,8 @@ ANDROID = '{http://schemas.android.com/apk/res/android}'
 PAGE_SIZE = 16 * 1024
 EVIDENCE_LIMIT = 10_000_000
 MAX_XML_BYTES = 2 * 1024 * 1024
+PORTRAIT_OPTIONAL_FROM_CODE = 12
+PORTRAIT_FEATURE = 'android.hardware.screen.portrait'
 PLATFORM_PERMISSIONS = {
     'android.permission.FOREGROUND_SERVICE',
     'android.permission.FOREGROUND_SERVICE_DATA_SYNC',
@@ -43,6 +45,8 @@ SOURCES = {
     'aapt_xml_schema': 'https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/tools/aapt2/Resources.proto',
     'bundletool_resource_output': 'https://github.com/google/bundletool/blob/1.18.3/src/main/java/com/android/tools/build/bundletool/commands/DumpManagerUtils.java',
     'alignment_applicability': 'https://android.googlesource.com/platform/system/extras/+/refs/heads/main/tools/check_elf_alignment.sh',
+    'feature_filtering': 'https://developer.android.com/guide/topics/manifest/uses-feature-element',
+    'activity_orientation': 'https://developer.android.com/guide/topics/manifest/activity-element',
 }
 
 
@@ -102,6 +106,23 @@ def inspect_manifest(xml, expected=Expected(), additional_xml=()):
     for key, value in required_identity.items():
         if identity[key] != value:
             issues.append(issue('MANIFEST_IDENTITY', f'{key}: expected {value!r}, observed {identity[key]!r}'))
+
+    features = [{'name': node.get(ANDROID + 'name'), 'required': node.get(ANDROID + 'required')}
+                for document in roots for node in document.findall('uses-feature')]
+    activities = [{'name': node.get(ANDROID + 'name'), 'screen_orientation': node.get(ANDROID + 'screenOrientation')}
+                  for document in roots for node in document.findall('./application/activity')]
+    if expected.code >= PORTRAIT_OPTIONAL_FROM_CODE:
+        # Portrait activity orientation implies a Play filter unless explicitly optional.
+        # Keep older immutable artifacts independently checkable under their original policy.
+        portrait = [feature for feature in features if feature['name'] == PORTRAIT_FEATURE]
+        if len(portrait) != 1:
+            issues.append(issue('PORTRAIT_FEATURE_COUNT', 'Code 12+ requires exactly one explicit optional portrait feature'))
+        if any(not is_false(feature['required']) for feature in portrait):
+            issues.append(issue('PORTRAIT_FEATURE_REQUIRED', 'Portrait must explicitly set android:required=false'))
+        main_names = {'.MainActivity', 'MainActivity', 'com.menis.chatstamp.MainActivity', expected.package + '.MainActivity'}
+        main = [activity for activity in activities if activity['name'] in main_names]
+        if len(main) != 1 or (main[0]['screen_orientation'] != 'portrait' and number(main[0]['screen_orientation']) != 1):
+            issues.append(issue('MAIN_ACTIVITY_ORIENTATION', 'Code 12+ must retain exactly one portrait MainActivity'))
 
     own = expected.package + '.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
     uses = [node for document in roots for node in document
@@ -166,7 +187,7 @@ def inspect_manifest(xml, expected=Expected(), additional_xml=()):
                    platform_permissions=sorted(external),
                    own_signature_permission=own if own in permissions or own_definitions else None,
                    own_permission_reason='AndroidX signature receiver isolation; not an external/platform capability',
-                   backup=backup, services=services)
+                   backup=backup, services=services, features=features, activities=activities)
 
 
 def inspect_backup_rules(xml):

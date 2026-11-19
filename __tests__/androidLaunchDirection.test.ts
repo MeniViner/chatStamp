@@ -26,7 +26,7 @@ function applyPlugin(contents: string, language = 'kt') {
   const plugins = {
     AndroidConfig: { Manifest: { getMainApplicationOrThrow: () => application } },
     withAndroidManifest: (config: object, action: (value: { modResults: object }) => unknown) => {
-      action({ ...config, modResults: {} }); return config;
+      action({ ...config, modResults: { manifest: {} } }); return config;
     },
     withMainApplication: (config: object, action: (value: { modResults: { language: string; contents: string } }) => { modResults: { contents: string } }) => {
       generated = action({ ...config, modResults: { language, contents } }).modResults.contents;

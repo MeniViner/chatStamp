@@ -659,3 +659,24 @@ highercode6. NativeZIPsample-budget suspicion wasrefuted byowningsource (64KiB/T
 ## 2026-11-19 — Final code 11 owner handoff
 
 Final 138e00c8 source, independent red-to-green controls,497host/59JVM/52connected each/105Python, freshCI44447719684, exact signed/static products and affected minified runtime are accepted within their recorded scopes. Fresh code11demo and all hashes verified; phone17outputs/twoZIPs/QAhelper removed and originalsettings restored; emulator46outputs/twoZIPs/controls restored/rootchecked/shutdown. Final physicalCancelselection remains UNVERIFIED with a concrete follow-up; no actual gesture was selected by the two final harness attempts. Owner realWhatsApp/Play/account/tester and device/fullmatrix/16KiB/provider gaps remain explicit. G2 completes via authorizedmanualpackaging, not an uploadedrelease or productionapproval. See the closing VERIFICATION entry and local REPORT for exact source, products, CI and measured evidence size.
+
+## 2026-11-19 — Code 12 portrait hardware availability follow-up
+
+The owner authorized the narrow fix after Console reported required portrait
+screen hardware. **try another way:** the durable Android manifest plugin now
+keeps one exact `android.hardware.screen.portrait` declaration with
+`android:required="false"` and scoped `tools:replace="android:required"`, overriding
+the attribute's lower-manifest OR merge. Existing unrelated feature attributes
+and declarations remain; repeated plugin application is stable. Activity/app
+portrait orientation remains declared. Expo and native module use versionCode12;
+versionName remains0.2.0. The existing signed code11 AAB stays unchanged.
+
+Root owns the fresh full smoke, clean-prebuild/merged-manifest proof, signed code12
+artifact validation and Console replacement/availability check. These code12
+outcomes remain UNVERIFIED until observed; no new device or Play result is inferred.
+
+Source review is CLEAR including the seven plugin/eleven artifact-policy cases.
+Root host504/51files,116Python, clean prebuild,226-task QA assembly and59fresh
+JVM/release-manifest policy pass. Complete smoke was restarted after correcting
+Expo CLI device-name selection. Signed12/minified/Console checks remain pending;
+A30 unlock is requested. Owner-completed IARC is no longer the Console blocker.

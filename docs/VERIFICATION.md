@@ -958,3 +958,30 @@ try another way: Add-assets opens a library drawer; upload through its Upload co
 The public demo HTTP200/SHA d319af658e5a35e16e7bea13ce0af8d74902f4bf12415f19efe60bcca29b7519 matches the verified product. Source checkpoint055ea27 has successful Pages44519035516 and PRCI44519046435. Its push CI44519037756 failed closed because the exact official Central Gson2.9.1POM was unavailable; same-head PRCI passed, and only the failed job was retried unchanged. Final CI retry/head outcome is kept in the local Console receipt. Signed app source138e00c8 and all device/artifact facts remain unchanged.
 
 Current checkpoint: `dist/play/console-setup-20261119/README.md` and console-state.json, with only relevant small screenshots. Previous proof remains at its original location; cumulative evidence including Console files, all docs/listing and both small demos is measured below10,000,000bytes. PR1 remains open/unmerged. Owner real WhatsApp, API33/full UI,16KiB execution, browser acceptance and scoped/deferred gaps remain explicit.
+
+
+## 2026-11-19 — Code12 optional portrait hardware source freeze
+
+The owner completed IARC/content rating; the current publishing issue is only
+`android.hardware.screen.portrait`. It is a hardware availability filter, not a
+new storage/media permission. Code12 keeps the portrait activity request and
+adds one explicit optional feature through the durable manifest plugin, with a
+scoped required-attribute merge override. Both version codes are12;0.2.0,
+production identity, permissions, dataSync, backup, dependencies and upload key
+are unchanged. Code11 artifacts remain immutable.
+
+Independent implementation/test/review roles report source CLEAR, including
+seven public-plugin tests and eleven artifact-policy cases. Code12+ policy
+rejects missing/default-required/true/duplicate portrait requirements and
+requires the unchanged portrait MainActivity; historical11 policy is retained.
+The fresh root host suite passes504tests/51files and116Python cases. Clean
+prebuild,226-task QA assembly,59fresh JVM tests/zero skipped and code12 merged
+release policy pass. Connected/cold-launch, signed12 artifacts, exact minified
+runtime and Console replacement remain in progress. The A30 is connected but
+locked; owner unlock was requested without attempting to unlock it.
+
+try another way: Expo CLI resolves its `--device` argument by device name, not
+ADB serial. The initial selector failed before installation. Use the observed
+AVD name `chatstamp-api36-20261118` and restart the complete smoke at npm ci.
+This is a harness admission correction, not an app failure or acceptance waiver.
+[Android screen-feature guidance](https://developer.android.com/guide/topics/manifest/uses-feature-element#screen-hw-features).

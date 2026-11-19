@@ -230,6 +230,88 @@ class ManifestAcceptanceTest(unittest.TestCase):
             self.assertEqual(release.inspect_manifest(value)['status'], 'FAIL')
 
 
+class PortraitFeatureAcceptanceTest(unittest.TestCase):
+    def future_manifest(self, required='false', include_feature=True):
+        root = manifest()
+        root.set(release.ANDROID + 'versionCode', '12')
+        ET.SubElement(root.find('application'), 'activity', {
+            release.ANDROID + 'name': '.MainActivity', release.ANDROID + 'screenOrientation': 'portrait',
+        })
+        if include_feature:
+            attributes = {release.ANDROID + 'name': 'android.hardware.screen.portrait'}
+            if required is not None:
+                attributes[release.ANDROID + 'required'] = required
+            ET.SubElement(root, 'uses-feature', attributes)
+        return root
+
+    def check(self, root, **kwargs):
+        return check_manifest(root, expected=release.Expected(code=12), **kwargs)
+
+    def test_code12_optional_portrait_and_unchanged_activity_pass(self):
+        self.assertEqual(self.check(self.future_manifest())['status'], 'PASS')
+
+    def test_code12_rejects_missing_explicit_portrait_override(self):
+        self.assertIn('PORTRAIT_FEATURE_COUNT', codes(self.check(self.future_manifest(include_feature=False))))
+
+    def test_code12_rejects_default_required_true_or_unresolved_portrait(self):
+        for required in (None, 'true', '@bool/optional'):
+            with self.subTest(required=required):
+                self.assertIn('PORTRAIT_FEATURE_REQUIRED', codes(self.check(self.future_manifest(required))))
+
+    def test_code12_rejects_duplicate_portrait_even_if_both_are_optional(self):
+        root = self.future_manifest()
+        ET.SubElement(root, 'uses-feature', {
+            release.ANDROID + 'name': 'android.hardware.screen.portrait', release.ANDROID + 'required': 'false',
+        })
+        self.assertIn('PORTRAIT_FEATURE_COUNT', codes(self.check(root)))
+
+    def test_dynamic_feature_cannot_reintroduce_required_portrait(self):
+        extra = '<manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-feature android:name="android.hardware.screen.portrait" android:required="true"/></manifest>'
+        result = self.check(self.future_manifest(), additional_xml=[extra])
+        self.assertIn('PORTRAIT_FEATURE_REQUIRED', codes(result))
+
+    def test_code12_main_activity_stays_portrait(self):
+        for orientation in (None, 'landscape', 'sensorPortrait', 'unspecified'):
+            with self.subTest(orientation=orientation):
+                root = self.future_manifest()
+                activity = root.find('./application/activity')
+                if orientation is None:
+                    del activity.attrib[release.ANDROID + 'screenOrientation']
+                else:
+                    activity.set(release.ANDROID + 'screenOrientation', orientation)
+                self.assertIn('MAIN_ACTIVITY_ORIENTATION', codes(self.check(root)))
+
+    def test_code12_cannot_drop_the_main_activity_to_evade_orientation_check(self):
+        root = self.future_manifest()
+        root.find('application').remove(root.find('./application/activity'))
+        self.assertIn('MAIN_ACTIVITY_ORIENTATION', codes(self.check(root)))
+
+    def test_compiled_numeric_false_and_portrait_enum_are_supported(self):
+        root = self.future_manifest('0x0')
+        root.find('./application/activity').set(release.ANDROID + 'screenOrientation', '0x1')
+        self.assertEqual(self.check(root)['status'], 'PASS')
+
+    def test_historical_code11_keeps_its_original_policy(self):
+        root = self.future_manifest('true')
+        root.set(release.ANDROID + 'versionCode', '11')
+        self.assertEqual(check_manifest(root, expected=release.Expected(code=11))['status'], 'PASS')
+
+    def test_optional_portrait_does_not_relax_existing_permission_policy(self):
+        root = self.future_manifest()
+        ET.SubElement(root, 'uses-permission', {release.ANDROID + 'name': 'android.permission.INTERNET'})
+        self.assertIn('PERMISSION_FORBIDDEN', codes(self.check(root)))
+
+    def test_qa_activity_namespace_remains_valid_with_qa_application_id(self):
+        root = self.future_manifest()
+        root.set('package', 'com.menis.chatstamp.qa')
+        for node in root:
+            name = node.get(release.ANDROID + 'name')
+            if name and name.endswith('.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'):
+                node.set(release.ANDROID + 'name', 'com.menis.chatstamp.qa.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION')
+        root.find('./application/activity').set(release.ANDROID + 'name', 'com.menis.chatstamp.MainActivity')
+        self.assertEqual(check_manifest(root, expected=release.Expected(package='com.menis.chatstamp.qa', code=12))['status'], 'PASS')
+
+
 class BackupResourceTest(unittest.TestCase):
     def test_all_nine_domains_are_excluded_for_both_transfers(self):
         result = release.inspect_backup_rules(backup_xml())

@@ -142,6 +142,17 @@ function applyLaunchLanguagePolicy(contents) {
 
 const withChatStampAndroidRelease = (config) => {
   config = withAndroidManifest(config, (config) => {
+    const manifest = config.modResults.manifest;
+    const portraitName = 'android.hardware.screen.portrait';
+    const features = manifest['uses-feature'] ?? [];
+    const portraitIndex = features.findIndex((feature) => feature.$?.['android:name'] === portraitName);
+    const portrait = portraitIndex < 0 ? { $: { 'android:name': portraitName } } : features[portraitIndex];
+    const replaced = new Set((portrait.$['tools:replace'] ?? '').split(',').map((name) => name.trim()).filter(Boolean));
+    replaced.add('android:required');
+    portrait.$ = { ...portrait.$, 'android:required': 'false', 'tools:replace': [...replaced].join(',') };
+    manifest.$ = { ...manifest.$, 'xmlns:tools': 'http://schemas.android.com/tools' };
+    manifest['uses-feature'] = portraitIndex < 0 ? [...features, portrait]
+      : features.filter((feature, index) => feature.$?.['android:name'] !== portraitName || index === portraitIndex);
     const application = AndroidConfig.Manifest.getMainApplicationOrThrow(config.modResults);
     application.$['android:allowBackup'] = 'false';
     application.$['android:fullBackupContent'] = 'false';
