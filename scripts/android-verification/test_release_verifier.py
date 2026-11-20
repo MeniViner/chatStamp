@@ -28,9 +28,9 @@ CURRENT_PACKAGE = 'com.menis10tec.chatstamp'
 HISTORICAL_PACKAGE = 'com.menis.chatstamp'
 
 
-def manifest(package=CURRENT_PACKAGE, code=15):
+def manifest(package=CURRENT_PACKAGE, code=16):
     """Acceptance fixture, independent of the generated Gradle manifest."""
-    version = '0.2.1' if code == 15 else '0.2.0'
+    version = '0.2.2' if code == 16 else '0.2.0'
     namespace = package.removesuffix('.qa')
     return ET.fromstring(f'''<manifest xmlns:android="http://schemas.android.com/apk/res/android"
         package="{package}" android:versionName="{version}" android:versionCode="{code}">
@@ -319,9 +319,9 @@ class PortraitFeatureAcceptanceTest(unittest.TestCase):
 
 
 class CurrentIdentityAcceptanceTest(unittest.TestCase):
-    def test_default_expectations_are_the_new_production_identity_and_code15(self):
+    def test_default_expectations_are_the_new_production_identity_and_code16(self):
         expected = release.Expected()
-        self.assertEqual((expected.package, expected.code), (CURRENT_PACKAGE, 15))
+        self.assertEqual((expected.package, expected.code), (CURRENT_PACKAGE, 16))
         self.assertEqual(check_manifest(manifest())['status'], 'PASS')
 
     def test_public_cli_uses_the_same_current_defaults_without_building_or_signing(self):
@@ -334,7 +334,7 @@ class CurrentIdentityAcceptanceTest(unittest.TestCase):
                                        '--work-dir', str(root / 'work'), '--expected-cert-sha256', 'a' * 64])
             self.assertEqual(result, 0)
             expected = verify.call_args.args[2]
-            self.assertEqual((expected.package, expected.code), (CURRENT_PACKAGE, 15))
+            self.assertEqual((expected.package, expected.code), (CURRENT_PACKAGE, 16))
 
     def test_old_package_does_not_pass_new_default_identity(self):
         result = check_manifest(manifest(HISTORICAL_PACKAGE, release.Expected().code))
@@ -342,10 +342,10 @@ class CurrentIdentityAcceptanceTest(unittest.TestCase):
 
     def test_new_qa_uses_the_new_production_activity_namespace(self):
         root = manifest(CURRENT_PACKAGE + '.qa')
-        expected = release.Expected(package=CURRENT_PACKAGE + '.qa', code=15)
+        expected = release.Expected(package=CURRENT_PACKAGE + '.qa', code=16)
         self.assertEqual(check_manifest(root, expected=expected)['status'], 'PASS')
 
-    def test_old_or_qa_activity_class_is_never_accepted_for_new_code15(self):
+    def test_old_or_qa_activity_class_is_never_accepted_for_new_code16(self):
         cases = [(CURRENT_PACKAGE, HISTORICAL_PACKAGE + '.MainActivity'),
                  (CURRENT_PACKAGE + '.qa', HISTORICAL_PACKAGE + '.MainActivity'),
                  (CURRENT_PACKAGE + '.qa', CURRENT_PACKAGE + '.qa.MainActivity')]
@@ -353,7 +353,7 @@ class CurrentIdentityAcceptanceTest(unittest.TestCase):
             with self.subTest(package=package, activity=activity):
                 root = manifest(package)
                 root.find('./application/activity').set(release.ANDROID + 'name', activity)
-                self.assertIn('MAIN_ACTIVITY_ORIENTATION', codes(check_manifest(root, expected=release.Expected(package=package, code=15))))
+                self.assertIn('MAIN_ACTIVITY_ORIENTATION', codes(check_manifest(root, expected=release.Expected(package=package, code=16))))
 
     def test_previous_new_package_code13_requires_its_explicit_version(self):
         root = manifest(code=13)

@@ -1524,3 +1524,43 @@ unchanged. Native launcher/icons/banners and the dirty unrelated CV are preserve
 PR1 remains open/unmerged. Actual owner WhatsApp cold/warm export, physical code15,
 fresh Gallery order,16KiB execution, real closed participation and production
 eligibility remain UNVERIFIED; the final MVP is not closed by emulator fixtures.
+
+## 2026-11-21 — Installed launcher icons, code16 source acceptance
+
+The owner confirms both new Play icons are correct but installed launchers remain
+old after update/reinstall, then explicitly requests integration. Root inspected
+Git, fetched and fast-forward pulled fix/core-rebuild: unchanged7a531a9; the
+preexisting untracked owner CV is preserved. Tank work remains in its separate
+native handoff worktree/branch; the canonical PWA and other worktrees are untouched.
+
+Exact approved leafless chatStamp master SHA256
+5448946ba8a1b84fca36d151741337f81c2560fd1dfb69f70eaa8ef93806902e is immutable.
+The new durable Swift generator performs only uniform scale/padding/color-space
+export: existing white legacy1024 asset and transparent adaptive/monochrome1024
+assets. Meaningful alpha fits32.41dp of the33dp safe radius in Android108dp layers.
+Monochrome preserves the same alpha silhouette. Clean Expo prebuild consumes these
+tracked assets; no unique generated-android edits or runtime behavior changes.
+Package/native/verifier metadata aligns0.2.2/code16. EN/HE release notes describe
+the installed icon; existing store icons/banners/screenshots remain unchanged.
+
+Separate Implementer owns Tank generation/build; Test author derives acceptance
+before inspecting implementation; Reviewer CLEAR for both source/asset diffs,
+including no stale day/night/round references and safe monochrome geometry.
+Root caught an overbroad lockfile version substitution before smoke: **try another
+way**, restore the unrelated lan-network0.2.1 entry and retain only app/native
+0.2.2 metadata. Dependency resolution and integrity do not change.
+
+Full cycle from npm ci PASS: typecheck,605host/58files,lint,127Python,clean prebuild,
+standalone arm64 QA assembly,59freshly executed JVM/8suites and72connected API36,
+zero failures/errors/skips. Mandatory source checks are complete. Signed AAB/QA
+and actual launcher update/reinstall checks follow separately; do not infer them
+from source geometry or tests. Existing original upload key is retained.
+
+Chrome currently has another Google account, not the authorized meniviner owner
+session. An owner manual-login request is pending; both apps’ uploads remain
+UNVERIFIED until actual Console readback. No new legal terms are accepted for the
+other account. Fresh small receipts/proof go together in
+**dist/play/native-launcher-icons-20261120/**; required signed binary products
+are separate in **dist/play/native-launcher-release-20261120/**. Earlier receipts
+retain their original candidate scope. Real WhatsApp/Gallery/16KiB/physical cases
+and genuine tester eligibility are not established by this icon-only follow-up.

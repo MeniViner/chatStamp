@@ -1,5 +1,3 @@
-Share a WhatsApp chat export directly to chatStamp — no need to save a ZIP first.
-Imports both ZIP exports and transcripts with attachments.
-A new six-step guide explains Export chat, Include media and sharing to chatStamp.
-Improved cold and warm share intake, cancellation and protection of active work.
-On-device processing without broad storage permission.
+The approved chatStamp logo now also appears on the installed app icon.
+Updated Android adaptive, round and monochrome icons.
+Direct WhatsApp sharing and the six-step guide remain available.

@@ -7,7 +7,28 @@ instants, select/filter files and save them so the tested Gallery sorts by those
 instants. Saved and verified dates remain separate facts. Local-only; no DB,
 accounts, analytics, cloud or server. Current requested production identity is com.menis10tec.chatstamp; retain the owner's external upload key. Earlier com.menis.chatstamp artifacts remain historical.
 
-## Current state —2026-11-20, direct WhatsApp code15 internally available / Alpha in review
+## Current state —2026-11-21, installed launcher icons follow-up
+
+Owner explicitly asks to integrate both approved Play icons into the installed
+apps after reinstalling still displays old art. Root owns chatStamp on
+fix/core-rebuild; Implementer owns Tank in a separate native worktree/branch;
+independent Test author derives asset/artifact acceptance and Reviewer checks the
+scoped changes. Store listings, banners and PWA/UI/splash assets stay unchanged.
+Use the exact approved transparent masters; retain leafless chatStamp artwork.
+Mechanical uniform scale/padding and alpha-only monochrome export support native
+legacy/adaptive/round/night/themed resources without redesign or clipping.
+ChatStamp candidate0.2.2/code16; Tank candidate1.11.6/code17 follows local signed16.
+Reuse existing signing keys and production IDs; only isolated QA is installed.
+Full chatStamp smoke, independent source/asset review, signed-artifact checks,
+actual launcher cold/update/reinstall inspection and cleanup precede distribution.
+Current Chrome lacks the owner Play account; a manual-login request is pending.
+Complete builds and independent emulator work while waiting; do not accept terms
+for a different account or claim an upload without actual Console readback.
+One fresh small report set: dist/play/native-launcher-icons-20261120/. Required
+large binary products: dist/play/native-launcher-release-20261120/. Earlier
+receipts retain their exact version scope. Preserve the untracked owner CV.
+
+## Prior state —2026-11-20, direct WhatsApp code15 internally available / Alpha in review
 
 ### Active owner follow-up — direct WhatsApp export intake and guide
 
