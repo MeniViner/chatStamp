@@ -11,6 +11,7 @@ import { rangeIds, selectionState, setIdsSelected, type SelectionState } from '.
 
 export type MediaCellItem = Readonly<{
   id: string; filename: string; uri: string; mediaType: MediaType;
+  sourceKind?: 'zip-media' | 'chat-transcript';
   sender: string; dateLabel: string; dateBadge: 'known' | 'approximate' | 'missing';
   dayKey: string | null; sizeBytes?: number; durationLabel?: string; dateMillis?: number;
 }>;
@@ -44,7 +45,7 @@ export type MediaSelectionListProps = Readonly<{
 }>;
 
 type SelectionRow = Readonly<{ key: string; visual: boolean; items: readonly MediaCellItem[] }>;
-type SelectionSection = Readonly<{ key: string; dayKey: string | null; ids: readonly string[]; data: readonly SelectionRow[] }>;
+type SelectionSection = Readonly<{ key: string; dayKey: string | null; transcript: boolean; ids: readonly string[]; data: readonly SelectionRow[] }>;
 const isVisual = (item: MediaCellItem) => ['photo', 'video', 'sticker', 'gif'].includes(item.mediaType);
 const noThumbnail: ThumbnailState = { uri: null, status: 'loading' };
 
@@ -98,6 +99,7 @@ export const CompactMediaRow = React.memo(function CompactMediaRow(props: MediaC
   const { t } = useTranslation();
   const theme = useAppTheme();
   const audio = item.mediaType === 'voice' || item.mediaType === 'audio';
+  const transcript = item.sourceKind === 'chat-transcript';
   const held = React.useRef(false);
   const registerRef = React.useCallback((view: View | null) => onRegisterCell(item.id, view), [item.id, onRegisterCell]);
   return <View ref={registerRef} collapsable={false} style={[styles.compact, { borderBottomColor: theme.colors.outlineVariant }]}>
@@ -105,12 +107,12 @@ export const CompactMediaRow = React.memo(function CompactMediaRow(props: MediaC
       accessibilityLabel={t(playing ? 'picker.pauseAudio' : 'picker.playAudio', { name: item.filename })}>
       <MaterialCommunityIcons name={playing ? 'pause' : 'play'} size={28} color={theme.colors.primary} />
     </Pressable> : <MaterialCommunityIcons name="file-document-outline" size={28} color={theme.colors.onSurfaceVariant} style={styles.documentIcon} />}
-    <Pressable style={styles.rowText} accessibilityRole="button" accessibilityLabel={t('picker.openItem', { name: item.filename, sender: item.sender, date: item.dateLabel })}
+    <Pressable style={styles.rowText} accessibilityRole="button" accessibilityLabel={t('picker.openItem', { name: transcript ? `${t('picker.transcript')}, ${item.filename}` : item.filename, sender: item.sender, date: item.dateLabel })}
       accessibilityState={{ selected }} onPress={() => { if (!held.current) onOpen(item.id); held.current = false; }}
       onPressIn={() => { held.current = false; }} onLongPress={() => { held.current = true; onStartRange(item.id); }} delayLongPress={450}>
-      <Text variant="bodyMedium" numberOfLines={1}>{item.filename}</Text>
+      <Text variant="bodyMedium" numberOfLines={1}>{transcript ? t('picker.transcript') : item.filename}</Text>
       <Text variant="bodySmall" numberOfLines={1} style={{ color: theme.colors.onSurfaceVariant }}>
-        {item.sender} · {item.dateLabel}{item.dateBadge === 'known' ? '' : ` · ${t(`picker.date.${item.dateBadge}`)}`}
+        {transcript ? item.filename : item.sender} · {item.dateLabel}{item.dateBadge === 'known' ? '' : ` · ${t(`picker.date.${item.dateBadge}`)}`}
       </Text>
     </Pressable>
     <SelectionCircle selected={selected} onPress={() => onToggle(item.id)} label={t('picker.selectItem', { name: item.filename })} />
@@ -143,11 +145,12 @@ export const SelectionFooter = React.memo(function SelectionFooter({ selected, t
 });
 
 function buildSections(items: readonly MediaCellItem[], columns: number): readonly SelectionSection[] {
-  const sections: { key: string; dayKey: string | null; ids: string[]; data: SelectionRow[] }[] = [];
+  const sections: { key: string; dayKey: string | null; transcript: boolean; ids: string[]; data: SelectionRow[] }[] = [];
   for (const item of items) {
+    const transcript = item.sourceKind === 'chat-transcript';
     let section = sections[sections.length - 1];
-    if (!section || section.dayKey !== item.dayKey) {
-      section = { key: `${item.dayKey ?? 'missing'}:${item.id}`, dayKey: item.dayKey, ids: [], data: [] };
+    if (!section || transcript || section.transcript || section.dayKey !== item.dayKey) {
+      section = { key: `${transcript ? 'transcript' : item.dayKey ?? 'missing'}:${item.id}`, dayKey: item.dayKey, transcript, ids: [], data: [] };
       sections.push(section);
     }
     section.ids.push(item.id);
@@ -213,7 +216,7 @@ export function MediaSelectionList(props: MediaSelectionListProps) {
       initialNumToRender={8} maxToRenderPerBatch={8} windowSize={5} removeClippedSubviews={false}
       onViewableItemsChanged={viewability} viewabilityConfig={viewabilityConfig}
       ListEmptyComponent={<Text style={styles.empty}>{t('picker.empty')}</Text>}
-      renderSectionHeader={({ section }) => <DaySelectionHeader groupKey={section.key} label={dayLabel(section.dayKey)}
+      renderSectionHeader={({ section }) => section.transcript ? null : <DaySelectionHeader groupKey={section.key} label={dayLabel(section.dayKey)}
         state={selectionState(selectedIds, section.ids)} onToggleDay={toggleDay} />}
       renderItem={({ item: row }) => <View style={styles.gridRow}>
         {row.items.map((item) => {

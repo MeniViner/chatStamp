@@ -179,7 +179,7 @@ vi.mock('expo-video', () => ({ VideoView: 'VideoView',
 vi.mock('expo-audio', () => ({ useAudioPlayer: () => { throw new Error('Video host must not create audio players'); }, useAudioPlayerStatus: vi.fn() }));
 vi.mock('expo-image', () => ({ Image: 'Image' }));
 vi.mock('expo-file-system', () => ({ File: class {} }));
-vi.mock('react-native', () => ({ View: 'View', Pressable: 'Pressable', Modal: 'Modal',
+vi.mock('react-native', () => ({ View: 'View', Pressable: 'Pressable', Modal: 'Modal', I18nManager: { isRTL: false },
   PanResponder: { create: (handlers: object) => ({ panHandlers: handlers }) },
   StyleSheet: { create: <T,>(styles: T) => styles, absoluteFillObject: {} } }));
 vi.mock('react-native-paper', () => ({ Text: 'Text', Button: 'Button', IconButton: 'IconButton', ActivityIndicator: 'ActivityIndicator' }));

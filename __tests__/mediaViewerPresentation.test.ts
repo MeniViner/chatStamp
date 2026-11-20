@@ -10,7 +10,7 @@ vi.mock('expo-video', () => ({ VideoView: 'VideoView', createVideoPlayer: resour
 vi.mock('expo-audio', () => ({ createAudioPlayer: resources.audio }));
 vi.mock('expo-image', () => ({ Image: 'Image' }));
 vi.mock('expo-file-system', () => ({ File: class {} }));
-vi.mock('react-native', () => ({ Modal: 'Modal', Pressable: 'Pressable', View: 'View', PanResponder: { create: (handlers: object) => ({ panHandlers: handlers }) }, StyleSheet: { create: <T,>(styles: T) => styles } }));
+vi.mock('react-native', () => ({ Modal: 'Modal', Pressable: 'Pressable', View: 'View', I18nManager: { isRTL: false }, PanResponder: { create: (handlers: object) => ({ panHandlers: handlers }) }, StyleSheet: { create: <T,>(styles: T) => styles } }));
 vi.mock('react-native-paper', () => ({ Text: 'Text', Button: 'Button', IconButton: 'IconButton', ActivityIndicator: 'ActivityIndicator' }));
 vi.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }));
 vi.mock('../src/theme/useAppTheme', () => ({ useAppTheme: () => ({ colors: { background: '#fff', surfaceVariant: '#eee', primary: '#123' } }) }));

@@ -11,7 +11,7 @@ import { defaultSettings } from '../src/store/settingsLogic';
 import type { AppSettings } from '../src/types/media';
 
 const state = vi.hoisted(() => ({ settings: {} as AppSettings, update: vi.fn(), sync: vi.fn(), folder: vi.fn(), discard: vi.fn(), cancel: vi.fn(), read: vi.fn(), listeners: [] as (() => boolean)[] }));
-vi.mock('react-native', () => ({ View: 'View', ScrollView: 'ScrollView', FlatList: 'FlatList', Pressable: 'Pressable', Linking: { openURL: vi.fn() },
+vi.mock('react-native', () => ({ View: 'View', ScrollView: 'ScrollView', FlatList: 'FlatList', Pressable: 'Pressable', Linking: { openURL: vi.fn() }, I18nManager: { isRTL: false },
   StyleSheet: { create: <T,>(styles: T) => styles, hairlineWidth: 1 },
   BackHandler: { addEventListener: (_name: string, listener: () => boolean) => { state.listeners.push(listener); return { remove: () => { state.listeners.splice(state.listeners.indexOf(listener), 1); } }; } },
 }));
@@ -57,11 +57,12 @@ afterEach(async () => { await act(async () => renderers.splice(0).forEach((rende
 async function mount(screen: React.ComponentType) { let renderer!: ReactTestRenderer; await act(async () => { renderer = TestRenderer.create(React.createElement(screen)); renderers.push(renderer); await flush(); }); return renderer; }
 async function back() { await act(async () => { expect([...state.listeners].reverse().some((listener) => listener())).toBe(true); await flush(); }); }
 async function choose(renderer: ReactTestRenderer, title: string) { await act(async () => { renderer.root.findAllByType(host('OptionChoiceCard')).find((node) => node.props.title === title)!.props.onPress(); await flush(); }); }
+async function enterCategory(renderer: ReactTestRenderer, title: string) { await act(async () => { renderer.root.findAllByType(host('Pressable')).find((node) => node.props.accessibilityLabel === title)!.props.onPress(); }); }
 
 describe('actual Settings language/folder UI commit ordering', () => {
   it('does not apply native flags or a restart prompt when preference persistence fails', async () => {
     state.settings.languagePreference = 'en'; state.update.mockRejectedValueOnce(new Error('NO_SPACE'));
-    const renderer = await mount(SettingsScreen); await choose(renderer, 'settings.languageOptions.he');
+    const renderer = await mount(SettingsScreen); await enterCategory(renderer, 'settings.language'); await choose(renderer, 'settings.languageOptions.he');
     expect(state.sync).not.toHaveBeenCalled();
     expect(state.settings.languagePreference).toBe('en');
     expect(useLanguageRestartStore.getState()).toMatchObject({ required: false, promptOpen: false });
@@ -74,7 +75,7 @@ describe('actual Settings language/folder UI commit ordering', () => {
     state.settings.languagePreference = 'en';
     state.update.mockImplementationOnce(async (patch: Partial<AppSettings>) => { await new Promise<void>((accept) => { resolve = accept; }); state.settings = { ...state.settings, ...patch }; });
     state.sync.mockResolvedValueOnce(true);
-    const renderer = await mount(SettingsScreen); await choose(renderer, 'settings.languageOptions.he');
+    const renderer = await mount(SettingsScreen); await enterCategory(renderer, 'settings.language'); await choose(renderer, 'settings.languageOptions.he');
     expect(state.sync).not.toHaveBeenCalled(); expect(state.settings.languagePreference).toBe('en');
     await act(async () => { resolve(); await flush(); });
     expect(state.sync).toHaveBeenCalledExactlyOnceWith('he');
@@ -91,6 +92,7 @@ describe('actual Settings language/folder UI commit ordering', () => {
     state.settings.saveDestinationMode = 'custom-folder';
     state.settings.customFolder = { treeUri: 'content://tree/synthetic', displayName: 'Synthetic', persistedPermission: true };
     const renderer = await mount(SettingsScreen);
+    await enterCategory(renderer, 'settings.categories.saving.title');
     const pick = renderer.root.findAllByType(host('SecondaryButton')).find((node) => node.props.children === 'settings.chooseFolder')!;
     await act(async () => { pick.props.onPress(); await flush(); });
     expect(state.folder).toHaveBeenCalledOnce(); expect(state.update).not.toHaveBeenCalled();
@@ -101,6 +103,7 @@ describe('actual Settings language/folder UI commit ordering', () => {
     let finish!: () => void;
     state.update.mockReturnValueOnce(new Promise<void>((accept) => { finish = accept; })).mockResolvedValue(undefined);
     const renderer = await mount(SettingsScreen);
+    await enterCategory(renderer, 'settings.categories.saving.title');
     await choose(renderer, 'settings.duplicateModes.keep-both');
     const timestamp = renderer.root.findAllByType(host('SettingRow')).find((node) => node.props.title === 'settings.createExportTimestampFolder')!;
     await act(async () => timestamp.props.onValueChange(true));

@@ -68,7 +68,15 @@
       "permission-lost": "Access to this file expired. Choose it again.",
       "no-handler": "No installed app can open this type of file.",
       "launch-failed": "The other app could not open this file."
-    }
+    },
+    "transcriptLoading": "Loading transcript",
+    "transcriptError": "The transcript could not be read. Try again, or import the ZIP again if the file is no longer available.",
+    "transcriptRetry": "Try again",
+    "transcriptEmpty": "This transcript is empty.",
+    "transcriptSection": "Transcript section {{current}}",
+    "transcriptPreviousSection": "Previous section",
+    "transcriptNextSection": "Continue transcript",
+    "transcriptEnd": "End of transcript"
   },
   "common": {
     "back": "Back",
@@ -135,7 +143,7 @@
   },
   "settings": {
     "title": "Settings",
-    "subtitle": "Save location, output folders, language, and appearance.",
+    "subtitle": "Choose a category to adjust your preferences.",
     "recommended": "Recommended",
     "change": "Change",
     "historyCleared": "History cleared.",
@@ -236,7 +244,31 @@
     "privacyPolicy": "Privacy policy",
     "contactSupport": "Contact support",
     "couldNotOpenLink": "No app could open this link.",
-    "saveFailed": "Could not save this setting. Your previous choice is kept."
+    "saveFailed": "Could not save this setting. Your previous choice is kept.",
+    "categories": {
+      "saving": {
+        "title": "Saving",
+        "summary": "Location, folders, dates and duplicates"
+      },
+      "language": {
+        "summary": "App and Android language"
+      },
+      "appearance": {
+        "summary": "Theme and colors"
+      },
+      "storage": {
+        "title": "History and storage",
+        "summary": "Temporary files and export history"
+      },
+      "help": {
+        "title": "Help and app info",
+        "summary": "Tour, privacy, support and version"
+      },
+      "advanced": {
+        "title": "Advanced",
+        "summary": "Developer options and diagnostics"
+      }
+    }
   },
   "outputOptions": {
     "duplicateModes": {

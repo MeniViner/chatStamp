@@ -72,7 +72,8 @@ function CompactStepHeader({ stepLabel, title }: { stepLabel?: string; title: st
   const theme = useAppTheme();
   return (
     <View style={styles.compactStepHeader}>
-      <Text variant="titleMedium" style={[styles.compactAppbarTitle, textStyles.start]}>
+      <Text variant="titleMedium" numberOfLines={1} ellipsizeMode="tail" accessibilityLabel={title}
+        style={[styles.compactAppbarTitle, textStyles.start]}>
         {title}
       </Text>
       {stepLabel ? (
@@ -645,7 +646,7 @@ function createStyles() {
     gap: 2
   },
   compactAppbarTitle: {
-    flexShrink: 0,
+    flexShrink: 1,
     minWidth: 0,
     fontWeight: '800',
     letterSpacing: 0

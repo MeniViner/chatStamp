@@ -43,6 +43,12 @@ older implementations and do not authorize their superseded storage/RTL paths.
 
 ## UI and performance
 
+- Long imported names keep a one-line/tail-ellipsized header and full accessible
+  name; only the active category has filled styling. The importer-selected
+  transcript is first among eligible files, has an internal bounded UTF-8 reader
+  with safe page boundaries/handle cleanup, and never splits ordinary whole-day
+  selection groups. Native RTL governs paging glyphs/swipes. Settings categories
+  preserve all controls, serialized persistence and Back to the prior session.
 - Set selection, stable memoized cells and virtualized grid/day sections; Save
   and footer use the current filter and preserve hidden selections.
 - Bounded native thumbnails; zero cell video players, at most one viewer video
@@ -205,3 +211,12 @@ exports; a local bundle does not establish upload, tester counts or 14 days.
   Alpha13in review and actual signed-in App not available remain separate facts.
   Historical checkpoints and PR boundaries are explicit. Review was read-only
   document consistency, not independent Console/device/native verification.
+
+- 2026-11-20 code14source review CLEAR after the transcript/day-group correction.
+  An initially pinned latest-day transcript could split Oldest date controls;
+  a dedicated headerless transcript section now preserves coherent ordinary day
+  groups. Independent actual-list/UI regressions cover that boundary, reader
+  replacement/double-tap behavior, native RTL mismatch, category Back and real
+  settings persistence. No remaining material source findings. Full root smoke
+  passes564host/55files,127Python,59freshJVM and52connected eachAPI30/API36;
+  signed/static/minified runtime and Play14remain separate pending gates.

@@ -1216,3 +1216,34 @@ No app source/assets/binary or device state changed. Previous documentation head
 4c44ef6 has successful PR44610925844/push44610913049/Pages44610911578, freshly read.
 PR #1 remains open/unmerged; no production access request. Old-track review and
 internal availability retain their19November checkpoint scope.
+
+## 2026-11-20 — Owner UX corrections, code14source checkpoint
+
+Owner reports new-package tester opt-in and Play download succeeded, superseding
+the earlier account-unavailable observation. This is owner-reported installation,
+not a completed real-export/date/cleanup acceptance or qualifying tester period.
+Owner requests one-line ZIP/chat headings; active-only filled media categories;
+actual transcript first/labeled with an in-app scrolling reader; corrected Hebrew
+media arrows; and categorized Settings. All five are implemented with bilingual
+copy and no new dependency or permission.
+
+Root implements title/filter/transcript/viewer; separate Implementer owns Settings,
+Test author derives criteria first and adds44meaningful UI regressions, Reviewer
+audits against CODE_REVIEW. Reader uses SDK55 FileHandle, at most32KiB+3UTF-8 bytes
+per page, handle-finally cleanup, replacement guards and local scrolling/explicit
+continuation. It uses the original extracted file, never loads the ZIP or complete
+transcript for preview. Native I18nManager determines glyphs/swipes. Actual sourceKind
+marks the chat transcript; ordinary documents, filters/selected IDs and save dates
+retain their semantics. All existing Settings handlers remain behind six categories.
+
+try another way: pinning the transcript directly into contiguous date grouping
+could split the same day under Oldest. Isolate its row in a headerless section,
+then keep ordinary whole-day controls coherent; independent real-list selection
+regression passes. This was a source-review finding fixed before the full cycle,
+not a claimed executed negative control.
+
+Current whole cycle passes npmci/typecheck/lint/cleanprebuild,564host/55files,
+127Python,226executed QA assembly tasks,59fresh JVM0skip and52connected each on
+A30/API30 and the existing API36 emulator. Source review CLEAR. No production app
+replacement. Signed14/static/affected minified runtime and publication remain
+pending at this checkpoint; exact source/receipt and cleanup close separately.

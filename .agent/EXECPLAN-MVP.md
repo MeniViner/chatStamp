@@ -7,7 +7,45 @@ instants, select/filter files and save them so the tested Gallery sorts by those
 instants. Saved and verified dates remain separate facts. Local-only; no DB,
 accounts, analytics, cloud or server. Current requested production identity is com.menis10tec.chatstamp; retain the owner's external upload key. Earlier com.menis.chatstamp artifacts remain historical.
 
-## Current state — 2026-11-20, IARC complete; Alpha 13 submitted/in review
+## Current state — 2026-11-20, owner UX follow-up; code 14 under verification
+
+Meni reports successfully joining the new app's tester program and downloading
+the Play build. This updates the earlier unavailable-account checkpoint; it is
+owner-reported availability, not agent-run Play installation or a qualifying
+tester period. The owner now requests five UI corrections after importing a ZIP.
+
+Code 14 work: single-line ellipsized chat/ZIP headings, a filled active media tab
+with outlined inactive tabs, actual transcript pinned/labeled first with a local
+scrollable reader, native-RTL media paging, and six Settings categories with
+category→menu→original-screen Back behavior. Keep actual transcript identity,
+filters/selection, save/date semantics, all existing settings and current key.
+
+Decisions: preserve the full accessible title; pin only the transcript marked by
+the importer and only among eligible filtered items; isolate it from ordinary
+whole-day selection groups. Read one32KiB UTF-8 section plus at most3lookahead
+bytes through SDK55 FileHandle, close every handle and keep stale reader responses
+out of replacement documents. Scroll within each section and expose explicit
+continuation/previous-section controls. Do not load the complete file for preview.
+Native I18nManager, including pending-restart behavior, determines arrow direction.
+
+Roles: root implements title/filter/transcript/viewer and integrates locales,
+versioning, full smoke, release and device hygiene; Implementer owns categorized
+Settings; Test author derives independent criteria before source inspection and
+owns actual UI regressions; Reviewer audits against CODE_REVIEW. No UI, native,
+artifact or Play result for14is accepted until observed.
+
+Milestones: complete implementation/independent regressions/review; run the full
+npm-ci smoke and Python verifier suite; clean prebuild/QA debug/59+JVM and nonzero
+connected API30/API36 checks; exact signed/static14verification; affected minified
+phone/wide runtime (long synthetic Hebrew name, filters, transcript scrolling/
+continuation, native RTL, category Back/persistence and five-file date readback);
+restore controls/remove run-owned QA/fixtures/outputs; commit/push and record CI;
+upload the accepted new bytes to the existing new-package tracks under the
+continuing release authorization. Code13and prior receipts remain historical.
+Real-export acceptance, broad UI/provider/API33/16KiB/Cancel gaps and genuine
+closed participation remain separate. PR #1 stays open/unmerged.
+
+## Prior state — 2026-11-20, IARC complete; Alpha 13 submitted/in review
 
 Meni explicitly requests production application ID **com.menis10tec.chatstamp**.
 This supersedes the previous fixed-ID instruction. Code 13 keeps version 0.2.0,

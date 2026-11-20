@@ -223,6 +223,38 @@ describe('actual selection cell render budgets', () => {
 });
 
 describe('real cell controls and list integration', () => {
+  it('isolates a pinned transcript from day controls while Oldest groups each ordinary date once', async () => {
+    const original = fixture(4);
+    const items: readonly MediaCellItem[] = [
+      { ...original[3], id: 'chat-transcript', filename: 'selected-chat.txt', sourceKind: 'chat-transcript', dayKey: '2020-03-17' },
+      { ...original[0], id: 'older-photo', dayKey: '2019-02-15' },
+      { ...original[1], id: 'latest-video', dayKey: '2020-03-17' },
+      { ...original[2], id: 'latest-voice', dayKey: '2020-03-17' },
+    ];
+    const harness = await mount(items);
+    const headers = () => harness.renderer.root.findAll((node) => isHost(node, 'Pressable')
+      && String(node.props.accessibilityLabel).startsWith('picker.selectDay|'));
+    expect(headers()).toHaveLength(2);
+    expect(headers().map((node) => node.props.accessibilityLabel)).toEqual([
+      'picker.selectDay|date=February 15, 2019', 'picker.selectDay|date=March 17, 2020',
+    ]);
+    const sections = harness.renderer.root.findByType(hostType('SectionList')).props.sections as {
+      ids: readonly string[]; data: readonly { items: readonly MediaCellItem[] }[];
+    }[];
+    expect(sections[0].data[0].items[0].id).toBe('chat-transcript');
+    expect(sections.flatMap((section) => section.data.flatMap((row) => row.items.map((item) => item.id)))).toEqual(items.map((item) => item.id));
+    const latestHeader = () => pressable(harness.renderer, 'picker.selectDay|date=March 17, 2020');
+    await act(async () => latestHeader().props.onPress());
+    expect(harness.selected).toEqual(new Set(['chat-transcript', 'older-photo']));
+    expect(latestHeader().props.accessibilityState.checked).toBe(false);
+    await harness.toggle('chat-transcript');
+    expect(harness.selected).toEqual(new Set(['older-photo']));
+    expect(latestHeader().props.accessibilityState.checked).toBe(false);
+    await act(async () => latestHeader().props.onPress());
+    expect(harness.selected).toEqual(new Set(['older-photo', 'latest-video', 'latest-voice']));
+    expect(latestHeader().props.accessibilityState.checked).toBe(true);
+  });
+
   it('groups the actual SectionList in display order with stable tie order and a separate unavailable-date section', async () => {
     const original = fixture(4);
     const items: readonly MediaCellItem[] = Object.freeze([

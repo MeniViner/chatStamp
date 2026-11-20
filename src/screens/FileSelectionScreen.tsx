@@ -49,7 +49,7 @@ export function FileSelectionScreen() {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const allItems = React.useMemo<readonly MediaCellItem[]>(() => mediaFiles.filter((file) => isSaveableMediaType(file.mediaType)).map((file) => {
     const rawSender = getMediaSender(file), millis = getMediaSaveTime(file), date = getMediaDateIso(file);
-    return { id: file.id, filename: file.filename, uri: file.uri, mediaType: file.mediaType, sizeBytes: file.sizeBytes, dateMillis: millis,
+    return { id: file.id, filename: file.filename, uri: file.uri, mediaType: file.mediaType, sourceKind: file.sourceKind, sizeBytes: file.sizeBytes, dateMillis: millis,
       sender: rawSender === UNKNOWN_SENDER ? t('fileSelection.unknownSender') : rawSender === CHAT_TRANSCRIPT_SENDER ? t('picker.transcript') : rawSender,
       dateLabel: date && Number.isFinite(Date.parse(date)) ? new Intl.DateTimeFormat(i18n.resolvedLanguage ?? 'en', { dateStyle: 'medium', timeStyle: 'short', timeZone }).format(new Date(date)) : t('picker.date.missing'),
       dateBadge: millis === undefined ? 'missing' : isApproximateDate(file) ? 'approximate' : 'known', dayKey: dayKeyAt(millis, timeZone) };
@@ -64,6 +64,8 @@ export function FileSelectionScreen() {
       && (!from || !datesValid || (item.dayKey !== null && item.dayKey >= from))
       && (!to || !datesValid || (item.dayKey !== null && item.dayKey <= to)))
       .sort((a, b) => {
+        const aTranscript = a.sourceKind === 'chat-transcript', bTranscript = b.sourceKind === 'chat-transcript';
+        if (aTranscript !== bTranscript) return aTranscript ? -1 : 1;
         if (a.dateMillis === undefined) return b.dateMillis === undefined ? 0 : 1;
         if (b.dateMillis === undefined) return -1;
         return (newest ? -1 : 1) * (a.dateMillis - b.dateMillis);
@@ -124,7 +126,13 @@ export function FileSelectionScreen() {
     {search ? <Searchbar value={query} onChangeText={setQuery} placeholder={t('picker.search')} accessibilityLabel={t('picker.search')} /> : null}
     <ScrollView horizontal style={styles.tabs} contentContainerStyle={styles.tabContent} showsHorizontalScrollIndicator={false}>
       {tabs.map((kind) => { const count = baseItems.filter((item) => inTab(item, kind)).length;
-        return count || kind === 'all' ? <Chip key={kind} selected={tab === kind} accessibilityLabel={t('picker.tabCount', { tab: t(`picker.tabs.${kind}`), count })} onPress={() => setTab(kind)}>{t(`picker.tabs.${kind}`)} {count}</Chip> : null;
+        const selected = tab === kind;
+        return count || kind === 'all' ? <Chip key={kind} selected={selected} mode={selected ? 'flat' : 'outlined'} accessibilityRole="tab"
+          accessibilityState={{ selected }} accessibilityLabel={t('picker.tabCount', { tab: t(`picker.tabs.${kind}`), count })}
+          style={{ backgroundColor: selected ? theme.colors.primaryContainer : 'transparent', borderWidth: 1, borderColor: selected ? theme.colors.primary : theme.colors.outline }}
+          selectedColor={selected ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant}
+          textStyle={{ color: selected ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant }}
+          onPress={() => setTab(kind)}>{t(`picker.tabs.${kind}`)} {count}</Chip> : null;
       })}
     </ScrollView>
     <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>{t('picker.rangeHint')}</Text>

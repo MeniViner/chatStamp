@@ -1127,3 +1127,30 @@ gate or unsent15claims. Root checked77local Markdown links across the ten curren
 guides and three product/proof indexes; none missing. JSON parses and diff checking
 pass. Fresh six-file proof measures254,752bytes before final head bookkeeping;
 no binary/source tests repeated for this Console/documentation-only continuation.
+
+## 2026-11-20 — Code14source and full smoke checkpoint
+
+Owner's actual Play opt-in/download success is recorded as owner-reported,
+superseding the prior account-specific unavailable observation. No full real-export
+acceptance, automatic qualifying period or agent-run Play install is inferred.
+
+Five owner-requested UX corrections are implemented. Independent roles supplied
+44new actual UI regressions (65/65focused across five files), root adds16bounded
+reader service regressions, and Reviewer reports source CLEAR after resolving the
+split-day control issue. This is source/test scope; visual/minified claims follow.
+
+| Full cycle1check | Actual result |
+| --- | --- |
+| npmci / strict TypeScript / ESLint / clean prebuild | PASS |
+| Vitest | 564passed/55files |
+| Python verification tooling | 127passed |
+| Isolated QA debug assembly | 226tasks, all executed; code14/newQAID/min30/target36/current production MainActivity |
+| Fresh JVM --rerun-tasks | 59tests,0failures/errors/skips;57tasks all executed |
+| Connected A30/API30 | 52tests,0failures/errors/skips |
+| Connected API36 | 52tests,0failures/errors/skips; pre-existing tankmalle_icon_api36_20261119 AVD, not owned by this task |
+
+Full logs/XML/fixtures stay under /tmp/chatstamp-ux14-20261120. The existing emulator
+must not be stopped or reconfigured by this run. Physical original controls were
+recorded before temporary test stay-awake/timeout changes; restore after the run.
+Signed AAB/QA APK, final manifest/artifact checks, affected minified UI/date runtime,
+source CI, run hygiene and Play14availability remain pending, with no false pass.

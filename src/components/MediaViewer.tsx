@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, PanResponder, Pressable, StyleSheet, View } from 'react-native';
+import { I18nManager, Modal, PanResponder, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActivityIndicator, Button, IconButton, Text } from 'react-native-paper';
 import { Image } from 'expo-image';
@@ -11,6 +11,7 @@ import { useAppTheme } from '../theme/useAppTheme';
 import { getThumbnail, openFileInOtherApp, awaitMediaRelease } from '../native/mediaPreviews';
 import { VideoLeaseController, type VideoLease } from '../lib/videoLease';
 import { formatSelectionBytes, type MediaCellItem } from './MediaSelectionList';
+import { TranscriptReader } from './TranscriptReader';
 
 export function useViewerVideoController(): VideoLeaseController {
   const [controller] = React.useState(() => new VideoLeaseController(awaitMediaRelease));
@@ -82,6 +83,7 @@ export function MediaViewer({ items, currentId, selectedIds, onPage, onDismiss, 
   const { t } = useTranslation();
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
+  const rtl = I18nManager.isRTL;
   const state = React.useSyncExternalStore(video.subscribe, video.snapshot, video.snapshot);
   const index = items.findIndex((item) => item.id === currentId), item = items[index];
   const zoomed = React.useRef(false);
@@ -91,22 +93,23 @@ export function MediaViewer({ items, currentId, selectedIds, onPage, onDismiss, 
   }, []);
   const pager = React.useMemo(() => PanResponder.create({
     onMoveShouldSetPanResponder: (event, gesture) => event.nativeEvent.touches.length === 1 && !zoomed.current && Math.abs(gesture.dx) > 35 && Math.abs(gesture.dy) < 30,
-    onPanResponderRelease: (_, gesture) => { if (Math.abs(gesture.dx) > 50) page(gesture.dx < 0 ? 1 : -1); },
-  }), [page]);
+    onPanResponderRelease: (_, gesture) => { if (Math.abs(gesture.dx) > 50) page((gesture.dx < 0 ? 1 : -1) * (rtl ? -1 : 1)); },
+  }), [page, rtl]);
   React.useEffect(() => { zoomed.current = false; }, [currentId]);
   return <Modal visible={Boolean(item)} animationType="fade" onRequestClose={onDismiss} statusBarTranslucent navigationBarTranslucent>
     {item ? <View style={[styles.viewer, { backgroundColor: theme.colors.background, paddingTop: insets.top, paddingBottom: insets.bottom + 8 }]}>
       <View style={styles.toolbar}>
         <IconButton icon="close" accessibilityLabel={t('common.close')} onPress={onDismiss} />
-        <View style={styles.heading}><Text variant="titleMedium">{item.sender}</Text><Text variant="bodySmall">{item.dateLabel}</Text></View>
+        <View style={styles.heading}><Text variant="titleMedium" numberOfLines={1} ellipsizeMode="tail" accessibilityLabel={item.sender}>{item.sender}</Text><Text variant="bodySmall">{item.dateLabel}</Text></View>
         <Pressable style={styles.touch} accessibilityRole="checkbox" accessibilityLabel={t('picker.selectItem', { name: item.filename })}
           accessibilityState={{ checked: selectedIds.has(item.id) }} onPress={() => onToggle(item.id)}>
           <Text style={{ fontSize: 26, color: theme.colors.primary }}>{selectedIds.has(item.id) ? '☑' : '☐'}</Text>
         </Pressable>
       </View>
-      <Text variant="bodySmall" style={styles.filename}>{item.filename}</Text>
+      <Text variant="bodySmall" numberOfLines={1} ellipsizeMode="tail" accessibilityLabel={item.filename} style={styles.filename}>{item.filename}</Text>
       <View style={styles.page} {...pager.panHandlers}>
-        {item.mediaType === 'video' ? (state.failed ? <FileFallback item={item} failed /> : state.mounted
+        {item.sourceKind === 'chat-transcript' ? <TranscriptReader key={item.id} uri={item.uri} filename={item.filename} />
+          : item.mediaType === 'video' ? (state.failed ? <FileFallback item={item} failed /> : state.mounted
           ? <VideoPlayback key={state.mounted.id} lease={state.mounted} item={item} controller={video} />
           : <ActivityIndicator accessibilityLabel={t('viewer.loading')} />)
           : ['photo', 'gif', 'sticker'].includes(item.mediaType) ? <ZoomImage key={item.id} item={item} onZoom={(value) => { zoomed.current = value; }} />
@@ -116,9 +119,9 @@ export function MediaViewer({ items, currentId, selectedIds, onPage, onDismiss, 
           : <FileFallback item={item} />}
       </View>
       <View style={styles.paging}>
-        <IconButton icon="chevron-left" accessibilityLabel={t('viewer.previous')} disabled={index <= 0} onPress={() => page(-1)} />
+        <IconButton icon={rtl ? 'chevron-right' : 'chevron-left'} accessibilityLabel={t('viewer.previous')} disabled={index <= 0} onPress={() => page(-1)} />
         <Text>{t('viewer.page', { current: index + 1, total: items.length })}</Text>
-        <IconButton icon="chevron-right" accessibilityLabel={t('viewer.next')} disabled={index >= items.length - 1} onPress={() => page(1)} />
+        <IconButton icon={rtl ? 'chevron-left' : 'chevron-right'} accessibilityLabel={t('viewer.next')} disabled={index >= items.length - 1} onPress={() => page(1)} />
       </View>
     </View> : null}
   </Modal>;
@@ -285,7 +288,7 @@ function FileFallback({ item, failed = false }: { item: MediaCellItem; failed?: 
 }
 
 const styles = StyleSheet.create({
-  viewer: { flex: 1, minHeight: 0 }, toolbar: { minHeight: 64, flexShrink: 0, flexDirection: 'row', alignItems: 'center' }, heading: { flex: 1 }, touch: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  viewer: { flex: 1, minHeight: 0 }, toolbar: { minHeight: 64, flexShrink: 0, flexDirection: 'row', alignItems: 'center' }, heading: { flex: 1, minWidth: 0 }, touch: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   filename: { paddingHorizontal: 16, paddingBottom: 8 }, page: { flex: 1, overflow: 'hidden', justifyContent: 'center' }, full: { flex: 1 },
   loading: { ...StyleSheet.absoluteFillObject, justifyContent: 'center' }, paging: { minHeight: 56, flexShrink: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   audio: { alignItems: 'center', padding: 16, gap: 12 }, fileCard: { margin: 16, padding: 16, borderRadius: 16, gap: 8 },

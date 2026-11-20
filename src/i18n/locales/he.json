@@ -68,7 +68,15 @@
       "permission-lost": "הגישה לקובץ פגה. יש לבחור אותו שוב.",
       "no-handler": "לא נמצאה אפליקציה מותקנת שיכולה לפתוח קובץ מסוג זה.",
       "launch-failed": "האפליקציה האחרת לא הצליחה לפתוח את הקובץ."
-    }
+    },
+    "transcriptLoading": "טוען את התמליל",
+    "transcriptError": "לא ניתן לקרוא את התמליל. נסו שוב, או ייבאו מחדש את ה־ZIP אם הקובץ כבר אינו זמין.",
+    "transcriptRetry": "ניסיון נוסף",
+    "transcriptEmpty": "התמליל ריק.",
+    "transcriptSection": "קטע {{current}} בתמליל",
+    "transcriptPreviousSection": "הקטע הקודם",
+    "transcriptNextSection": "המשך התמליל",
+    "transcriptEnd": "סוף התמליל"
   },
   "common": {
     "back": "חזרה",
@@ -135,7 +143,7 @@
   },
   "settings": {
     "title": "הגדרות",
-    "subtitle": "ניהול מיקומי שמירה, ניתוב תיקיות, שפה ועיצוב הממשק.",
+    "subtitle": "בחרו קטגוריה לשינוי ההעדפות.",
     "recommended": "מומלץ",
     "change": "שינוי",
     "historyCleared": "היסטוריית הפעולות נוקתה בהצלחה.",
@@ -236,7 +244,31 @@
     "privacyPolicy": "מדיניות פרטיות",
     "contactSupport": "יצירת קשר",
     "couldNotOpenLink": "לא נמצאה אפליקציה שיכולה לפתוח את הקישור.",
-    "saveFailed": "לא ניתן לשמור את ההגדרה. הבחירה הקודמת נשמרה."
+    "saveFailed": "לא ניתן לשמור את ההגדרה. הבחירה הקודמת נשמרה.",
+    "categories": {
+      "saving": {
+        "title": "שמירה",
+        "summary": "מיקום, תיקיות, תאריכים וכפילויות"
+      },
+      "language": {
+        "summary": "שפת האפליקציה ושפת Android"
+      },
+      "appearance": {
+        "summary": "ערכת נושא וצבעים"
+      },
+      "storage": {
+        "title": "היסטוריה ואחסון",
+        "summary": "קבצים זמניים והיסטוריית ייצוא"
+      },
+      "help": {
+        "title": "עזרה ומידע על האפליקציה",
+        "summary": "סיור, פרטיות, תמיכה וגרסה"
+      },
+      "advanced": {
+        "title": "מתקדם",
+        "summary": "אפשרויות מפתח ואבחון"
+      }
+    }
   },
   "outputOptions": {
     "duplicateModes": {

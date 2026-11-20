@@ -5,6 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Snackbar, Text } from 'react-native-paper';
 import { BottomSheet } from '../components/BottomSheet';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { SettingsCategoryPanel } from '../components/SettingsCategoryPanel';
 import { openAppLanguageSettings } from '../native/appLanguage';
 import { openOutputFolderPicker } from '../native/outputFolderPicker';
 import { usePipelineStore } from '../store/pipelineStore';
@@ -33,6 +34,7 @@ import { spacing } from '../theme/designTokens';
 const organizationModes: OutputOrganizationMode[] = ['all-in-one', 'by-type', 'by-sender', 'by-sender-and-type'];
 const duplicateModes: DuplicateHandlingMode[] = ['keep-both', 'skip-existing', 'replace-existing'];
 const languageOptions: AppLanguagePreference[] = ['system', 'en', 'he'];
+type SettingsCategory = 'saving' | 'language' | 'appearance' | 'storage' | 'help' | 'advanced';
 
 export function SettingsScreen() {
   const { t } = useTranslation();
@@ -50,16 +52,34 @@ export function SettingsScreen() {
   const languageReserved = React.useRef(false);
   const restartRequired = useLanguageRestartStore((state) => state.required);
   const [organizationSheetOpen, setOrganizationSheetOpen] = React.useState(false);
+  const [category, setCategory] = React.useState<SettingsCategory | null>(null);
+  const categories = [
+    { id: 'saving', title: t('settings.categories.saving.title'), summary: t('settings.categories.saving.summary'), icon: 'folder-cog-outline' },
+    { id: 'language', title: t('settings.language'), summary: t('settings.categories.language.summary'), icon: 'translate' },
+    { id: 'appearance', title: t('settings.appearance'), summary: t('settings.categories.appearance.summary'), icon: 'theme-light-dark' },
+    { id: 'storage', title: t('settings.categories.storage.title'), summary: t('settings.categories.storage.summary'), icon: 'history' },
+    { id: 'help', title: t('settings.categories.help.title'), summary: t('settings.categories.help.summary'), icon: 'help-circle-outline' },
+    { id: 'advanced', title: t('settings.categories.advanced.title'), summary: t('settings.categories.advanced.summary'), icon: 'tune-variant' }
+  ] as const;
+  const currentCategory = categories.find((entry) => entry.id === category);
+
+  const goBack = React.useCallback(() => {
+    if (organizationSheetOpen) setOrganizationSheetOpen(false);
+    else if (clearCacheOpen) setClearCacheOpen(false);
+    else if (clearHistoryOpen) setClearHistoryOpen(false);
+    else if (category !== null) setCategory(null);
+    else closeOverlayStage('welcome');
+  }, [category, clearCacheOpen, clearHistoryOpen, closeOverlayStage, organizationSheetOpen]);
 
   React.useEffect(() => {
     const backSubscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      closeOverlayStage('welcome');
+      goBack();
       return true;
     });
     return () => {
       backSubscription.remove();
     };
-  }, [closeOverlayStage]);
+  }, [goBack]);
 
   async function saveSettings(patch: AppSettingsPatch) {
     try { await updateSettings(patch); } catch { setSnackbar(t('settings.saveFailed')); }
@@ -125,11 +145,14 @@ export function SettingsScreen() {
   return (
     <WizardScreen
       stage="settings"
-      title={t('settings.title')}
-      subtitle={t('settings.subtitle')}
-      onBack={() => closeOverlayStage('welcome')}
+      title={currentCategory?.title ?? t('settings.title')}
+      subtitle={currentCategory?.summary ?? t('settings.subtitle')}
+      onBack={goBack}
     >
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView key={category ?? 'menu'} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {category === null ? categories.map((entry) => <SettingsCategoryPanel key={entry.id}
+          title={entry.title} summary={entry.summary} icon={entry.icon} onPress={() => setCategory(entry.id)} />) : null}
+        {category === 'saving' ? <>
         <Section title={t('settings.saveLocation')} icon="folder-cog-outline">
           <DestinationCard
             title={t('settings.defaultAccurateFolder')}
@@ -171,6 +194,7 @@ export function SettingsScreen() {
             value={settings.alwaysUseMessageDate}
             onValueChange={(alwaysUseMessageDate) => void saveSettings({ alwaysUseMessageDate })}
           />
+          <Detail icon="folder-outline" label={t('settings.lastOutputFolder')} value={settings.lastOutputFolder ?? t('settings.noneYet')} path />
         </Section>
 
         <Section title={t('settings.outputOrg')} icon="folder-multiple-outline">
@@ -212,7 +236,9 @@ export function SettingsScreen() {
             ))}
           </View>
         </Section>
+        </> : null}
 
+        {category === 'language' ?
         <Section title={t('settings.language')} icon="translate">
           <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
             {t('settings.languageInfo')}
@@ -244,7 +270,9 @@ export function SettingsScreen() {
             {t('settings.openAppLanguageSettings')}
           </SecondaryButton>
         </Section>
+        : null}
 
+        {category === 'appearance' ?
         <Section title={t('settings.appearance')} icon="theme-light-dark">
           <View style={styles.choiceList}>
             <OptionChoiceCard
@@ -273,7 +301,9 @@ export function SettingsScreen() {
             onValueChange={(value) => void saveSettings({ useDynamicColors: value })}
           />
         </Section>
+        : null}
 
+        {category === 'help' ? <>
         <Section title={t('settings.privacySupport')} icon="shield-account-outline">
           <Text variant="bodyMedium" style={textStyles.start}>{t('settings.privacySummary')}</Text>
           <SecondaryButton icon="shield-lock-outline" onPress={() => void openSupportLink('https://meniviner.github.io/chatStamp/privacy-policy.html')}>
@@ -294,6 +324,16 @@ export function SettingsScreen() {
           >
             {t('settings.showWelcomeTourAgain')}
           </SecondaryButton>
+          <Detail
+            icon="information-outline"
+            label={t('settings.versionBuild')}
+            value={`${Application.nativeApplicationVersion ?? '0.1.0'} (${Application.nativeBuildVersion ?? t('settings.devBuild')})`}
+          />
+        </Section>
+        </> : null}
+
+        {category === 'advanced' ?
+        <Section title={t('settings.developerMode')} icon="tune-variant">
           <UiSettingRow
             title={t('settings.developerModeToggle')}
             description={t('settings.developerModeBody')}
@@ -307,12 +347,11 @@ export function SettingsScreen() {
               <Detail icon="information-outline" label={t('settings.developerMode')} value={t('settings.developerModeBody')} />
             </>
           ) : null}
-          <Detail icon="folder-outline" label={t('settings.lastOutputFolder')} value={settings.lastOutputFolder ?? t('settings.noneYet')} path />
-          <Detail
-            icon="information-outline"
-            label={t('settings.versionBuild')}
-            value={`${Application.nativeApplicationVersion ?? '0.1.0'} (${Application.nativeBuildVersion ?? t('settings.devBuild')})`}
-          />
+        </Section>
+        : null}
+
+        {category === 'storage' ?
+        <Section title={t('settings.categories.storage.title')} icon="history">
           <View style={styles.buttonRow}>
             <SecondaryButton onPress={() => setClearCacheOpen(true)}>
               {t('settings.clearAppCache')}
@@ -322,6 +361,7 @@ export function SettingsScreen() {
             </SecondaryButton>
           </View>
         </Section>
+        : null}
       </ScrollView>
 
       <OutputOrganizationSheet
