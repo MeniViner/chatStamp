@@ -1564,3 +1564,53 @@ other account. Fresh small receipts/proof go together in
 are separate in **dist/play/native-launcher-release-20261120/**. Earlier receipts
 retain their original candidate scope. Real WhatsApp/Gallery/16KiB/physical cases
 and genuine tester eligibility are not established by this icon-only follow-up.
+
+## 2026-11-21 — Installed icons signed/runtime/Play acceptance
+
+Exact-source chatStamp d26bddfa0eb37e090d24fb8a1969715e3e40b5d9 is frozen at0.2.2/16;
+AndroidCI44826496766 succeeds. Full source smoke605host/58files,127Python,59freshJVM,
+72connected API36 passes. Existing-key strict production/QA artifact checks PASS.
+Production AAB SHA81c3b8944fe381bf739b0e8185b17af360f3002b457bed72b18c626afcc03971;
+QA SHAfd01704c29810137f2d5dce9ff4246a68201dbf96cc18bcfa5ecf9d143d67ebc.
+
+Tank source44941104bac497dc0c9bf7bc4bbee4a5cdb90c36,1.11.6/17, is pushed in isolated
+codex/launcher-icons-20261120; no other worktree/merge. Host1534PASS/7existing skips,
+TypeScript/lint(0errors/25existingwarnings), bundle/signature/alignment/R8 PASS.
+AAB SHA3477fd9d832255196a3247317a9a29be11b49a0c2aa617c1f0793605e91617fc;
+QA SHAb9f0fd4e1add5002818956310793f02b32a58a37ab9f1626b1994b07156b9984.
+Existing identities/certificates/SDK/permissions are retained in both apps.
+Independent source Reviewer CLEAR; independent Test author packaged-pixel checks
+PASS:20/20chat WebP and22/22Tank PNG, correct resource graph/night/round/mono;
+meaningful radii32.596/32.902dp fit33dp. Approved masters unchanged/leafless chat.
+
+Actual owned API36 launcher: signed QA15→16 replaces chat icon without launcher
+cache clearing/restart. Full uninstall/reinstall QA16 and TankQA17 display both new
+logos, day/night, with complete art under the native circle mask. Chat16 cold
+onboarding rendered; exact PackageManager-resolved Tank17Activity cold-launched.
+Icon QA was offline, with no account/auth/data actions. This does not certify Tank
+web/auth flows or actual physical/Play installations. **try another way:** generic
+shell Tank intent did not resolve, so use its actual resolved component; source
+or manifest/security rules were not weakened. Both QA packages/own UI dump were
+removed with absence readback; original network/stay/font/night/display controls
+restored, crash buffer empty, owned emulator stopped. No media-save fixture was
+created for icon QA and no production app was installed or replaced.
+
+The original Chrome ID now identified a different profile; **try another way**,
+refresh inventory after owner correction and use the Meni Viner profile's existing
+authenticated user tab. Newly created tabs lacked that session. No owner password
+was requested in chat, wrong-account terms accepted or credentials changed.
+
+Play accepted exact16/17 AABs. Internal chat4701429810228968626/release4 available
+21Nov00:20local; Tank4701635743178258439/release5 available00:22. Same library
+artifacts promoted to chatAlpha4699420811279917961 and TankAlpha4700518119588886058,
+100% each, EN+HE/chat and HE/Tank notes. Both submission confirmations completed
+for both apps. Final headings **Changes in review**; chat quick checks running,
+no closed availability/approval inferred. Tank’s nonblocking native-symbol
+recommendation is recorded without claiming closure. Tester/country settings,
+invitations, store artwork/banners and production access were not changed.
+
+Fresh report/selected actual JPEGs/static checks/compact receipts are together in
+**dist/play/native-launcher-icons-20261120/** below10MB. Required large products
+are together separately in **dist/play/native-launcher-release-20261120/**.
+Earlier evidence remains unchanged. Final PR1 stays open/unmerged; real owner
+WhatsApp/Gallery/physical/16KiB/testing-period gates retain UNVERIFIED scope.

@@ -1,5 +1,36 @@
 # Closed-test invitations and owner test record
 
+## Current checkpoint —21 November 2026, installed launcher icons
+
+chatStamp **0.2.2/code16**, app4975002762311404414/packagecom.menis10tec.chatstamp,
+source **d26bddfa0eb37e090d24fb8a1969715e3e40b5d9**: full605host/127Python/59freshJVM/
+72connected smoke, exact-source AndroidCI44826496766, signed/static checks and
+actual API36 launcher update/reinstall/day/night acceptance PASS. Internal16 is
+available (21Nov00:20local); same AAB promoted Alpha100% with EN/HE notes, both
+submission steps completed: **Changes in review**, quick checks running.
+
+Tank Malle **1.11.6/code17**, source44941104bac497dc0c9bf7bc4bbee4a5cdb90c36,
+retains its existing package/key and separately passes host/build/independent
+packaged-icon checks and actual isolated launcher reinstall. Internal17 available
+(21Nov00:22local); same AAB Alpha100% submitted, **Changes in review**. No closed
+approval/availability or actual Play installation of either new version claimed.
+No tester/country settings, invitations, store art or production access changed.
+
+Exact approved masters are unchanged. Durable native generation replaces old
+legacy/adaptive/round/night/mono resources; chatStamp remains leafless. Both
+reinstall icons rendered in the actual emulator launcher; no launcher-cache reset.
+QA/data/network/display controls were restored and owned emulator stopped.
+The owner's Meni Viner profile/existing authenticated tab resolved the initial
+wrong-profile/new-tab login issue; there is no pending login request.
+
+Fresh [report](../dist/play/native-launcher-icons-20261120/README.md),
+[dedicated evidence](../dist/play/native-launcher-icons-20261120/),
+[product instructions](../dist/play/native-launcher-release-20261120/README.md).
+Earlier checks keep their own versions. Actual owner exports/Gallery,physical16,
+16KiB execution and genuine tester eligibility remain UNVERIFIED. PR1 stays open.
+
+## Earlier checkpoints and continuing acceptance
+
 **Latest checkpoint, 2026-11-20 — direct sharing 0.2.1 (15):** Exact source
 45f27382b64d7e7fa688747eea3a42659e9bb61f passes full smoke, source CI and signed
 production/isolated minified QA checks. Actual Android share-sheet raw files,
@@ -63,15 +94,15 @@ Report expected/actual behavior, steps, version, device/Android, language and wh
 
 ## Final isolated installer for owner acceptance
 
-Code 15's verified QA installer is `dist/play/release-0.2.1-15/chatstamp-0.2.1-15-qa.apk`, SHA256
-`a800b9a623de09c0e6add98cbb9be23d409adb571a387195b28fee69daecc564`.
+Code 16's verified QA installer is `dist/play/native-launcher-release-20261120/chatstamp-0.2.2-16-qa.apk`, SHA256
+`fd01704c29810137f2d5dce9ff4246a68201dbf96cc18bcfa5ecf9d143d67ebc`.
 It installs only `com.menis10tec.chatstamp.qa`, alongside production. Agent-run
 synthetic QA is removed at handoff; the owner can reinstall this exact candidate
 for the real-export checks below, or use the new package's Play build only after its actual availability is confirmed. Keep which identity/build was tested in the private result record.
 
 ```sh
 adb devices -l
-adb -s YOUR_SERIAL install --no-incremental dist/play/release-0.2.1-15/chatstamp-0.2.1-15-qa.apk
+adb -s YOUR_SERIAL install --no-incremental dist/play/native-launcher-release-20261120/chatstamp-0.2.2-16-qa.apk
 adb -s YOUR_SERIAL shell am start -W -n com.menis10tec.chatstamp.qa/com.menis10tec.chatstamp.MainActivity
 ```
 
@@ -82,7 +113,7 @@ installer. Installation alone does not complete real-export or Play acceptance.
 
 ## Owner real-export acceptance — still UNVERIFIED
 
-Run this privately on the **Samsung Galaxy A30 (SM-A305F), Android 11 / API 30**, after the final **0.2.1 (15)** QA installation is confirmed. Record the actual installed version and package; the side-by-side QA package is `com.menis10tec.chatstamp.qa`. Do not replace or uninstall the owner's production app. The requested physical **API 33 device is unavailable: UNVERIFIED**. API 30 results and synthetic emulator results do not fill that gap.
+Run this privately on the **Samsung Galaxy A30 (SM-A305F), Android 11 / API 30**, after the final **0.2.2 (16)** QA installation is confirmed. Record the actual installed version and package; the side-by-side QA package is `com.menis10tec.chatstamp.qa`. Do not replace or uninstall the owner's production app. The requested physical **API 33 device is unavailable: UNVERIFIED**. API 30 results and synthetic emulator results do not fill that gap.
 
 Use **PASS**, **FAIL** or **UNVERIFIED (not run / blocked)** for each case. Until the owner runs these steps, every owner real-export result remains **UNVERIFIED**.
 
@@ -128,7 +159,7 @@ Use **PASS**, **FAIL** or **UNVERIFIED (not run / blocked)** for each case. Unti
 2. This UI check alone does **not** prove that private bytes were removed. Before uninstalling or clearing app data, ask the release owner to verify the discarded QA import's private working directory and associated temporary files through the approved local QA inspection. Record only a nonpersonal removed/remaining count. If not inspected, keep **private import cleanup UNVERIFIED**, even if the app reopens cleanly. Do not confuse unrelated persistent settings/history or a general cache count with the discarded import's files.
 3. When no longer wanted, remove only the output copies and temporary export created for this test, after checking their locations privately. Keep the original WhatsApp conversation/media safe. The release owner handles QA uninstall and any test-setting restoration. Never clear the owner's production app or unrelated files as a cleanup shortcut.
 
-**לבעל החשבון:** יש להתחיל רק אחרי אישור שהותקן מועמד QA סופי 0.2.1 (15). הבדיקה המתוכננת היא ב-Galaxy A30 עם Android 11; מכשיר API 33 אינו זמין והבדיקה בו לא אומתה. יש להפעיל במפורש את Always use message date בהגדרות, לשתף מתוך WhatsApp כשהאפליקציה סגורה ופתוחה, ולבדוק שמתחיל ייבוא אחד לכל שיתוף. שומרים קבצים מוכרים דרך Import → Select → Save ומשווים בנפרד את הכמות שנשמרה, הכמות שתאריכיה אומתו, סדר ברירת המחדל ופרטי התאריך בגלריה. לבדיקת כפילויות ושינוי שפה משתמשים באותו ZIP שמור, ללא שינוי יעד או ארגון. פתיחה נקייה אחרי Discard אינה לבדה הוכחה לניקוי קובצי העבודה הפרטיים. הייצוא והמידע האישי נשארים מחוץ ל-Git; מדווחים רק סיכום ללא פרטים מזהים. כל בדיקה שטרם בוצעה נשארת **UNVERIFIED / לא אומתה**.
+**לבעל החשבון:** יש להתחיל רק אחרי אישור שהותקן מועמד QA סופי 0.2.2 (16). הבדיקה המתוכננת היא ב-Galaxy A30 עם Android 11; מכשיר API 33 אינו זמין והבדיקה בו לא אומתה. יש להפעיל במפורש את Always use message date בהגדרות, לשתף מתוך WhatsApp כשהאפליקציה סגורה ופתוחה, ולבדוק שמתחיל ייבוא אחד לכל שיתוף. שומרים קבצים מוכרים דרך Import → Select → Save ומשווים בנפרד את הכמות שנשמרה, הכמות שתאריכיה אומתו, סדר ברירת המחדל ופרטי התאריך בגלריה. לבדיקת כפילויות ושינוי שפה משתמשים באותו ZIP שמור, ללא שינוי יעד או ארגון. פתיחה נקייה אחרי Discard אינה לבדה הוכחה לניקוי קובצי העבודה הפרטיים. הייצוא והמידע האישי נשארים מחוץ ל-Git; מדווחים רק סיכום ללא פרטים מזהים. כל בדיקה שטרם בוצעה נשארת **UNVERIFIED / לא אומתה**.
 
 ## Copyable owner result — nonpersonal, initially UNVERIFIED
 
@@ -137,7 +168,7 @@ Copy this template into the private owner record and fill only observed facts. A
 ```text
 Owner real-export run: UNVERIFIED — NOT RUN
 Run date/time and time zone: UNVERIFIED
-Installed candidate: expected 0.2.1 (15); actual version/code: UNVERIFIED
+Installed candidate: expected 0.2.2 (16); actual version/code: UNVERIFIED
 Installed package/build identifier confirmed by release owner: UNVERIFIED
 Play closed route is verified; actual owner-run installed version/track: UNVERIFIED
 Device: Samsung Galaxy A30 SM-A305F, Android 11/API 30 — actual confirmed: UNVERIFIED

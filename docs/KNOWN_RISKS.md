@@ -1,5 +1,36 @@
 # Known risks and acceptance gaps
 
+## Current checkpoint —21 November 2026, installed launcher icons
+
+chatStamp **0.2.2/code16**, app4975002762311404414/packagecom.menis10tec.chatstamp,
+source **d26bddfa0eb37e090d24fb8a1969715e3e40b5d9**: full605host/127Python/59freshJVM/
+72connected smoke, exact-source AndroidCI44826496766, signed/static checks and
+actual API36 launcher update/reinstall/day/night acceptance PASS. Internal16 is
+available (21Nov00:20local); same AAB promoted Alpha100% with EN/HE notes, both
+submission steps completed: **Changes in review**, quick checks running.
+
+Tank Malle **1.11.6/code17**, source44941104bac497dc0c9bf7bc4bbee4a5cdb90c36,
+retains its existing package/key and separately passes host/build/independent
+packaged-icon checks and actual isolated launcher reinstall. Internal17 available
+(21Nov00:22local); same AAB Alpha100% submitted, **Changes in review**. No closed
+approval/availability or actual Play installation of either new version claimed.
+No tester/country settings, invitations, store art or production access changed.
+
+Exact approved masters are unchanged. Durable native generation replaces old
+legacy/adaptive/round/night/mono resources; chatStamp remains leafless. Both
+reinstall icons rendered in the actual emulator launcher; no launcher-cache reset.
+QA/data/network/display controls were restored and owned emulator stopped.
+The owner's Meni Viner profile/existing authenticated tab resolved the initial
+wrong-profile/new-tab login issue; there is no pending login request.
+
+Fresh [report](../dist/play/native-launcher-icons-20261120/README.md),
+[dedicated evidence](../dist/play/native-launcher-icons-20261120/),
+[product instructions](../dist/play/native-launcher-release-20261120/README.md).
+Earlier checks keep their own versions. Actual owner exports/Gallery,physical16,
+16KiB execution and genuine tester eligibility remain UNVERIFIED. PR1 stays open.
+
+## Prior code15 scope and continuing limits
+
 Status for **0.2.1/code 15, com.menis10tec.chatstamp**, updated 2026-11-20 for direct sharing and Play submission. Earlier receipts retain their exact candidate scope. Consult [VERIFICATION.md](VERIFICATION.md) and the [fresh report](../dist/play/direct-share-0.2.1-15-20261120/README.md).
 
 | Area | Current boundary and remaining work |
@@ -31,7 +62,7 @@ The preparation snapshot is **11 package findings (9 moderate, 2 high), down fro
 
 ## Release handoff
 
-Use the [release checklist](PLAY_RELEASE_CHECKLIST.md), [upload steps](PLAY_UPLOAD_STEPS.md), [tester guide](TESTERS.md) and [external signing rules](ANDROID_RELEASE_SIGNING.md). Use the exact code 15 AAB/QA files in `dist/play/release-0.2.1-15/`; earlier binaries remain historical. The original eight PNGs retain historical code9 provenance. EN still uses its original four; the new Hebrew listing uses six fresh QA14 split posters plus a localized feature. [Current provenance](../store/play/owner-followup-20261120/store-he/README.md). These are synthetic QA captures, not private owner-export acceptance. The final foreground demo is freshly recorded on code 11, with separate code 11 artifact/runtime receipts. Confirm source, package, versionCode, SHA256, existing upload certificate, manifest and 16 KiB checks before upload. Routine testing installs only **com.menis10tec.chatstamp.qa**.
+Use the [release checklist](PLAY_RELEASE_CHECKLIST.md), [upload steps](PLAY_UPLOAD_STEPS.md), [tester guide](TESTERS.md) and [external signing rules](ANDROID_RELEASE_SIGNING.md). Use the exact code 16 AAB/QA files in `dist/play/native-launcher-release-20261120/`; earlier binaries remain historical. The original eight PNGs retain historical code9 provenance. EN still uses its original four; the new Hebrew listing uses six fresh QA14 split posters plus a localized feature. [Current provenance](../store/play/owner-followup-20261120/store-he/README.md). These are synthetic QA captures, not private owner-export acceptance. The final foreground demo is freshly recorded on code 11, with separate code 11 artifact/runtime receipts. Confirm source, package, versionCode, SHA256, existing upload certificate, manifest and 16 KiB checks before upload. Routine testing installs only **com.menis10tec.chatstamp.qa**.
 
 ## 2026-11-19 portrait availability fix
 

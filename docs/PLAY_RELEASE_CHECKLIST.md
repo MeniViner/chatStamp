@@ -1,5 +1,36 @@
 # Google Play release checklist
 
+## Current checkpoint —21 November 2026, installed launcher icons
+
+chatStamp **0.2.2/code16**, app4975002762311404414/packagecom.menis10tec.chatstamp,
+source **d26bddfa0eb37e090d24fb8a1969715e3e40b5d9**: full605host/127Python/59freshJVM/
+72connected smoke, exact-source AndroidCI44826496766, signed/static checks and
+actual API36 launcher update/reinstall/day/night acceptance PASS. Internal16 is
+available (21Nov00:20local); same AAB promoted Alpha100% with EN/HE notes, both
+submission steps completed: **Changes in review**, quick checks running.
+
+Tank Malle **1.11.6/code17**, source44941104bac497dc0c9bf7bc4bbee4a5cdb90c36,
+retains its existing package/key and separately passes host/build/independent
+packaged-icon checks and actual isolated launcher reinstall. Internal17 available
+(21Nov00:22local); same AAB Alpha100% submitted, **Changes in review**. No closed
+approval/availability or actual Play installation of either new version claimed.
+No tester/country settings, invitations, store art or production access changed.
+
+Exact approved masters are unchanged. Durable native generation replaces old
+legacy/adaptive/round/night/mono resources; chatStamp remains leafless. Both
+reinstall icons rendered in the actual emulator launcher; no launcher-cache reset.
+QA/data/network/display controls were restored and owned emulator stopped.
+The owner's Meni Viner profile/existing authenticated tab resolved the initial
+wrong-profile/new-tab login issue; there is no pending login request.
+
+Fresh [report](../dist/play/native-launcher-icons-20261120/README.md),
+[dedicated evidence](../dist/play/native-launcher-icons-20261120/),
+[product instructions](../dist/play/native-launcher-release-20261120/README.md).
+Earlier checks keep their own versions. Actual owner exports/Gallery,physical16,
+16KiB execution and genuine tester eligibility remain UNVERIFIED. PR1 stays open.
+
+## Earlier checkpoints and continuing acceptance
+
 Official requirements checked2026-11-18; artifact/runtime and Console checkpoint2026-11-20. Current candidate **0.2.1/versionCode15**, **com.menis10tec.chatstamp**, min30/target36. See [fresh report](../dist/play/direct-share-0.2.1-15-20261120/README.md) and [VERIFICATION.md](VERIFICATION.md).
 
 New app **4975002762311404414**: internal15 available. Same AAB promoted to Alpha100% with EN/HE notes and both submission steps completed: **Changes in review**, quick checks running. Previous active closed14/178countries remains the confirmed baseline. All five lists preserved; no invitation resend or production-access request. Source45f2738 CI and full smoke pass; real owner export/physical15/Gallery order/16KiB runtime remain unverified.
