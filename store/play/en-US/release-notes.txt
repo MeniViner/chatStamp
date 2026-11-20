@@ -1,6 +1,5 @@
-Three-step Import, Select and Save flow.
-Gallery picker with filters, day selection and full-screen previews.
-Streaming import, background save and Cancel with real progress.
-Separate saved and date-verified results.
-English/Hebrew layouts with a restart for direction changes.
-On-device processing without broad storage access.
+Share a WhatsApp chat export directly to chatStamp — no need to save a ZIP first.
+Imports both ZIP exports and transcripts with attachments.
+A new six-step guide explains Export chat, Include media and sharing to chatStamp.
+Improved cold and warm share intake, cancellation and protection of active work.
+On-device processing without broad storage permission.

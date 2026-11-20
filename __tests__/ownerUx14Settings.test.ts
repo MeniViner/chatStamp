@@ -231,7 +231,7 @@ describe('owner UX14 category controls preserve actual persisted settings/action
   it('keeps privacy/support, welcome replay and version information reachable from Help', async () => {
     const renderer = await mount(); await enter(renderer, 'settings.categories.help.title');
     await press(button(renderer, 'settings.privacyPolicy')); await press(button(renderer, 'settings.contactSupport'));
-    expect(control.openURL.mock.calls).toEqual([['https://meniviner.github.io/chatStamp/privacy-policy.html'], ['mailto:meniviner@gmail.com']]);
+    expect(control.openURL.mock.calls).toEqual([['https://meniviner.github.io/chatStamp/privacy-policy.html'], ['mailto:menis10tec@gmail.com']]);
     await press(button(renderer, 'settings.showWelcomeTourAgain')); expect(control.replay).toHaveBeenCalledOnce();
     expect(find(renderer, 'InfoRow', (node) => node.props.label === 'settings.versionBuild').props.value).toBe('0.2.0 (14)');
   });

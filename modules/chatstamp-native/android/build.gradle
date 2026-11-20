@@ -4,14 +4,14 @@ plugins {
 }
 
 group = 'com.chatstamp'
-version = '0.2.0'
+version = '0.2.1'
 
 android {
   namespace "com.chatstamp.nativebridge"
   defaultConfig {
     consumerProguardFiles 'consumer-rules.pro'
-    versionCode 14
-    versionName "0.2.0"
+    versionCode 15
+    versionName "0.2.1"
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
   }
 }

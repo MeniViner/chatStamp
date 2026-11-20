@@ -7,7 +7,43 @@ instants, select/filter files and save them so the tested Gallery sorts by those
 instants. Saved and verified dates remain separate facts. Local-only; no DB,
 accounts, analytics, cloud or server. Current requested production identity is com.menis10tec.chatstamp; retain the owner's external upload key. Earlier com.menis.chatstamp artifacts remain historical.
 
-## Current state —2026-11-20, Alpha14 active; both transparent store icons submitted
+## Current state —2026-11-20, direct WhatsApp code15 source qualified
+
+### Active owner follow-up — direct WhatsApp export intake and guide
+
+The owner reports that chatStamp appears in WhatsApp's share sheet but does not
+receive the export. Implement and independently verify a prominent Home entry
+and short bilingual guide: open chat → three dots → More if present → Export chat
+→ Include media → chatStamp, without a prior manual ZIP save. Preserve both
+onboarding pages, picker alternative, settings and existing session state.
+
+Source audit identifies distinct repair targets, not the owner's exact payload:
+ZIP-only filters, per-URI ZIP dispatch for separate TXT/media, a global launch-read
+flag, a React-startup intent gap, and grant ownership ending at native dequeue.
+Use durable Activity capture, per-delivery tokens, bounded native receipt leases
+and streamed ZIP or separate-file extraction. Preserve native limits, local-only
+processing, independently verified dates and the prohibition on broad storage
+permissions/private ZIP copies. A failed incoming share must not erase active work.
+
+Roles: root implements intake/plugin and owns Git/build/device/release; implementer
+owns Home/guide/navigation/locales; Test author derives independent acceptance and
+owns the focused TS/native regressions; Reviewer audits source and final diff.
+Run the full npm-ci/host/prebuild/native smoke and minified isolated QA acceptance,
+including cold/warm real granted sources, cancellation, replacement and guide Back.
+Actual owner WhatsApp export remains a separate mandatory observation. ADB initially
+lists no devices; owner reconnection requested while independent work continues.
+Preserve the preexisting untracked Meni-Viner-CV-Hebrew.pdf. Source/native/verifier
+versions are aligned to 0.2.1 (15), with the existing upload key. The owner chose
+the emulator; an owned API36 instance replaces the requested physical run here.
+Full npm-ci smoke passes:605 host/58 files,127 Python,59 JVM,72 connected, no
+failures/errors/skips; typecheck/lint, clean prebuild and arm64 QA assembly pass.
+Test author and Reviewer are complete/CLEAR. Home, all six guide pages and the
+real Android temporary-grant/private-provider contract have debug UI acceptance.
+Next: signed AAB/minified QA verification, affected minified runtime, authorized
+Play continuation and final cleanup/readback. Actual WhatsApp remains a separate
+owner gate; never replace production for QA or claim a genuine tester period.
+
+### Prior code14 distribution and artwork checkpoint
 
 Fresh Console readback shows **Alpha 14 (0.2.0) ACTIVE**, 178 country/region entries.
 Actual native Google Play installed the previously absent production package on the

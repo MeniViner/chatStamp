@@ -28,7 +28,7 @@ PAGE_SIZE = 16 * 1024
 EVIDENCE_LIMIT = 10_000_000
 MAX_XML_BYTES = 2 * 1024 * 1024
 CURRENT_PACKAGE = 'com.menis10tec.chatstamp'
-CURRENT_VERSION_CODE = 14
+CURRENT_VERSION_CODE = 15
 PORTRAIT_OPTIONAL_FROM_CODE = 12
 PORTRAIT_FEATURE = 'android.hardware.screen.portrait'
 PLATFORM_PERMISSIONS = {
@@ -55,7 +55,7 @@ SOURCES = {
 @dataclasses.dataclass(frozen=True)
 class Expected:
     package: str = CURRENT_PACKAGE
-    version: str = '0.2.0'
+    version: str = '0.2.1'
     code: int = CURRENT_VERSION_CODE
     min_sdk: int = 30
     target_sdk: int = 36

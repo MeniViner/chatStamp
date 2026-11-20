@@ -322,10 +322,15 @@ function applySnapshot(snapshot: OperationSnapshot) {
 }
 
 export async function acceptSharedZip(): Promise<void> {
+  if (saveTask || usePipelineStore.getState().stage === 'saving') return;
+  if (incomingShare && (incomingShare.errorCode || !incomingShare.sourceUri)) {
+    await dismissSharedZip();
+    return;
+  }
   const share = incomingShare;
   incomingShare = null;
   changedShare();
-  if (share?.sourceUri) await beginImport(share.sourceUri, share.filename ?? 'WhatsApp.zip');
+  if (share?.sourceUri) await beginImport(share.sourceUri, share.filename ?? i18n.t('import.sharedExportName'));
   void drainSharedZip();
 }
 
@@ -349,19 +354,35 @@ async function drainSharedZip(): Promise<void> {
   try {
     const share = await getChatStampNativeModule().consumePendingSharedZipAsync();
     if (!share.received) return;
-    if (share.errorCode || !share.sourceUri) throw new PipelineError(share.errorCode ?? 'PERMISSION_LOST');
     if (restartingApp) {
       incomingShare = share; changedShare(); return;
     }
     const state = usePipelineStore.getState();
-    if (startingImport || importTask || state.stage === 'selectFiles'
-      || (state.workingDirectory && (state.stage === 'settings' || state.stage === 'history'))) {
+    const hasWork = startingImport || importTask || saveTask || state.stage === 'saving' || state.stage === 'selectFiles'
+      || (state.workingDirectory && (state.stage === 'settings' || state.stage === 'history'));
+    if (share.errorCode || !share.sourceUri) {
+      const code = share.errorCode ?? 'PERMISSION_LOST';
+      if (hasWork) {
+        incomingShare = { ...share, errorCode: code };
+        changedShare();
+      } else {
+        if (share.sourceUri && share.sourceUri !== state.zipUri) await getChatStampNativeModule().releaseSourceAsync(share.sourceUri);
+        state.setError(new PipelineError(code));
+      }
+    } else if (hasWork) {
       incomingShare = share;
       changedShare();
     } else {
-      void beginImport(share.sourceUri, share.filename ?? 'WhatsApp.zip').finally(() => { void drainSharedZip(); });
+      void beginImport(share.sourceUri, share.filename ?? i18n.t('import.sharedExportName')).finally(() => { void drainSharedZip(); });
     }
-  } catch (error) { usePipelineStore.getState().setError(error); }
+  } catch (error) {
+    const state = usePipelineStore.getState();
+    if (startingImport || importTask || saveTask || state.stage === 'saving' || state.stage === 'selectFiles'
+      || (state.workingDirectory && (state.stage === 'settings' || state.stage === 'history'))) {
+      incomingShare = { received: true, errorCode: asPipelineError(error).code };
+      changedShare();
+    } else state.setError(error);
+  }
   finally {
     drainingShare = false;
     resolveIdle();

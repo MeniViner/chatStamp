@@ -1383,3 +1383,80 @@ Root implements; independent Test author PASS for both formats/alpha/visuals, Re
 Play Console: Tank app4975939003117228141/com.meniviner.tankmalle has only default iw-IL; new transparent icon saved/reopened and one icon-only change submitted through both steps. chatStamp app4975002762311404414/com.menis10tec.chatstamp default en-US updated. Waiting for completed Hebrew asset load exposed an older localized icon, superseding the previous inheritance inference; explicitly select the new library icon in iw-IL, save and reload. Both locales now read back chatstamp-icon-transparent.png. All three locale readbacks preserve every text value and every non-icon filename/sourceURL/order, including banners and phone screenshots. AI labels verified for both new icons and prior labels preserved. Console aggregated chatStamp's final submission as one en-US icon change. Final publishing headings for BOTH apps: **Changes in review**. Public propagation/review approval is not inferred, and no external review monitoring is scheduled.
 
 New selected masters,exports,prompts,mechanical tool,asset checks and a concise owner README are grouped in **store/play/icon-rollout-20261120/**. Fresh Console JPEGs/receipts stay locally in owner-proof/,excluded from Git. Prior evidence and cream proposals remain at original locations unchanged. Canonical store/play/icon.png now equals final leafless transparent chatStamp export. Native assets/icon.png,all application/config/native code,existing signed14bytes and dirty Tank checkout stay untouched. No new AAB, version, device run, email send or app-runtime test was needed for this metadata-only continuation. Prior full smoke remains scoped to9e6c28f application source. Current branch was clean/fetched/equal before work; final delivery must stay below10000000bytes. PR1 remains open/unmerged; all previously documented real-export/Gallery/closed-participation gaps remain separate.
+
+## 2026-11-20 — Direct WhatsApp exports and guide, code 15 source acceptance
+
+The owner reports that chatStamp appears in WhatsApp sharing but does not receive
+the export, and explicitly selects emulator verification for this follow-up.
+Git was inspected, fetched and fast-forward pulled: fix/core-rebuild matched
+origin at b4d2b7a. The preexisting untracked Meni-Viner-CV-Hebrew.pdf is preserved.
+
+Code 0.2.1 (15) now accepts one Android delivery as one bounded native receipt:
+a source ZIP streams directly from its grant, or a transcript and attachments
+stream individually into the existing private extraction job. No ZIP is built,
+staged as a complete source-archive copy, or read into JS. A ZIP document within
+a raw-file export remains an opaque supported attachment, never a nested chat.
+Raw fingerprints and duplicate-filename ordering remain stable across reordering.
+Existing 20,000-entry/2-GiB-per-entry/8-GiB and bounded transcript-sample limits
+apply. Sixteen receipt leases bound pending native input.
+
+Durable MainActivity capture runs before React startup and before new-intent
+dispatch, retaining the current intent. Owner-generated receipt tokens deduplicate
+activity recreation without suppressing a later deliberate same-URI share.
+EXTRA_STREAM is authoritative; ClipData is the fallback, not an unrelated preview
+to import. Temporary-only grants work; a separate grant mutex serializes
+persistable acquisition/revocation while capture remains free of provider IO.
+Native ownership starts before metadata, cancellable queries register a
+CancellationSignal, and cancellation reservations also cover a queued bridge/IO
+dispatch. Phase changes emit immediately while byte updates stay throttled.
+
+Home prominently explains direct WhatsApp sharing without a prior manual save.
+The six-page EN/HE guide covers chat, three dots/More, Export chat, Include media,
+chatStamp and automatic import. Guide Back/Close return Home; incoming work takes
+over. The ZIP picker and both onboarding pages remain available. Invalid incoming
+shares do not replace active work; dialogs wait during saving. Existing support
+alias approval now also reaches the in-app mailto and the bilingual privacy
+policy, which accurately describes ZIP and separate-file processing. Native
+launcher assets and all store banners/screenshots are unchanged.
+
+Root implements intake/config; implementer owns UI/locales; independent Test author
+derives regressions; Reviewer CLEAR, including cancellation/grant/Activity deltas.
+Final full cycle restarted at npm ci: typecheck, 605 host tests/58 files, lint,
+127 Python tests, clean Android prebuild, standalone arm64 QA assembly, 59 fresh
+JVM and 72 connected tests on the owned API36 emulator, all zero failures/errors/
+skips. The 72 include 20 new intake cases and deterministic metadata/queued
+cancellation and grant-revocation interleavings. Strict i18n:364 used keys,
+zero missing/unused/unresolved/parity/interpolation/Hebrew issues.
+
+Failures and alternatives: strict startup-prefix validation rejected a harmless
+test-only local documentation string → **try another way**, move that literal
+to a class property while preserving the decoy assertions and strict guard.
+The first connected run found that throttling suppressed the first extracting
+phase → **try another way**, emit actual phase transitions immediately and
+recheck Cancel before opening payloads. An independently authored ZIP-document
+fixture wrongly expected an existing supported type to be skipped → **try
+another way**, require byte-identical document retention, exactly one transcript
+and no recursive extraction; source-archive no-copy assertions remain unchanged.
+
+Debug QA identity/SDK and no-broad-storage/media/network checks pass. Its generated
+Expo debug manifest contains SYSTEM_ALERT_WINDOW; this is a debug-only tool
+overlay and is not accepted as release policy evidence. Signed production and
+minified QA must independently pass the stricter release verifier before upload.
+
+Fresh debug UI: both onboarding pages, prominent Home and all six English guide
+pages/Android Back rendered. A separate synthetic sender with an unexported
+provider and distinct UID denied reads without a grant, then Android's actual
+share sheet delivered three private files with a temporary grant. Selection
+shows one transcript first, one photo and one PDF, matched 2019 message dates,
+without any prior manual Files/ZIP save. This proves the Android contract on the
+emulator; it is not a real WhatsApp-app export or Gallery-order acceptance.
+
+Pending at this source checkpoint: signed artifact/static and minified UI checks,
+new Play upload/distribution and fresh public privacy readback. UNVERIFIED commands:
+build production with :app:bundleRelease; build isolated minified QA using
+scripts/android-verification/release-test.init.gradle and :app:assembleRelease;
+run verify-release.py with expected package/version/code15 and the existing public
+upload certificate. Real WhatsApp acceptance remains UNVERIFIED: in the actual
+owner app follow chat → three dots → More → Export chat → Include media →
+chatStamp, once cold and once warm, then select/save/check original dates.
+No production eligibility, genuine tester period or final MVP closure is inferred.

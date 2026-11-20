@@ -38,7 +38,7 @@ export function ErrorScreen() {
   const retry = Boolean(source && isRetryAllowed(code, readable));
   return <WizardScreen stage="error" title={t('error.parsingTitle')} onBack={back}
     footer={<FooterActions>
-      {source && retry ? <PrimaryButton onPress={() => { void beginImport(source, name ?? 'WhatsApp.zip'); }}>
+      {source && retry ? <PrimaryButton onPress={() => { void beginImport(source, name ?? t('import.sharedExportName')); }}>
         {t('session.retry')}</PrimaryButton> : null}
       {retry ? <SecondaryButton onPress={() => { void chooseZip(); }}>{t('session.chooseAnother')}</SecondaryButton>
         : <PrimaryButton onPress={() => { void chooseZip(); }}>{t('session.chooseAnother')}</PrimaryButton>}

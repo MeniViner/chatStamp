@@ -28,11 +28,12 @@ CURRENT_PACKAGE = 'com.menis10tec.chatstamp'
 HISTORICAL_PACKAGE = 'com.menis.chatstamp'
 
 
-def manifest(package=CURRENT_PACKAGE, code=14):
+def manifest(package=CURRENT_PACKAGE, code=15):
     """Acceptance fixture, independent of the generated Gradle manifest."""
+    version = '0.2.1' if code == 15 else '0.2.0'
     namespace = package.removesuffix('.qa')
     return ET.fromstring(f'''<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        package="{package}" android:versionName="0.2.0" android:versionCode="{code}">
+        package="{package}" android:versionName="{version}" android:versionCode="{code}">
       <uses-sdk android:minSdkVersion="30" android:targetSdkVersion="36" />
       <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
       <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -250,7 +251,7 @@ class PortraitFeatureAcceptanceTest(unittest.TestCase):
         return root
 
     def check(self, root, **kwargs):
-        return check_manifest(root, expected=release.Expected(package=HISTORICAL_PACKAGE, code=12), **kwargs)
+        return check_manifest(root, expected=release.Expected(package=HISTORICAL_PACKAGE, version='0.2.0', code=12), **kwargs)
 
     def test_code12_optional_portrait_and_unchanged_activity_pass(self):
         self.assertEqual(self.check(self.future_manifest())['status'], 'PASS')
@@ -299,7 +300,7 @@ class PortraitFeatureAcceptanceTest(unittest.TestCase):
     def test_historical_code11_keeps_its_original_policy(self):
         root = self.future_manifest('true')
         root.set(release.ANDROID + 'versionCode', '11')
-        self.assertEqual(check_manifest(root, expected=release.Expected(package=HISTORICAL_PACKAGE, code=11))['status'], 'PASS')
+        self.assertEqual(check_manifest(root, expected=release.Expected(package=HISTORICAL_PACKAGE, version='0.2.0', code=11))['status'], 'PASS')
 
     def test_optional_portrait_does_not_relax_existing_permission_policy(self):
         root = self.future_manifest()
@@ -314,13 +315,13 @@ class PortraitFeatureAcceptanceTest(unittest.TestCase):
             if name and name.endswith('.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'):
                 node.set(release.ANDROID + 'name', 'com.menis.chatstamp.qa.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION')
         root.find('./application/activity').set(release.ANDROID + 'name', 'com.menis.chatstamp.MainActivity')
-        self.assertEqual(check_manifest(root, expected=release.Expected(package='com.menis.chatstamp.qa', code=12))['status'], 'PASS')
+        self.assertEqual(check_manifest(root, expected=release.Expected(package='com.menis.chatstamp.qa', version='0.2.0', code=12))['status'], 'PASS')
 
 
 class CurrentIdentityAcceptanceTest(unittest.TestCase):
-    def test_default_expectations_are_the_new_production_identity_and_code14(self):
+    def test_default_expectations_are_the_new_production_identity_and_code15(self):
         expected = release.Expected()
-        self.assertEqual((expected.package, expected.code), (CURRENT_PACKAGE, 14))
+        self.assertEqual((expected.package, expected.code), (CURRENT_PACKAGE, 15))
         self.assertEqual(check_manifest(manifest())['status'], 'PASS')
 
     def test_public_cli_uses_the_same_current_defaults_without_building_or_signing(self):
@@ -333,7 +334,7 @@ class CurrentIdentityAcceptanceTest(unittest.TestCase):
                                        '--work-dir', str(root / 'work'), '--expected-cert-sha256', 'a' * 64])
             self.assertEqual(result, 0)
             expected = verify.call_args.args[2]
-            self.assertEqual((expected.package, expected.code), (CURRENT_PACKAGE, 14))
+            self.assertEqual((expected.package, expected.code), (CURRENT_PACKAGE, 15))
 
     def test_old_package_does_not_pass_new_default_identity(self):
         result = check_manifest(manifest(HISTORICAL_PACKAGE, release.Expected().code))
@@ -341,10 +342,10 @@ class CurrentIdentityAcceptanceTest(unittest.TestCase):
 
     def test_new_qa_uses_the_new_production_activity_namespace(self):
         root = manifest(CURRENT_PACKAGE + '.qa')
-        expected = release.Expected(package=CURRENT_PACKAGE + '.qa', code=14)
+        expected = release.Expected(package=CURRENT_PACKAGE + '.qa', code=15)
         self.assertEqual(check_manifest(root, expected=expected)['status'], 'PASS')
 
-    def test_old_or_qa_activity_class_is_never_accepted_for_new_code14(self):
+    def test_old_or_qa_activity_class_is_never_accepted_for_new_code15(self):
         cases = [(CURRENT_PACKAGE, HISTORICAL_PACKAGE + '.MainActivity'),
                  (CURRENT_PACKAGE + '.qa', HISTORICAL_PACKAGE + '.MainActivity'),
                  (CURRENT_PACKAGE + '.qa', CURRENT_PACKAGE + '.qa.MainActivity')]
@@ -352,18 +353,18 @@ class CurrentIdentityAcceptanceTest(unittest.TestCase):
             with self.subTest(package=package, activity=activity):
                 root = manifest(package)
                 root.find('./application/activity').set(release.ANDROID + 'name', activity)
-                self.assertIn('MAIN_ACTIVITY_ORIENTATION', codes(check_manifest(root, expected=release.Expected(package=package, code=14))))
+                self.assertIn('MAIN_ACTIVITY_ORIENTATION', codes(check_manifest(root, expected=release.Expected(package=package, code=15))))
 
     def test_previous_new_package_code13_requires_its_explicit_version(self):
         root = manifest(code=13)
         self.assertIn('MANIFEST_IDENTITY', codes(check_manifest(root)))
-        self.assertEqual(check_manifest(root, expected=release.Expected(code=13))['status'], 'PASS')
+        self.assertEqual(check_manifest(root, expected=release.Expected(version='0.2.0', code=13))['status'], 'PASS')
 
     def test_historical_code11_and_code12_keep_explicit_old_identity_support(self):
         for code in (11, 12):
             with self.subTest(code=code):
                 root = manifest(HISTORICAL_PACKAGE, code)
-                expected = release.Expected(package=HISTORICAL_PACKAGE, code=code)
+                expected = release.Expected(package=HISTORICAL_PACKAGE, version='0.2.0', code=code)
                 self.assertEqual(check_manifest(root, expected=expected)['status'], 'PASS')
 
     def test_relative_production_activity_is_resolved_under_its_actual_package(self):

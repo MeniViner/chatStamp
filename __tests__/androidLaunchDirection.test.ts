@@ -33,6 +33,7 @@ function applyPlugin(contents: string, language = 'kt', applicationId = 'com.men
       return config;
     },
     withGradleProperties: (config: object) => config,
+    withMainActivity: (config: object) => config,
     withProjectBuildGradle: (config: object) => config,
     withAppBuildGradle: (config: object) => config
   };

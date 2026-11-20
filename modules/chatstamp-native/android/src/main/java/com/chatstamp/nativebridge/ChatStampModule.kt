@@ -48,7 +48,7 @@ class ChatStampModule : Module() {
     }
 
     AsyncFunction("extractSupportedZipEntriesAsync") Coroutine { sourceUri: String, outputDirectoryUri: String, operationId: String ->
-      nativeCall { StreamingZipImporter(context.applicationContext).extract(sourceUri, outputDirectoryUri, operationId) }
+      nativeCall { SharedExportImporter(context.applicationContext).extract(sourceUri, outputDirectoryUri, operationId) }
     }
     AsyncFunction("consumePendingSharedZipAsync") { SharedZipInbox.consume() }
     AsyncFunction("getShareIntentDebugStatusAsync") { SharedZipInbox.debug() }
@@ -62,8 +62,10 @@ class ChatStampModule : Module() {
     AsyncFunction("acknowledgeOperationAsync") { operationId: String ->
       nativeCallSync { NativeOperations.acknowledge(context.applicationContext, operationId) }
     }
-    AsyncFunction("canReadSourceAsync") { sourceUri: String ->
-      runCatching { context.contentResolver.openInputStream(Uri.parse(sourceUri))?.use { true } == true }.getOrDefault(false)
+    AsyncFunction("canReadSourceAsync") Coroutine { sourceUri: String ->
+      kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        SharedExportImporter(context.applicationContext).canReadSource(sourceUri)
+      }
     }
     AsyncFunction("releaseSourceAsync") { sourceUri: String ->
       nativeCallSync { NativeOperations.releaseSource(context.applicationContext, sourceUri) }

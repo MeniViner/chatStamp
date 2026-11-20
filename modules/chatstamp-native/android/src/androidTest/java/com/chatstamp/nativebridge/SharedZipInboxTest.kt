@@ -22,7 +22,7 @@ class SharedZipInboxTest {
   private val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
   private lateinit var job: File
   private lateinit var zip: File
-  private val ownedUris = mutableSetOf<String>()
+  private val ownedLeases = mutableSetOf<String>()
 
   @Before fun prepare() {
     // Do not consume or discard a source that belongs to another test/session.
@@ -40,7 +40,7 @@ class SharedZipInboxTest {
     try {
       assertEquals(0, SharedZipInbox.debug()["pendingCount"])
     } finally {
-      ownedUris.forEach { SharedZipInbox.release(context, it) }
+      ownedLeases.forEach { SharedZipInbox.release(context, it) }
       if (::job.isInitialized) job.deleteRecursively()
     }
   }
@@ -64,7 +64,9 @@ class SharedZipInboxTest {
     listOf(Uri.fromFile(zip), content).forEach { uri ->
       val delivery = capture(uri)
       assertEquals(true, delivery["received"])
-      assertEquals(uri.toString(), delivery["sourceUri"])
+      val handle = delivery["sourceUri"] as String
+      assertEquals("chatstamp-share", Uri.parse(handle).scheme)
+      assertEquals(listOf(uri), SharedZipInbox.resolve(handle)?.sources)
       assertEquals(zip.name, delivery["filename"])
       assertEquals("application/zip", delivery["mimeType"])
       assertFalse(delivery.containsKey("errorCode"))
@@ -79,7 +81,9 @@ class SharedZipInboxTest {
     val uri = FileProvider.getUriForFile(context, "${context.packageName}.ChatStampFileProvider", opaque)
     val delivery = capture(uri)
     assertEquals(true, delivery["received"])
-    assertEquals(uri.toString(), delivery["sourceUri"])
+    val handle = delivery["sourceUri"] as String
+    assertEquals("chatstamp-share", Uri.parse(handle).scheme)
+    assertEquals(listOf(uri), SharedZipInbox.resolve(handle)?.sources)
     assertEquals("opaque-export", delivery["filename"])
     assertFalse(delivery.containsKey("errorCode"))
     val header = ByteArray(4)
@@ -90,12 +94,11 @@ class SharedZipInboxTest {
   @Test fun unsupportedSendSchemeProducesACodedFailureWithoutAnImportSource() {
     val delivery = capture(Uri.parse("https://example.invalid/export.zip"))
     assertEquals(true, delivery["received"])
-    assertEquals("PERMISSION_LOST", delivery["errorCode"])
+    assertEquals("SHARE_INVALID", delivery["errorCode"])
     assertFalse(delivery.containsKey("sourceUri"))
   }
 
   private fun capture(uri: Uri): Map<String, Any?> {
-    if (uri.scheme in setOf("file", "content")) ownedUris.add(uri.toString())
     val intent = Intent(Intent.ACTION_SEND).apply {
       type = "application/zip"
       putExtra(Intent.EXTRA_STREAM, uri)
@@ -103,6 +106,8 @@ class SharedZipInboxTest {
       addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     SharedZipInbox.captureNew(context, intent)
-    return SharedZipInbox.consume()
+    return SharedZipInbox.consume().also { delivery ->
+      (delivery["sourceUri"] as? String)?.let(ownedLeases::add)
+    }
   }
 }

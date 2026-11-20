@@ -1,4 +1,4 @@
-const { AndroidConfig, withAndroidManifest, withAppBuildGradle, withGradleProperties, withMainApplication, withProjectBuildGradle } = require('expo/config-plugins');
+const { AndroidConfig, withAndroidManifest, withAppBuildGradle, withGradleProperties, withMainActivity, withMainApplication, withProjectBuildGradle } = require('expo/config-plugins');
 
 const propsBlock = `
 def chatstampReleaseProps = new Properties()
@@ -140,6 +140,77 @@ function applyLaunchLanguagePolicy(contents) {
   return `${contents.slice(0, insertion)}\n    ${hook}${contents.slice(insertion)}`;
 }
 
+function activityMethod(contents, signature) {
+  const code = executableKotlin(contents);
+  const matches = [...code.matchAll(signature)];
+  if (matches.length !== 1) throw new Error('chatStamp requires one reviewed Activity lifecycle method.');
+  const start = matches[0].index;
+  const open = code.indexOf('{', start);
+  let depth = 1;
+  let end = open + 1;
+  while (end < code.length && depth > 0) {
+    if (code[end] === '{') depth++;
+    if (code[end] === '}') depth--;
+    end++;
+  }
+  if (depth !== 0) throw new Error('chatStamp found an incomplete MainActivity lifecycle method.');
+  return { code, start, open, end, body: code.slice(open + 1, end - 1) };
+}
+
+function applyShareIntentCapture(contents) {
+  const hook = 'com.chatstamp.nativebridge.SharedExportReceiver.capture(this, intent)';
+  const createSignature = /\boverride\s+fun\s+onCreate\s*\(\s*savedInstanceState\s*:\s*(?:android\.os\.)?Bundle\?\s*\)\s*\{/g;
+  const created = activityMethod(contents, createSignature);
+  const supers = [...created.body.matchAll(/\bsuper\.onCreate\s*\(\s*(?:null|savedInstanceState)\s*\)/g)];
+  if (supers.length !== 1) throw new Error('chatStamp requires a reviewed Activity startup anchor.');
+  const superPosition = created.open + 1 + supers[0].index;
+  const beforeSuper = created.body.slice(0, supers[0].index);
+  let nesting = 0;
+  for (const character of beforeSuper) {
+    if (character === '{') nesting++;
+    if (character === '}') nesting--;
+  }
+  if (nesting !== 0 || /\b(?:return|throw)\b/.test(beforeSuper)) {
+    throw new Error('chatStamp requires unconditional capture before Activity startup.');
+  }
+  const reviewedPrefix = beforeSuper
+    .replace(/\bcom\.chatstamp\.nativebridge\.SharedExportReceiver\.capture\s*\(\s*this\s*,\s*intent\s*\)/g, '')
+    .replace(/[\s;]/g, '');
+  if (reviewedPrefix !== '' && reviewedPrefix !== 'setTheme(R.style.AppTheme)') {
+    throw new Error('chatStamp requires the reviewed unconditional Activity startup prefix.');
+  }
+  const createHooks = [...created.body.matchAll(/\bcom\.chatstamp\.nativebridge\.SharedExportReceiver\.capture\s*\(\s*this\s*,\s*intent\s*\)/g)];
+  if (createHooks.length) {
+    const hookStart = created.open + 1 + createHooks[0].index;
+    const hookLine = contents.lastIndexOf('\n', hookStart) + 1;
+    if (createHooks.length !== 1 || hookStart > superPosition || contents.slice(hookLine, hookStart).trim()
+      || created.body.slice(createHooks[0].index + createHooks[0][0].length, supers[0].index).trim()) {
+      throw new Error('chatStamp must capture the launch share before React startup.');
+    }
+  } else {
+    const line = contents.lastIndexOf('\n', superPosition) + 1;
+    const indent = contents.slice(line, superPosition);
+    if (indent.trim()) throw new Error('chatStamp requires an unconditional Activity startup anchor.');
+    contents = `${contents.slice(0, line)}${indent}${hook}\n${contents.slice(line)}`;
+  }
+  const updated = activityMethod(contents, createSignature);
+  const newSignatures = [...updated.code.matchAll(/\boverride\s+fun\s+onNewIntent\b/g)];
+  if (newSignatures.length === 0) {
+    const method = `\n\n  override fun onNewIntent(intent: android.content.Intent) {\n    ${hook}\n    setIntent(intent)\n    super.onNewIntent(intent)\n  }`;
+    contents = `${contents.slice(0, updated.end)}${method}${contents.slice(updated.end)}`;
+  } else {
+    const incoming = activityMethod(contents, /\boverride\s+fun\s+onNewIntent\s*\(\s*intent\s*:\s*(?:android\.content\.)?Intent\s*\)\s*\{/g);
+    const expected = `${hook} setIntent(intent) super.onNewIntent(intent)`.replace(/\s+/g, '');
+    if (incoming.body.replace(/\s+/g, '') !== expected) {
+      throw new Error('chatStamp found an unreviewed new-intent handler.');
+    }
+  }
+  if ([...executableKotlin(contents).matchAll(/\bcom\.chatstamp\.nativebridge\.SharedExportReceiver\.capture\s*\(/g)].length !== 2) {
+    throw new Error('chatStamp found unexpected share-capture hooks.');
+  }
+  return contents;
+}
+
 const withChatStampAndroidRelease = (config) => {
   config = withAndroidManifest(config, (config) => {
     const manifest = config.modResults.manifest;
@@ -163,6 +234,11 @@ const withChatStampAndroidRelease = (config) => {
   config = withMainApplication(config, (config) => {
     if (config.modResults.language !== 'kt') throw new Error('chatStamp requires a reviewed Kotlin MainApplication template.');
     config.modResults.contents = applyLaunchLanguagePolicy(config.modResults.contents);
+    return config;
+  });
+  config = withMainActivity(config, (config) => {
+    if (config.modResults.language !== 'kt') throw new Error('chatStamp requires a reviewed Kotlin MainActivity template.');
+    config.modResults.contents = applyShareIntentCapture(config.modResults.contents);
     return config;
   });
   config = withGradleProperties(config, (config) => {

@@ -36,6 +36,7 @@ vi.mock('../src/services/operationCoordinator', () => ({ startSaving: control.st
   attachPipelineRuntime: () => () => undefined, observePendingShare: () => () => undefined, pendingSharedZip: () => null,
   acceptSharedZip: vi.fn(), dismissSharedZip: vi.fn() }));
 vi.mock('../src/screens/ImportScreen', () => ({ ImportScreen: 'ImportScreen' }));
+vi.mock('../src/screens/WhatsAppExportGuide', () => ({ WhatsAppExportGuide: 'WhatsAppExportGuide' }));
 vi.mock('../src/screens/SettingsScreen', () => ({ SettingsScreen: 'SettingsScreen' }));
 vi.mock('../src/screens/HistoryScreen', () => ({ HistoryScreen: 'HistoryScreen' }));
 vi.mock('../src/screens/ErrorScreen', () => ({ ErrorScreen: 'ErrorScreen' }));

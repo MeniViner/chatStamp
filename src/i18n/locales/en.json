@@ -70,7 +70,7 @@
       "launch-failed": "The other app could not open this file."
     },
     "transcriptLoading": "Loading transcript",
-    "transcriptError": "The transcript could not be read. Try again, or import the ZIP again if the file is no longer available.",
+    "transcriptError": "The conversation text could not be read. Try again. If it is no longer available, share the chat again from WhatsApp or choose its saved export.",
     "transcriptRetry": "Try again",
     "transcriptEmpty": "This transcript is empty.",
     "transcriptSection": "Transcript section {{current}}",
@@ -120,11 +120,15 @@
   },
   "import": {
     "title": "Import",
-    "subtitle": "Share a WhatsApp export ZIP here or choose it manually.",
+    "sharedExportName": "WhatsApp export",
+    "subtitle": "Already have an export ZIP? Choose it below.",
     "chooseZip": "Choose ZIP",
     "heroTitle": "chatStamp",
     "heroBody": "Save exported media as real Android files with their original WhatsApp dates.",
-    "infoLocalBody": "Files are processed on this device. No accounts, cloud upload, or server APIs."
+    "infoLocalBody": "Files are processed on this device. No accounts, cloud upload, or server APIs.",
+    "shareTitle": "Share straight from WhatsApp",
+    "shareBody": "There is no need to save an export file yourself. From WhatsApp, export the chat with media and choose chatStamp in the share sheet.",
+    "openGuide": "How to share from WhatsApp"
   },
   "onboarding": {
     "appName": "chatStamp",
@@ -135,7 +139,7 @@
     },
     "export": {
       "title": "Export a chat from WhatsApp",
-      "body": "Open a chat in WhatsApp. From the menu choose More → Export chat → Include media, then share the ZIP to chatStamp. You can also choose an export ZIP saved in Files.",
+      "body": "Open a WhatsApp chat. From its three-dot menu choose More if shown, then Export chat and Include media. Choose chatStamp in the share sheet. You can also choose an export ZIP already saved in Files.",
       "note": "Choose the people and media you want before saving. Date checks are shown separately from files saved."
     },
     "start": "Choose a chat export",
@@ -289,7 +293,7 @@
     "approximateDate": "Approx. {{date}}"
   },
   "processing": {
-    "analyzeTitle": "Analyze ZIP",
+    "analyzeTitle": "Reading export",
     "savingTitle": "Saving"
   },
   "results": {
@@ -352,7 +356,7 @@
     "shareNextBatch": "Next files",
     "shareLimit": "Share up to {{limit}} files at a time. Choose another group to share the rest.",
     "reimportRemainingFiles": "Reimport to save remaining files",
-    "reimportRequired": "To retry after reopening the app, choose the same export ZIP again. Saved files remain. Use Skip existing to avoid duplicates."
+    "reimportRequired": "To retry after reopening the app, share the chat again from WhatsApp or choose the same saved export. Saved files remain. Use Skip existing to avoid duplicates."
   },
   "history": {
     "title": "History",
@@ -385,13 +389,14 @@
   "error": {
     "parsingTitle": "Parsing failed",
     "codes": {
-      "NO_TRANSCRIPT": "No WhatsApp conversation was found in this ZIP.",
-      "ZIP_INVALID": "This file is not a readable ZIP archive.",
+      "NO_TRANSCRIPT": "The conversation text was not included. In WhatsApp, use Export chat, Include media, then choose chatStamp.",
+      "ZIP_INVALID": "This export could not be read. Export the chat again from WhatsApp with media and share it to chatStamp, or choose another export file.",
       "NO_SPACE": "There is not enough free space. Free some space and try again.",
       "ARCHIVE_LIMIT": "This archive exceeds the supported size or file-count limits.",
       "CANCELLED": "The operation was cancelled.",
-      "PERMISSION_LOST": "Access to this file or folder has expired. Choose it again.",
-      "IO_ERROR": "The operation could not finish. Try again or choose another file."
+      "PERMISSION_LOST": "Access to the shared files or destination folder expired. Share the chat again from WhatsApp, or choose the file or folder again.",
+      "IO_ERROR": "The operation could not finish. Try again or choose another file.",
+      "SHARE_INVALID": "Share one WhatsApp chat export, including its conversation text and media. Try Export chat, Include media, then choose chatStamp."
     },
     "recoveryFailed": "Could not finish cleanup. Try again before leaving this import."
   },
@@ -413,12 +418,13 @@
     "discardBody": "The temporary files for this import will be removed. Files already saved on your phone will remain.",
     "discard": "Discard",
     "replaceTitle": "Open the shared export?",
-    "replaceBody": "This will cancel the current import and open the new shared ZIP.",
+    "replaceBody": "The current import will be discarded and the newly shared chat will open.",
     "replace": "Open export",
     "chooseAnother": "Choose another file",
     "retry": "Try again",
     "spaceMissing": "Free at least {{bytes}} MB and try again.",
-    "detailsMissing": "The file details for this export are unavailable."
+    "detailsMissing": "The file details for this export are unavailable.",
+    "shareUnavailableTitle": "Could not receive this export"
   },
   "languageRestart": {
     "title": "Restart to apply language",
@@ -437,5 +443,36 @@
     "documents": "Documents",
     "other": "Other",
     "export": "Export"
+  },
+  "whatsAppGuide": {
+    "title": "Share from WhatsApp",
+    "previous": "Previous",
+    "finish": "Back to Home",
+    "steps": {
+      "openChat": {
+        "title": "Open the chat you want",
+        "body": "In WhatsApp, open the conversation or group you want to import."
+      },
+      "menu": {
+        "title": "Open the chat menu",
+        "body": "Tap the three dots at the top of the chat. Choose More if that option appears."
+      },
+      "exportChat": {
+        "title": "Choose Export chat",
+        "body": "In the menu, choose Export chat. If it is already visible, you do not need to open More."
+      },
+      "includeMedia": {
+        "title": "Include the media",
+        "body": "When WhatsApp asks what to include, choose Include media to send the conversation text and its exported attachments."
+      },
+      "shareToApp": {
+        "title": "Choose chatStamp",
+        "body": "In the Android share sheet, tap chatStamp. You may need to scroll the app row or tap More to find it."
+      },
+      "automaticImport": {
+        "title": "The import starts here",
+        "body": "After sharing, chatStamp opens and starts reading the export. Wait for file selection, then choose what to save. There is no need to save a file manually."
+      }
+    }
   }
 }

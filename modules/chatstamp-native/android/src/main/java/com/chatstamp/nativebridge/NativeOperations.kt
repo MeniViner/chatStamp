@@ -72,9 +72,10 @@ internal class NativeOperation(
   }
 
   @Synchronized fun advance(value: OperationProgress, force: Boolean = false) {
+    val phaseChanged = value.phase != progress.phase
     progress = value
     val now = SystemClock.elapsedRealtime()
-    if (force || value.terminal || now - lastEvent >= 100) {
+    if (force || phaseChanged || value.terminal || now - lastEvent >= 100) {
       lastEvent = now
       NativeOperations.emit(if (kind == "import") "onImportProgress" else "onSaveProgress", value.bridge())
     }
@@ -96,6 +97,7 @@ internal object NativeOperations {
   private val operations = ConcurrentHashMap<String, NativeOperation>()
   private val listeners = ConcurrentHashMap<Any, (String, Map<String, Any?>) -> Unit>()
   private val guard = Any()
+  private val cancelledBeforeStart = linkedSetOf<String>()
   @Volatile private var latestId: String? = null
   @Volatile private var latestStored: Map<String, Any?>? = null
   @Volatile private var initialized = false
@@ -127,6 +129,12 @@ internal object NativeOperations {
     }
     operations[id] = operation
     latestId = id
+    if (cancelledBeforeStart.remove(id)) {
+      operation.cancelled.set(true)
+      val failure = OperationFailure("CANCELLED", "The operation was cancelled before it started.")
+      finish(context, operation, "cancelled", error = failure)
+      throw failure
+    }
     operation.advance(operation.progress, true)
     operation
   }
@@ -179,9 +187,20 @@ internal object NativeOperations {
     SaveForegroundService.removeInput(context, id)
   }
 
-  fun cancel(id: String) { operations[id]?.takeUnless { it.progress.terminal }?.cancel() }
+  private fun operationOrRememberCancellation(id: String): NativeOperation? = synchronized(guard) {
+    operations[id]?.let { return@synchronized it }
+    // The bridge or IO dispatcher may not have started an already-cancelled
+    // import yet. Keep the cancellation until begin observes that same ID.
+    if (Regex("[A-Za-z0-9._-]{1,120}").matches(id) && id != "." && id != "..") {
+      cancelledBeforeStart.add(id)
+      if (cancelledBeforeStart.size > 256) cancelledBeforeStart.remove(cancelledBeforeStart.first())
+    }
+    null
+  }
+
+  fun cancel(id: String) { operationOrRememberCancellation(id)?.takeUnless { it.progress.terminal }?.cancel() }
   suspend fun cancelAndAwait(id: String) {
-    val operation = operations[id] ?: return
+    val operation = operationOrRememberCancellation(id) ?: return
     if (operation.progress.terminal) return
     operation.cancel()
     val worker = operation.worker

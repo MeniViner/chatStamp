@@ -1,5 +1,5 @@
 const pipelineErrorCodes = [
-  'NO_TRANSCRIPT', 'ZIP_INVALID', 'NO_SPACE', 'ARCHIVE_LIMIT', 'CANCELLED', 'PERMISSION_LOST', 'IO_ERROR'
+  'NO_TRANSCRIPT', 'ZIP_INVALID', 'SHARE_INVALID', 'NO_SPACE', 'ARCHIVE_LIMIT', 'CANCELLED', 'PERMISSION_LOST', 'IO_ERROR'
 ] as const;
 
 export type PipelineErrorCode = typeof pipelineErrorCodes[number];
@@ -31,5 +31,5 @@ export function errorMessageKey(code: PipelineErrorCode): string {
 }
 
 export function isRetryAllowed(code: PipelineErrorCode, sourceReadable: boolean): boolean {
-  return sourceReadable && code !== 'CANCELLED';
+  return sourceReadable && code !== 'CANCELLED' && code !== 'SHARE_INVALID';
 }

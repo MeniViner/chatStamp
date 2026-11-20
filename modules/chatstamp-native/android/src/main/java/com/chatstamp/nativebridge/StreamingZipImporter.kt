@@ -15,6 +15,7 @@ import java.io.ByteArrayOutputStream
 import java.io.EOFException
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.FilterInputStream
 import java.io.InputStream
@@ -31,16 +32,15 @@ import java.util.zip.ZipEntry
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 
 internal class StreamingZipImporter(private val context: Context, private val limits: ArchiveLimits = ArchiveLimits()) {
-  suspend fun extract(sourceUri: String, outputDirectoryUri: String, operationId: String): Map<String, Any?> = withContext(Dispatchers.IO) {
-    val outputUri = Uri.parse(outputDirectoryUri)
-    val output = outputUri.path?.let(::File)?.canonicalFile
-      ?: throw OperationFailure("IO_ERROR", "Invalid extraction directory.")
-    if (outputUri.scheme != "file") throw OperationFailure("IO_ERROR", "Invalid extraction directory.")
-    val directory = jobDirectory(context, Uri.fromFile(output.parentFile).toString())
-    if (output.exists() && output.listFiles().orEmpty().isNotEmpty()) {
-      throw OperationFailure("IO_ERROR", "The extraction directory is already in use.")
+  suspend fun extract(sourceUri: String, outputDirectoryUri: String, operationId: String,
+    ownerSourceUri: String = sourceUri, existingOperation: NativeOperation? = null): Map<String, Any?> = withContext(Dispatchers.IO) {
+    val target = importTarget(context, outputDirectoryUri)
+    val output = target.output
+    val operation = existingOperation ?: NativeOperations.begin(context, operationId, "import", Uri.fromFile(target.job).toString(), ownerSourceUri)
+    if (operation.id != operationId || operation.sourceUri != ownerSourceUri ||
+      File(Uri.parse(operation.workingDirectory).path!!).canonicalFile != target.job) {
+      throw OperationFailure("IO_ERROR", "The import does not own this operation.")
     }
-    val operation = NativeOperations.begin(context, operationId, "import", Uri.fromFile(directory).toString(), sourceUri)
     operation.worker = currentCoroutineContext()[Job]
     val media = mutableListOf<Map<String, Any?>>()
     val text = mutableListOf<Map<String, Any?>>()
@@ -185,19 +185,19 @@ internal class StreamingZipImporter(private val context: Context, private val li
   }
 
   companion object {
-    private const val textSampleLimit = 64 * 1024
-    private const val totalSampleLimit = 16L * 1024 * 1024
+    internal const val textSampleLimit = 64 * 1024
+    internal const val totalSampleLimit = 16L * 1024 * 1024
     private const val earliestZipTime = 315_619_200_000L
-    private val supportedExtensions = setOf(
+    internal val supportedExtensions = setOf(
       "txt", "jpg", "jpeg", "png", "heic", "webp", "mp4", "mov", "m4v", "3gp",
       "opus", "ogg", "m4a", "mp3", "aac", "gif", "pdf", "doc", "docx", "vcf", "xls", "xlsx", "ppt", "pptx", "zip"
     )
-    private fun unsafePath(path: String): Boolean {
+    internal fun unsafePath(path: String): Boolean {
       val normalized = path.replace('\\', '/')
       return normalized.startsWith('/') || Regex("^[A-Za-z]:").containsMatchIn(normalized) ||
         normalized.split('/').any { it == ".." } || '\u0000' in normalized
     }
-    private fun safeFilename(name: String): String = name.replace(Regex("[\\\\/:*?\"<>|\\p{Cc}]"), "_")
+    internal fun safeFilename(name: String): String = name.replace(Regex("[\\\\/:*?\"<>|\\p{Cc}]"), "_")
       .trim().trim('.').take(180).ifBlank { "attachment" }
   }
 }
@@ -222,6 +222,7 @@ internal fun failureFor(error: Throwable, cancelled: Boolean = false): Operation
   error is OperationFailure -> error
   cancelled || error is CancellationException -> OperationFailure("CANCELLED", "The operation was cancelled.", cause = error)
   error is SecurityException -> OperationFailure("PERMISSION_LOST", "Source or destination permission is no longer available.", cause = error)
+  error is FileNotFoundException -> OperationFailure("PERMISSION_LOST", "The shared source is no longer available.", cause = error)
   error is ZipException || error is EOFException -> OperationFailure("ZIP_INVALID", "The ZIP archive is damaged or incomplete.", cause = error)
   else -> OperationFailure("IO_ERROR", error.message ?: "The file operation failed.", cause = error)
 }

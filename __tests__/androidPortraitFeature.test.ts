@@ -35,6 +35,7 @@ function applyPlugin(input: Manifest): Manifest {
       action({ ...config, modResults: { manifest: output } }); return config;
     },
     withMainApplication: (config: object) => config,
+    withMainActivity: (config: object) => config,
     withGradleProperties: (config: object) => config,
     withProjectBuildGradle: (config: object) => config,
     withAppBuildGradle: (config: object) => config

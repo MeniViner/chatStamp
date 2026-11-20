@@ -80,6 +80,7 @@ export type NativeSharedZipResult = {
   filename?: string;
   mimeType?: string;
   sourceAction?: string;
+  sourceCount?: number;
   sourceUri?: string;
   errorCode?: PipelineErrorCode;
 };

@@ -1,7 +1,7 @@
 const config = {
   name: 'chatStamp',
   slug: 'chatstamp',
-  version: '0.2.0',
+  version: '0.2.1',
   orientation: 'portrait',
   icon: './assets/icon.png',
   scheme: 'chatstamp',
@@ -9,7 +9,7 @@ const config = {
   assetBundlePatterns: ['**/*'],
   android: {
     package: 'com.menis10tec.chatstamp',
-    versionCode: 14,
+    versionCode: 15,
     allowBackup: false,
     icon: './assets/icon.png',
     adaptiveIcon: {
@@ -45,7 +45,10 @@ const config = {
         category: ['DEFAULT'],
         data: [
           { mimeType: 'application/zip' },
-          { mimeType: 'application/x-zip-compressed' }
+          { mimeType: 'application/x-zip-compressed' },
+          { mimeType: 'application/octet-stream' },
+          { mimeType: 'text/plain' },
+          { mimeType: '*/*' }
         ]
       },
       {
@@ -53,7 +56,10 @@ const config = {
         category: ['DEFAULT'],
         data: [
           { mimeType: 'application/zip' },
-          { mimeType: 'application/x-zip-compressed' }
+          { mimeType: 'application/x-zip-compressed' },
+          { mimeType: 'application/octet-stream' },
+          { mimeType: 'text/plain' },
+          { mimeType: '*/*' }
         ]
       },
       {

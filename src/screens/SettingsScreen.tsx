@@ -309,7 +309,7 @@ export function SettingsScreen() {
           <SecondaryButton icon="shield-lock-outline" onPress={() => void openSupportLink('https://meniviner.github.io/chatStamp/privacy-policy.html')}>
             {t('settings.privacyPolicy')}
           </SecondaryButton>
-          <SecondaryButton icon="email-outline" onPress={() => void openSupportLink('mailto:meniviner@gmail.com')}>
+          <SecondaryButton icon="email-outline" onPress={() => void openSupportLink('mailto:menis10tec@gmail.com')}>
             {t('settings.contactSupport')}
           </SecondaryButton>
         </Section>
