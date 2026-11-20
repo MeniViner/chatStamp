@@ -1460,3 +1460,67 @@ upload certificate. Real WhatsApp acceptance remains UNVERIFIED: in the actual
 owner app follow chat → three dots → More → Export chat → Include media →
 chatStamp, once cold and once warm, then select/save/check original dates.
 No production eligibility, genuine tester period or final MVP closure is inferred.
+
+## 2026-11-20 — Direct sharing code15 signed runtime and Play submission
+
+Implementation source **45f27382b64d7e7fa688747eea3a42659e9bb61f** is frozen at
+0.2.1 (15). Exact-source Android CI PR run **44748707957** completed/success.
+The final full-cycle counts remain605 host/58files,127 Python,59 freshly executed
+JVM and72 connected API36 tests, with independent Test author PASS/Reviewer CLEAR.
+
+Existing-key production AAB:50,978,271bytes,
+SHA2563187e6902a5026b460141848e191cf3c2db1e4a85e14eb901102cd401afe7779.
+Isolated minified QA APK:75,259,898bytes,
+SHA256a800b9a623de09c0e6add98cbb9be23d409adb571a387195b28fee69daecc564.
+Both strict release verifiers PASS for identity/version/certificate/min30/target36,
+permissions, backup/minification, four ABI and static16KiB policies. Actual emulator
+page size4096; no16KiB execution claim. Debug-only overlay permission remains
+separate from the strict signed release policy.
+
+Owned API36 emulator, as requested: actual Android share sheet from a distinct-UID,
+unexported private provider delivered TXT/JPEG/PDF to signed minified QA15 while
+its Hebrew guide was open, producing one3-file selection. Force-stopped QA15
+accepted a generic-MIME ZIP; warm separate-file share preserved the active session
+behind a prompt until confirmation. Missing grants yield the translated recovery
+error. All six Hebrew guide pages at font1.3 and hardware Back to Home pass.
+No prior manual Files/ZIP save was used. This proves synthetic Android transport,
+not actual WhatsApp sender behavior.
+
+Raw-share save:3saved,1message-date verified,0failed/cancelled. Independent
+MediaStore rows98/99 confirm TXT/PDF modification time1551258000,datetakenNULL;
+photo row101 has modification1551177240 and datetaken1551177240000. Independent
+host ImageIO reads photo DateTimeOriginal/DateTimeDigitized2019:02:26 12:34:00,
+OffsetTimeOriginal+02:00. Documents are not mislabeled as verified message dates.
+The public bilingual privacy page freshly returns its20November update,
+separate-file explanation and menis10tec@gmail.com. In-app browser rendering
+remains separately unverified.
+
+Play accepted the exact production AAB, internal4701429810228968626 release3:
+**15(0.2.1), Available to internal testers**,20November16:14local. The same library
+artifact was promoted to Alpha4699420811279917961 with100%rollout/EN+HE notes.
+Both submission steps completed. Final publishing heading **Changes in review**,
+quick checks running; closed15 availability/approval is not claimed. Previous
+active Alpha14/178countries remains the distribution baseline. All five assigned
+lists remain checked; the connected Android list remains internal-only. No new
+invitations, list-membership edits or production-access request occurred.
+
+**try another way:** release UI hides a debug raw error code, so assert its exact
+localized recovery message; the initial shell-split MediaStore WHERE failed, so
+quote the device command with shlex.join; Pillow is absent, so inspect the saved
+JPEG using installed Apple ImageIO. These are verification-tool alternatives,
+not source or policy relaxations.
+
+Debug discard private-job removal was inspected before uninstall. Minified Start
+over returns Home, but minified private discarded-byte inspection is UNVERIFIED
+because the release package is not debuggable. Exact synthetic public rows/files,
+QA/helper packages and provider fixtures were removed with absence readbacks.
+Stayawake1/font1.0/physical320x640,density160 were restored; crash buffer empty;
+the owned emulator was stopped. Production was never installed/replaced there.
+
+Fresh small evidence: **dist/play/direct-share-0.2.1-15-20261120/**, README, compact
+receipts/static checks and selected whole-screen JPEGs only. Large signed products
+are separate in **dist/play/release-0.2.1-15/**. Earlier evidence/artwork remains
+unchanged. Native launcher/icons/banners and the dirty unrelated CV are preserved.
+PR1 remains open/unmerged. Actual owner WhatsApp cold/warm export, physical code15,
+fresh Gallery order,16KiB execution, real closed participation and production
+eligibility remain UNVERIFIED; the final MVP is not closed by emulator fixtures.

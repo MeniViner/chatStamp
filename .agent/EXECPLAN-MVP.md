@@ -7,7 +7,7 @@ instants, select/filter files and save them so the tested Gallery sorts by those
 instants. Saved and verified dates remain separate facts. Local-only; no DB,
 accounts, analytics, cloud or server. Current requested production identity is com.menis10tec.chatstamp; retain the owner's external upload key. Earlier com.menis.chatstamp artifacts remain historical.
 
-## Current state —2026-11-20, direct WhatsApp code15 source qualified
+## Current state —2026-11-20, direct WhatsApp code15 internally available / Alpha in review
 
 ### Active owner follow-up — direct WhatsApp export intake and guide
 
@@ -39,9 +39,20 @@ Full npm-ci smoke passes:605 host/58 files,127 Python,59 JVM,72 connected, no
 failures/errors/skips; typecheck/lint, clean prebuild and arm64 QA assembly pass.
 Test author and Reviewer are complete/CLEAR. Home, all six guide pages and the
 real Android temporary-grant/private-provider contract have debug UI acceptance.
-Next: signed AAB/minified QA verification, affected minified runtime, authorized
-Play continuation and final cleanup/readback. Actual WhatsApp remains a separate
-owner gate; never replace production for QA or claim a genuine tester period.
+Signed production AAB and minified QA15 strict checks pass. Exact-source Android
+CI run44748707957 succeeds. Minified Hebrew actual Android raw share, cold generic
+ZIP, warm replacement, no-grant recovery, all six guide pages/font1.3/Back and
+3saved/1verified/0failed run pass; independent JPEG embedded/indexed readback agrees.
+Debug private discard and owned output/package cleanup were inspected; minified
+private discard bytes remain UNVERIFIED. Public privacy update is live.
+Internal15 is available; same AAB promoted to Alpha with100%rollout and both notes.
+Both submission steps completed: Changes in review, quick checks running. Prior
+Alpha14/178countries remains the confirmed active closed baseline; all five lists
+preserved, no invitations resent. Fresh report: dist/play/direct-share-0.2.1-15-20261120/README.md.
+Actual WhatsApp/owner export, physical15, fresh Gallery order,16KiB runtime and
+qualifying tester period remain separate gates. QA/helper/output cleanup and
+original emulator settings restoration passed; owned emulator stopped. PR1 stays
+open/unmerged; no production-access request or final MVP completion claim.
 
 ### Prior code14 distribution and artwork checkpoint
 

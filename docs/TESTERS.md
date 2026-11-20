@@ -1,6 +1,21 @@
 # Closed-test invitations and owner test record
 
-**Latest checkpoint,2026-11-20:** New app **4975002762311404414 / com.menis10tec.chatstamp**: fresh20November readback shows **Alpha14(0.2.0) ACTIVE**,178country/region entries. Production14 was installed through actual native Google Play on the connected Samsung A30 and opened; installer readback is **com.android.vending**. Its existing device account was added through one new **internal-only** list; original five closed-list assignments remain. The earlier bilingual chatStamp invitation to20unique addresses retains its SENT/exact-recipient verification. Six fresh Hebrew QA14 split posters and a localized feature remain saved in iw-IL. The latest **three store changes are in review**: replacement default icon and support-address-only EN/HE full-description edits. Both per-app support fields separately published as menis10tec@gmail.com without a new binary. Existing banners/screenshots and all other copy are unchanged; the matching Tank Malle logo remains a local-only approval proposal. Earlier today the Dashboard showed1opted-in tester; that count was not refreshed after artwork submission and no qualifying12tester/14day period or production access is claimed.
+**Latest checkpoint, 2026-11-20 — direct sharing 0.2.1 (15):** Exact source
+45f27382b64d7e7fa688747eea3a42659e9bb61f passes full smoke, source CI and signed
+production/isolated minified QA checks. Actual Android share-sheet raw files,
+cold generic ZIP, warm replacement, no-grant recovery, Hebrew six-page guide and
+3saved/1verified/0failed save were observed on the owner-selected API36 emulator.
+This is synthetic transport acceptance, not an actual WhatsApp/owner export.
+Internal15 is available; same AAB promoted to Alpha100% and both submission steps
+completed. Final publishing heading **Changes in review**, quick checks running.
+Previous active closed14/178countries remains the confirmed baseline. All five
+list assignments remain checked, including friends/family; no invitations resent.
+Fresh [report](../dist/play/direct-share-0.2.1-15-20261120/README.md) and
+[release products](../dist/play/release-0.2.1-15/README.md). Actual WhatsApp,
+physical15, fresh Gallery ordering,16KiB execution, minified private discarded bytes
+and genuine tester eligibility remain UNVERIFIED. PR1 remains open/unmerged.
+
+**Prior code14 checkpoint,2026-11-20:** New app **4975002762311404414 / com.menis10tec.chatstamp**: fresh20November readback shows **Alpha14(0.2.0) ACTIVE**,178country/region entries. Production14 was installed through actual native Google Play on the connected Samsung A30 and opened; installer readback is **com.android.vending**. Its existing device account was added through one new **internal-only** list; original five closed-list assignments remain. The earlier bilingual chatStamp invitation to20unique addresses retains its SENT/exact-recipient verification. Six fresh Hebrew QA14 split posters and a localized feature remain saved in iw-IL. The latest **three store changes are in review**: replacement default icon and support-address-only EN/HE full-description edits. Both per-app support fields separately published as menis10tec@gmail.com without a new binary. Existing banners/screenshots and all other copy are unchanged; the matching Tank Malle logo remains a local-only approval proposal. Earlier today the Dashboard showed1opted-in tester; that count was not refreshed after artwork submission and no qualifying12tester/14day period or production access is claimed.
 
 Lists: **list1(4), list2(7), Tank Malle – Internal(1),חברים(6),משפחה(2)**. Private enumeration found 20 unique addresses; one actual bilingual invitation was sent, with no duplicate-address sends. No private roster is in Git/evidence. SENT/recipient verification proves Gmail submission, not inbox delivery or opt-in. See [fresh receipt](../dist/play/owner-ux-0.2.0-14-20261120/README.md).
 
@@ -10,27 +25,27 @@ The owner separately requested a Hebrew-only **Tank Malle** invitation to the un
 
 ## Owner setup
 
-1. The closed Alpha route is now active on14. Use the verified new-package URL below. List assignment does not prove opt-in.
+1. Closed Alpha14 is the previous confirmed active version;15 is submitted/in review. Internal15 is available. Use the verified new-package URL below. List assignment does not prove opt-in.
 2. The authorized all-list invitation was sent once to 20 unique addresses. Do not resend automatically. The sample copy below is reusable guidance; the exact sent body and sanitized receipt are linked above.
 3. Join using the assigned Google Account; leave this app's internal test first if already enrolled there. Record genuine use, feedback and continuous opt-in privately. Installation and receipt of an email do not satisfy the 12/14 gate.
 
 ## English invitation — reusable follow-up copy
 
-Hi! I’m looking for volunteers to test chatStamp on Android 11 or later. It imports a WhatsApp export ZIP and saves selected attachments, using message dates where the format and Gallery support them. It processes files on the phone, without an account, ads or uploads by chatStamp.
+Hi! I’m looking for volunteers to test chatStamp on Android 11 or later. It receives a WhatsApp export directly through sharing (ZIP or transcript with attachments), or imports a saved ZIP, and saves selected attachments, using message dates where the format and Gallery support them. It processes files on the phone, without an account, ads or uploads by chatStamp.
 
 Please open **https://play.google.com/apps/testing/com.menis10tec.chatstamp** using the Google Account you gave me, choose Join/Become a tester, and install through the Play link. If you were in the internal test, leave it first. Please stay opted into this closed test for at least 14 continuous days and try the app during that time. You can leave whenever you choose; tell me if you leave so I can keep the test record accurate.
 
-Try importing through Files and sharing a ZIP while chatStamp is closed and open. Select a few photos/videos, save, and compare their dates with the chat and your Gallery. Try English/Hebrew, saving in the background, cancelling a larger save and importing the same export again. Please report what worked or failed, device/Android version, app version and steps to **meniviner@gmail.com** or private Play feedback. Use a synthetic or non-sensitive export first. Never send me your private chat ZIP, photos, names or message contents as a bug report. Screenshots should show synthetic data or have private details removed.
+Try WhatsApp → desired chat → three dots → More if shown → Export chat → Include media → chatStamp, once closed and once open, without saving a file first. Also try the saved ZIP picker. Select a few photos/videos, save, and compare their dates with the chat and your Gallery. Try English/Hebrew, saving in the background, cancelling a larger save and importing the same export again. Please report what worked or failed, device/Android version, app version and steps to **meniviner@gmail.com** or private Play feedback. Use a synthetic or non-sensitive export first. Never send me your private chat ZIP, photos, names or message contents as a bug report. Screenshots should show synthetic data or have private details removed.
 
 This is a test build. Date support varies by file/provider/Gallery, and a file can save without a verified date. Keep your originals and check results. Thank you!
 
 ## הזמנה בעברית — נוסח לשימוש חוזר
 
-היי! אני מחפש מתנדבים לבדיקת chatStamp באנדרואיד 11 ומעלה. האפליקציה מייבאת קובץ ZIP של ייצוא WhatsApp ושומרת קבצים שנבחרו, עם תאריכי ההודעות כשהקובץ והגלריה תומכים בכך. העיבוד נעשה בטלפון, ללא חשבון, פרסומות או העלאה על ידי chatStamp.
+היי! אני מחפש מתנדבים לבדיקת chatStamp באנדרואיד 11 ומעלה. האפליקציה קולטת ייצוא ישירות דרך השיתוף מ־WhatsApp (ZIP או תמליל עם קבצים מצורפים), או מייבאת ZIP שמור, ושומרת קבצים שנבחרו, עם תאריכי ההודעות כשהקובץ והגלריה תומכים בכך. העיבוד נעשה בטלפון, ללא חשבון, פרסומות או העלאה על ידי chatStamp.
 
 יש לפתוח את **https://play.google.com/apps/testing/com.menis10tec.chatstamp** עם חשבון Google שמסרת לי, לבחור בהצטרפות לבדיקה ולהתקין דרך הקישור ל-Play. אם הצטרפת קודם לבדיקה הפנימית, יש לצאת ממנה תחילה. אשמח שתישארו רשומים לבדיקה הסגורה לפחות 14 ימים רצופים ותנסו את האפליקציה בתקופה הזאת. אפשר לפרוש בכל רגע; אם פורשים, כדאי לעדכן אותי כדי שאוכל לתעד את הבדיקה במדויק.
 
-כדאי לנסות ייבוא דרך הקבצים ושיתוף ZIP כשהאפליקציה סגורה וכשהיא פתוחה. לבחור כמה תמונות וסרטונים, לשמור ולהשוות את התאריכים לשיחה ולגלריה. כדאי לבדוק עברית ואנגלית, שמירה ברקע, ביטול שמירה גדולה וייבוא חוזר של אותו ייצוא. אפשר לשלוח ל-**meniviner@gmail.com** או דרך המשוב הפרטי ב-Play מה עבד ומה נכשל, דגם מכשיר, גרסת אנדרואיד, גרסת האפליקציה ושלבי שחזור. כדאי להתחיל בייצוא מלאכותי או לא רגיש. אין לשלוח לי קובץ שיחה פרטי, תמונות, שמות או תוכן הודעות כחלק מדיווח תקלה. בצילומי מסך יש להשתמש במידע מלאכותי או להסיר פרטים אישיים.
+כדאי לנסות WhatsApp ← השיחה הרצויה ← שלוש נקודות ← עוד אם מופיע ← ייצוא צ׳אט ← כולל מדיה ← chatStamp, כשהאפליקציה סגורה וכשהיא פתוחה, בלי לשמור קובץ קודם. כדאי לנסות גם בחירת ZIP שמור. לבחור כמה תמונות וסרטונים, לשמור ולהשוות את התאריכים לשיחה ולגלריה. כדאי לבדוק עברית ואנגלית, שמירה ברקע, ביטול שמירה גדולה וייבוא חוזר של אותו ייצוא. אפשר לשלוח ל-**meniviner@gmail.com** או דרך המשוב הפרטי ב-Play מה עבד ומה נכשל, דגם מכשיר, גרסת אנדרואיד, גרסת האפליקציה ושלבי שחזור. כדאי להתחיל בייצוא מלאכותי או לא רגיש. אין לשלוח לי קובץ שיחה פרטי, תמונות, שמות או תוכן הודעות כחלק מדיווח תקלה. בצילומי מסך יש להשתמש במידע מלאכותי או להסיר פרטים אישיים.
 
 זו גרסת בדיקה. התמיכה בתאריכים משתנה לפי הקובץ, ספק האחסון והגלריה, וקובץ עשוי להישמר בלי שהתאריך אומת. יש לשמור את המקור ולבדוק את התוצאות. תודה!
 
@@ -48,15 +63,15 @@ Report expected/actual behavior, steps, version, device/Android, language and wh
 
 ## Final isolated installer for owner acceptance
 
-Code 14's verified QA installer is `dist/play/release-0.2.0-14/chatstamp-0.2.0-14-qa.apk`, SHA256
-`a9bb8a591a5831820e317b55f9833152f38c9180683a7381960bccc4a0c9d0e7`.
+Code 15's verified QA installer is `dist/play/release-0.2.1-15/chatstamp-0.2.1-15-qa.apk`, SHA256
+`a800b9a623de09c0e6add98cbb9be23d409adb571a387195b28fee69daecc564`.
 It installs only `com.menis10tec.chatstamp.qa`, alongside production. Agent-run
 synthetic QA is removed at handoff; the owner can reinstall this exact candidate
 for the real-export checks below, or use the new package's Play build only after its actual availability is confirmed. Keep which identity/build was tested in the private result record.
 
 ```sh
 adb devices -l
-adb -s YOUR_SERIAL install --no-incremental dist/play/release-0.2.0-14/chatstamp-0.2.0-14-qa.apk
+adb -s YOUR_SERIAL install --no-incremental dist/play/release-0.2.1-15/chatstamp-0.2.1-15-qa.apk
 adb -s YOUR_SERIAL shell am start -W -n com.menis10tec.chatstamp.qa/com.menis10tec.chatstamp.MainActivity
 ```
 
@@ -67,7 +82,7 @@ installer. Installation alone does not complete real-export or Play acceptance.
 
 ## Owner real-export acceptance — still UNVERIFIED
 
-Run this privately on the **Samsung Galaxy A30 (SM-A305F), Android 11 / API 30**, after the final **0.2.0 (14)** QA installation is confirmed. Record the actual installed version and package; the side-by-side QA package is `com.menis10tec.chatstamp.qa`. Do not replace or uninstall the owner's production app. The requested physical **API 33 device is unavailable: UNVERIFIED**. API 30 results and synthetic emulator results do not fill that gap.
+Run this privately on the **Samsung Galaxy A30 (SM-A305F), Android 11 / API 30**, after the final **0.2.1 (15)** QA installation is confirmed. Record the actual installed version and package; the side-by-side QA package is `com.menis10tec.chatstamp.qa`. Do not replace or uninstall the owner's production app. The requested physical **API 33 device is unavailable: UNVERIFIED**. API 30 results and synthetic emulator results do not fill that gap.
 
 Use **PASS**, **FAIL** or **UNVERIFIED (not run / blocked)** for each case. Until the owner runs these steps, every owner real-export result remains **UNVERIFIED**.
 
@@ -113,7 +128,7 @@ Use **PASS**, **FAIL** or **UNVERIFIED (not run / blocked)** for each case. Unti
 2. This UI check alone does **not** prove that private bytes were removed. Before uninstalling or clearing app data, ask the release owner to verify the discarded QA import's private working directory and associated temporary files through the approved local QA inspection. Record only a nonpersonal removed/remaining count. If not inspected, keep **private import cleanup UNVERIFIED**, even if the app reopens cleanly. Do not confuse unrelated persistent settings/history or a general cache count with the discarded import's files.
 3. When no longer wanted, remove only the output copies and temporary export created for this test, after checking their locations privately. Keep the original WhatsApp conversation/media safe. The release owner handles QA uninstall and any test-setting restoration. Never clear the owner's production app or unrelated files as a cleanup shortcut.
 
-**לבעל החשבון:** יש להתחיל רק אחרי אישור שהותקן מועמד QA סופי 0.2.0 (14). הבדיקה המתוכננת היא ב-Galaxy A30 עם Android 11; מכשיר API 33 אינו זמין והבדיקה בו לא אומתה. יש להפעיל במפורש את Always use message date בהגדרות, לשתף מתוך WhatsApp כשהאפליקציה סגורה ופתוחה, ולבדוק שמתחיל ייבוא אחד לכל שיתוף. שומרים קבצים מוכרים דרך Import → Select → Save ומשווים בנפרד את הכמות שנשמרה, הכמות שתאריכיה אומתו, סדר ברירת המחדל ופרטי התאריך בגלריה. לבדיקת כפילויות ושינוי שפה משתמשים באותו ZIP שמור, ללא שינוי יעד או ארגון. פתיחה נקייה אחרי Discard אינה לבדה הוכחה לניקוי קובצי העבודה הפרטיים. הייצוא והמידע האישי נשארים מחוץ ל-Git; מדווחים רק סיכום ללא פרטים מזהים. כל בדיקה שטרם בוצעה נשארת **UNVERIFIED / לא אומתה**.
+**לבעל החשבון:** יש להתחיל רק אחרי אישור שהותקן מועמד QA סופי 0.2.1 (15). הבדיקה המתוכננת היא ב-Galaxy A30 עם Android 11; מכשיר API 33 אינו זמין והבדיקה בו לא אומתה. יש להפעיל במפורש את Always use message date בהגדרות, לשתף מתוך WhatsApp כשהאפליקציה סגורה ופתוחה, ולבדוק שמתחיל ייבוא אחד לכל שיתוף. שומרים קבצים מוכרים דרך Import → Select → Save ומשווים בנפרד את הכמות שנשמרה, הכמות שתאריכיה אומתו, סדר ברירת המחדל ופרטי התאריך בגלריה. לבדיקת כפילויות ושינוי שפה משתמשים באותו ZIP שמור, ללא שינוי יעד או ארגון. פתיחה נקייה אחרי Discard אינה לבדה הוכחה לניקוי קובצי העבודה הפרטיים. הייצוא והמידע האישי נשארים מחוץ ל-Git; מדווחים רק סיכום ללא פרטים מזהים. כל בדיקה שטרם בוצעה נשארת **UNVERIFIED / לא אומתה**.
 
 ## Copyable owner result — nonpersonal, initially UNVERIFIED
 
@@ -122,7 +137,7 @@ Copy this template into the private owner record and fill only observed facts. A
 ```text
 Owner real-export run: UNVERIFIED — NOT RUN
 Run date/time and time zone: UNVERIFIED
-Installed candidate: expected 0.2.0 (14); actual version/code: UNVERIFIED
+Installed candidate: expected 0.2.1 (15); actual version/code: UNVERIFIED
 Installed package/build identifier confirmed by release owner: UNVERIFIED
 Play closed route is verified; actual owner-run installed version/track: UNVERIFIED
 Device: Samsung Galaxy A30 SM-A305F, Android 11/API 30 — actual confirmed: UNVERIFIED

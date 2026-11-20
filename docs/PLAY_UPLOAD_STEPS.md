@@ -2,7 +2,24 @@
 
 Current package **com.menis10tec.chatstamp**, app **4975002762311404414**, developer **menis 10tec /5615073583807067044**. Existing upload key retained. The owner approved both creation declarations and IARC for this record; no additional agreement is pending.
 
-## Current Console result —20 November 2026
+## Current Console result —20 November 2026, code15
+
+**Latest checkpoint, 2026-11-20 — direct sharing 0.2.1 (15):** Exact source
+45f27382b64d7e7fa688747eea3a42659e9bb61f passes full smoke, source CI and signed
+production/isolated minified QA checks. Actual Android share-sheet raw files,
+cold generic ZIP, warm replacement, no-grant recovery, Hebrew six-page guide and
+3saved/1verified/0failed save were observed on the owner-selected API36 emulator.
+This is synthetic transport acceptance, not an actual WhatsApp/owner export.
+Internal15 is available; same AAB promoted to Alpha100% and both submission steps
+completed. Final publishing heading **Changes in review**, quick checks running.
+Previous active closed14/178countries remains the confirmed baseline. All five
+list assignments remain checked, including friends/family; no invitations resent.
+Fresh [report](../dist/play/direct-share-0.2.1-15-20261120/README.md) and
+[release products](../dist/play/release-0.2.1-15/README.md). Actual WhatsApp,
+physical15, fresh Gallery ordering,16KiB execution, minified private discarded bytes
+and genuine tester eligibility remain UNVERIFIED. PR1 remains open/unmerged.
+
+## Prior code14 distribution and artwork checkpoint
 
 New app **4975002762311404414 / com.menis10tec.chatstamp**: fresh20November readback shows **Alpha14(0.2.0) ACTIVE**,178country/region entries. Production14 was installed through actual native Google Play on the connected Samsung A30 and opened; installer readback is **com.android.vending**. Its existing device account was added through one new **internal-only** list; original five closed-list assignments remain. The earlier bilingual chatStamp invitation to20unique addresses retains its SENT/exact-recipient verification. Six fresh Hebrew QA14 split posters and a localized feature remain saved in iw-IL. The latest **three store changes are in review**: replacement default icon and support-address-only EN/HE full-description edits. Both per-app support fields separately published as menis10tec@gmail.com without a new binary. Existing banners/screenshots and all other copy are unchanged; the matching Tank Malle logo remains a local-only approval proposal. Earlier today the Dashboard showed1opted-in tester; that count was not refreshed after artwork submission and no qualifying12tester/14day period or production access is claimed.
 
@@ -19,7 +36,7 @@ New app **4975002762311404414 / com.menis10tec.chatstamp**: fresh20November read
 
 ## Remaining work
 
-1. Alpha14 is active. Review/publication of the latest three logo/description changes is external. Do not resubmit identical changes or monitor on a recurring loop; resume on a material result or owner's request. Resolve any real finding without weakening artifact policy.
+1. Internal15 is available; Alpha15 is submitted/in review. Google review/publication of15 is external. The prior confirmed closed baseline is14. Do not resubmit identical changes or monitor on a recurring loop; resume on a material result or owner's request. Resolve any real finding without weakening artifact policy.
 2. Volunteers must join using their assigned Google Account. Existing internal participants must leave internal before joining closed. Record genuine opt-in/opt-out dates, actual use and honest feedback privately. SENT proves submission to Gmail, not delivery or participation.
 3. Complete the owner real-export acceptance in [TESTERS.md](TESTERS.md), including own WhatsApp cold/warm shares, same-ZIP duplicates/path stability, Gallery order/Details and private-byte inspection. Preserve [remaining limits](KNOWN_RISKS.md).
 4. Request production access only after actual Console eligibility and genuine 12 tester/14 day participation. The observed 1 count does not establish a start/end time for a future qualifying interval. PR #1 stays open/unmerged.
