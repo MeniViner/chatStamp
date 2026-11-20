@@ -102,6 +102,7 @@ class SaveWorkerLifecycleTest {
         if (file.isFile && file.name.matches(Regex("[a-f0-9]{64}\\.json")) &&
           runCatching { JSONObject(file.readText()).optString("chatFolderName") == chat }.getOrDefault(false)) {
           AtomicFile(file).delete()
+          assertTrue(File(file.parentFile, "${file.nameWithoutExtension}.entries").deleteRecursively())
         }
       }
     }

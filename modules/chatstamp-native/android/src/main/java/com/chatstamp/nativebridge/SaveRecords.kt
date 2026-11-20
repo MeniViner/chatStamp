@@ -1,10 +1,18 @@
 package com.chatstamp.nativebridge
 
-import android.util.AtomicFile
 import expo.modules.kotlin.records.Field
 import expo.modules.kotlin.records.Record
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
+import java.nio.channels.FileChannel
+import java.nio.file.Files
+import java.nio.file.NoSuchFileException
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption.ATOMIC_MOVE
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+import java.nio.file.StandardOpenOption.READ
+import java.security.MessageDigest
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -15,71 +23,107 @@ internal class SaveRecords(
   timestampFolder: Boolean,
   canonicalChatName: String,
   requestedChatFolderName: String? = null,
-  requestedLabels: OutputFolderLabels? = null
+  requestedLabels: OutputFolderLabels? = null,
+  private val syncDirectory: (Path) -> Unit = ::syncRecordDirectory
 ) {
-  private val baseFile = File(directory, "$key.json")
-  private val file = AtomicFile(baseFile)
-  private val existing = baseFile.exists() || File(baseFile.path + ".bak").exists()
-  private val data = try {
-    JSONObject(file.openRead().use { it.readBytes().toString(Charsets.UTF_8) })
-  } catch (error: java.io.FileNotFoundException) {
-    if (existing) throw error
-    JSONObject()
-  }
-  private val entries = if (data.has("entries")) data.getJSONObject("entries")
-    else JSONObject().also { data.put("entries", it) }
+  private val profile = directory.toPath().toAbsolutePath().resolve("$key.json")
+  private val entries = profile.resolveSibling("$key.entries")
+  val labels: OutputFolderLabels
+  val chatFolderName: String
+  val folder: String
 
-  // A legacy record's English paths are part of duplicate identity.
-  val labels: OutputFolderLabels = if (existing) {
-    data.optJSONObject("folderLabels")?.let { OutputFolderLabels.fromJson(it) } ?: OutputFolderLabels()
-  } else (requestedLabels ?: OutputFolderLabels()).safe()
-
-  val chatFolderName: String = if (existing) {
-    data.optString("chatFolderName", canonicalChatName).let(::cleanSegment)
-  } else if (requestedChatFolderName == null) cleanSegment(canonicalChatName)
-    else cleanLabel(requestedChatFolderName, labels.importedChat)
-
-  val folder: String = if (data.has("folder")) data.getString("folder") else {
-    if (timestampFolder) {
+  init {
+    ensureDirectory(profile.parent)
+    // Android AtomicFile gives a legacy backup precedence over its base file.
+    val backup = profile.resolveSibling("${profile.fileName}.bak")
+    if (Files.exists(backup)) {
+      Files.move(backup, profile, ATOMIC_MOVE, REPLACE_EXISTING)
+      syncDirectory(profile.parent)
+    }
+    val data = readJson(profile)
+    labels = if (data == null) (requestedLabels ?: OutputFolderLabels()).safe()
+      else data.optJSONObject("folderLabels")?.let(OutputFolderLabels::fromJson) ?: OutputFolderLabels()
+    chatFolderName = if (data != null) cleanSegment(data.optString("chatFolderName", canonicalChatName))
+      else if (requestedChatFolderName == null) cleanSegment(canonicalChatName)
+      else cleanLabel(requestedChatFolderName, labels.importedChat)
+    folder = if (data?.has("folder") == true) data.getString("folder") else if (timestampFolder) {
       val now = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("uuuu-MM-dd HH-mm", Locale.ROOT))
       "${labels.export} $now-${key.take(8)}"
     } else ""
+
+    if (data?.has("entryStorageVersion") == true) {
+      check(data.getInt("entryStorageVersion") == 2) { "Unsupported save record version" }
+      check(Files.isDirectory(entries)) { "Missing save record directory" }
+    } else {
+      ensureDirectory(entries)
+      val metadata = data ?: JSONObject()
+      if (metadata.has("entries")) {
+        // The monolith remains authoritative until every shard is durable.
+        // A restart before the profile rename safely repeats this migration.
+        val legacy = metadata.getJSONObject("entries")
+        for (id in legacy.keys()) {
+          writeJson(entryPath(id), legacy.getJSONObject(id), syncParent = false)
+        }
+        syncDirectory(entries)
+        metadata.remove("entries")
+      }
+      metadata.put("folder", folder).put("chatFolderName", chatFolderName)
+        .put("folderLabels", labels.toJson()).put("folderProfileVersion", 1)
+        .put("entryStorageVersion", 2)
+      writeJson(profile, metadata)
+    }
   }
 
-  init {
-    if (!directory.isDirectory) check(directory.mkdirs()) { "Could not create save records" }
-    data.put("folder", folder).put("chatFolderName", chatFolderName)
-      .put("folderLabels", labels.toJson()).put("folderProfileVersion", 1)
-    // Pin even a failed/cancelled first attempt to this profile before creating destinations.
-    persist()
-  }
-
-  fun completed(id: String): JSONObject? = entries.optJSONObject(id)?.optJSONObject("completed")
-  fun writing(id: String): JSONObject? = entries.optJSONObject(id)?.optJSONObject("writing")
+  fun completed(id: String): JSONObject? = readJson(entryPath(id))?.optJSONObject("completed")
+  fun writing(id: String): JSONObject? = readJson(entryPath(id))?.optJSONObject("writing")
 
   fun updateWriting(id: String, value: JSONObject?) {
-    entry(id).put("writing", value)
-    persist()
+    val path = entryPath(id)
+    val entry = readJson(path) ?: JSONObject()
+    writeJson(path, entry.put("writing", value))
   }
 
   fun complete(id: String, result: JSONObject) {
-    entry(id).put("completed", result).remove("writing")
-    persist()
+    val path = entryPath(id)
+    val entry = readJson(path) ?: JSONObject()
+    entry.put("completed", result).remove("writing")
+    writeJson(path, entry)
   }
 
-  private fun entry(id: String): JSONObject = entries.optJSONObject(id)
-    ?: JSONObject().also { entries.put(id, it) }
+  private fun entryPath(id: String): Path {
+    val digest = MessageDigest.getInstance("SHA-256").digest(id.toByteArray(Charsets.UTF_8))
+    val name = digest.joinToString("") { (it.toInt() and 255).toString(16).padStart(2, '0') }
+    return entries.resolve("$name.json")
+  }
 
-  private fun persist() {
-    val output = file.startWrite()
-    try {
-      output.write(data.toString().toByteArray(Charsets.UTF_8))
-      file.finishWrite(output)
-    } catch (error: Exception) {
-      file.failWrite(output)
-      throw error
+  private fun readJson(path: Path): JSONObject? = try {
+    JSONObject(String(Files.readAllBytes(path), Charsets.UTF_8))
+  } catch (missing: NoSuchFileException) {
+    null
+  }
+
+  // ScopedMediaSaver serializes writers. A killed writer may leave .new,
+  // which readers ignore and the next write to this record truncates.
+  private fun writeJson(path: Path, value: JSONObject, syncParent: Boolean = true) {
+    val temporary = path.resolveSibling("${path.fileName}.new")
+    FileOutputStream(temporary.toFile()).use { stream ->
+      stream.write(value.toString().toByteArray(Charsets.UTF_8))
+      stream.fd.sync()
     }
+    Files.move(temporary, path, ATOMIC_MOVE, REPLACE_EXISTING)
+    if (syncParent) syncDirectory(path.parent)
   }
+
+  private fun ensureDirectory(path: Path) {
+    if (Files.isDirectory(path)) return
+    ensureDirectory(path.parent)
+    Files.createDirectories(path)
+    syncDirectory(path.parent)
+  }
+}
+
+private fun syncRecordDirectory(path: Path) {
+  FileChannel.open(path, READ).use { it.force(true) }
 }
 
 data class OutputFolderLabels(

@@ -9,6 +9,7 @@ import android.os.Environment
 import android.provider.BaseColumns
 import android.provider.MediaStore
 import android.provider.MediaStore.MediaColumns
+import android.util.AtomicFile
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
@@ -37,7 +38,10 @@ class SaveFolderProfileTest {
 
   @After fun cleanup() {
     created.forEach { context.contentResolver.delete(it, null, null) }
-    records.forEach { it.delete(); File(it.path + ".bak").delete(); File(it.path + ".new").delete() }
+    records.forEach { profile ->
+      AtomicFile(profile).delete()
+      assertTrue(File(profile.parentFile, "${profile.nameWithoutExtension}.entries").deleteRecursively())
+    }
     job.deleteRecursively()
   }
 
@@ -93,17 +97,18 @@ class SaveFolderProfileTest {
     val options = options().copy(organizationMode = "by-sender-and-type", timestampFolder = true)
     val old = ScopedSaveItem("entry", Uri.fromFile(file).toString(), file.name, "document", "text/plain", relativeFolder = "Dana/Documents")
     val saved = save(listOf(old), options).single()
-    val recordFile = legacyRecordFile(options)
+    val recordFile = profileFile(options)
     assertTrue(recordFile.isFile)
-    val data = JSONObject(recordFile.readText()).apply {
-      remove("folderLabels"); remove("chatFolderName"); remove("folderProfileVersion")
-    }
-    val exportFolder = data.getString("folder")
+    val exportFolder = JSONObject(recordFile.readText()).getString("folder")
     assertTrue(exportFolder.startsWith("Export "))
     val expectedDirectory = "Documents/chatStamp/$chat/$exportFolder/Dana/Documents"
     assertEquals("${Environment.getExternalStorageDirectory().absolutePath}/$expectedDirectory", saved["outputDirectory"])
     assertMediaStoreRows("$expectedDirectory/", setOf("notes.txt"))
-    recordFile.writeText(data.toString())
+    val entryKey = identity(old.entryId, saved.getValue("outputDirectory"))
+    val legacy = JSONObject().put("folder", exportFolder).put("entries", JSONObject()
+      .put(entryKey, JSONObject().put("completed", JSONObject(saved))))
+    assertTrue(File(nativeRecords, "${recordFile.nameWithoutExtension}.entries").deleteRecursively())
+    recordFile.writeText(legacy.toString())
     val repeated = save(listOf(old.copy(relativeFolder = null, senderName = "Dana")), options.copy(
       folderLabels = hebrew, chatFolderName = "$chat עברית")).single()
     assertEquals("skipped", repeated["outcome"])
@@ -111,6 +116,55 @@ class SaveFolderProfileTest {
     assertEquals(saved["outputDirectory"], repeated["outputDirectory"])
     assertEquals("${Environment.getExternalStorageDirectory().absolutePath}/$expectedDirectory", repeated["outputDirectory"])
     assertMediaStoreRows("$expectedDirectory/", setOf("notes.txt"))
+  }
+
+  @Test fun interruptedReplacementDiscardsOnlyThePendingCopyAndSkipsTheCompletedUri() = runBlocking {
+    val source = File(job, "notes.txt").apply { writeText("The original saved bytes") }
+    val item = ScopedSaveItem("notes", Uri.fromFile(source).toString(), source.name, "document", "text/plain")
+    val options = options()
+    val saved = save(listOf(item), options).single()
+    val path = "Documents/chatStamp/$chat/"
+    val folder = MediaStoreFolder(context, MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY), path)
+    val replacement = folder.create("replacement.txt", item.mimeType).also(created::add)
+    context.contentResolver.openOutputStream(replacement)!!.use { it.write(1) }
+
+    val records = openRecords(options)
+    records.updateWriting(identity(item.entryId, folder.label), JSONObject()
+      .put("name", "replacement.txt").put("uri", replacement.toString()))
+
+    val retried = save(listOf(item), options).single()
+    assertEquals("skipped", retried["outcome"])
+    assertEquals(saved["insertedUri"], retried["insertedUri"])
+    assertNull(folder.read(replacement))
+    assertMediaStoreRows(path, setOf(source.name))
+    context.contentResolver.openInputStream(Uri.parse(retried["insertedUri"] as String))!!.use {
+      assertArrayEquals(source.readBytes(), it.readBytes())
+    }
+  }
+
+  @Test fun interruptionAfterPublishReconcilesTheSameUriAndSubsequentRetrySkipsIt() = runBlocking {
+    val source = File(job, "published.txt").apply { writeText("Already published") }
+    val item = ScopedSaveItem("published", Uri.fromFile(source).toString(), source.name, "document", "text/plain")
+    val options = options()
+    val path = "Documents/chatStamp/$chat/"
+    val folder = MediaStoreFolder(context, MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY), path)
+    val published = folder.create(source.name, item.mimeType).also(created::add)
+    context.contentResolver.openOutputStream(published)!!.use { it.write(source.readBytes()) }
+    val entryKey = identity(item.entryId, folder.label)
+    openRecords(options).updateWriting(entryKey, JSONObject().put("name", source.name)
+      .put("uri", published.toString()).put("expectedSize", source.length()).put("timestampSource", "none"))
+    folder.publish(published)
+
+    val recovered = save(listOf(item), options).single()
+    assertEquals(true, recovered["reconciled"])
+    assertEquals("saved", recovered["outcome"])
+    assertEquals(published.toString(), recovered["insertedUri"])
+    assertNull(openRecords(options).writing(entryKey))
+    val retried = save(listOf(item), options).single()
+    assertEquals("skipped", retried["outcome"])
+    assertEquals(published.toString(), retried["insertedUri"])
+    assertMediaStoreRows(path, setOf(source.name))
+    context.contentResolver.openInputStream(published)!!.use { assertArrayEquals(source.readBytes(), it.readBytes()) }
   }
 
   @Test fun partialHebrewExportKeepsItsProfileForCompletedAndNewEntries() = runBlocking {
@@ -121,7 +175,7 @@ class SaveFolderProfileTest {
     val a = ScopedSaveItem("a", Uri.fromFile(first).toString(), first.name, "document", "text/plain")
     val b = ScopedSaveItem("b", Uri.fromFile(second).toString(), second.name, "document", "text/plain")
     val saved = save(listOf(a), options).single()
-    val exportFolder = JSONObject(legacyRecordFile(options).readText()).getString("folder")
+    val exportFolder = JSONObject(profileFile(options).readText()).getString("folder")
     assertTrue(exportFolder.startsWith("ייצוא "))
     val expectedDirectory = "Documents/chatStamp/$chat עברית/$exportFolder/שולח לא ידוע/מסמכים"
     assertEquals("${Environment.getExternalStorageDirectory().absolutePath}/$expectedDirectory", saved["outputDirectory"])
@@ -141,7 +195,7 @@ class SaveFolderProfileTest {
     val options = options().copy(folderLabels = hebrew, chatFolderName = "$chat עברית", organizationMode = "by-type")
     val failed = save(listOf(item), options).single()
     assertEquals("failed", failed["outcome"])
-    assertEquals("מדיה", OutputFolderLabels.fromJson(JSONObject(legacyRecordFile(options).readText()).getJSONObject("folderLabels")).media)
+    assertEquals("מדיה", OutputFolderLabels.fromJson(JSONObject(profileFile(options).readText()).getJSONObject("folderLabels")).media)
     val expectedDirectory = "Documents/chatStamp/$chat עברית/מסמכים"
     assertMediaStoreRows("$expectedDirectory/", emptySet())
     file.writeText("Retry uses original profile")
@@ -173,10 +227,19 @@ class SaveFolderProfileTest {
       notificationTitle = "Saving test files", notificationCancelLabel = "Cancel")
   }
 
-  private fun legacyRecordFile(options: ScopedSaveOptions): File {
-    val legacyIdentity = JSONArray(listOf(options.archiveFingerprint, options.treeUri, chat, options.organizationMode, options.timestampFolder)).toString()
-    val key = MessageDigest.getInstance("SHA-256").digest(legacyIdentity.toByteArray()).joinToString("") { "%02x".format(it) }
+  private fun profileFile(options: ScopedSaveOptions): File {
+    val key = identity(options.archiveFingerprint, options.treeUri, chat, options.organizationMode, options.timestampFolder)
     return File(nativeRecords, "$key.json")
+  }
+
+  private fun identity(vararg parts: Any?): String {
+    val bytes = JSONArray(parts.toList()).toString().toByteArray(Charsets.UTF_8)
+    return MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+  }
+
+  private fun openRecords(options: ScopedSaveOptions): SaveRecords {
+    val file = profileFile(options).also(records::add)
+    return SaveRecords(nativeRecords, file.nameWithoutExtension, options.timestampFolder, chat)
   }
 
   private fun assertMediaStoreRows(expectedPath: String, expectedNames: Set<String>) {
@@ -206,11 +269,9 @@ class SaveFolderProfileTest {
 
   @Suppress("UNCHECKED_CAST")
   private suspend fun save(items: List<ScopedSaveItem>, options: ScopedSaveOptions): List<Map<String, Any?>> {
-    val before = nativeRecords.listFiles().orEmpty().map { it.name }.toSet()
-    try {
-      val result = ScopedMediaSaver(context).save(items, options)["results"] as List<Map<String, Any?>>
-      result.mapNotNull { it["insertedUri"] as? String }.map(Uri::parse).forEach(created::add)
-      return result
-    } finally { nativeRecords.listFiles().orEmpty().filter { it.name !in before }.forEach(records::add) }
+    records.add(profileFile(options))
+    val result = ScopedMediaSaver(context).save(items, options)["results"] as List<Map<String, Any?>>
+    result.mapNotNull { it["insertedUri"] as? String }.map(Uri::parse).forEach(created::add)
+    return result
   }
 }

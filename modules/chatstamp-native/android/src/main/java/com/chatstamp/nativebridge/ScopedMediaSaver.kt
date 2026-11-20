@@ -151,9 +151,12 @@ internal class ScopedMediaSaver(private val context: Context, private val operat
           bytesVerified, choice.instant != null, result.getString("dateVerification"), item.mediaType in galleryTypes
         )
         val removed = verified && runCatching { folder.delete(replaced.uri) }.getOrDefault(false)
-        if (removed) folder.forget(replaced)
-        else result.put("replacementWarning", "previous-file-kept")
-        records.complete(key, result)
+        if (removed) {
+          folder.forget(replaced)
+        } else {
+          result.put("replacementWarning", "previous-file-kept")
+          records.complete(key, result)
+        }
       }
       return result
     } catch (error: Exception) {
