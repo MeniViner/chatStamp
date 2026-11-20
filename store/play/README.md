@@ -1,6 +1,6 @@
 # Google Play listing package
 
-EN/iw-IL listings/assets remain saved in new **com.menis10tec.chatstamp /4975002762311404414**. Their prior submission published with Alpha 13; actual closed route is now available. Internal 14 is available and Alpha 14 is submitted/in review. All 20 unique assigned addresses received one private Bcc invitation. [Current continuation](../../docs/PLAY_UPLOAD_STEPS.md). Assets remain original actual code 9 phone captures and logo/banner; only the latter carry AI labels. Hebrew shares the default English banner; public foreground demo is actual code 11. Code 14 changes Selection UI and adds transcript/category navigation; do not call all old screens unchanged or relabel them 14.
+Alpha14 is now ACTIVE in **com.menis10tec.chatstamp /4975002762311404414**, and actual native Google Play installed14 on the connected A30 (installer com.android.vending). EN text/assets remain unchanged. Hebrew now uses **six split1080×1920 posters with fresh actual physical QA14 captures plus one localized1024×500 feature**. They were saved, reopened, ordered and submitted as two iw-IL changes; latest publishing state is in review/quick checks. [Current grouped delivery](owner-followup-20261120/README.md), [artwork/provenance](owner-followup-20261120/store-he/README.md), [release continuation](../../docs/PLAY_UPLOAD_STEPS.md). Original code9 PNGs remain historical; they are not relabeled14. The current public foreground demo remains actual code11.
 
 ## Text files
 
@@ -11,7 +11,7 @@ EN/iw-IL listings/assets remain saved in new **com.menis10tec.chatstamp /4975002
 
 Paste file contents only, without filenames or Markdown fences. Title≤30, short description≤80 and full description≤4000 characters; release notes≤500 characters per language. Recheck counts after editing. The contact chosen by the owner is **meniviner@gmail.com**. The listing describes current functionality and explicitly limits date guarantees; it includes the implemented three-step picker/preview/RTL redesign. Replace release notes/version references for each later candidate.
 
-## Asset map and required verification
+## Historical asset map and required verification
 
 The release owner supplies and verifies the assets; this text preparation does not certify them. Do not mark the package complete until every file below exists, is inspected, and depicts the verified candidate.
 
@@ -25,9 +25,9 @@ The release owner supplies and verifies the assets; this text preparation does n
 | `screenshots/en-US/04-results.png` | Actual saved/date-verified counts from the same candidate, English. |
 | `screenshots/he-IL/01-import.png` through `04-results.png` | The corresponding actual-phone Hebrew screens, readable RTL. |
 
-Phone screenshots: JPEG or 24-bit PNG without alpha, 320–3840 px per dimension and longest side ≤2×shortest; at most 8 per device type. Play needs at least 2 screenshots to publish; this task requires **four per language**. Prefer 1080×1920 portrait for the recommendation format. A raw 1080×2340 capture is too tall: use compliant physical capture dimensions or a truthful crop that preserves the depicted content. Do not invent UI, hide relevant results, use real chats/names/photos, or substitute emulator images for the required phone captures. Keep a brief provenance record of phone, candidate, language, synthetic run and any crop; do not place raw logs here.
+Phone screenshots: JPEG or 24-bit PNG without alpha, 320–3840 px per dimension and longest side ≤2×shortest; at most 8 per device type. Play needs at least 2 screenshots to publish; this task requires **four per language**. Prefer 1080×1920 portrait for the recommendation format. A raw1080×2340 capture is too tall: the current Hebrew posters uniformly contain the complete capture on a1080×1920 canvas, without crop or edits inside actual UI. Other future assets need equally truthful compliant composition. Do not invent UI, hide relevant results, use real chats/names/photos, or substitute emulator images for the required phone captures. Keep a brief provenance record of phone, candidate, language, synthetic run and any crop; do not place raw logs here.
 
-The shared `feature-graphic.png` currently contains English copy and is mapped as the English default graphic; it is not language-neutral. The Hebrew listing may use it as the shared default, or the owner may add a separately verified Hebrew localized graphic. Suggested alt text: English “chatStamp imports a chat export and saves selected files with verified date results.” Hebrew “chatStamp מייבאת ייצוא שיחה ושומרת קבצים נבחרים עם תוצאות אימות תאריך.”
+The shared `feature-graphic.png` contains English copy and remains the unchanged English default. Hebrew now uses `owner-followup-20261120/store-he/feature-he.jpg`. Its new illustration is labeled separately from actual UI. All seven Hebrew composite assets carry the Console AI label because they include the existing AI-created logo or the new illustration. Suggested alt text: English “chatStamp imports a chat export and saves selected files with verified date results.” Hebrew “chatStamp מייבאת ייצוא שיחה ושומרת קבצים נבחרים עם תוצאות אימות תאריך.”
 
 Before handoff inspect image dimensions/channels and every screen, validate text limits, scan for private content/secrets, and state any missing asset. Do not copy build outputs, old evidence, raw videos or a real export into this folder. Keep the combined current evidence set under 10,000,000 bytes; release APK/AAB artifacts belong under ignored `dist/`, not the listing folder.
 

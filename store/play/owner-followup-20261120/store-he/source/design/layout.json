@@ -1,0 +1,55 @@
+{
+  "posterSize": [1080, 1920],
+  "jpegQuality": 0.91,
+  "targetImageBytes": 3500000,
+  "hardSetBytes": 10000000,
+  "fonts": {"headline": "Karantina-Bold.ttf", "body": "Heebo.ttf"},
+  "posterLayout": {
+    "icon": {"x": 940, "y": 76, "width": 72, "height": 72},
+    "brand": {"x": 664, "y": 84, "width": 252, "height": 62},
+    "kicker": {"x": 588, "y": 224, "width": 420, "height": 52},
+    "headline": {"x": 554, "y": 308, "width": 454, "height": 316},
+    "phone": {"x": 32, "y": 654, "width": 558, "height": 1116},
+    "body": {"x": 640, "y": 920, "width": 366, "height": 414},
+    "footer": {"x": 72, "y": 1836, "width": 936, "height": 40},
+    "headlineMax": 148,
+    "headlineMin": 92,
+    "bodyMax": 43,
+    "bodyMin": 36,
+    "frameBorder": 12,
+    "arrow": [930, 1404, 630, 1544]
+  },
+  "palettes": {
+    "cream": {"background": "F6F0DD", "leftField": "E4EBDD", "ink": "143C35", "muted": "526C5E", "accent": "429B83", "gold": "BC9D4F", "frame": "173A33"},
+    "ink": {"background": "122E29", "leftField": "1B4238", "ink": "FFF8E5", "muted": "C2DBCD", "accent": "9BE1BD", "gold": "D7BE73", "frame": "0B211D"},
+    "mint": {"background": "EAF3E8", "leftField": "D6E9D9", "ink": "143C35", "muted": "526C5E", "accent": "368D76", "gold": "B3964F", "frame": "163D33"},
+    "teal": {"background": "164A40", "leftField": "225C4D", "ink": "FFF7E2", "muted": "D1E6D7", "accent": "A9E4C1", "gold": "E1C67B", "frame": "102E28"}
+  },
+  "posters": [
+    {"id": "01-import", "palette": "cream", "angle": 6, "kicker": "01 · ייבוא שיחה", "headline": "מייבאים שיחה.\nהקבצים כאן.", "body": "משתפים ייצוא של שיחה\nאו בוחרים קובץ ייצוא שמור.\nהעיבוד נשאר במכשיר."},
+    {"id": "02-selection", "palette": "ink", "angle": -5, "kicker": "02 · בחירת קבצים", "headline": "בוחרים בדיוק\nמה לשמור.", "body": "מסננים לפי שולח וסוג.\nמסמנים רק את הקבצים\nשרוצים לשמור."},
+    {"id": "03-saving", "palette": "mint", "angle": 5, "kicker": "03 · שמירה ברקע", "headline": "שומרים בנחת.\nרואים התקדמות.", "body": "ההתקדמות מוצגת בזמן אמת.\nאפשר להמשיך ברקע,\nולבטל לפי הצורך."},
+    {"id": "04-results", "palette": "teal", "angle": -6, "kicker": "04 · בדיקת תאריכים", "headline": "התאריכים\nנבדקים.", "body": "רואים מה נשמר,\nואילו תאריכים אומתו.\nהדיוק תלוי בקובץ וביעד."},
+    {"id": "05-transcript", "palette": "cream", "angle": 6, "kicker": "05 · תמליל השיחה", "headline": "כל השיחה.\nבתוך האפליקציה.", "body": "פותחים את תמליל השיחה\nוקוראים גם את ההודעות,\nכאן בתוך האפליקציה."},
+    {"id": "06-settings", "palette": "ink", "angle": -5, "kicker": "06 · הגדרות", "headline": "כל הגדרה.\nבמקום שלה.", "body": "שפה, תיקיות, כפילויות.\nתפריט קצר ומסודר,\nוהבחירות נשמרות במכשיר."}
+  ],
+  "posterFooter": "צילום מסך אמיתי · נתוני הדגמה",
+  "feature": {
+    "size": [1024, 500],
+    "palette": "cream",
+    "filename": "feature-he.jpg",
+    "icon": {"x": 925, "y": 32, "width": 64, "height": 64},
+    "brand": {"x": 660, "y": 38, "width": 240, "height": 54},
+    "illustration": {"x": 20, "y": 36, "width": 470, "height": 416},
+    "headlineBox": {"x": 526, "y": 140, "width": 464, "height": 196},
+    "bodyBox": {"x": 544, "y": 354, "width": 444, "height": 104},
+    "labelBox": {"x": 28, "y": 464, "width": 462, "height": 24},
+    "headline": "מהשיחה.\nלקבצים שלכם.",
+    "body": "ייבוא, בחירה ושמירה עם בדיקת תאריכים.\nהאימות תלוי בקובץ וביעד.",
+    "illustrationLabel": "המחשה בעזרת בינה מלאכותית",
+    "headlineMax": 90,
+    "headlineMin": 70,
+    "bodyMax": 25,
+    "bodyMin": 22
+  }
+}

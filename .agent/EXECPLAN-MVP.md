@@ -7,44 +7,55 @@ instants, select/filter files and save them so the tested Gallery sorts by those
 instants. Saved and verified dates remain separate facts. Local-only; no DB,
 accounts, analytics, cloud or server. Current requested production identity is com.menis10tec.chatstamp; retain the owner's external upload key. Earlier com.menis.chatstamp artifacts remain historical.
 
-## Current state —2026-11-20, owner UX code 14 accepted; Alpha update in review
+## Current state —2026-11-20, Alpha14 active; Hebrew artwork submitted
 
-The owner's initial tester/download report did not identify a track and was not
-Google approval evidence by itself. Root now freshly observed Alpha 13 ACTIVE and
-the eligible signed-in new-package closed route showing You are a tester with
-download. Dashboard counts 1 opt-in; qualifying 12 continuous testers/14 days remains unmet.
+Fresh Console readback shows **Alpha 14 (0.2.0) ACTIVE**, 178 country/region entries.
+Actual native Google Play installed the previously absent production package on the
+Samsung A30 under explicit owner instruction; package/version, installer
+**com.android.vending**, real Open/onboarding and process presence were verified.
+The phone's existing Google account joined internal through a new one-member list
+selected only for internal testing. Original five Alpha assignments remain intact.
+This install does not establish qualifying closed participation. Earlier today the
+Dashboard showed one opt-in; no genuine 12-tester/14-day period is claimed.
 
 Code 14 implements single-line ellipsized titles with full accessible names,
-filled-active/outlined-inactive filters, actual transcript-first placement and
-an internal selectable/scrollable bounded reader, native-RTL arrows/swipes, and
-six Settings categories with category→menu→original-screen Back. Transcript gets
-a dedicated headerless section so ordinary day groups/checkboxes stay coherent.
-Reader uses SDK 55 FileHandle 32 KiB plus≤3 UTF-8 lookahead, closes handles, ignores stale
-responses and guards repeated-next navigation. Ordinary documents retain fallback.
+filled-active/outlined-inactive filters, transcript-first placement, an internal
+selectable/scrollable bounded reader, native RTL arrows/swipes, and six Settings
+categories with category→menu→original-screen Back. The reader uses SDK 55
+FileHandle 32 KiB plus at most three UTF-8 lookahead bytes; ordinary documents retain
+external fallback. Exact app/config source remains
+**9e6c28f11117e8a6ff6531ccab874192c55cc61a** with unchanged signed 14 artifacts/key.
 
-Implementer completed Settings; Test author authored 44 independent UI regressions;
-Reviewer source/final scoped acceptance CLEAR. Root service tests and full smoke:
-564 host/55 files, 127 Python, 59 fresh JVM, 52 connected on each API 30/API 36, zero failures/skips.
-Exact app/config source 9e6c28f11117e8a6ff6531ccab874192c55cc61a is pushed and both
-Android CI runs pass. Signed production/QA 14 static/signature checks pass using the
-existing key. A30 HE incl 130% font and both restart directions, wide 1280×800 dp EN,
-all 357,772 transcript bytes over 11 sections, three-file RTL paging, six-category
-navigation/retained selection, and five-file independent dates per device pass.
-QA/helper/fixtures/outputs removed, original controls restored, owned 5556 stopped;
-preexisting 5554 preserved. Production was untouched.
+Earlier exact-source full smoke remains scoped to that application candidate:
+564 host / 55 files, 127 Python, 59 fresh JVM, 52 connected on each API 30/API 36,
+zero failures/skips. Source/scoped review CLEAR; both source Android CI runs pass.
+Signed/static production/QA checks and recorded A30 Hebrew / wide API 36 English
+minified acceptance passed. No app code changed in this artwork/docs continuation.
 
-Exact 14 AAB uploaded/processed/published internally, then same artifact promoted
-and submitted to Alpha; publishing Changes in review, quick checks still running.
-No closed 14 availability inferred. All five lists privately enumerated,20 unique;
-one bilingual Bcc invitation sent, exact-recipient and Gmail SENT readback verified.
-No email delivery/usage/qualifying clock inferred. IARC/creation approvals persist.
-Fresh single evidence set: dist/play/owner-ux-0.2.0-14-20261120/README.md; products
-separate:dist/play/release-0.2.0-14/. Older receipts unchanged at original locations.
+Separate Hebrew-only Tank Malle Bcc invitation to 19 unique addresses (excluding
+the owner-identified clothing/admin address) has Gmail SENT/exact-recipient readback.
+The prior 20-person bilingual chatStamp send is a separate completed event; neither
+send proves delivery, usage or continuous opt-in.
 
-Remaining: Google 14 review; genuine 12/14 participation/feedback; owner real export/
-WhatsApp cold-warm/Gallery/private-byte acceptance; physical API 33, actual 16 KiB and
-full UI/provider matrix. Keep historical scopes, do not merge PR #1, request
-production access early, resubmit identical bytes, or start recurring monitoring.
+Six fresh synthetic physical QA14 Hebrew split posters plus one localized feature
+were saved/reopened in iw-IL and submitted as two artwork changes. Latest publishing
+status: **Changes in review**, quick checks running. English text/asset sources
+remain unchanged. Implementer Swift typecheck PASS, Test author seven-asset checks
+PASS, Reviewer CLEAR. App UI is actual; AI illustration/logo composition is labeled.
+Durable public artwork/source/provenance and locally excluded owner receipts are
+grouped in **store/play/owner-followup-20261120/**. Earlier evidence remains in its
+original dist/play folders. The whole new delivery must stay below 10,000,000 bytes.
+
+QA/helper, synthetic ZIP and nine owned saved outputs were removed and verified;
+original stayawake 7, timeout 600000 and font 1.1 restored. Production Play14 is kept
+and reopened; preexisting emulator 5554 remains untouched. Uninstall removal does
+not establish discarded private-byte cleanup before uninstall.
+
+Remaining: Google artwork review/publication; genuine closed use/feedback/period;
+owner real export/own WhatsApp cold-warm shares/Gallery order/private-byte acceptance;
+physical API 33, actual 16 KiB and full UI/provider coverage. Keep PR #1 open/unmerged;
+do not apply for production access before eligibility, resubmit identical bytes or
+start recurring external monitoring. See latest dated REBUILD_LOG/VERIFICATION.
 
 ## Prior state — 2026-11-20, IARC complete; Alpha 13 submitted/in review
 
@@ -825,3 +836,8 @@ established. No invitations or qualifying period claimed. Google review and actu
 closed availability are external gates; no recurring monitoring is started.
 Fresh compact proof: dist/play/iarc-submission-20261120/. No app bytes, source,
 assets or device state changed; prior receipts stay historical. PR #1 stays unmerged.
+
+
+## 2026-11-20 — Owner follow-up closed within asset/install scope
+
+Completed the explicitly requested actual Play install,19-person Hebrew Tank Malle send with exclusion, six Hebrew split posters/localized feature and Console submission. Implementer renderer/typecheck PASS, Test author acceptance PASS, Reviewer CLEAR. Binary Alpha14ACTIVE; two new artwork changes in review/quick checks. No publication claim for the artwork, production access, recurring external checks or real-export acceptance. Exact source9e6c28f and signed14 artifacts unchanged. See latest dated VERIFICATION and grouped owner-followup README; keep remaining gates independently evidenced.

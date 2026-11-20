@@ -1,0 +1,4 @@
+# Owner-only send/install and Console receipts stay in this delivery folder locally.
+/*.json
+/*.html
+/*.jpg

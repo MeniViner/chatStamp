@@ -1,0 +1,74 @@
+{
+  "06-settings": {
+    "file": "native-captures/06-settings.png",
+    "sha256": "f262de243f2e325feee3aebad6fe7bf3c2c35b7aead547721902aa23a101ee48",
+    "bytes": 140896,
+    "package": "com.menis10tec.chatstamp.qa",
+    "version_code": 14,
+    "source": "9e6c28f11117e8a6ff6531ccab874192c55cc61a",
+    "device": "Samsung Galaxy A30 SM-A305F, API30",
+    "language": "he",
+    "font_scale": 1.0,
+    "capture": "Actual native screencap; synthetic data; no crop, UI edits or content reconstruction"
+  },
+  "01-import": {
+    "file": "native-captures/01-import.png",
+    "sha256": "4b7f3f7e75e64e6ce48b6bdc2bbdf1f871a4b92e28bc8f8871436401d85e484a",
+    "bytes": 136018,
+    "package": "com.menis10tec.chatstamp.qa",
+    "version_code": 14,
+    "source": "9e6c28f11117e8a6ff6531ccab874192c55cc61a",
+    "device": "Samsung Galaxy A30 SM-A305F, API30",
+    "language": "he",
+    "font_scale": 1.0,
+    "capture": "Actual native screencap; synthetic data; no crop, UI edits or content reconstruction"
+  },
+  "02-selection": {
+    "file": "native-captures/02-selection.png",
+    "sha256": "3cd6581d27829de2711daf23a73ba42d61ac09ad18006cb0684a980238f564eb",
+    "bytes": 116550,
+    "package": "com.menis10tec.chatstamp.qa",
+    "version_code": 14,
+    "source": "9e6c28f11117e8a6ff6531ccab874192c55cc61a",
+    "device": "Samsung Galaxy A30 SM-A305F, API30",
+    "language": "he",
+    "font_scale": 1.0,
+    "capture": "Actual native screencap; synthetic data; no crop, UI edits or content reconstruction"
+  },
+  "05-transcript": {
+    "file": "native-captures/05-transcript.png",
+    "sha256": "11349abdf8c33819f146721c704068b95e19689f94521661512ea26fa6cd5369",
+    "bytes": 312154,
+    "package": "com.menis10tec.chatstamp.qa",
+    "version_code": 14,
+    "source": "9e6c28f11117e8a6ff6531ccab874192c55cc61a",
+    "device": "Samsung Galaxy A30 SM-A305F, API30",
+    "language": "he",
+    "font_scale": 1.0,
+    "capture": "Actual native screencap; synthetic data; no crop, UI edits or content reconstruction"
+  },
+  "03-saving": {
+    "file": "native-captures/03-saving.png",
+    "sha256": "8710a7dc2c90b18bf68f3f7b5d82d6414aa21827f39b53e00567732372b3f6de",
+    "bytes": 75234,
+    "package": "com.menis10tec.chatstamp.qa",
+    "version_code": 14,
+    "source": "9e6c28f11117e8a6ff6531ccab874192c55cc61a",
+    "device": "Samsung Galaxy A30 SM-A305F, API30",
+    "language": "he",
+    "font_scale": 1.0,
+    "capture": "Actual unmodified screencap frame during 9-media native save; 2/9 complete, 64.0 MB processed; no crop, UI edits or relabelling"
+  },
+  "04-results": {
+    "file": "native-captures/04-results.png",
+    "sha256": "90ee55e3436e6d5f9d889b677d4e3d7fdf1ebc873a708f74a91e860dd2c66d1f",
+    "bytes": 95509,
+    "package": "com.menis10tec.chatstamp.qa",
+    "version_code": 14,
+    "source": "9e6c28f11117e8a6ff6531ccab874192c55cc61a",
+    "device": "Samsung Galaxy A30 SM-A305F, API30",
+    "language": "he",
+    "font_scale": 1.0,
+    "capture": "Actual native screencap; synthetic data; no crop, UI edits or content reconstruction"
+  }
+}
