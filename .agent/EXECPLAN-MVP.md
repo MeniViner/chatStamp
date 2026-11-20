@@ -7,7 +7,7 @@ instants, select/filter files and save them so the tested Gallery sorts by those
 instants. Saved and verified dates remain separate facts. Local-only; no DB,
 accounts, analytics, cloud or server. Current requested production identity is com.menis10tec.chatstamp; retain the owner's external upload key. Earlier com.menis.chatstamp artifacts remain historical.
 
-## Current state —2026-11-20, Alpha14 active; Hebrew artwork submitted
+## Current state —2026-11-20, Alpha14 active; both transparent store icons submitted
 
 Fresh Console readback shows **Alpha 14 (0.2.0) ACTIVE**, 178 country/region entries.
 Actual native Google Play installed the previously absent production package on the
@@ -38,13 +38,17 @@ The prior 20-person bilingual chatStamp send is a separate completed event; neit
 send proves delivery, usage or continuous opt-in.
 
 Six fresh synthetic physical QA14 Hebrew split posters plus one localized feature
-remain saved in iw-IL. The latest three default-icon/EN/HE support-footer changes
-are in review. Both per-app support fields separately published without a new binary.
-Existing banner/screenshot assets and other copy remain unchanged. Implementer Swift typecheck PASS, Test author seven-asset checks
-PASS, Reviewer CLEAR. App UI is actual; AI illustration/logo composition is labeled.
-Durable public artwork/source/provenance and locally excluded owner receipts are
-grouped in **store/play/owner-followup-20261120/**. Earlier evidence remains in its
-original dist/play folders. The whole new delivery must stay below 10,000,000 bytes.
+remain saved in iw-IL. Both owner-approved Play store icons now use genuine
+transparent PNGs; chatStamp has no leaves and is saved/reopened in en-US and iw-IL.
+Tank Malle uses the approved gold car-wallet/receipt/gauge in its sole iw-IL locale.
+Both icon submissions end in Changes in review; public propagation is unverified.
+Both per-app support fields separately published without a new binary. Every
+banner/screenshot source URL/order and text value remains unchanged. Independent
+Test author PASS and Reviewer CLEAR cover both final icons and alpha-preserving
+mechanical export. Latest selected assets/prompts/checks and locally excluded fresh
+Console proof are grouped in **store/play/icon-rollout-20261120/**; earlier artwork
+and dated evidence stay at original paths. The whole fresh delivery stays below
+10,000,000 bytes. Application/config/native/launcher code and signed14 remain frozen.
 
 QA/helper, synthetic ZIP and nine owned saved outputs were removed and verified;
 original stayawake 7, timeout 600000 and font 1.1 restored. Production Play14 is kept
@@ -846,3 +850,14 @@ Completed the explicitly requested actual Play install,19-person Hebrew Tank Mal
 ## 2026-11-20 — Store branding and support fields
 
 Both per-app Play support contacts are published/reloaded as owner-confirmed menis10tec@gmail.com, no new AAB. chatStamp default store logo now uses the approved illustration; new icon and exact EN/HE support-address-only description changes saved/reopened/submitted, in review. HE inherits the default; banners/screenshots unchanged. Built-in imagegen plus mechanical512/sRGB32-bit exports independently pass format/visual review. Matching Tank Malle logo is a local-only owner-approval proposal, excluded from Git and never uploaded/applied. Current new output set is store/play/brand-refresh-20261120/; complete scope/proof is in latest dated VERIFICATION. App/native/launcher/source14 stays frozen; no repeated runtime test or production eligibility claim. PR remains unmerged.
+
+
+## 2026-11-20 — Both store icons approved, transparent; chatStamp leaves removed
+
+Owner approved the matching Tank Malle replacement as well as chatStamp, requested transparent backgrounds where possible, then explicitly requested removal of chatStamp's leafy sprig only. Built-in image_gen background-extraction edits preserve the approved designs; one precise-object edit removes all chatStamp leaves/stem. Mechanical Swift export preserves alpha without cropping or flattening. Both final icons are512×512,sRGB,32-bitRGBA: chatStamp224095bytes/SHA2565448946ba8a1b84fca36d151741337f81c2560fd1dfb69f70eaa8ef93806902e; Tank206564bytes/SHA25681c5fcbd6eda1822e4975db7dfefa10c4a9fd734378063dfa8c478b37e19cb27. Google's official icon spec permits transparent assets; the store supplies its UI background/mask/shadow.
+
+Root implements; independent Test author PASS for both formats/alpha/visuals, Reviewer CLEAR for both icons/exporter. Light/dark inspections show safe margins, clean edges, opaque-looking cream subject interiors and no visible halos/clipping. Most generated subject pixels are alpha253; actual transparent-pixel counts139084/149860. An initial exact255/corner0 guard rejected this near-opaque quantization → **try another way**, retain original alpha, inspect distributions and actual light/dark composites rather than flattening artwork. First Tank Save immediately after AI-label close did not produce a saved result → **try another way**, reconcile the unchanged form, explicitly Save, then require the success dialog and fresh reload.
+
+Play Console: Tank app4975939003117228141/com.meniviner.tankmalle has only default iw-IL; new transparent icon saved/reopened and one icon-only change submitted through both steps. chatStamp app4975002762311404414/com.menis10tec.chatstamp default en-US updated. Waiting for completed Hebrew asset load exposed an older localized icon, superseding the previous inheritance inference; explicitly select the new library icon in iw-IL, save and reload. Both locales now read back chatstamp-icon-transparent.png. All three locale readbacks preserve every text value and every non-icon filename/sourceURL/order, including banners and phone screenshots. AI labels verified for both new icons and prior labels preserved. Console aggregated chatStamp's final submission as one en-US icon change. Final publishing headings for BOTH apps: **Changes in review**. Public propagation/review approval is not inferred, and no external review monitoring is scheduled.
+
+New selected masters,exports,prompts,mechanical tool,asset checks and a concise owner README are grouped in **store/play/icon-rollout-20261120/**. Fresh Console JPEGs/receipts stay locally in owner-proof/,excluded from Git. Prior evidence and cream proposals remain at original locations unchanged. Canonical store/play/icon.png now equals final leafless transparent chatStamp export. Native assets/icon.png,all application/config/native code,existing signed14bytes and dirty Tank checkout stay untouched. No new AAB, version, device run, email send or app-runtime test was needed for this metadata-only continuation. Prior full smoke remains scoped to9e6c28f application source. Current branch was clean/fetched/equal before work; final delivery must stay below10000000bytes. PR1 remains open/unmerged; all previously documented real-export/Gallery/closed-participation gaps remain separate.
