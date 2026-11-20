@@ -18,4 +18,4 @@ chatStamp מייבאת קובץ ZIP של ייצוא שיחת WhatsApp, מתאי�
 
 chatStamp היא אפליקציה עצמאית ואינה קשורה ל-WhatsApp או ל-Meta ואינה נתמכת על ידן.
 
-תמיכה: meniviner@gmail.com
+תמיכה: menis10tec@gmail.com

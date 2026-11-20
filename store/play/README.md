@@ -1,6 +1,8 @@
 # Google Play listing package
 
-Alpha14 is now ACTIVE in **com.menis10tec.chatstamp /4975002762311404414**, and actual native Google Play installed14 on the connected A30 (installer com.android.vending). EN text/assets remain unchanged. Hebrew now uses **six split1080×1920 posters with fresh actual physical QA14 captures plus one localized1024×500 feature**. They were saved, reopened, ordered and submitted as two iw-IL changes; latest publishing state is in review/quick checks. [Current grouped delivery](owner-followup-20261120/README.md), [artwork/provenance](owner-followup-20261120/store-he/README.md), [release continuation](../../docs/PLAY_UPLOAD_STEPS.md). Original code9 PNGs remain historical; they are not relabeled14. The current public foreground demo remains actual code11.
+Alpha14 is now ACTIVE in **com.menis10tec.chatstamp /4975002762311404414**, and actual native Google Play installed14 on the connected A30 (installer com.android.vending). EN banners/screenshots and other text remain unchanged; the new default icon and support-footer address are the scoped exceptions. Hebrew now uses **six split1080×1920 posters with fresh actual physical QA14 captures plus one localized1024×500 feature**. They were saved, reopened, ordered and submitted in the prior artwork checkpoint. The latest three icon/description changes are in review, as recorded below. [Current grouped delivery](owner-followup-20261120/README.md), [artwork/provenance](owner-followup-20261120/store-he/README.md), [release continuation](../../docs/PLAY_UPLOAD_STEPS.md). Original code9 PNGs remain historical; they are not relabeled14. The current public foreground demo remains actual code11.
+
+Latest branding continuation: [new chatStamp store icon and support metadata](brand-refresh-20261120/README.md). Default icon replaced and inherited by Hebrew; icon plus two address-only description edits submitted, now in review. Both per-app support fields separately published without an AAB. Existing banners/screenshots remain unchanged; the Tank Malle logo proposal is local-only pending owner approval.
 
 ## Text files
 
@@ -9,7 +11,7 @@ Alpha14 is now ACTIVE in **com.menis10tec.chatstamp /4975002762311404414**, and 
 | English (United States), `en-US` | [en-US/](en-US/) | `title.txt`, `short-description.txt`, `full-description.txt`, `release-notes.txt` |
 | Hebrew, `he-IL` | [he-IL/](he-IL/) | Same four fields; Hebrew text is authored, not an automatic translation. |
 
-Paste file contents only, without filenames or Markdown fences. Title≤30, short description≤80 and full description≤4000 characters; release notes≤500 characters per language. Recheck counts after editing. The contact chosen by the owner is **meniviner@gmail.com**. The listing describes current functionality and explicitly limits date guarantees; it includes the implemented three-step picker/preview/RTL redesign. Replace release notes/version references for each later candidate.
+Paste file contents only, without filenames or Markdown fences. Title≤30, short description≤80 and full description≤4000 characters; release notes≤500 characters per language. Recheck counts after editing. The owner-confirmed per-app Play support contact is now **menis10tec@gmail.com**, published/reloaded in both chatStamp and Tank Malle. The same address replaces only the support footer in these two chatStamp description files; privacy and native in-app contacts retain their separate scope. The listing describes current functionality and explicitly limits date guarantees; it includes the implemented three-step picker/preview/RTL redesign. Replace release notes/version references for each later candidate.
 
 ## Historical asset map and required verification
 

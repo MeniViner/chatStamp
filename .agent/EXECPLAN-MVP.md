@@ -38,9 +38,9 @@ The prior 20-person bilingual chatStamp send is a separate completed event; neit
 send proves delivery, usage or continuous opt-in.
 
 Six fresh synthetic physical QA14 Hebrew split posters plus one localized feature
-were saved/reopened in iw-IL and submitted as two artwork changes. Latest publishing
-status: **Changes in review**, quick checks running. English text/asset sources
-remain unchanged. Implementer Swift typecheck PASS, Test author seven-asset checks
+remain saved in iw-IL. The latest three default-icon/EN/HE support-footer changes
+are in review. Both per-app support fields separately published without a new binary.
+Existing banner/screenshot assets and other copy remain unchanged. Implementer Swift typecheck PASS, Test author seven-asset checks
 PASS, Reviewer CLEAR. App UI is actual; AI illustration/logo composition is labeled.
 Durable public artwork/source/provenance and locally excluded owner receipts are
 grouped in **store/play/owner-followup-20261120/**. Earlier evidence remains in its
@@ -841,3 +841,8 @@ assets or device state changed; prior receipts stay historical. PR #1 stays unme
 ## 2026-11-20 — Owner follow-up closed within asset/install scope
 
 Completed the explicitly requested actual Play install,19-person Hebrew Tank Malle send with exclusion, six Hebrew split posters/localized feature and Console submission. Implementer renderer/typecheck PASS, Test author acceptance PASS, Reviewer CLEAR. Binary Alpha14ACTIVE; two new artwork changes in review/quick checks. No publication claim for the artwork, production access, recurring external checks or real-export acceptance. Exact source9e6c28f and signed14 artifacts unchanged. See latest dated VERIFICATION and grouped owner-followup README; keep remaining gates independently evidenced.
+
+
+## 2026-11-20 — Store branding and support fields
+
+Both per-app Play support contacts are published/reloaded as owner-confirmed menis10tec@gmail.com, no new AAB. chatStamp default store logo now uses the approved illustration; new icon and exact EN/HE support-address-only description changes saved/reopened/submitted, in review. HE inherits the default; banners/screenshots unchanged. Built-in imagegen plus mechanical512/sRGB32-bit exports independently pass format/visual review. Matching Tank Malle logo is a local-only owner-approval proposal, excluded from Git and never uploaded/applied. Current new output set is store/play/brand-refresh-20261120/; complete scope/proof is in latest dated VERIFICATION. App/native/launcher/source14 stays frozen; no repeated runtime test or production eligibility claim. PR remains unmerged.
