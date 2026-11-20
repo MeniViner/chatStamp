@@ -7,43 +7,44 @@ instants, select/filter files and save them so the tested Gallery sorts by those
 instants. Saved and verified dates remain separate facts. Local-only; no DB,
 accounts, analytics, cloud or server. Current requested production identity is com.menis10tec.chatstamp; retain the owner's external upload key. Earlier com.menis.chatstamp artifacts remain historical.
 
-## Current state — 2026-11-20, owner UX follow-up; code 14 under verification
+## Current state —2026-11-20, owner UX code 14 accepted; Alpha update in review
 
-Meni reports successfully joining the new app's tester program and downloading
-the Play build. This updates the earlier unavailable-account checkpoint; it is
-owner-reported availability, not agent-run Play installation or a qualifying
-tester period. The owner now requests five UI corrections after importing a ZIP.
+The owner's initial tester/download report did not identify a track and was not
+Google approval evidence by itself. Root now freshly observed Alpha 13 ACTIVE and
+the eligible signed-in new-package closed route showing You are a tester with
+download. Dashboard counts 1 opt-in; qualifying 12 continuous testers/14 days remains unmet.
 
-Code 14 work: single-line ellipsized chat/ZIP headings, a filled active media tab
-with outlined inactive tabs, actual transcript pinned/labeled first with a local
-scrollable reader, native-RTL media paging, and six Settings categories with
-category→menu→original-screen Back behavior. Keep actual transcript identity,
-filters/selection, save/date semantics, all existing settings and current key.
+Code 14 implements single-line ellipsized titles with full accessible names,
+filled-active/outlined-inactive filters, actual transcript-first placement and
+an internal selectable/scrollable bounded reader, native-RTL arrows/swipes, and
+six Settings categories with category→menu→original-screen Back. Transcript gets
+a dedicated headerless section so ordinary day groups/checkboxes stay coherent.
+Reader uses SDK 55 FileHandle 32 KiB plus≤3 UTF-8 lookahead, closes handles, ignores stale
+responses and guards repeated-next navigation. Ordinary documents retain fallback.
 
-Decisions: preserve the full accessible title; pin only the transcript marked by
-the importer and only among eligible filtered items; isolate it from ordinary
-whole-day selection groups. Read one32KiB UTF-8 section plus at most3lookahead
-bytes through SDK55 FileHandle, close every handle and keep stale reader responses
-out of replacement documents. Scroll within each section and expose explicit
-continuation/previous-section controls. Do not load the complete file for preview.
-Native I18nManager, including pending-restart behavior, determines arrow direction.
+Implementer completed Settings; Test author authored 44 independent UI regressions;
+Reviewer source/final scoped acceptance CLEAR. Root service tests and full smoke:
+564 host/55 files, 127 Python, 59 fresh JVM, 52 connected on each API 30/API 36, zero failures/skips.
+Exact app/config source 9e6c28f11117e8a6ff6531ccab874192c55cc61a is pushed and both
+Android CI runs pass. Signed production/QA 14 static/signature checks pass using the
+existing key. A30 HE incl 130% font and both restart directions, wide 1280×800 dp EN,
+all 357,772 transcript bytes over 11 sections, three-file RTL paging, six-category
+navigation/retained selection, and five-file independent dates per device pass.
+QA/helper/fixtures/outputs removed, original controls restored, owned 5556 stopped;
+preexisting 5554 preserved. Production was untouched.
 
-Roles: root implements title/filter/transcript/viewer and integrates locales,
-versioning, full smoke, release and device hygiene; Implementer owns categorized
-Settings; Test author derives independent criteria before source inspection and
-owns actual UI regressions; Reviewer audits against CODE_REVIEW. No UI, native,
-artifact or Play result for14is accepted until observed.
+Exact 14 AAB uploaded/processed/published internally, then same artifact promoted
+and submitted to Alpha; publishing Changes in review, quick checks still running.
+No closed 14 availability inferred. All five lists privately enumerated,20 unique;
+one bilingual Bcc invitation sent, exact-recipient and Gmail SENT readback verified.
+No email delivery/usage/qualifying clock inferred. IARC/creation approvals persist.
+Fresh single evidence set: dist/play/owner-ux-0.2.0-14-20261120/README.md; products
+separate:dist/play/release-0.2.0-14/. Older receipts unchanged at original locations.
 
-Milestones: complete implementation/independent regressions/review; run the full
-npm-ci smoke and Python verifier suite; clean prebuild/QA debug/59+JVM and nonzero
-connected API30/API36 checks; exact signed/static14verification; affected minified
-phone/wide runtime (long synthetic Hebrew name, filters, transcript scrolling/
-continuation, native RTL, category Back/persistence and five-file date readback);
-restore controls/remove run-owned QA/fixtures/outputs; commit/push and record CI;
-upload the accepted new bytes to the existing new-package tracks under the
-continuing release authorization. Code13and prior receipts remain historical.
-Real-export acceptance, broad UI/provider/API33/16KiB/Cancel gaps and genuine
-closed participation remain separate. PR #1 stays open/unmerged.
+Remaining: Google 14 review; genuine 12/14 participation/feedback; owner real export/
+WhatsApp cold-warm/Gallery/private-byte acceptance; physical API 33, actual 16 KiB and
+full UI/provider matrix. Keep historical scopes, do not merge PR #1, request
+production access early, resubmit identical bytes, or start recurring monitoring.
 
 ## Prior state — 2026-11-20, IARC complete; Alpha 13 submitted/in review
 

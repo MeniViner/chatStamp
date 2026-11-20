@@ -81,6 +81,31 @@ Thumbnails are native JPEG descriptors, never list-cell video players. Images ar
 
 Only the active full-screen video owns a player. Video handoffs and explicit audio release await the native MAIN-queue release barrier. This is a bounded preview lifecycle, not a claim that every Android codec can decode every supported extension. Nonseekable/unsupported files can fall back to a narrow FileProvider read grant in another app; missing or unsuitable external handlers remain a truthful fallback.
 
+### Code 14 transcript and navigation policy — 2026-11-20
+
+The importer-marked `chat-transcript` appears first among files eligible under the
+current search/sender/date filters. It has a dedicated headerless section, keeping
+ordinary day groups and their selection checkboxes coherent under either date sort.
+Its display label is Chat transcript / תמליל השיחה; the real filename and save
+identity are retained. Other TXT documents are not promoted by filename alone.
+
+The actual transcript opens in `TranscriptReader`, a selectable local text view
+with vertical scrolling and explicit previous/next sections for long documents.
+`transcriptReader.ts` opens only the extracted `file://` URI through Expo SDK 55
+`FileHandle`, reads 32 KiB plus at most three UTF-8 boundary bytes per section,
+and closes the handle in `finally`. It does not read the entire file for preview.
+Offsets/sizes and short reads are checked. URI replacement ignores stale responses;
+guarded navigation prevents double-next from duplicating offset history. Errors
+remain in the reader with Retry rather than opening the transcript externally.
+This preview limit is separate from the existing import parsing/sample limits.
+
+Chat/ZIP titles retain their full accessible label while rendering one ellipsized
+line. Only the active media filter has a filled background; inactive tabs are
+transparent/outlined. Media-viewer arrows and swipe direction use native
+`I18nManager.isRTL`, including while a language restart is pending. Settings opens
+six categories; header/hardware Back closes a modal, then returns category → menu
+→ the retained original screen. Existing settings persistence and actions remain.
+
 Android applies `NativeLanguagePolicy` from the regenerated MainApplication,
 after `super.onCreate()` and before `loadReactNative`, so the first native surface
 uses the committed language direction. The policy reads only

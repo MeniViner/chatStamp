@@ -220,3 +220,25 @@ exports; a local bundle does not establish upload, tester counts or 14 days.
   settings persistence. No remaining material source findings. Full root smoke
   passes564host/55files,127Python,59freshJVM and52connected eachAPI30/API36;
   signed/static/minified runtime and Play14remain separate pending gates.
+
+## 2026-11-20 — code 14 acceptance review closure
+
+App/config source `9e6c28f11117e8a6ff6531ccab874192c55cc61a` is frozen/pushed.
+Implementer Settings, independent Test author regressions and Reviewer source review
+are complete. Reviewer also read the exact fresh signed/runtime/CI/invitation
+receipts and four minified UI images: **CLEAR**, no material bug or overclaim.
+Root separately observed internal 14 availability and submitted Alpha 14; final
+publishing Changes in review, quick checks running. This later Console result was
+not included in the reviewer's earlier runtime-only availability scope.
+
+Full smoke: 564 host/55 files, 127 Python, 59 fresh JVM, 52 connected per API 30/36,
+zero failures/errors/skips; exact signed/static production and QA checks and both
+source CI runs pass. Fresh A30-HE and wide-EN affected UX/reader/language/category
+and independent five-file dates pass. Production app untouched; QA/fixtures/outputs
+removed, controls restored, owned AVD stopped, preexisting AVD retained.
+
+The 20-address all-list invitation is verified in Gmail SENT and exact-recipient
+readback. Dashboard count 1 is separate from 12 continuous closed testers/14 days.
+Real-export, private discarded bytes before uninstall, fresh Gallery visual order,
+physical API 33, actual 16 KiB, full UI/provider coverage and closed 14 availability
+remain unverified. Evidence: `dist/play/owner-ux-0.2.0-14-20261120/README.md`.

@@ -1,34 +1,32 @@
 # Closed-test invitations and owner test record
 
-**Latest checkpoint, 2026-11-20:** New app **4975002762311404414 / com.menis10tec.chatstamp**, signed **0.2.0 (13)**. The owner-approved IARC questionnaire is Completed, and **16 changes were submitted**. Publishing shows Changes in review with quick checks running; Alpha **4699420811279917961** shows exact 13 in review and 178 country/region entries. Both listings/assets, declarations and tester assignments are included. Internal availability and its link https://play.google.com/apps/internaltest/4701429810228968626 retain the 19 November checkpoint scope. [Current continuation](PLAY_UPLOAD_STEPS.md).
+**Latest checkpoint,2026-11-20:** New app **4975002762311404414 / com.menis10tec.chatstamp**: Alpha 13 is active and the actual signed-in closed link shows **You are a tester** with a download link. Exact 14 is **active/available internally**, and the same uploaded artifact was promoted to Alpha and submitted as one change. Publishing now shows **Changes in review** for 14, with quick checks still running; closed 14 availability is not claimed. All five lists remain assigned; one bilingual private Bcc invitation to **20 unique addresses** has Gmail SENT/exact-recipient readback. Dashboard shows **1 opted-in tester**, below the 12 continuous-testers/14 days gate. No production-access application was submitted.
 
-All five lists remain checked on **new Alpha**, freshly read back on 20 November: **list1(4), list2(7), Tank Malle – Internal(1), חברים(6), משפחה(2)**. Both-track assignments were saved on 19 November. Their 20 memberships may overlap; no private addresses are in Git/evidence. No invitation email has been sent. Console's closed-link copy buttons are now enabled, but https://play.google.com/apps/testing/com.menis10tec.chatstamp reports **App not available** for the tested signed-in account; eligibility was not independently established. Verify actual closed availability and a working eligible-account route before invitations.
+Lists: **list1(4), list2(7), Tank Malle – Internal(1),חברים(6),משפחה(2)**. Private enumeration found 20 unique addresses; one actual bilingual invitation was sent, with no duplicate-address sends. No private roster is in Git/evidence. SENT/recipient verification proves Gmail submission, not inbox delivery or opt-in. See [fresh receipt](../dist/play/owner-ux-0.2.0-14-20261120/README.md).
 
-The **new** dashboard requires at least **12 continuously opted-in closed testers for 14 days** and showed zero at the **19 November** checkpoint; no fresh participant count is inferred. Internal participation/list membership does not establish that gate. The personal account's creation date remains unknown. [Official requirement](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en).
-
-Old **com.menis.chatstamp** remains a separate record. Its 19 November receipt records internal paused/inactive and Alpha pause submitted/in review; that old review state was not refreshed today. No old participation clock or private settings/history/grants transfer to the new package. Do not send the old opt-in link for this app.
+The actual closed URL is **https://play.google.com/apps/testing/com.menis10tec.chatstamp**. The Dashboard freshly shows 1 opted-in tester and requires 12 continuously opted in for 14 days; no qualifying period is inferred. [Official requirement](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en). Account creation date remains unknown. Old com.menis.chatstamp and earlier pause observations remain separate/historical; no clock or private sandbox migration.
 
 ## Owner setup
 
-1. Follow [PLAY_UPLOAD_STEPS.md](PLAY_UPLOAD_STEPS.md) to make the closed track available. Add the volunteers' Google Account addresses to the selected list privately. The list is not proof of opt-in.
-2. Copy the actual closed opt-in URL from Console into **`[CLOSED_TEST_OPT_IN_URL]`** in the invitations below before sending. No live URL is asserted. If using a Google Group, provide its real join link too. The owner authorized invitations to all assigned lists; send only after actual closed availability, privately deduplicating addresses. No message has been sent yet.
-3. Ask testers to use the listed Google Account, leave any internal test for this app, join the group first if applicable, opt into the closed test, then install from its Play link. Ask them to remain opted in for the full period, use the app meaningfully and give honest feedback. Neither installation nor an email-list entry replaces continuous opt-in. See [official tester setup](https://support.google.com/googleplay/android-developer/answer/9845334?hl=en).
+1. The closed route is available on 13;14 is submitted for update review. Use the verified new-package URL below. List assignment does not prove opt-in.
+2. The authorized all-list invitation was sent once to 20 unique addresses. Do not resend automatically. The sample copy below is reusable guidance; the exact sent body and sanitized receipt are linked above.
+3. Join using the assigned Google Account; leave this app's internal test first if already enrolled there. Record genuine use, feedback and continuous opt-in privately. Installation and receipt of an email do not satisfy the 12/14 gate.
 
-## English invitation — replace the URL before sending
+## English invitation — reusable follow-up copy
 
 Hi! I’m looking for volunteers to test chatStamp on Android 11 or later. It imports a WhatsApp export ZIP and saves selected attachments, using message dates where the format and Gallery support them. It processes files on the phone, without an account, ads or uploads by chatStamp.
 
-Please open **[CLOSED_TEST_OPT_IN_URL]** using the Google Account you gave me, choose Join/Become a tester, and install through the Play link. If you were in the internal test, leave it first. Please stay opted into this closed test for at least 14 continuous days and try the app during that time. You can leave whenever you choose; tell me if you leave so I can keep the test record accurate.
+Please open **https://play.google.com/apps/testing/com.menis10tec.chatstamp** using the Google Account you gave me, choose Join/Become a tester, and install through the Play link. If you were in the internal test, leave it first. Please stay opted into this closed test for at least 14 continuous days and try the app during that time. You can leave whenever you choose; tell me if you leave so I can keep the test record accurate.
 
 Try importing through Files and sharing a ZIP while chatStamp is closed and open. Select a few photos/videos, save, and compare their dates with the chat and your Gallery. Try English/Hebrew, saving in the background, cancelling a larger save and importing the same export again. Please report what worked or failed, device/Android version, app version and steps to **meniviner@gmail.com** or private Play feedback. Use a synthetic or non-sensitive export first. Never send me your private chat ZIP, photos, names or message contents as a bug report. Screenshots should show synthetic data or have private details removed.
 
 This is a test build. Date support varies by file/provider/Gallery, and a file can save without a verified date. Keep your originals and check results. Thank you!
 
-## הזמנה בעברית — יש להחליף את הקישור לפני השליחה
+## הזמנה בעברית — נוסח לשימוש חוזר
 
 היי! אני מחפש מתנדבים לבדיקת chatStamp באנדרואיד 11 ומעלה. האפליקציה מייבאת קובץ ZIP של ייצוא WhatsApp ושומרת קבצים שנבחרו, עם תאריכי ההודעות כשהקובץ והגלריה תומכים בכך. העיבוד נעשה בטלפון, ללא חשבון, פרסומות או העלאה על ידי chatStamp.
 
-יש לפתוח את **[CLOSED_TEST_OPT_IN_URL]** עם חשבון Google שמסרת לי, לבחור בהצטרפות לבדיקה ולהתקין דרך הקישור ל-Play. אם הצטרפת קודם לבדיקה הפנימית, יש לצאת ממנה תחילה. אשמח שתישארו רשומים לבדיקה הסגורה לפחות 14 ימים רצופים ותנסו את האפליקציה בתקופה הזאת. אפשר לפרוש בכל רגע; אם פורשים, כדאי לעדכן אותי כדי שאוכל לתעד את הבדיקה במדויק.
+יש לפתוח את **https://play.google.com/apps/testing/com.menis10tec.chatstamp** עם חשבון Google שמסרת לי, לבחור בהצטרפות לבדיקה ולהתקין דרך הקישור ל-Play. אם הצטרפת קודם לבדיקה הפנימית, יש לצאת ממנה תחילה. אשמח שתישארו רשומים לבדיקה הסגורה לפחות 14 ימים רצופים ותנסו את האפליקציה בתקופה הזאת. אפשר לפרוש בכל רגע; אם פורשים, כדאי לעדכן אותי כדי שאוכל לתעד את הבדיקה במדויק.
 
 כדאי לנסות ייבוא דרך הקבצים ושיתוף ZIP כשהאפליקציה סגורה וכשהיא פתוחה. לבחור כמה תמונות וסרטונים, לשמור ולהשוות את התאריכים לשיחה ולגלריה. כדאי לבדוק עברית ואנגלית, שמירה ברקע, ביטול שמירה גדולה וייבוא חוזר של אותו ייצוא. אפשר לשלוח ל-**meniviner@gmail.com** או דרך המשוב הפרטי ב-Play מה עבד ומה נכשל, דגם מכשיר, גרסת אנדרואיד, גרסת האפליקציה ושלבי שחזור. כדאי להתחיל בייצוא מלאכותי או לא רגיש. אין לשלוח לי קובץ שיחה פרטי, תמונות, שמות או תוכן הודעות כחלק מדיווח תקלה. בצילומי מסך יש להשתמש במידע מלאכותי או להסיר פרטים אישיים.
 
@@ -48,15 +46,15 @@ Report expected/actual behavior, steps, version, device/Android, language and wh
 
 ## Final isolated installer for owner acceptance
 
-Code 13's verified QA installer is `dist/play/release-0.2.0-13/chatstamp-0.2.0-13-qa.apk`, SHA256
-`c26eb11de77bb33b172ac73022f571480367c3958e2ec10d2ef8c63a6ad926c7`.
+Code 14's verified QA installer is `dist/play/release-0.2.0-14/chatstamp-0.2.0-14-qa.apk`, SHA256
+`a9bb8a591a5831820e317b55f9833152f38c9180683a7381960bccc4a0c9d0e7`.
 It installs only `com.menis10tec.chatstamp.qa`, alongside production. Agent-run
 synthetic QA is removed at handoff; the owner can reinstall this exact candidate
 for the real-export checks below, or use the new package's Play build only after its actual availability is confirmed. Keep which identity/build was tested in the private result record.
 
 ```sh
 adb devices -l
-adb -s YOUR_SERIAL install --no-incremental dist/play/release-0.2.0-13/chatstamp-0.2.0-13-qa.apk
+adb -s YOUR_SERIAL install --no-incremental dist/play/release-0.2.0-14/chatstamp-0.2.0-14-qa.apk
 adb -s YOUR_SERIAL shell am start -W -n com.menis10tec.chatstamp.qa/com.menis10tec.chatstamp.MainActivity
 ```
 
@@ -67,7 +65,7 @@ installer. Installation alone does not complete real-export or Play acceptance.
 
 ## Owner real-export acceptance — still UNVERIFIED
 
-Run this privately on the **Samsung Galaxy A30 (SM-A305F), Android 11 / API 30**, after the final **0.2.0 (13)** QA installation is confirmed. Record the actual installed version and package; the side-by-side QA package is `com.menis10tec.chatstamp.qa`. Do not replace or uninstall the owner's production app. The requested physical **API 33 device is unavailable: UNVERIFIED**. API 30 results and synthetic emulator results do not fill that gap.
+Run this privately on the **Samsung Galaxy A30 (SM-A305F), Android 11 / API 30**, after the final **0.2.0 (14)** QA installation is confirmed. Record the actual installed version and package; the side-by-side QA package is `com.menis10tec.chatstamp.qa`. Do not replace or uninstall the owner's production app. The requested physical **API 33 device is unavailable: UNVERIFIED**. API 30 results and synthetic emulator results do not fill that gap.
 
 Use **PASS**, **FAIL** or **UNVERIFIED (not run / blocked)** for each case. Until the owner runs these steps, every owner real-export result remains **UNVERIFIED**.
 
@@ -113,7 +111,7 @@ Use **PASS**, **FAIL** or **UNVERIFIED (not run / blocked)** for each case. Unti
 2. This UI check alone does **not** prove that private bytes were removed. Before uninstalling or clearing app data, ask the release owner to verify the discarded QA import's private working directory and associated temporary files through the approved local QA inspection. Record only a nonpersonal removed/remaining count. If not inspected, keep **private import cleanup UNVERIFIED**, even if the app reopens cleanly. Do not confuse unrelated persistent settings/history or a general cache count with the discarded import's files.
 3. When no longer wanted, remove only the output copies and temporary export created for this test, after checking their locations privately. Keep the original WhatsApp conversation/media safe. The release owner handles QA uninstall and any test-setting restoration. Never clear the owner's production app or unrelated files as a cleanup shortcut.
 
-**לבעל החשבון:** יש להתחיל רק אחרי אישור שהותקן מועמד QA סופי 0.2.0 (13). הבדיקה המתוכננת היא ב-Galaxy A30 עם Android 11; מכשיר API 33 אינו זמין והבדיקה בו לא אומתה. יש להפעיל במפורש את Always use message date בהגדרות, לשתף מתוך WhatsApp כשהאפליקציה סגורה ופתוחה, ולבדוק שמתחיל ייבוא אחד לכל שיתוף. שומרים קבצים מוכרים דרך Import → Select → Save ומשווים בנפרד את הכמות שנשמרה, הכמות שתאריכיה אומתו, סדר ברירת המחדל ופרטי התאריך בגלריה. לבדיקת כפילויות ושינוי שפה משתמשים באותו ZIP שמור, ללא שינוי יעד או ארגון. פתיחה נקייה אחרי Discard אינה לבדה הוכחה לניקוי קובצי העבודה הפרטיים. הייצוא והמידע האישי נשארים מחוץ ל-Git; מדווחים רק סיכום ללא פרטים מזהים. כל בדיקה שטרם בוצעה נשארת **UNVERIFIED / לא אומתה**.
+**לבעל החשבון:** יש להתחיל רק אחרי אישור שהותקן מועמד QA סופי 0.2.0 (14). הבדיקה המתוכננת היא ב-Galaxy A30 עם Android 11; מכשיר API 33 אינו זמין והבדיקה בו לא אומתה. יש להפעיל במפורש את Always use message date בהגדרות, לשתף מתוך WhatsApp כשהאפליקציה סגורה ופתוחה, ולבדוק שמתחיל ייבוא אחד לכל שיתוף. שומרים קבצים מוכרים דרך Import → Select → Save ומשווים בנפרד את הכמות שנשמרה, הכמות שתאריכיה אומתו, סדר ברירת המחדל ופרטי התאריך בגלריה. לבדיקת כפילויות ושינוי שפה משתמשים באותו ZIP שמור, ללא שינוי יעד או ארגון. פתיחה נקייה אחרי Discard אינה לבדה הוכחה לניקוי קובצי העבודה הפרטיים. הייצוא והמידע האישי נשארים מחוץ ל-Git; מדווחים רק סיכום ללא פרטים מזהים. כל בדיקה שטרם בוצעה נשארת **UNVERIFIED / לא אומתה**.
 
 ## Copyable owner result — nonpersonal, initially UNVERIFIED
 
@@ -122,9 +120,9 @@ Copy this template into the private owner record and fill only observed facts. A
 ```text
 Owner real-export run: UNVERIFIED — NOT RUN
 Run date/time and time zone: UNVERIFIED
-Installed candidate: expected 0.2.0 (13); actual version/code: UNVERIFIED
+Installed candidate: expected 0.2.0 (14); actual version/code: UNVERIFIED
 Installed package/build identifier confirmed by release owner: UNVERIFIED
-Play track/upload/opt-in URL: NOT VERIFIED; this guide asserts no uploaded track
+Play closed route is verified; actual owner-run installed version/track: UNVERIFIED
 Device: Samsung Galaxy A30 SM-A305F, Android 11/API 30 — actual confirmed: UNVERIFIED
 Physical API 33: UNVERIFIED — device unavailable
 WhatsApp / Samsung Gallery versions: UNVERIFIED
@@ -170,8 +168,8 @@ Closed testers / qualifying 14-day interval: UNKNOWN / UNVERIFIED (separate Cons
 Keep this record outside the repository. Do not commit participant identities or addresses. Publish aggregate facts only after verification.
 
 - Account category: personal; creation date: **UNKNOWN**.
-- Candidate/version and closed track: **UNVERIFIED**.
-- Closed opt-in URL and date track became available: **UNVERIFIED**.
+- Candidate expected 14; actual installed version/track for this volunteer: **UNVERIFIED**.
+- Closed URL verified 20 November 2026; exact first-availability time and this volunteer opt-in: **UNVERIFIED**.
 - Per volunteer: private identifier, Google Account, actual opt-in date/time, any opt-out, installation/version, device/Android, checks performed and feedback.
 - Qualifying continuously opted-in count: **UNKNOWN**. Fourteen-day qualifying interval: **UNVERIFIED**.
 - Feedback received, changes made, retest results, outstanding issues: **NOT YET COLLECTED**.

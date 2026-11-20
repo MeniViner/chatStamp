@@ -4,25 +4,27 @@ chatStamp is an Android app for importing a WhatsApp export ZIP, selecting attac
 
 ## Current status
 
-The production identity is **com.menis10tec.chatstamp**, with isolated **com.menis10tec.chatstamp.qa**. Signed code 13 is verified on **fix/core-rebuild**; [PR #1](https://github.com/MeniViner/chatStamp/pull/1) remains open and unmerged. The existing external upload key is retained.
+Production **com.menis10tec.chatstamp**, isolated QA **com.menis10tec.chatstamp.qa**. Signed **0.2.0 (14)** implements the owner's long-title, active-filter, internal transcript, RTL-arrow and categorized Settings requests. The existing external upload key is retained; [PR #1](https://github.com/MeniViner/chatStamp/pull/1) remains open/unmerged.
 
-Changing an Android application ID creates a separate app and sandbox. The existing Google Play entry and code 12 products belong to **com.menis.chatstamp** and cannot be renamed. Their signed artifacts and earlier acceptance/Console receipts retain their original identity and provenance. The new package requires its own Play entry and actual availability; it does not inherit old private settings, History, grants or MediaStore ownership.
+Source **9e6c28f11117e8a6ff6531ccab874192c55cc61a**, source and scoped acceptance review CLEAR. Full smoke: **564 host/55 files, 127 Python, 59 fresh JVM, 52 connected on each API 30/API 36**, zero failures/errors/skips; npm ci/typecheck/lint/clean prebuild/debug assembly pass. Exact signed/static production/QA 14 checks and both source Android CI runs pass. A30 Hebrew and 1280×800 dp API 36 English minified UX, bounded full-transcript readback and five-file independent embedded/indexed dates pass.
 
-Source review is CLEAR. The full smoke passes 504 host tests/51 files, 126 Python cases, 59 fresh JVM tests and 52 connected cases on each API 30/API 36 device, with no skips. Signed production/QA artifacts, packaged providers, actual new-authority read grants, both-device minified five-file dates and both source CI runs pass. New Play app 4975002762311404414 has internal code 13 available at the 19 November checkpoint. On **20 November 2026**, the owner-approved IARC questionnaire completed and **16 changes were submitted**; publishing shows Changes in review and Alpha 13 is in review. Both listings/assets, declarations and all five lists are included. The tested signed-in closed opt-in page reports App not available; no closed availability or invitation delivery is claimed. [Migration steps](docs/PLAY_UPLOAD_STEPS.md) and [dated verification](docs/VERIFICATION.md) distinguish the two identities.
+New app **4975002762311404414 / com.menis10tec.chatstamp**: Alpha 13 is active and the actual signed-in closed link shows **You are a tester** with a download link. Exact 14 is **active/available internally**, and the same uploaded artifact was promoted to Alpha and submitted as one change. Publishing now shows **Changes in review** for 14, with quick checks still running; closed 14 availability is not claimed. All five lists remain assigned; one bilingual private Bcc invitation to **20 unique addresses** has Gmail SENT/exact-recipient readback. Dashboard shows **1 opted-in tester**, below the 12 continuous-testers/14 days gate. No production-access application was submitted.
 
-Owner real WhatsApp, API33physical/full UI matrix, actual16KiB execution and other explicitly scoped gaps remain **UNVERIFIED**. Original code9screenshots and code11foreground demo retain provenance for unchanged UI/behavior.
+Current results: [fresh verification](dist/play/owner-ux-0.2.0-14-20261120/README.md) and [release products](dist/play/release-0.2.0-14/README.md). Changing application ID created a separate app/sandbox; old **com.menis.chatstamp** artifacts and Console records retain their original identity. Private settings/history/grants, output ownership and tester clocks do not automatically transfer.
+
+Real owner-export/WhatsApp shares, fresh 14 Gallery visual ordering/private-byte cleanup, physical API 33, actual 16 KiB runtime and full UI/provider coverage remain **UNVERIFIED**. Eight store screenshots remain actual code 9, including its older Selection UI; the foreground demonstration remains actual code 11 of unchanged saving behavior.
 
 ## Use the app
 
 Two onboarding pages introduce date handling and WhatsApp export. The main flow has three steps:
 
 1. **Import:** choose an export ZIP through Android's picker or share one from another app. The native importer reads the granted source URI directly, streams extraction and computes the archive fingerprint without copying the ZIP into private storage.
-2. **Select:** search and filter by sender, media type or date, preview files and choose what to save. Hidden selections remain selected; Save captures the visible selected IDs and the current destination/date/duplicate/folder policy.
+2. **Select:** search and filter by sender, media type or date, preview files and choose what to save. The actual chat transcript appears first among eligible files and opens in a local scrollable reader; long transcripts continue in bounded sections. Hidden selections remain selected; Save captures the visible selected IDs and the current destination/date/duplicate/folder policy.
 3. **Save:** a user-started foreground operation reports real progress and supports Cancel. Results and History distinguish saved, skipped, cancelled, failed and date-verified files.
 
 The default output uses owned Android collections under `Pictures/chatStamp` for photos **and videos**, `Music/chatStamp` for audio and `Documents/chatStamp` for documents, with a Downloads fallback if the document collection rejects a write. An explicitly selected folder uses its persisted provider grant. Custom-folder date preservation and opening folders depend on that provider and installed file manager.
 
-English and Hebrew are supported. Changing language commits the preference before applying translations and native RTL flags. A layout-direction change requires **Restart now** or a later restart; the app does not simulate native RTL with a root-view flip. New exports capture localized folder labels; retrying an existing export keeps its recorded folder paths and duplicate identity.
+Settings opens a six-category menu, with each category containing its own controls. English and Hebrew are supported. Changing language commits the preference before applying translations and native RTL flags. A layout-direction change requires **Restart now** or a later restart; the app does not simulate native RTL with a root-view flip. New exports capture localized folder labels; retrying an existing export keeps its recorded folder paths and duplicate identity.
 
 See [Android technical notes](docs/TECHNICAL_NOTES_ANDROID.md) for supported extensions, date rules, limits, caching and native boundaries. A successful file save alone does not prove its message date or Gallery position.
 
@@ -61,7 +63,7 @@ Run native regression tests against an authorized test device/emulator:
   -PreactNativeArchitectures=arm64-v8a
 ```
 
-Both native tasks must execute a nonzero test count. The code 13 smoke executed 59 JVM tests and 52 connected cases on each API 30/API 36 device, with no skips. Follow the [verification guide](scripts/android-verification/README.md) for manifest inspection, synthetic inputs, locked-device handling, run-scoped cleanup and restoring device settings. Do not unlock the owner's phone or commit private exports.
+Both native tasks must execute a nonzero test count. The code 14 smoke executed 59 JVM tests and 52 connected cases on each API 30/API 36 device, with no skips. Follow the [verification guide](scripts/android-verification/README.md) for manifest inspection, synthetic inputs, locked-device handling, run-scoped cleanup and restoring device settings. Do not unlock the owner's phone or commit private exports.
 
 [Android CI](.github/workflows/ci.yml) defines pinned tooling, host checks, generated Android, native JVM execution and merged release-manifest policy. Its fresh-checkout run passed; exact source, counts and the separately scoped device/artifact results are in VERIFICATION.md.
 

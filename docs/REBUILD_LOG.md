@@ -1247,3 +1247,98 @@ Current whole cycle passes npmci/typecheck/lint/cleanprebuild,564host/55files,
 A30/API30 and the existing API36 emulator. Source review CLEAR. No production app
 replacement. Signed14/static/affected minified runtime and publication remain
 pending at this checkpoint; exact source/receipt and cleanup close separately.
+
+## 2026-11-20 — G2 code 14 owner UX, minified acceptance and Play update
+
+Exact app/config source: `9e6c28f11117e8a6ff6531ccab874192c55cc61a`,
+`stage-g2: refine selection, transcript preview and settings navigation`, pushed
+on `fix/core-rebuild`. Production `com.menis10tec.chatstamp`; isolated QA
+`com.menis10tec.chatstamp.qa`; version 0.2.0, code 14. No source changed after this
+freeze. Later closure commits change documentation only.
+
+The five owner requests are implemented: one-line ellipsized titles with full
+accessible names; filled active and outlined inactive filters; actual transcript
+first in a separate headerless section plus internal selectable scrolling and
+bounded continuation; native RTL arrows/swipes; six Settings categories preserving
+all controls and category → menu → original-screen Back. The dedicated transcript
+section resolves review's date-group split concern without changing day selection.
+Implementer completed Settings, Test author added 44 acceptance regressions, and
+Reviewer source and final scoped acceptance reviews are CLEAR.
+
+Full npm-ci smoke: 564 host tests / 55 files, 127 Python tests, typecheck and lint,
+clean Android prebuild, QA debug assembly (226 tasks executed), 59 fresh JVM tests
+(57 tasks executed), and 52 connected tests each on A30/API 30 and the existing
+API 36 AVD; zero failures, errors or skips. Exact-source Android CI push run
+44649941128 and PR run 44649948012 both pass; Pages run 44649939658 also passes.
+These are source CI facts, separate from the device and Play checks below.
+
+Signed products use the existing upload certificate
+`efe36695cfc6a3d9ea8471527103f29e3374322ab09890af41692412d76a66c8`.
+Production AAB: 50,961,179 bytes, SHA256
+`4cd84aa5a6e54bd831cbd0bc3bf138e0f113ad5c8f2f2acfc9c5666b24fe83b5`.
+Minified QA APK: 75,234,106 bytes, SHA256
+`a9bb8a591a5831820e317b55f9833152f38c9180683a7381960bccc4a0c9d0e7`.
+Both pass signature/identity/version, min 30/target 36, manifest permissions,
+backup/transfer, optional portrait and all-ABI/16 KiB static checks. This does not
+prove execution with 16 KiB pages. Products are grouped under
+`dist/play/release-0.2.0-14/` with their README and SHA256SUMS.
+
+Fresh minified runtime: A30 Hebrew at original font 1.1 and temporary 1.3 verifies
+long-title truncation, active-filter counts 3/2/1, retained selection, transcript
+first/internal scrolling, section navigation, native RTL glyphs and three-file
+paging. HE → EN → HE explicit restart and 0.2.0 (14) readback pass. The owned API 36
+AVD at 1280×800 dp in English verifies all six categories, Back to retained 3/3
+selection, and the complete synthetic long transcript: 357,772 UTF-8 bytes across
+11 bounded sections, exactly matching the original hash; scrolling visually
+observed. Five media files per device saved; all independent embedded and indexed
+dates match expected original message instants. Fresh Gallery visual order/Details
+and private discarded-job byte removal before uninstall remain UNVERIFIED.
+
+Runtime harness alternatives, not app source failures: shell-created Downloads URI
+lacked a valid app grant → **try another way**, use the actual Android ZIP picker;
+Samsung DocsUI ignored standard taps → **try another way**, use the guarded exact-
+text disposable FINGER helper; owned-emulator geometry change triggered SystemUI
+ANR → select Wait and observe recovery before testing. A loose crash-buffer string
+check matched another app's broadcast mentioning the helper → **try another way**,
+match the actual crashing Process identity; zero QA-process entries were present
+in the checked buffer. Returning to Import after Start over was separately observed.
+No broad permission, device unlock or unrelated app change was used.
+
+Run hygiene: QA, exact synthetic fixture rows/files, five saved outputs and the
+current helper removed; original stay-awake/timeout/font restored on A30. Owned
+emulator 5556 geometry/controls restored, QA/fixtures/outputs removed, then stopped.
+Preexisting emulator 5554 was used only for native connected tests and left running.
+Owner production app untouched. These removal checks do not replace private-byte
+inspection before uninstall.
+
+Play continuation: owner's initial tester/download report did not identify a track;
+it was not itself proof of closed approval. Fresh Console shows Alpha 13 ACTIVE,
+178 country/region entries and all five lists checked. Actual signed-in closed URL
+`https://play.google.com/apps/testing/com.menis10tec.chatstamp` shows You are a
+tester plus download. Exact 14 AAB uploaded/processed/published internally at
+20 November 03:36 local; the same uploaded artifact promoted to Alpha, 100% closed
+rollout and en-US/iw-IL notes, one change submitted. Final publishing readback:
+Changes in review; quick checks still running. Closed 14 availability, review success
+and Play-delivered 14 installation are not inferred. Existing IARC/creation approvals
+remain valid; no new agreement was accepted or requested.
+
+All five assigned lists privately enumerated: list1(4), list2(7), Tank Malle –
+Internal(1), friends(6), family(2), exactly 20 unique addresses. One bilingual
+private Bcc invitation sent from owner Gmail; SENT and exact recipient readback
+verified, message `1a1f6949bdd2ed22`. No private roster is committed or in evidence.
+This proves Gmail submission, not inbox delivery or participation. Dashboard freshly
+shows 1 opted-in tester; 12 continuously opted in for 14 days is unmet, production
+access request disabled. No qualifying clock or production request fabricated.
+
+Fresh evidence is one small dedicated set:
+`dist/play/owner-ux-0.2.0-14-20261120/README.md`, four synthetic UI JPEGs, one
+Dashboard JPEG and concise signed/runtime/CI/Console/send receipts. The Dashboard
+image predates Alpha 14 submission and proves app/count/gate, not review status;
+final review state is recorded from the actual DOM. Older evidence stays at original
+locations; code 9 store images (older Selection UI) and code 11 FGS demo retain their
+provenance. Final cumulative size must be checked below 10,000,000 bytes at handoff.
+
+Remaining separate acceptance: owner real export, own WhatsApp cold/warm shares,
+fresh Gallery ordering and private-byte inspection, physical API 33, actual 16 KiB,
+full UI/font/provider matrix, genuine closed usage/feedback and 12/14 eligibility.
+PR #1 stays open/unmerged. No recurring Google checks or invitation retries scheduled.
