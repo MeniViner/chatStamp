@@ -1,0 +1,7 @@
+{
+  "mode": "Built-in image_gen edits; no CLI/API fallback",
+  "prompt": "Use case: precise-object-edit / logo-brand.\nAsset type: the new chatStamp Google Play store icon.\nEdit target: the attached approved 3D chatStamp illustration. The owner specifically likes THIS artwork and wants it to replace the old app logo.\nChange only the presentation needed for a square app icon: place the exact existing mint chat bubble, teal clock with cream face, mint folder and two landscape photo cards, soft gold circular arrow and small leaves on a continuous warm cream (#F5F0DE) full-square background. Preserve the subject design, palette, materials, composition, details and soft studio lighting as faithfully as possible. Do not invent a different logo or simplify the approved objects away.\nComposition: center the complete group and make it comfortably large (about 84% of the square), all objects fully visible with a clean safety margin. No pre-rendered rounded-square tile, no outer border/frame, no outer drop shadow, no typography, letters, words, numerals, watermarks or badges. Google Play applies its own icon mask. Output one polished opaque square icon, not a poster or presentation mockup.",
+  "reference": "../../owner-followup-20261120/store-he/source/chatstamp-memory-illustration.png",
+  "approvedByOwner": "Owner explicitly requested replacing existing chatStamp logo with the approved illustration",
+  "use": "Play logo; app binary/launcher unchanged"
+}

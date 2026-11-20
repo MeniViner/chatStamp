@@ -1,0 +1,18 @@
+{
+  "entry": [
+    "App.tsx!",
+    "app.config.ts!",
+    "modules/chatstamp-native/src/index.ts!",
+    "plugins/withChatStampAndroidRelease.js!",
+    "scripts/i18n-audit.js"
+  ],
+  "project": [
+    "App.tsx!",
+    "app.config.ts!",
+    "src/**/*.{ts,tsx}!",
+    "modules/chatstamp-native/src/index.ts!",
+    "plugins/**/*.js!",
+    "scripts/**/*.js",
+    "__tests__/**/*.{ts,tsx}"
+  ]
+}

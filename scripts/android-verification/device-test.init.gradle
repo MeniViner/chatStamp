@@ -1,0 +1,12 @@
+gradle.beforeProject { project ->
+  if (project.path == ':app') {
+    project.pluginManager.withPlugin('com.android.application') {
+      project.extensions.getByName('androidComponents').finalizeDsl { android ->
+        android.buildTypes.getByName('debug').applicationIdSuffix = '.qa'
+      }
+    }
+    project.pluginManager.withPlugin('com.facebook.react') {
+      project.extensions.getByName('react').debuggableVariants.set([])
+    }
+  }
+}

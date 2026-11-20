@@ -1,0 +1,104 @@
+{
+  "updatedAt": "2026-11-19",
+  "candidate": {
+    "version": "0.2.0",
+    "versionCode": 9,
+    "appSource": "a3dea2a649af15d31bfce180880c50c2ebe8e623",
+    "qaApkSha256": "15a8b5561014d650f108fc97c3d3ddf3c79a44ebd540f734227d49104814e002",
+    "productionAabSha256": "242142cf2ab4d54b8e819380f3b69900713b69d7d563d29d79a103b4d971e752"
+  },
+  "device": {
+    "model": "Samsung Galaxy A30 SM-A305F",
+    "api": 30,
+    "gallery": "12.1.09.1",
+    "systemLanguage": "Hebrew",
+    "timezone": "Asia/Jerusalem",
+    "captureSize": [
+      1080,
+      2160
+    ],
+    "density": 420,
+    "fontScale": 1.0
+  },
+  "capture": "Actual physical ADB screencap; FFmpeg RGB24 conversion only. No image generation, content edits, crop or rescaling. Temporary display size set before capture for Play2:1 aspect. Fresh system-HE first Import is RTL before Settings/remount; explicit EN native restart plus persisted cold first Import are LTR.",
+  "syntheticRuns": {
+    "01-import": "Actual empty Import; HE first surface, EN after explicit native restart.",
+    "02-selection": "chatstamp-qa-f9-1119-mixed; five Gallery media selected, transcript unchecked.",
+    "03-saving-he": "Actual four-video512MiB HE save.",
+    "03-saving-en": "Actual four-video1GiB EN save used for the demo.",
+    "04-results-en": "Actual4saved/4verified EN background demo.",
+    "04-results-he": "Actual5saved/5verified HE mixed regression."
+  },
+  "files": [
+    {
+      "file": "screenshots/en-US/01-import.png",
+      "sha256": "9f05694b4be8d14cacbbb16a22ac227c5860b6ce78d8c4de72e39095bfe4cbad",
+      "bytes": 117520,
+      "width": 1080,
+      "height": 2160,
+      "pix_fmt": "rgb24"
+    },
+    {
+      "file": "screenshots/en-US/02-selection.png",
+      "sha256": "47254badd6ed24f60a854fc9a76dc5e1aff18b832cd9bb63208c9c52494287b7",
+      "bytes": 140497,
+      "width": 1080,
+      "height": 2160,
+      "pix_fmt": "rgb24"
+    },
+    {
+      "file": "screenshots/en-US/03-saving.png",
+      "sha256": "8319161048bcdc159ce99c6df0bb108309d11abc20b7936731f051c58654517b",
+      "bytes": 70530,
+      "width": 1080,
+      "height": 2160,
+      "pix_fmt": "rgb24"
+    },
+    {
+      "file": "screenshots/en-US/04-results.png",
+      "sha256": "6ff25bd5ff2a2fedf32a5ba24981d696fd3b2cbf80fee1bb6ae28e11632d6d8e",
+      "bytes": 96373,
+      "width": 1080,
+      "height": 2160,
+      "pix_fmt": "rgb24"
+    },
+    {
+      "file": "screenshots/he-IL/01-import.png",
+      "sha256": "3324f2ea538666c1520c6e4e1c98604ab49367a8f01fdf448a7bc14d0b651f7e",
+      "bytes": 123472,
+      "width": 1080,
+      "height": 2160,
+      "pix_fmt": "rgb24"
+    },
+    {
+      "file": "screenshots/he-IL/02-selection.png",
+      "sha256": "39c9a18c304ae73b2c93310550c6b8c44c6ff75e01c5a330e64ae4bf5b9ae45e",
+      "bytes": 129440,
+      "width": 1080,
+      "height": 2160,
+      "pix_fmt": "rgb24"
+    },
+    {
+      "file": "screenshots/he-IL/03-saving.png",
+      "sha256": "a9e8b4f5393a1577c21e93f561dd8424d3f80ee56d6b86b25fa3fbad335b6266",
+      "bytes": 53845,
+      "width": 1080,
+      "height": 2160,
+      "pix_fmt": "rgb24"
+    },
+    {
+      "file": "screenshots/he-IL/04-results.png",
+      "sha256": "de2167ac2d0ac498d53293dd664c23479bc6d21ac1627f901f9820026d95386b",
+      "bytes": 84482,
+      "width": 1080,
+      "height": 2160,
+      "pix_fmt": "rgb24"
+    }
+  ],
+  "scope": "All eight files replaced with actual code9 physical-phone three-step UI captures. Candidate10 changes history identity/merging only; UI, native save and localized copy remain identical. No screenshot is claimed as a code10 capture.",
+  "appliesToCandidate": {
+    "versionCode": 11,
+    "appSource": "138e00c8bc3f991b9d984cf79075501b566b3f40",
+    "scope": "The depicted screens/locales are unchanged from actual code 9 captures. Code 10 corrects History output/session identity; code 11 corrects native save cancellation/finalization. A fresh code 11 foreground demo and its own runtime/artifact receipts are separate; these PNGs retain code 9 provenance."
+  }
+}

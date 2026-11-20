@@ -1,0 +1,7 @@
+{
+  "mode": "built-in image_gen",
+  "prompt": "Use case: ads-marketing. Create one premium editorial bitmap illustration for chatStamp Google Play promotional artwork. A cohesive compact cluster showing a mint-teal chat bubble combined with a simple clock, an open document folder, two small photo cards with calm pastel landscapes, and a subtle soft-gold circular time arrow. Three-quarter front view, refined matte paper and softly rounded ceramic surfaces, gentle studio shadows, crisp silhouette, restrained texture. Color palette matches the existing app identity: mint #92DFC1, teal #57BFAE, cream #FAF5E8, soft gold #F5D877, with tiny dark-ink accents. Balanced square composition, generous 12 percent clear padding around the cluster, genuinely transparent background so it can sit on cream and dark poster panels. This is a decorative illustration, not an app screen: no phone, no interface, no letters, no numbers, no dates, no words, no watermark. Render at high quality around 1024x1024; keep the image airy and elegant, not crowded.",
+  "output": "chatstamp-memory-illustration.png",
+  "generated_decorative_only": true,
+  "native_ui_not_generated": true
+}

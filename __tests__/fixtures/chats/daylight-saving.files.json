@@ -1,0 +1,54 @@
+{
+  "zone": "America/New_York",
+  "order": "dmy",
+  "entries": [
+    {
+      "path": "winter.jpg",
+      "expected": {
+        "sender": "Dana",
+        "dateSource": "chat",
+        "date": "2024-02-15T15:00:00.000Z"
+      }
+    },
+    {
+      "path": "IMG-20240310-WA0001.jpg",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "filename",
+        "date": "2024-03-10T16:00:00.000Z"
+      }
+    },
+    {
+      "path": "summer.jpg",
+      "expected": {
+        "sender": "Dana",
+        "dateSource": "chat",
+        "date": "2024-07-16T14:00:00.000Z"
+      }
+    },
+    {
+      "path": "overlap.jpg",
+      "expected": {
+        "sender": "Dana",
+        "dateSource": "chat",
+        "date": "2024-11-03T05:30:00.000Z"
+      }
+    },
+    {
+      "path": "extra.mp3",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "none",
+        "date": null
+      }
+    },
+    {
+      "path": "contact.vcf",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "none",
+        "date": null
+      }
+    }
+  ]
+}

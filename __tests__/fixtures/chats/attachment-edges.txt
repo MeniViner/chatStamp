@@ -1,0 +1,10 @@
+15/01/2024, 10.30 - Dana: Team: ⁨name.pdf⁩ (file attached)
+15/01/2024, 10.30 - ⁨Eli⁩: name.pdf.jpg (file attached)
+15/01/2024, 10.31 - Eli: dup.jpg (file attached)
+15/01/2024, 10.31 - Eli: folder-a/dup.jpg (file attached)
+15/01/2024, 10.32 - Dana: Look at mention.jpg from last year.
+15/01/2024, 10.33 - Dana: mention.jpg is from last year.
+15/01/2024, 10.34 - Messages and calls are end-to-end encrypted.
+[15/01/2024, 10:35:59] Dana: <attached: explicit-a.jpg>
+[15/01/2024, 10:35:59] Dana: <attached: explicit-b.jpg>
+15/01/2024, 10.36 - Eli: name.pdf (file attached)

@@ -1,0 +1,46 @@
+{
+  "zone": "UTC",
+  "order": "ymd",
+  "entries": [
+    {
+      "path": "IMG-20240115-WA0003.jpg",
+      "expected": {
+        "sender": "Dana",
+        "dateSource": "chat",
+        "date": "2024-01-15T10:30:00.000Z"
+      }
+    },
+    {
+      "path": "report.pdf",
+      "expected": {
+        "sender": "Dana",
+        "dateSource": "chat",
+        "date": "2024-01-15T11:30:00.000Z"
+      }
+    },
+    {
+      "path": "album.gif",
+      "expected": {
+        "sender": "Dana",
+        "dateSource": "chat",
+        "date": "2024-01-15T12:30:00.000Z"
+      }
+    },
+    {
+      "path": "contact.vcf",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "none",
+        "date": null
+      }
+    },
+    {
+      "path": "extra.webp",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "none",
+        "date": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "zone": "UTC",
+  "order": "dmy",
+  "entries": [
+    {
+      "path": "documents/report final.pdf",
+      "expected": {
+        "sender": "Dana",
+        "dateSource": "chat",
+        "date": "2024-01-15T10:30:00.000Z"
+      }
+    },
+    {
+      "path": "photos/IMG-20240115-WA0001.jpg",
+      "expected": {
+        "sender": "Dana",
+        "dateSource": "chat",
+        "date": "2024-01-15T10:31:00.000Z"
+      }
+    },
+    {
+      "path": "VID-20240115-WA0002.mp4",
+      "expected": {
+        "sender": "Eli",
+        "dateSource": "chat",
+        "date": "2024-01-15T10:32:00.000Z"
+      }
+    },
+    {
+      "path": "PTT-20240115-WA0003.opus",
+      "expected": {
+        "sender": "Eli",
+        "dateSource": "chat",
+        "date": "2024-01-15T10:33:00.000Z"
+      }
+    },
+    {
+      "path": "recording.m4a",
+      "expected": {
+        "sender": "Eli",
+        "dateSource": "chat",
+        "date": "2024-01-15T10:34:00.000Z"
+      }
+    },
+    {
+      "path": "document.docx",
+      "expected": {
+        "sender": "Dana",
+        "dateSource": "chat",
+        "date": "2024-01-15T10:35:00.000Z"
+      }
+    },
+    {
+      "path": "contact.vcf",
+      "expected": {
+        "sender": "Dana",
+        "dateSource": "chat",
+        "date": "2024-01-15T10:36:00.000Z"
+      }
+    },
+    {
+      "path": "STK-20240115-WA0004.webp",
+      "expected": {
+        "sender": "Dana",
+        "dateSource": "chat",
+        "date": "2024-01-15T10:37:00.000Z"
+      }
+    },
+    {
+      "path": "extra.gif",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "none",
+        "date": null
+      }
+    },
+    {
+      "path": "unmatched.png",
+      "modificationTime": "2023-10-10T12:00:00.000Z",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "zip-entry",
+        "date": "2023-10-10T12:00:00.000Z"
+      }
+    },
+    {
+      "path": "other/unsupported.bin",
+      "skip": "unsupported"
+    }
+  ],
+  "captions": [
+    "caption on a second line"
+  ]
+}

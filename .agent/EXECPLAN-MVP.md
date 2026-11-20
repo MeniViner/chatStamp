@@ -2,97 +2,234 @@
 
 ## Goal
 
-Deliver an Android-first MVP that imports a WhatsApp chat export ZIP, extracts media and `_chat.txt`, maps each media file to sender/date, filters by sender and media type, saves selected media to Gallery, and applies original dates so Android Gallery sorting is correct.
+Import a WhatsApp export ZIP on Android, map attachments to original message
+instants, select/filter files and save them so the tested Gallery sorts by those
+instants. Saved and verified dates remain separate facts. Local-only; no DB,
+accounts, analytics, cloud or server. Current requested production identity is com.menis10tec.chatstamp; retain the owner's external upload key. Earlier com.menis.chatstamp artifacts remain historical.
 
-## Current state
+## Current state —2026-11-21, installed icons internally available / both Alpha in review
 
-This repository is a starter prepared for Codex. It now has the TypeScript MVP pipeline wired through import, review, processing, and completion screens. Milestones 1 and 2 pass typecheck, tests, and lint. Android native module source exists for selective ZIP extraction and MediaStore/EXIF date writes, but it has not been compiled or verified on a real Android device yet.
+chatStamp **0.2.2/code16**, app4975002762311404414/packagecom.menis10tec.chatstamp,
+source **d26bddfa0eb37e090d24fb8a1969715e3e40b5d9**: full605host/127Python/59freshJVM/
+72connected smoke, exact-source AndroidCI44826496766, signed/static checks and
+actual API36 launcher update/reinstall/day/night acceptance PASS. Internal16 is
+available (21Nov00:20local); same AAB promoted Alpha100% with EN/HE notes, both
+submission steps completed: **Changes in review**, quick checks running.
 
-## Decisions already made
+Tank Malle **1.11.6/code17**, source44941104bac497dc0c9bf7bc4bbee4a5cdb90c36,
+retains its existing package/key and separately passes host/build/independent
+packaged-icon checks and actual isolated launcher reinstall. Internal17 available
+(21Nov00:22local); same AAB Alpha100% submitted, **Changes in review**. No closed
+approval/availability or actual Play installation of either new version claimed.
+No tester/country settings, invitations, store art or production access changed.
 
-- App is local-only and stateless.
-- MVP uses React Native + Expo + TypeScript.
-- Zustand is allowed only for current session state.
-- No database.
-- No backend.
-- Native ZIP extraction is required.
-- Android Gallery date correctness is a core acceptance criterion.
-- OPUS voice notes are excluded or handled separately from photo/video export.
+Exact approved masters are unchanged. Durable native generation replaces old
+legacy/adaptive/round/night/mono resources; chatStamp remains leafless. Both
+reinstall icons rendered in the actual emulator launcher; no launcher-cache reset.
+QA/data/network/display controls were restored and owned emulator stopped.
+The owner's Meni Viner profile/existing authenticated tab resolved the initial
+wrong-profile/new-tab login issue; there is no pending login request.
 
-## Open risks / unknowns
+Fresh [report](../dist/play/native-launcher-icons-20261120/README.md),
+[dedicated evidence](../dist/play/native-launcher-icons-20261120/),
+[product instructions](../dist/play/native-launcher-release-20261120/README.md).
+Earlier checks keep their own versions. Actual owner exports/Gallery,physical16,
+16KiB execution and genuine tester eligibility remain UNVERIFIED. PR1 stays open.
 
-- Whether `expo-media-library` alone can preserve/set the required Android Gallery sort fields for all media types.
-- Whether target Gallery apps sort by `DATE_TAKEN`, `DATE_ADDED`, `DATE_MODIFIED`, EXIF `DateTimeOriginal`, or another field.
-- How WhatsApp export filenames vary by locale, Android version, and chat type.
-- Whether Share Intent payload arrives as `content://`, `file://`, or MIME variants.
-- No Android device/emulator is currently attached for install, launcher-icon visual verification, or real Gallery sorting verification.
+## Prior state —2026-11-20, direct WhatsApp code15 internally available / Alpha in review
 
-## Milestone 1 — Project compiles
+### Active owner follow-up — direct WhatsApp export intake and guide
 
-- Install dependencies.
-- Ensure `npm run typecheck`, `npm run test`, and `npm run lint` work.
-- Fix starter code if package versions require adjustment.
+The owner reports that chatStamp appears in WhatsApp's share sheet but does not
+receive the export. Implement and independently verify a prominent Home entry
+and short bilingual guide: open chat → three dots → More if present → Export chat
+→ Include media → chatStamp, without a prior manual ZIP save. Preserve both
+onboarding pages, picker alternative, settings and existing session state.
 
-## Milestone 2 — Parser hardening
+Source audit identifies distinct repair targets, not the owner's exact payload:
+ZIP-only filters, per-URI ZIP dispatch for separate TXT/media, a global launch-read
+flag, a React-startup intent gap, and grant ownership ending at native dequeue.
+Use durable Activity capture, per-delivery tokens, bounded native receipt leases
+and streamed ZIP or separate-file extraction. Preserve native limits, local-only
+processing, independently verified dates and the prohibition on broad storage
+permissions/private ZIP copies. A failed incoming share must not erase active work.
 
-- Expand parser tests for real WhatsApp `_chat.txt` formats.
-- Support Unicode control characters and RTL/LTR marks.
-- Support line continuations.
-- Extract sender, date, and filename reliably.
-- Mark unparseable lines without crashing.
+Roles: root implements intake/plugin and owns Git/build/device/release; implementer
+owns Home/guide/navigation/locales; Test author derives independent acceptance and
+owns the focused TS/native regressions; Reviewer audits source and final diff.
+Run the full npm-ci/host/prebuild/native smoke and minified isolated QA acceptance,
+including cold/warm real granted sources, cancellation, replacement and guide Back.
+Actual owner WhatsApp export remains a separate mandatory observation. ADB initially
+lists no devices; owner reconnection requested while independent work continues.
+Preserve the preexisting untracked Meni-Viner-CV-Hebrew.pdf. Source/native/verifier
+versions are aligned to 0.2.1 (15), with the existing upload key. The owner chose
+the emulator; an owned API36 instance replaces the requested physical run here.
+Full npm-ci smoke passes:605 host/58 files,127 Python,59 JVM,72 connected, no
+failures/errors/skips; typecheck/lint, clean prebuild and arm64 QA assembly pass.
+Test author and Reviewer are complete/CLEAR. Home, all six guide pages and the
+real Android temporary-grant/private-provider contract have debug UI acceptance.
+Signed production AAB and minified QA15 strict checks pass. Exact-source Android
+CI run44748707957 succeeds. Minified Hebrew actual Android raw share, cold generic
+ZIP, warm replacement, no-grant recovery, all six guide pages/font1.3/Back and
+3saved/1verified/0failed run pass; independent JPEG embedded/indexed readback agrees.
+Debug private discard and owned output/package cleanup were inspected; minified
+private discard bytes remain UNVERIFIED. Public privacy update is live.
+Internal15 is available; same AAB promoted to Alpha with100%rollout and both notes.
+Both submission steps completed: Changes in review, quick checks running. Prior
+Alpha14/178countries remains the confirmed active closed baseline; all five lists
+preserved, no invitations resent. Fresh report: dist/play/direct-share-0.2.1-15-20261120/README.md.
+Actual WhatsApp/owner export, physical15, fresh Gallery order,16KiB runtime and
+qualifying tester period remain separate gates. QA/helper/output cleanup and
+original emulator settings restoration passed; owned emulator stopped. PR1 stays
+open/unmerged; no production-access request or final MVP completion claim.
 
-## Milestone 3 — ZIP import and extraction
+### Prior code14 distribution and artwork checkpoint
 
-- Implement ZIP selection and/or Share Intent import.
-- Copy ZIP to cache.
-- Extract only `_chat.txt` and supported media extensions.
-- Avoid JS memory loading of the ZIP.
-- Create progress reporting.
+Fresh Console readback shows **Alpha 14 (0.2.0) ACTIVE**, 178 country/region entries.
+Actual native Google Play installed the previously absent production package on the
+Samsung A30 under explicit owner instruction; package/version, installer
+**com.android.vending**, real Open/onboarding and process presence were verified.
+The phone's existing Google account joined internal through a new one-member list
+selected only for internal testing. Original five Alpha assignments remain intact.
+This install does not establish qualifying closed participation. Earlier today the
+Dashboard showed one opt-in; no genuine 12-tester/14-day period is claimed.
 
-## Milestone 4 — Review/filter UI
+Code 14 implements single-line ellipsized titles with full accessible names,
+filled-active/outlined-inactive filters, transcript-first placement, an internal
+selectable/scrollable bounded reader, native RTL arrows/swipes, and six Settings
+categories with category→menu→original-screen Back. The reader uses SDK 55
+FileHandle 32 KiB plus at most three UTF-8 lookahead bytes; ordinary documents retain
+external fallback. Exact app/config source remains
+**9e6c28f11117e8a6ff6531ccab874192c55cc61a** with unchanged signed 14 artifacts/key.
 
-- Show extracted summary.
-- Show sender checklist.
-- Show media type toggles: photos, videos, OPUS voice notes.
-- Default OPUS excluded for MVP export.
-- Show matched/unmatched counts.
+Earlier exact-source full smoke remains scoped to that application candidate:
+564 host / 55 files, 127 Python, 59 fresh JVM, 52 connected on each API 30/API 36,
+zero failures/skips. Source/scoped review CLEAR; both source Android CI runs pass.
+Signed/static production/QA checks and recorded A30 Hebrew / wide API 36 English
+minified acceptance passed. No app code changed in this artwork/docs continuation.
 
-## Milestone 5 — Gallery save pipeline
+Separate Hebrew-only Tank Malle Bcc invitation to 19 unique addresses (excluding
+the owner-identified clothing/admin address) has Gmail SENT/exact-recipient readback.
+The prior 20-person bilingual chatStamp send is a separate completed event; neither
+send proves delivery, usage or continuous opt-in.
 
-- Save selected media to Gallery.
-- Apply original dates through the best available method.
-- If Expo APIs are insufficient, implement native Android bridge for MediaStore/EXIF fields.
-- Keep one clear adapter around metadata writes.
+Six fresh synthetic physical QA14 Hebrew split posters plus one localized feature
+remain saved in iw-IL. Both owner-approved Play store icons now use genuine
+transparent PNGs; chatStamp has no leaves and is saved/reopened in en-US and iw-IL.
+Tank Malle uses the approved gold car-wallet/receipt/gauge in its sole iw-IL locale.
+Both icon submissions end in Changes in review; public propagation is unverified.
+Both per-app support fields separately published without a new binary. Every
+banner/screenshot source URL/order and text value remains unchanged. Independent
+Test author PASS and Reviewer CLEAR cover both final icons and alpha-preserving
+mechanical export. Latest selected assets/prompts/checks and locally excluded fresh
+Console proof are grouped in **store/play/icon-rollout-20261120/**; earlier artwork
+and dated evidence stay at original paths. The whole fresh delivery stays below
+10,000,000 bytes. Application/config/native/launcher code and signed14 remain frozen.
 
-## Milestone 6 — Verification on device
+QA/helper, synthetic ZIP and nine owned saved outputs were removed and verified;
+original stayawake 7, timeout 600000 and font 1.1 restored. Production Play14 is kept
+and reopened; preexisting emulator 5554 remains untouched. Uninstall removal does
+not establish discarded private-byte cleanup before uninstall.
 
-- Test with a real WhatsApp export ZIP.
-- Test Android 10+ scoped storage behavior.
-- Confirm Gallery sort order after save.
-- Confirm cache cleanup.
+Remaining: Google artwork review/publication; genuine closed use/feedback/period;
+owner real export/own WhatsApp cold-warm shares/Gallery order/private-byte acceptance;
+physical API 33, actual 16 KiB and full UI/provider coverage. Keep PR #1 open/unmerged;
+do not apply for production access before eligibility, resubmit identical bytes or
+start recurring external monitoring. See latest dated REBUILD_LOG/VERIFICATION.
 
-## Verification steps
+## Prior state — 2026-11-20, IARC complete; Alpha 13 submitted/in review
 
-```bash
-npm run typecheck
-npm run test
-npm run lint
-npx expo prebuild --platform android
-npx expo run:android
-```
+Meni explicitly requests production application ID **com.menis10tec.chatstamp**.
+This supersedes the previous fixed-ID instruction. Code 13 keeps version 0.2.0,
+uses isolated **com.menis10tec.chatstamp.qa**, and retains the existing upload key.
+The bridge library namespace stays com.chatstamp.nativebridge. Update current
+harness/verifier identities and regenerate Android; never relabel an old artifact.
 
-Manual Android verification:
+Google Play treats a changed application ID as a separate app. The existing
+4974511742201615518 entry belongs permanently to com.menis.chatstamp. Its code 12
+acceptance and earlier store/runtime proof keep their historical identities.
+The new package needs its own Play entry, current artifact identity verification,
+and actual new-track availability. No old private settings/history/grants or
+MediaStore ownership migrate automatically between Android sandboxes.
 
-1. Export a WhatsApp chat including media.
-2. Share ZIP to the app or select it manually.
-3. Select one sender and photos/videos.
-4. Save to Gallery.
-5. Open Gallery and sort by date.
-6. Confirm items appear at original message dates.
-7. Delete app cache from the app and verify no temporary files remain.
+Implementation, independent identity tests and source review are complete. Root
+verified the full npm-ci smoke, generated/final identity and provider checks,
+both-device native/minified runtime, signing and actual independent read grant.
+Both source CI runs pass. New app 4975002762311404414 is created after owner-approved declarations;
+internal 13 was available at the 19 November checkpoint. On 20 November the owner
+approved IARC; the factual questionnaire completed and all 16 prepared changes
+were submitted. Publishing shows Changes in review, with quick checks running;
+Alpha 13 is in review. The signed-in closed opt-in page reports App not available.
+No closed availability, real-export acceptance or tester participation is inferred.
+Previous API 33/full UI, actual 16 KiB,
+browser/provider/Cancel/real-export gaps remain explicitly scoped.
+
+## Implemented decisions and boundaries
+
+- Native ZIP streaming directly from a granted source URI; validation and
+  fingerprint in the same stream, no complete private ZIP copies or JS ZIP data.
+-20,000 entries,2 GiB per entry,8 GiB total; actual free-space guards. TXT samples
+ 64 KiB each/16 MiB total; TypeScript selects transcript. Unsafe/unsupported
+ entries counted. Supported native extraction and preview limits are in TECHNICAL_NOTES_ANDROID.md.
+- Scoped own MediaStore writes: photos/videos together under Pictures/chatStamp,
+ audio under Music, documents under Documents with Downloads/provider fallback.
+ EXIF JPEG/PNG/WebP, MP4 header rewriting and independent indexed/mtime readback.
+ Approximate/ambiguous/undated outcomes never count as verified message dates.
+- Native saved-record identities preserve old paths across duplicates, languages
+ and partial retry. New folder labels follow the committed app language.
+- Save captures session, IDs and committed destination/policy before async audio
+ release/notification permission; restart/share intake has an idle native fence.
+- Real progress, cancellable streamed buffers, user-started dataSync foreground
+ save with notification-denial behavior and API36 timeout cleanup. Cold-once and
+ warm-event shares; no polling. Discard/cold-start cleanup and grant release.
+- Atomic local settings/history/native-save JSON; details-before-index history
+ and startup reconciliation. Zustand is session state only; no database.
+- Virtualized day grid, Set selection, filtered footer/Save, bounded native JPEG
+ thumbnails, zero cell players, one viewer video and shared audio. OPUS/voice,
+ GIF/WebP, PDF/VCF and external document fallback are in current scope.
+- Import → Select → Save; organization/duplicates/custom folder in Settings.
+ Native I18nManager direction with explicit restart; app-language dates, actual
+ dynamic colors where supported and warm fallback. Insets/Back/font/wide UI
+ verified only in the combinations named by runtime receipts.
+- min30/target36, no broad-storage/media/network/microphone permission. Backup
+ and transfer disabled. Durable plugin/module source; ignored Android regenerated.
+
+## Remaining gates
+
+- Complete: code 13 identity migration, independent source review, full smoke, both source CI runs, signed/static artifacts, new provider read grant and affected minified runtime. Earlier native fixes and broader runtime receipts keep their original binary scope.
+- Complete: dedicated code 13 product and fresh proof sets, current bilingual listing/declaration/tester guides. Eight screenshots remain actual code 9; the public foreground demo remains actual code 11. No relabeling.
+- Complete: code 13 five-output/one-ZIP cleanup per device, QA/helper removal, original control restoration and owned emulator shutdown. Private release-cache byte inspection remains UNVERIFIED.
+- Complete: new app creation/upload/internal availability, bilingual listing/assets, factual declarations and five lists on internal/Alpha. Alpha reuses uploaded 13; 177 countries plus Rest of World saved. Old internal is paused; old Alpha pause submitted/in review.
+- Complete: owner-approved new IARC agreement and factual questionnaire; status Completed and seven regional ratings read back. All 16 changes submitted on 20 November; publishing and Alpha 13 show in review. Quick checks were running at the recorded snapshot.
+- G2 owner/external gates: Google review, actual closed availability and a working eligible-account opt-in route before invitations. Owner real-export acceptance, PR decision and genuine new-package opt-in/usage/period remain open. The agent does not merge or request production access before its genuine gate.
+
+## Open risks and exact follow-up
+
+See KNOWN_RISKS.md and PLAY_UPLOAD_STEPS.md: API33 physical, real owner WhatsApp
+share, arbitrary Gallery/provider/codec combinations, actual16 KiB runtime and
+owner browser first-run rendering remain unverified. Provider-revocation
+simulation and the narrow process-death row-record window are deferred per v4.
+Play account is personal; creation date remains unknown. Exact new tracks are
+recorded, while genuine qualifying opt-ins/usage/period must be observed. Never substitute synthetic/device tests
+for a real closed-test period.
+
+## Verification
+
+Follow scripts/android-verification/README.md: npm ci/typecheck/test/lint,
+clean prebuild, two-worker arm64 QA assemble, merged manifest/APK inspection,
+nonzero JVM/connected suites and QA cold-launch/affected UI cases. Do not install
+over production. verify-release.py checks signed candidates separately; CI's
+resolved-toolchain/manifest/JUnit policy does not certify signing or device runs.
 
 ## Progress log
 
+- 2026-11-16: Implemented the scoped save pipeline, date preference and readback, and archive-level save records that preserve the chosen folder and completed entries across retries. The QA manifest and native suites pass. Run the regression from the app's ZIP picker through Samsung Gallery before accepting Stage B.
+
+- 2026-11-16: Verified Stage A on the Samsung via the Android ZIP picker. Both the filename-dated unmatched JPEG and matched VCF appeared in selection, with no QA crash. Stage P verified scoped writes, indexed timestamps, and the Samsung Gallery creation-date sort on the same device. Cleanup passed. The Stage B destinations and date checks are listed above.
+
+- 2026-11-16: Captured the baseline and tracked QA tooling in Stage 0. Stage A implemented archive-aware matching, file-wide date order, DST and date provenance, and visible supported files without a chat match. Legacy date success now requires MediaStore readback. Host checks and the QA build pass. The physical smoke test is unverified after the phone disconnected from ADB.
+
+- 2026-11-15: Tested baseline `2a76514` on a physical Samsung with an isolated debug package, following `docs/CODE_REVIEW.md`. Five selected media files were saved. JPEGs indexed the chat instant, the PNG indexed only modification time, and both MP4s retained their internal creation dates. Samsung Gallery sorted the videos incorrectly by creation date. Sorting the test album by modification date matched all five chat timestamps. Warm sharing failed with the same content URI that imported after a cold launch. A 128 MiB ZIP completed on the same process and left two private ZIP copies and the extracted video in cache after Back and restart. The gallery acceptance criterion remains failed. See `docs/VERIFICATION.md`.
 - 2026-06-04: Blocking QA/build pass changed Android identity from the previously requested reversed form to `com.menis.chatstamp`. Source-of-truth files now use `com.menis.chatstamp`, while native module providers stay placeholder/runtime-package based. `npx expo prebuild --platform android` regenerated ignored Android files with `namespace`/`applicationId`/Kotlin package `com.menis.chatstamp`. Initial `assembleDebug` exposed stale ignored React Native autolinking output still pointing at `menis.chatstamp.com`; deleting `android/build/generated/autolinking` and `android/app/build/generated/autolinking` allowed Gradle to regenerate the entrypoint with `com.menis.chatstamp`. Verified `npm run typecheck`, `npm run test`, `npm run lint`, `./gradlew assembleDebug`, `./gradlew assembleRelease`, `apksigner verify`, and APK metadata for `com.menis.chatstamp`. `adb devices` showed no attached Android device/emulator, so the requested manual QA checklist, direct folder-opening proof, video-control proof, bottom-sheet safe-area proof, and Gallery save/date proof remain blocked.
 - 2026-06-04: Completed Android branding and release packaging for v0.1.1. The uploaded 1095x1280 JPEG was cropped to a centered square, had the black outer background removed, and now feeds Expo launcher, adaptive, and monochrome icon assets. Android app identity is `com.menis.chatstamp` with `versionCode` 2. Added an Expo config plugin for local-only release signing configuration and release minify/resource shrinking. Generated a local release keystore outside the repo, built `dist/releases/chatstamp-android-v0.1.1.apk` as a signed universal release APK, and verified package/version metadata plus `apksigner` signature. Verified `npm run typecheck`, `npm run test`, `npm run lint`, `npx expo prebuild --platform android`, and `./gradlew clean assembleRelease` using a local Temurin 17 JDK and Android SDK. No Android device/emulator was attached, so installation, launcher icon visual QA, and the real Gallery save/date smoke test remain pending.
 - 2026-06-04: Implemented the requested Step 3/4/6 UI and Android folder-opening batch without changing ZIP import/parsing/save timestamp semantics. Shared bottom sheets now draw through the Android navigation area while applying safe-area padding internally and support a non-scroll media-preview mode. Step 3 uses a compact top appbar title/pill, no subtitle/media-count chip row, an icon-only toolbar with visible-filtered selection counts, compact filter sheet rows, cached async video thumbnails, working native video-control touch ownership, and internally scrollable TXT previews. Step 4 shows the selected/images/videos/other summary first. Step 6 removes the import-another/history buttons, adds saved-file thumbnails, and adds expand/collapse-all controls for row details. Native folder opening now carries exact output-directory metadata, opens SAF/public folder targets with `ACTION_VIEW` first, and only falls back to the system document navigator with an explicit fallback message. Added focused tests for filtered counts, visible select/clear, result-row expansion, bottom-sheet padding, and folder target helpers. Verified `npm run typecheck`, `npm run test`, and `npm run lint`; Android Gradle assembly could not run because this shell has no Java runtime. Real-device verification remains required for the folder intent behavior, video controls, bottom-sheet nav area, and Gallery date sorting.
@@ -130,3 +267,673 @@ Manual Android verification:
 ## Final acceptance criteria
 
 The MVP is accepted only when a real Android device shows selected media in Gallery sorted by original WhatsApp message date.
+
+## Active v4 continuation — 2026-11-18
+
+### Goal and recovered state
+
+Resume from the pushed scoped-storage implementation, accept its real app save,
+finish robust import/save and the picker, and prepare a truthful Google Play
+closed-test release. The authorized order is **R → B-close → C → G1 → D → E → F → G2**.
+Earlier dated observations above remain historical evidence, not current acceptance.
+
+- Recovery began on clean `main` at `2a76514`, with no stashes. `git fetch origin`
+  discovered `origin/fix/core-rebuild` at `811a27561fc7733a7ccccbad25bab286013916e3`.
+  Tracking checkout and `git pull --ff-only origin fix/core-rebuild` matched that head.
+- The currently attached and unlocked device is Samsung Galaxy A30 SM-A305F,
+  Android 11 / API 30, arm64, Samsung Gallery 12.1.09.1, Asia/Jerusalem.
+  The historical API 33 Note20 is not attached. Report device coverage separately.
+- Use only `com.menis10tec.chatstamp.qa` for current app acceptance. Preserve the production
+  package. Restore the prior stay-awake setting (7) after device runs and remove
+  the run's QA packages, fixtures, and saved files.
+- Existing release signing configuration and keystore are outside this repository.
+  Their presence does not establish a validated or uploaded release. Do not expose
+  their contents or create a replacement key.
+
+### Milestones and verification
+
+- [x] R: run the complete host/native smoke with nonzero test counts, update
+  repository instructions, remove obsolete prompts, review, commit `stage-r:`, push.
+- [x] B-close: five-file picker save; separate saved/date-verified UI outcomes;
+  independent MediaStore and MP4 readback; Samsung Gallery order and red-photo
+  details; duplicate and language-change reruns; undated-document save.
+- [x] C: single-pass content-URI streaming and fingerprint; bounded extraction;
+  TypeScript transcript selection; real progress; cancellation; dataSync foreground
+  save and reattachment; one-shot cold/warm share events; cache/grant cleanup;
+  coded errors; atomic split history with migration and orphan reconciliation.
+- [x] G1: check current official Play requirements; build and validate signed
+  0.2.0 (3) AAB; verify 16 KiB native alignment and minified QA release save;
+  bilingual privacy policy, listing, declarations, tester invitation, and upload
+  or exact manual handoff. No Play Console UI automation.
+- [ ] D: baseline 40-video reproduction; bounded native thumbnails; virtualized
+  grid and compact rows; set selection; full-screen viewer with one video player;
+  filter-consistent aggregates; unit/render/device checks; increment test release.
+- [ ] E: Import → Select → Save; two-page onboarding; safe insets; accessible
+  bilingual visual system; I18nManager restart flow; API 30 physical checks and
+  requested API 33/API 36 checks reported according to actual availability.
+- [ ] F: remove replaced code; align docs; pinned CI and nonzero native tests;
+  shipped dependency audit disposition; fresh-checkout verification.
+- [ ] G2: final closed-track update or package; open one PR to main, do not merge;
+  prepare production-access answers and owner-run real-export acceptance steps.
+
+For every stage, separate implementer, acceptance-test author, and reviewer roles.
+Run `npm ci`, typecheck, Vitest, ESLint, clean Android prebuild, arm64 QA assembly
+with two workers, APK/manifest inspection, JVM and connected native tests, and
+the stage's device cases. Fix failures and restart the smoke cycle from npm ci.
+On macOS use `./android/gradlew -p android` in place of the Windows wrapper.
+Keep production native changes in the Expo module/config plugin, never generated
+`android/`. Commit and push each completed stage without force-pushing.
+
+### Evidence and open risks
+
+Keep only new concise reports/readbacks and essential synthetic screenshots in
+one curated evidence output set, below **10,000,000 bytes in total**. Build outputs,
+fixture archives, dependencies, and full logs are development intermediates and
+must not be placed in that evidence set. Check the final cumulative byte count.
+Keep tracked stage summaries in REBUILD_LOG.md and VERIFICATION.md current.
+
+- B app/Gallery acceptance passed on the retained `fe7be66` QA APK and physical
+  API 30 handset; current Stage C runtime and release-build acceptance continue.
+- API 33 and API 36 are not established by API 30 results.
+- Defer arbitrary provider-revocation simulation and crash recovery beyond cleanup
+  of the operation's own orphaned pending MediaStore rows.
+- Real WhatsApp export acceptance requires the owner and remains UNVERIFIED until
+  performed. Never commit a real export or include it in evidence.
+- Play credentials, account type, app-entry existence, Pages publication and tester
+  recruitment have not yet been checked; none are assumed complete.
+
+
+### Stage C implementation checkpoint — 2026-11-18
+
+Source now uses a direct granted-URI native stream and SHA-256 fingerprint;
+TypeScript selects the transcript from bounded candidate samples and keeps other
+supported TXT files. Limits are 20,000 archive entries, 2 GiB per entry, 8 GiB
+uncompressed total, 64 KiB per TXT sample, 16 MiB total samples, and a 16 MiB
+selected transcript parsing limit before JavaScript reads it. Supported extensions:
+`txt jpg jpeg png heic webp mp4 mov m4v 3gp opus ogg m4a mp3 aac gif pdf doc docx
+vcf xls xlsx ppt pptx zip`. Unsafe paths are skipped, not written.
+
+The application-scoped operation registry, dataSync foreground service,
+notification cancellation, real progress, retained event-driven cold/warm shares,
+source/cache cleanup, coded errors, and atomic split history are implemented.
+History details precede the summary index, migration keeps legacy data until
+committed, and native completion is acknowledged only after durable history.
+
+A complete smoke retry passed npm ci, strict TypeScript, 191 Vitest tests in 32
+files, ESLint, clean prebuild, arm64 QA assembly, service/permission inspection,
+16 JVM tests, and 10 connected tests on each of API 30 and API 36. The first
+API 36 run exposed Android's default ZIP path validator before the application's
+skip guard; the replacement is Apache Commons Compress 1.28.0 with independent
+safe-path, CRC, size and end-record validation. No global path validator was
+disabled. Review then found a cancellation/error-classification race; its fix
+and additional tests require a fresh full smoke before this source is committed.
+
+B-close remains unaccepted: physical app/Gallery evidence requires owner unlock.
+Stage C UI/cache/background/notification/cancel/timeout acceptance is being run
+on the disposable API 36 emulator and remains distinct from physical coverage.
+G1 is still gated. No Play version bump, upload, or publication is claimed.
+
+
+### Stage B-close accepted on the physical Galaxy A30 — 2026-11-18
+
+- [x] Retained QA APK from `fe7be66` passed the app-driven five-file save with
+  Always use message date and no broad storage access. APK SHA-256:
+  `0065af3cab31781d83c90682da839d58fae1d5bd17f963fdbd833a53d351386c`.
+  Product code for this baseline was unchanged while Stage C source reached
+  `25a9abc` on the working branch.
+- [x] On SM-A305F / Android 11 / API 30 / Samsung Gallery 12.1.09.1 in
+  Asia/Jerusalem, all five MediaStore capture/modification dates and reopened
+  image/video metadata matched their chat instants. UI showed five saved,
+  five dates verified and zero failures. Default Date created, descending Gallery
+  order was purple, yellow, blue, green, red; red details showed 15 February 2019,
+  10:30. The RTL grid's reading order is recorded in the verification report.
+- [x] Hebrew and English skip-existing reruns kept row IDs 121–125 and the same
+  single Pictures destination, with no duplicate file or folder. The undated VCF
+  saved as published row 128 with one saved, zero dates verified and no failure;
+  Date unavailable / Saved without a date remained explicit.
+- [x] QA and disposable UI helper removed; synthetic sources and saved run rows
+  removed; stay-awake 7 and screen timeout 600000 ms restored. Fresh B-close
+  review found no remaining findings. Baseline smoke counts remain 112 Vitest,
+  five JVM and three connected tests; no extra build was needed for documentation.
+- [ ] Stage C physical/runtime acceptance is still in progress. Repeat applicable
+  save/Gallery checks for the changed pipeline and the eventual minified release.
+  G1 awaits accepted C. Real-export owner acceptance remains UNVERIFIED.
+
+Current B-close evidence is summarized by
+[stage-b-acceptance.json](../dist/android-verification/rebuild-20261118/stage-b-acceptance.json),
+with its readbacks and synthetic screenshots in the same existing folder.
+See [the verification report](../docs/VERIFICATION.md#b-close--physical-app-and-gallery-acceptance--pass--2026-11-18)
+for exact dates, Gallery interpretation, duplicate inventories and cleanup.
+
+
+## Stage C accepted · physical API30 and emulator API36 · 2026-11-18
+
+- Real Google Files Share to the open QA process retained its PID and started
+  exactly one import; force-stop plus the same real share launched a new process
+  and started exactly one import. The granted content URI was used directly.
+- Physical128MiB extraction held only the134220717-byte video and66-byte transcript,
+  with no private ZIP/DocumentPicker/shared ZIP copy. Confirmed Back/discard and
+  cold launch left zero job files. Independent five-file MediaStore/EXIF/FFprobe
+  readback also passed after the new save implementation.
+- Fresh physical background saves completed while Launcher remained foreground,
+  both with notifications allowed and with API30 POST_NOTIFICATION blocked.
+  Each published a new full128MiB file (rows133 and142), not an already-saved skip.
+  API36 separately tested the Android13+ runtime notification-denial path.
+- First physical cancel sampling waited for a published and pending row together;
+  its brief insertion window was missed and all eight files completed. This was
+  inconclusive, not a cancellation pass. **try another way**: use16videos and tap
+  the visible Cancel footer as soon as one file is published while the FGS is
+  active. Result:2saved,14cancelled; no pending/partial row; both completed32MiB
+  files remain intact and FFprobe matches2019-02-21T09:00/09:01Z.
+- Emulator API36 also passed real warm/cold share,128MiB cache/discard, fresh
+  allowed/denied background writes,4saved/20cancelled with full files, and the
+  official dataSync timeout controls. System timeout was followed by clean
+  service stop about40ms later, with no pending/partial output or crash.
+- Runtime testing found misleading cancellation summary copy. Results now counts
+  newly saved outcomes separately from cancelled/failed/skipped rows and verified
+  dates. History persists cancelled counts and reconciles older details; retries
+  clear cancelled outcomes only when they actually save them. A new installed QA
+  cold start visibly shows Partial save:2saved,14cancelled,0failed.
+- Independent test author added17completion and14history regressions. Final
+  complete smoke passed npm ci, strict TypeScript,222Vitest tests/34files, ESLint,
+  clean prebuild, two-worker arm64 QA assembly, min30/target36/permission/service
+  inspection,23JVM tests and10connected tests on each API30/API36; zero failures,
+  errors or skips. Final reviewer found no actionable findings.
+- Final QA APK SHA256:acfe5fd889feb63525b4162d3e5559f1bd74cf08ed6a9458564b046a1eed1558.
+  It cold-launched in2.926s and its process crash buffer was empty.
+- Physical cleanup removed17owned output rows and five source ZIPs, uninstalled
+  QA/UI helper and restored stay-awake7 and screen timeout600000. Emulator cleanup
+  removed its QA/run files and restored stay-awake1 and platform test defaults.
+  Production package was absent and unchanged. Curated proof remains in the one
+  ignored rebuild-20261118 evidence folder, currently below1MB.
+- Provider-revocation simulation and crash recovery beyond cleanup of this
+  operation's own orphaned pending rows remain explicitly deferred. API33
+  physical coverage and a real owner WhatsApp export remain UNVERIFIED.
+
+
+## Stage G1 preparation checkpoint · 2026-11-18
+
+Version0.2.0/code3 is synchronized across Expo, root/module package metadata,
+lockfile and module Gradle. Release policy removes unnecessary Internet/network,
+overlay/audio/vibration/referrer capabilities, disables background media playback,
+and excludes private data from backup/transfers. Actual minified AAB manifest
+confirms exactly the three required platform permissions plus AndroidX's own
+signature receiver permission, nondebuggable, min30/target36, backup disabled
+and all nine-domain exclusion rules. Bilingual policy/listings/upload/tester
+materials and in-app privacy/support actions are prepared; public website,
+phone screenshots/demo and upload remain pending.
+
+The first R8 pass found Commons Compress's optional Zstd class. A suppression
+alone was rejected by review: its factory can run before the entry-method guard.
+**try another way**: SupportedZipInputStream rejects Zstd in the protected factory.
+Two known-size method20/93 JVM controls prove rejection before returning an entry.
+The initial descriptor fixture did not enter that factory; the fixture was fixed,
+not the assertion. Complete retry passes222Vitest/25JVM/10connected perAPI30/API36.
+The minified bundle then builds successfully and bundletool validates it.
+
+Artifact acceptance remains OPEN. Independent certificate comparison caught that
+the old config-plugin regex missed Expo's commented release block, leaving the
+DEBUG signingConfig selected. Fix the durable plugin, regression-test selection,
+rebuild and require an exact established-upload-certificate match; never distribute
+this preflight artifact. No new upload key was generated. All72native libraries
+were inspected: all36ELF64 LOAD/RELRO results pass16KiB. Genuine ELF32 libraries
+include4KiB segments; Android/AOSP policy scopes the16KiB requirement to64-bit
+ABIs, so preserve their raw results and correct verifier applicability rather than
+omit ABIs or claim ELF32 compatibility. The public policy page/Play upload are
+not established by this checkpoint. Phone has securely locked again; owner unlock
+was requested while independent release preparation continues.
+
+
+## Stage G1 accepted with manual Play handoff · 2026-11-18
+
+- Final complete smoke: npm ci, strict TypeScript, **230 Vitest tests/35 files**,
+  lint, clean Android prebuild, two-worker QA assembly/manifest checks, **25 JVM
+  tests**, and **10 connected tests on each API30/API36**, all passed. Independent
+  signing-template tests cover eight cases; the standalone verifier/harness has
+  **73 passing Python tests**. Reviewer found no remaining actionable findings.
+- Fixed release signing selection across Expo comments and fail closed on unknown
+  Gradle templates. Production AAB `dist/play/chatstamp-0.2.0-3.aab` SHA256
+  `7cd6730b3b80742abeb50d1c61197ce4825c316ac2657ccea1f56e5e2c84c95d`
+  validates and is signed by the established upload certificate SHA256
+  `efe36695cfc6a3d9ea8471527103f29e3374322ab09890af41692412d76a66c8`.
+  Exact identity/version0.2.0/code3/min30/target36/nondebug, signed payload coverage,
+  backup exclusions, platform-permission trio and AndroidX own signature permission
+  pass. All72 ELF libraries were inspected: all36 ELF64 LOAD/RELRO checks and
+  APK16KiB ZIP alignment pass; genuine32-bit raw results are retained with explicit
+  policy NOT_APPLICABLE. Actual16KiB-device runtime remains UNVERIFIED.
+- The same owner-signed minified QA universal APK SHA256
+  `3151927af160166cb15737050d0eb949228db5ed07a2ad3e483dc74a48359640`
+  cold-launched in998ms and passed real-picker five-file save/readback on the
+  physical Samsung A30/API30 and API36 emulator. Five saved and five dates verified
+  agree independently with MediaStore, filesystem dates, EXIF and both MP4
+  creation times. Phone Gallery default Date created descending shows purple,
+  yellow, blue, green, red; red details show15Feb2019 10:30. Crash buffer empty.
+- All eight synthetic actual-phone store screenshots are captured in English
+  and Hebrew, with dimensions/hashes/provenance. The English fresh-save run
+  intentionally removed Hebrew rows244–248 first; rows249–253 are new. This reset
+  is not duplicate acceptance; accepted Stage B proves duplicate preservation.
+- Privacy policy is public HTTP200 at
+  https://meniviner.github.io/chatStamp/privacy-policy.html and matches tracked
+  bilingual HTML. Pages currently serves fix/core-rebuild /docs; after owner merge
+  switch to main /docs before deleting the branch. Installed Privacy policy action
+  launches Chrome on both devices; browser first-run/sync prompts prevented page
+  rendering. **UNVERIFIED:** owner completes their browser setup and taps Settings
+  → Privacy policy; the test did not alter account/sync preferences.
+- Recorded actual minified user-started save, live dataSync notification while
+  Launcher was foreground, reattachment and4saved/4verified results. The14.4s
+  `dist/play/chatstamp-0.2.0-3-fgs-demo.mp4` uses cuts around transitions and a crop
+  of only the chatStamp notification to exclude unrelated personal notifications;
+  no UI or progress was composited. A first timing attempt missed the shade:
+  **try another way**: wait for Home to settle, then use a real downward swipe.
+  The owner must publish an accessible video URL. No raw/private video is packaged.
+- No Play service-account variable was supplied. **try another way:** signed AAB,
+  bilingual listing/declarations/tester messages and exact numbered manual steps
+  are ready; no upload or started closed-test period is claimed. Personal-account
+  creation date and tester participation remain UNKNOWN. Real owner WhatsApp
+  export and API33 physical coverage remain UNVERIFIED with G2 steps.
+- Phone cleanup removed the five current Gallery rows and four demo rows, both
+  source ZIPs, both temporary recordings and QA/helper packages; earlier trial
+  rows were already removed. Display1080x2340/font1.1/timeout600000/stay-awake7
+  restored. Emulator cleanup removed its QA/run files and restored stay-awake1.
+  Production package stayed absent and unchanged. Compact proof is in the single
+  ignored rebuild-20261118 folder; product AAB/demo are separate requested outputs.
+
+
+## Stage D implementation and acceptance plan · 2026-11-18
+
+G1 is accepted with a manual Play handoff (commit30a422a); no track upload is
+claimed. D uses versionCode4 while keeping0.2.0 and the production identity.
+Before any D product edits, root imported40 synthetic H.264 videos on the A30,
+scrolled six screens and opened VID-20190224-WA4012. Captured PID5216 contains
+42 ExoPlayer Init,1 Release, peak41 unreleased captured instances and76 decoder
+error lines including OMX.Exynos.avc.dec initialization failures. Preview opened;
+these errors establish resource pressure, not an independently enumerated hardware
+decoder count. Small fresh proof: d-baseline-40-video.json.
+
+Implementation ownership: implementer owns native thumbnails/cache/queue,
+FileProvider opening, cleanup and native barrier plus AppUi thumbnail removal;
+root owns picker/viewer, shared lazy audio, Set selection and save-scope snapshot;
+test author independently derives pure, actual-cell and lifecycle regressions;
+reviewer checks the complete diff against the task and CODE_REVIEW.
+
+- Native thumbnails are64–512px JPEGs: image downsample, scaled video frame, PDF
+  page one; two workers, one heavy renderer, bounded pending work and32MiB/512
+  cache entries. Identity includes URI/path, native mtime/size and requested size.
+  Invalidation and import discard prevent late repopulation. External opens use
+  only checked cache/owned/granted content URIs and read-only temporary grants.
+- Selection is an immutable Set by ID. All eligible media, voice, documents and
+  transcript start selected. Sender/search/tab/date filters preserve hidden
+  selections; day/filter tri-state and shrinking ranges affect the active IDs
+  only. Footer and pendingSaveIds use the same filtered ordered intersection.
+- Real SectionList cells are square3/5-column visual rows or64dp voice/docs rows,
+  with sticky day headers. Stable callbacks/metadata and memoized actual cells
+  must pass500/5000-cell invalidation tests, not fake counter replacements.
+- Viewer follows the filtered/sorted order, provides image pinch/double-tap,
+  current-page video, one lazy shared audio owner/seek/loading/error state,
+  PDF first page, VCF name/phone and external-app fallbacks. No list player.
+- Installed Expo factories allocate players during render and release them later
+  on Android MAIN. **try another way:** construct the viewer player only after
+  commit, acquire a global slot, claim the still-current offer, and hold the slot
+  through explicit release plus an awaited MAIN completion fence. Superseded
+  offers create nothing; owner remounts share the same fence; failure stays closed.
+  Regression tests must cover batched requests and delayed release/remount.
+
+Remaining acceptance: full smoke from npm ci; native nonzero unit/connected counts;
+physical40-video grid/player-log comparison, all nine fixture attachment previews,
+external opening and sender+Photos footer/save scope; API36 runtime cross-check;
+source review closure; signed code4 update or manual handoff; QA cleanup and settings
+restoration. Stage D is OPEN until these are observed. E/F/G2 have not started.
+
+
+### Stage D runtime checkpoint — 2026-11-18
+
+Last pre-fix complete smoke (stage-d-final-2) passed305 Vitest/39files,35 JVM and
+27 connected tests on each API30/API36, plus clean prebuild/QA assembly and
+merged service/permission checks. First new native-test compilation used `.use`
+with Android PdfDocument, which is not Closeable: **try another way**, explicit
+try/finally close; assertions unchanged. The cycle was restarted from npm ci.
+
+New grid creates zero ExoPlayers; physical pilot opened/released one cleanly.
+Independent emulator preflight passed40 videos/eight scrolls with zero list
+players, playback/16rapid-page taps/four reopen cycles with peak1/final0, and
+all media formats, sender+Photos footer and hidden selections. Actual host tests
+include500/5000 real memoized cells, shrinking/no-move gestures, lazy thumbnail
+recovery and deferred native release across owner remounts/batched offers.
+
+Runtime acceptance found a Fabric native-child-order error after date26→empty
+date25→date26→scroll→Photos. It reproduced on c2763b9a… and final-2 APK
+86e8e703be14151e1604b6e8e6e53cc606f12669ccdda375df65ca9059254577,
+outside connected-test intervals. **try another way:** disable only native
+removeClippedSubviews; keep SectionList windowSize5, initial/batch8 and stable
+keys. Official RN guidance documents correctness risks with clipping:
+https://reactnative.dev/docs/optimizing-flatlist-configuration#removeclippedsubviews
+The failure is established; clipping is a controlled hypothesis pending replay,
+not yet a proven cause/fix. Current code4 bundles are preflight artifacts and have
+not been handed off/uploaded. D remains OPEN through the fresh smoke and replay.
+
+Filter-sheet Reset was clipped at default emulator width; sender/date/sort controls
+were observed, hidden selections preserved by manually clearing filters. Keep the
+Reset defect explicit for the immediately following E sheet/inset work. No
+all-controls-accessible claim is made. No E implementation has started.
+
+
+## Stage D accepted · scoped runtime and signed update · 2026-11-18
+
+Final whole cycle `stage-d-image-touch-final` passed npm ci, strict TypeScript,
+305 Vitest tests/39 files, lint, clean Android prebuild/arm64 QA assembly, merged
+identity/permission/service checks,35 JVM and27 connected tests on EACH API30
+phone and API36 emulator. Reviewer found no remaining D source blockers against
+CODE_REVIEW. The75 new TS tests exercise production selection, actual500/5000
+memoized cells, thumbnail hooks, cleanup and deferred native-player ownership.
+
+The native-clipping alternative passed three exact emulator replays of the
+previous Fabric failure (date26→empty25→26→scroll→Photos); no Fabric error recurred.
+SectionList keeps windowSize5/batch8/stable keys; only native clipping is disabled.
+Image gestures originally competed with Pressable responder ownership: **try
+another way**, place PanResponder on a plain parent View, preserve latest transform
+when a pointer lifts and retain gesture ownership until release. Final physical
+FINGER tests observed doubletap red extent810→1620px, two-finger→one-finger zoom
+1758px, no paging during pan, then reset810px and a swipe to the next image.
+
+Final upload-signed/minified QA APK SHA256
+`69bfa0a5d78701556dc2386eb5f9d0cabd7d94c981a6f87afab24df35fee5015`
+ran40videos/sixscrolls with zero grid players. Captured cold-PID11276 preview/
+reopen window had4Init/4Release,peak1/final0,zero decoder-error lines and empty
+crash buffer. A subsequent actual Play displayed00:01/00:02 and a decoded frame.
+These are scoped event measurements, not independently queried decoder counts.
+Rapid video swipes were not certified as page changes; actual photo swipe and
+emulator16page-button transitions were observed independently.
+
+Physical all-media acceptance: photo gestures; GIF actual two-color animation;
+WebP rendered to match its white320x240 source; MP4 playback; OPUS reached20/20s;
+PDF showed the labelled red first page; VCF showed QA Dana/+15550123456. TXT
+FileProvider launched a real chooser. OEM HTML Viewer requested its own broad
+media permission and exited on denial. **try another way:** an independent,
+zero-permission disposable receiver read the actual granted content URI through
+ContentResolver and displayed exact62-byte UTF8,READ_OK/read_grant=GRANTED. This
+proves external transport; it does not certify that OEM viewer without its own
+permission. API36 built-in HTML Viewer had displayed the document. No storage
+permission was granted to chatStamp. Actual senderQA Dana+Photos footer1of1/673B
+saved only the red JPEG; independent MediaStore datetaken1551175200000,
+date_modified/mtime1551175200 agree with2019-02-26T10:00Z (1saved,1dateverified).
+
+Signed production AAB `dist/play/chatstamp-0.2.0-4.aab` SHA256
+`98b97a409ff9cfd38a1034095ea53faf26e51e6e001a1820081d027d682379e2`
+and production universal APK SHA256
+`5f96adb9dc2ff84610973642d74434366c9b5bd996c88326ba28efffff6b3827`
+pass the full artifact verifier with the established upload cert,exact identity,
+0.2.0/code4,min30/target36,minified/non-debuggable,allowed permissions,no backups,
+zipalignment and all72ELF entries (36ELF64 pass16KiB;32-bit explicitpolicyN/A).
+QA AAB/APK pass the same verifier except intentional.qa identity. First signed
+install over debug was rejected for different certificates: **try another way**,
+remove only our debug QA after deleting its own saved row,then install signed QA.
+Production was absent and untouched. No service-account credential exists; code4
+is packaged as the higher-code manual update under PLAY_UPLOAD_STEPS,not uploaded.
+No internal/closed track availability or tester clock is claimed.
+
+Current proof stays in `dist/android-verification/rebuild-20261118/`:d-emulator-
+runtime.json,d-phone-runtime.json,gesture/filter/external/release40 receipts,
+production/QA artifact reports and only small relevant screenshots. Actual phone
+cleanup removed saved row340,two source ZIPs,QA/helper/native instrumentation and
+temporary UI XML; restoredstayon7,timeout600000,font1.1,size1080x2340/density420
+without overrides. Emulator QA/source/output cleanup passed; native test package
+was removed after the final cycle,stayon1,font1.0,size1080x2400 unchanged.
+
+Known E work: filter-sheet Reset is still clipped at default dimensions, and
+footer/viewer native touch bounds need the E inset pass. Do not claim all-controls
+accessibility. API33 physical remains UNVERIFIED (actualA30API30 substitute).
+E/F/G2 now continue; real owner WhatsApp export and Play actions remain external.
+
+
+## Stage E implementation plan · 2026-11-18
+
+D accepted atce0acb3. E uses0.2.0/code5. Root owns direct Import→Select→Save,
+two-page onboarding,shared scaffold/insets,Settings/restart prompt/theme,Results
+virtualized Details,History dateformat and bilingualresources. Implementer owns
+native-I18n-only direction/reload adapter,BottomSheet constrainedbody/footer,
+serializedatomicsettings/date default and localized save-record compatibility.
+Test author derives real production-consumer tests and strict finite i18n usage
+checks independently; reviewer checks the full final diff/CODE_REVIEW.
+
+Language text changes only after preference commits; layout direction changes by
+actual native restart,with Restart now/Later and recoverable failures. Native
+I18nManager.isRTL alone controls currentdirection; no root override/key remount.
+Restart waits for explicit discard/cleanup and cannot interrupt running work.
+New installs/missing datepreference use message date; explicit old false persists.
+New output records capturelocalizedlabels; existingrecords/paths/duplicate keys
+remain exact. No date/verifier policy change. Dynamicpalette must visiblycontrol
+actualroles where supported,with honest API30 fallback.
+
+Acceptance includes retained C/D suites,full smoke,actual directfilteredSave,
+Back/modalpriority,inset/130%font/wide600dp EN+HE matrix on actual API30phone and
+API36emu,actualminifiedreloadbothdirections,updated phone-only syntheticstore
+screens plus curateddocs/screens. API33phone remainsUNVERIFIED with exactowner
+steps. No Play credentials: signedcode5/manualhigher-codeupdate,not track claim.
+E remains OPEN until these checks,reviews anddevicecleanup are observed.
+
+
+### E review and first full-cycle corrections
+
+Fresh review found and fixed: deferred audio-release Save could target a replaced
+import (revision/identity+component-generation guards); restart cancellation could
+resume intake while cleanup continued (committed non-dismissable/disabled dialog);
+queued Settings UI patches could restore stale nested organization fields (typed
+nested partials); result rows conflated indexed fallback dates with verified
+message dates (one predicate+approximate context); native English error messages
+bypassed bilingual copy (typed/generic localized errors, rawdeveloperdisclosure).
+Meaningful actual component/coordinator/store regressions cover these cases.
+
+First fullcycle `stage-e-final-1` passed npmci/typecheck then stopped at448tests:
+440pass/8fail. Six assertions expected the old completion summary-key names even
+though E now uses the shared four-count sentence; preserve all saved/cancelled/
+failed/verified counts and actual EN/HE rendering tests while updating that UI
+contract. Two Processing Back cases passed in isolation but failed in the whole
+suite because `--no-isolate` reused a component module with another file's mocked
+BackHandler listener. **try another way:** restore Vitest's normal per-file module
+isolation, retaining single worker/thread execution and every behavior assertion.
+Restart the complete cycle from npmci; these failures are not an accepted cycle.
+
+
+The second E cycle passed448TS/50files,prebuild,QAarm64APK,manifestchecks and40JVM,
+then35connectedtests executed perAPI30/API36 with3failures each in new profile
+path assertions. Save outcomes, same-URI reruns and profile equality had passed;
+the new assertions wrongly expected a trailing slash on outputDirectory, while
+the established MediaStoreFolder.label trims it and feeds duplicate identity.
+**try another way:** assert the exact expected directory and independent indexed
+RELATIVE_PATH/count,without changing production labels or weakening duplication
+criteria. Fix the cleanup-ref lint warning in the same correction batch and
+restart the complete cycle from npmci. No E device acceptance is claimed yet.
+
+
+### E implementation checkpoint · full smoke green · 2026-11-18
+
+Wholecycle `stage-e-final-3` PASS:448Vitest/50files,strictTS,zero-warninglint,
+cleanprebuild/QAarm64assemble,mergedSDK/permission/servicechecks,40JVM and35
+connected tests on EACH API30phone/API36emu,zero failures/errors/skips. DebugQA
+APK SHA256`1a76dbcbc4cbf6d41428b7edecbb783f5c1dafe04344eee4ce2b455bf6416af2`. Nativeprofiletests now independently verifyexact paths,
+indexed relativepaths,published state and0→1/1→2rowcounts acrosslanguagechanges.
+Reviewer source review clear; allreportedrace,bilingual-error,settingsmerge and
+message-dateverification findings haveactualregressions. Standardper-fileVitest
+isolation retainsoneworker; no acceptanceassertionsremoved.
+
+Code5 source is checkpointed for signed release/runtime acceptance. This is not
+E closure: actual minified restart/RTLbothdirections,Back/insets/font130/wideENHE,
+updatedrealphone-onlysyntheticstoreimages,manualsignedupdate andcleanup remain.
+Physicalphoneunlock wasrequestedagain; API33physical remains unavailable.
+
+
+### E additional Save-policy regression
+
+Independent acceptance contract requires a Save's settings to be fixed before
+async work. Two actual coordinator regressions reproduced a delayed notification
+permission allowing settingsB/notificationcopyB to replace acceptedA;18 existing
+cases stayed green. **try another way:** capture cloned policy,folderlabels and
+notificationstrings at the visible Save gesture as part of SaveIntent,and use the
+same snapshot across media-release and notification waits; direct retry captures
+beforeitsfirstawait. Capturedcustom-folderhistoryusesA; restoredunknownhandle is
+null whileactualoutputURIs/pathsremainstored. Newgesture-boundarycase plus both
+permissioncases pass:21coordinator tests; expectedfullsuite451. No native/UIlayout
+code changed. API36 preflight remains explicitly source0db5579/APKb4684528…;
+final cycle/artifact/runtime replay will follow the emulator lease release.
+
+
+## E physical gate and independent F continuation · 2026-11-18
+
+E implementation is preserved/pushed at041a79a (minified UIpreflight0db5579).
+PhoneUI gate is externally BLOCKED on ownerunlock: securelock confirmed atrelease
+build boundary; onlyMeni canunlock. No bypass,phoneUIclaim or phone screenshot
+replacement is allowed. RequestedAPI33physical isalso unavailable; actualA30 is
+API30. API36preflight remainsinprogress withits exclusivelease andexactAPKhase.
+Do not mark E complete or claim finalminifiedpolicyacceptance. Final451-testcycle,
+code5 rebuild/replay andstorecaptures remain after runtime/owner gates.
+
+Groundrule9 permits independent next-stage work after alternatives are exhausted.
+F cleanup/docs/CI-source preparation nowcontinues withoutdevice/build/prebuild/
+connectedtest/npm-install mutations during the emulator lease. Implementer owns
+caller-checkeddeadsource/exportcleanup; testauthor migratesactiveacceptance before
+retiringtest-onlyhelpers; root ownsdocs,currentExecPlan,CI/policyguards andpackage
+changes afterlease; reviewer laterreviewsfinaldiff. F release candidatewilluse
+highercode6. NativeZIPsample-budget suspicion wasrefuted byowningsource (64KiB/TXT,
+16MiBglobal,20kentries); do notchangeaworkingguard orreportit asadefect.
+
+
+-2026-11-19: E/F final code6 acceptance recorded above and in VERIFICATION.md:431host/40JVM/39connected each,81Python, fresh Android CI,64ELF staticpolicy, final minified scopes and device hygiene pass. G2 packaged owner fallback; real-export/Play production-access facts remain unverified.
+
+
+-2026-11-19 G2: PR1 opened atd3634a4: https://github.com/MeniViner/chatStamp/pull/1; no merge. Signed code6/manual Play/owner real-export handoff complete. Real owner export and actual Play/tester eligibility remain unverified; production installation untouched and QA cleanup complete.
+
+
+-2026-11-19 CI-only transport repair: repeated final-head MavenGson failures now use an authenticated-byte, exact-GAV local plugin bootstrap from official Central; runtime code6 artifacts unchanged.24new fail-closed tests bring verifier suite to105; actual local CI hooks/toolchain/40JVM/release-manifest policy pass. Fresh GitHub CI remains the final gate.
+
+
+## 2026-11-19 — Final code 11 owner handoff
+
+Final 138e00c8 source, independent red-to-green controls,497host/59JVM/52connected each/105Python, freshCI44447719684, exact signed/static products and affected minified runtime are accepted within their recorded scopes. Fresh code11demo and all hashes verified; phone17outputs/twoZIPs/QAhelper removed and originalsettings restored; emulator46outputs/twoZIPs/controls restored/rootchecked/shutdown. Final physicalCancelselection remains UNVERIFIED with a concrete follow-up; no actual gesture was selected by the two final harness attempts. Owner realWhatsApp/Play/account/tester and device/fullmatrix/16KiB/provider gaps remain explicit. G2 completes via authorizedmanualpackaging, not an uploadedrelease or productionapproval. See the closing VERIFICATION entry and local REPORT for exact source, products, CI and measured evidence size.
+
+## 2026-11-19 — Code 12 portrait hardware availability follow-up
+
+The owner authorized the narrow fix after Console reported required portrait
+screen hardware. **try another way:** the durable Android manifest plugin now
+keeps one exact `android.hardware.screen.portrait` declaration with
+`android:required="false"` and scoped `tools:replace="android:required"`, overriding
+the attribute's lower-manifest OR merge. Existing unrelated feature attributes
+and declarations remain; repeated plugin application is stable. Activity/app
+portrait orientation remains declared. Expo and native module use versionCode12;
+versionName remains0.2.0. The existing signed code11 AAB stays unchanged.
+
+Root owns the fresh full smoke, clean-prebuild/merged-manifest proof, signed code12
+artifact validation and Console replacement/availability check. These code12
+outcomes remain UNVERIFIED until observed; no new device or Play result is inferred.
+
+Source review is CLEAR including the seven plugin/eleven artifact-policy cases.
+Root host504/51files,116Python, clean prebuild,226-task QA assembly and59fresh
+JVM/release-manifest policy pass. Complete smoke was restarted after correcting
+Expo CLI device-name selection. Signed12/minified/Console checks remain pending;
+A30 unlock is requested. Owner-completed IARC is no longer the Console blocker.
+
+
+## 2026-11-19 — Code 12 verified and submitted to Google
+
+Signed **0.2.0 (12)** is **active and available to internal testers**. The same uploaded AAB was selected from the library for **Alpha**, replacing the pending code 11 release. **All 16 changes are submitted and shown “Changes in review”**, including Alpha 12, both listings, content rating and the other prepared declarations. The owner completed IARC; the former portrait hardware issue is resolved. No closed availability, invitation-email delivery, qualifying tester period or production approval is inferred.
+
+Exact code 12 app/config source: **b2b88e9d3ef8292d00ef695f328a225cbb9b2418**. The complete restarted smoke passes npm ci, TypeScript, **504 host tests/51 files**, lint, **116 Python cases**, clean prebuild,226 executed QA assembly tasks, **59 fresh JVM tests/zero skipped**,52 connected cases on **each API 30/API 36** and offline startup. Production/QA signature, identity, permissions/backup, all 64 ELF static checks and ZIP/bundle16 KiB policy pass. AAPT2 independently lists portrait only as optional. [PR CI](https://github.com/MeniViner/chatStamp/actions/runs/44526874420) passed; the simultaneous push run initially failed before tests on unavailable official Central Kotlin artifacts, then its unchanged failed-job retry passed. No assertion or dependency version was relaxed.
+
+Exact minified12 QA passes fresh system-HE first native RTL on the A30 at the original font1.1, picker import and five saved/five independently verified dates. The API 36 emulator passes the same five-file check at actual2560×1600 / density 320 (1280×800 dp), with notification permission denied. Both readbacks cover MediaStore, actual mtime and embedded JPEG/PNG/MP4 dates. New12 Gallery visual order, background/timeout, duplicate/language-restart and101-file sharing are not claimed as rerun; their earlier11/10/9 receipts retain their exact scope. Core src/ and native Kotlin files are unchanged from11.
+
+Production12 AAB50,956,257 bytes/SHA2560d2efc0cb86b2ba5657fee04e57484aac3fb6847c59f2bf9dda112dfa05a6d51; minified QA APK75,225,186 bytes/SHA2562bec0cb7139901629693b4a062dd8343cb2f86cc9abea8cd0292c6fa49ff8b9b. Existing certificate retained. Both final manifests keep min30/target36, portrait MainActivity and only FGS/dataSync/notification platform permissions. All64 ELF libraries are inventoried:32 required 64-bit 16 KiB passes and32 genuine 32-bit NOT_APPLICABLE; actual16 KiB execution stays unverified.
+
+try another way: the phone's DocumentsUI CardView stayed on Downloads after the coordinate/accessibility attempt. Use the guarded exact-label80 ms FINGER helper to enter only this run's folder/ZIP and receive the real picker grant. Pass multiword Hebrew through a single shlex-quoted remote command; the first split command failed before any action. No source/permission change or product assertion was relaxed. AAPT2's indented optional-feature line was whitespace-normalized before interpreting it.
+
+Both app-level Start over flows returned to Import. Cleanup/restoration outcomes are recorded in the current compact Console receipt, with the two new five-file date readbacks and artifact reports; no raw logs, binaries or old proof are repackaged as evidence. Source CI is green; documentation-head CI is tracked separately there. All previous owner real-export, API 33/full UI,16 KiB, browser/provider/physicalCancel gaps retain their explicit scope.
+
+
+## 2026-11-19 — Requested package identity correction, code 13
+
+The owner explicitly requested com.menis10tec.chatstamp after seeing the old Play
+URL. **try another way:** Play package names are immutable after upload, so build
+and verify the new identity and use a separate Play app entry instead of pretending
+the old URL can be renamed. Retain the existing upload key and immutable old
+products. Current QA/probe/verifier/defaults and generated Activity namespace must
+follow the new identity; provider/receiver names remain runtime-scoped. No data
+migration, broad permission, cloud feature or production replacement is added.
+
+Roles: implementer owns runtime/config/harness migration, test author owns current
+identity guards and historical explicit-artifact compatibility, reviewer checks
+namespace/authority/sandbox/provenance. Root owns smoke/signing/device hygiene and
+Console/current docs. All new identity outcomes remain UNVERIFIED until observed.
+
+
+## 2026-11-19 — Code 13 migration acceptance checkpoint
+
+Implementation, independent acceptance-derived identity tests and source review
+complete; root smoke 504 host/126 Python/59 JVM/52 connected each API 30/API 36,
+six standalone probe JVM cases, exact signed/static checks, actual new-authority
+612-byte transport and affected minified five-file dates pass. App source
+1b82201792839d7925daee7dce4394fb0139bb6f has two successful source CI runs.
+Both reset/cleanup/restoration flows pass; owner production remains untouched.
+Products and fresh compact proof are separately grouped under dist/play.
+
+New Play form package availability confirmed. Owner confirmation of the two legal
+declarations is the sole current creation/upload blocker; do not accept terms
+without it or claim a new app/track ID. Existing specific Console authorization
+continues after that gate. Reapply assets/declarations/lists, verify actual internal,
+pause superseded old tracks reversibly, submit Alpha, and invite only after actual
+closed availability. Old package currently shows closed testing; no clock transfers.
+All owner real-export/device/browser/provider/16 KiB/Cancel gaps remain explicit;
+PR #1 stays unmerged. No pending source fix is inferred from the legal blocker.
+
+
+## 2026-11-19 — New Play app and testing preparation
+
+Owner approved both creation declarations. App 4975002762311404414 now binds the
+requested package; accepted 13 is uploaded and active on internal4701429810228968626.
+Alpha4699420811279917961 reuses uploaded13, with both notes, countries and five lists
+saved. Both listings/assets and factual declarations are saved; fresh UI readback
+matches text and screenshot order. No new code, build or device work performed.
+
+Publishing has 15 unsent changes and one exact content-rating issue. Separate new
+IARC agreement owner confirmation remains pending; do not accept terms or claim
+closed availability without it. After approval complete rating, submit, verify
+actual closed availability, then send authorized deduplicated invitations. New
+12-opt-in/14-day requirement observed; no old clock transfers. Old internal is
+paused, old Alpha pause in review. Source/docs CI63890 passes; later docs CI separate.
+Fresh Console proof is grouped separately; PR #1 remains open/unmerged.
+
+## 2026-11-20 — Owner-approved IARC completion and Alpha submission
+
+Accepted the new IARC agreement only after the owner's specific confirmation.
+All other app types, meniviner@gmail.com and nine factual No answers were saved;
+official guidance excludes secondary-app sharing and privately imported content
+from native user interaction/promoted online content respectively. Status Completed
+and seven actual ratings read back; audience remains the separate saved 18+ setting.
+
+Submitted all 16 changes through both confirmation steps. Publishing shows Changes
+in review with quick checks running; Alpha4699420811279917961 shows exact13 in review.
+All five lists remain checked, with 20 potentially overlapping memberships and
+178 country/region entries. Copy-link buttons are enabled after submission, but
+the actual signed-in route shows App not available; eligibility was not independently
+established. No invitations or qualifying period claimed. Google review and actual
+closed availability are external gates; no recurring monitoring is started.
+Fresh compact proof: dist/play/iarc-submission-20261120/. No app bytes, source,
+assets or device state changed; prior receipts stay historical. PR #1 stays unmerged.
+
+
+## 2026-11-20 — Owner follow-up closed within asset/install scope
+
+Completed the explicitly requested actual Play install,19-person Hebrew Tank Malle send with exclusion, six Hebrew split posters/localized feature and Console submission. Implementer renderer/typecheck PASS, Test author acceptance PASS, Reviewer CLEAR. Binary Alpha14ACTIVE; two new artwork changes in review/quick checks. No publication claim for the artwork, production access, recurring external checks or real-export acceptance. Exact source9e6c28f and signed14 artifacts unchanged. See latest dated VERIFICATION and grouped owner-followup README; keep remaining gates independently evidenced.
+
+
+## 2026-11-20 — Store branding and support fields
+
+Both per-app Play support contacts are published/reloaded as owner-confirmed menis10tec@gmail.com, no new AAB. chatStamp default store logo now uses the approved illustration; new icon and exact EN/HE support-address-only description changes saved/reopened/submitted, in review. HE inherits the default; banners/screenshots unchanged. Built-in imagegen plus mechanical512/sRGB32-bit exports independently pass format/visual review. Matching Tank Malle logo is a local-only owner-approval proposal, excluded from Git and never uploaded/applied. Current new output set is store/play/brand-refresh-20261120/; complete scope/proof is in latest dated VERIFICATION. App/native/launcher/source14 stays frozen; no repeated runtime test or production eligibility claim. PR remains unmerged.
+
+
+## 2026-11-20 — Both store icons approved, transparent; chatStamp leaves removed
+
+Owner approved the matching Tank Malle replacement as well as chatStamp, requested transparent backgrounds where possible, then explicitly requested removal of chatStamp's leafy sprig only. Built-in image_gen background-extraction edits preserve the approved designs; one precise-object edit removes all chatStamp leaves/stem. Mechanical Swift export preserves alpha without cropping or flattening. Both final icons are512×512,sRGB,32-bitRGBA: chatStamp224095bytes/SHA2565448946ba8a1b84fca36d151741337f81c2560fd1dfb69f70eaa8ef93806902e; Tank206564bytes/SHA25681c5fcbd6eda1822e4975db7dfefa10c4a9fd734378063dfa8c478b37e19cb27. Google's official icon spec permits transparent assets; the store supplies its UI background/mask/shadow.
+
+Root implements; independent Test author PASS for both formats/alpha/visuals, Reviewer CLEAR for both icons/exporter. Light/dark inspections show safe margins, clean edges, opaque-looking cream subject interiors and no visible halos/clipping. Most generated subject pixels are alpha253; actual transparent-pixel counts139084/149860. An initial exact255/corner0 guard rejected this near-opaque quantization → **try another way**, retain original alpha, inspect distributions and actual light/dark composites rather than flattening artwork. First Tank Save immediately after AI-label close did not produce a saved result → **try another way**, reconcile the unchanged form, explicitly Save, then require the success dialog and fresh reload.
+
+Play Console: Tank app4975939003117228141/com.meniviner.tankmalle has only default iw-IL; new transparent icon saved/reopened and one icon-only change submitted through both steps. chatStamp app4975002762311404414/com.menis10tec.chatstamp default en-US updated. Waiting for completed Hebrew asset load exposed an older localized icon, superseding the previous inheritance inference; explicitly select the new library icon in iw-IL, save and reload. Both locales now read back chatstamp-icon-transparent.png. All three locale readbacks preserve every text value and every non-icon filename/sourceURL/order, including banners and phone screenshots. AI labels verified for both new icons and prior labels preserved. Console aggregated chatStamp's final submission as one en-US icon change. Final publishing headings for BOTH apps: **Changes in review**. Public propagation/review approval is not inferred, and no external review monitoring is scheduled.
+
+New selected masters,exports,prompts,mechanical tool,asset checks and a concise owner README are grouped in **store/play/icon-rollout-20261120/**. Fresh Console JPEGs/receipts stay locally in owner-proof/,excluded from Git. Prior evidence and cream proposals remain at original locations unchanged. Canonical store/play/icon.png now equals final leafless transparent chatStamp export. Native assets/icon.png,all application/config/native code,existing signed14bytes and dirty Tank checkout stay untouched. No new AAB, version, device run, email send or app-runtime test was needed for this metadata-only continuation. Prior full smoke remains scoped to9e6c28f application source. Current branch was clean/fetched/equal before work; final delivery must stay below10000000bytes. PR1 remains open/unmerged; all previously documented real-export/Gallery/closed-participation gaps remain separate.

@@ -1,12 +1,11 @@
 import React from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconButton, Surface, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../theme/useAppTheme';
 import { spacing, radius } from '../theme/designTokens';
 import { textStyles } from './AppUi';
-import { useAppLayoutDirection } from '../i18n/AppLayoutDirectionContext';
 import { getBottomSheetBottomPadding } from './bottomSheetLayout';
 
 type BottomSheetProps = {
@@ -33,7 +32,8 @@ export function PremiumBottomSheet({
   const { t } = useTranslation();
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
-  const layoutDirection = useAppLayoutDirection();
+  const { height } = useWindowDimensions();
+  const maximumHeight = Math.max(1, height - insets.top - spacing.smallGap);
   const bottomInset = getBottomSheetBottomPadding(insets.bottom, spacing.compactInner);
 
   return (
@@ -45,28 +45,27 @@ export function PremiumBottomSheet({
       statusBarTranslucent
       navigationBarTranslucent
     >
-      <Pressable style={[styles.backdrop, layoutDirection === 'rtl' ? styles.rtl : styles.ltr]} onPress={onDismiss}>
-        <Pressable style={styles.pressableSheet}>
+      <Pressable style={styles.backdrop} onPress={onDismiss}>
+        <Pressable style={[styles.pressableSheet, { maxHeight: maximumHeight }]} onPress={(event) => event.stopPropagation()}>
           <Surface
             elevation={3}
             style={[
               styles.sheet,
               {
-                backgroundColor: theme.colors.surface
+                backgroundColor: theme.colors.surface,
+                maxHeight: maximumHeight
               }
             ]}
           >
             <View style={[styles.handle, { backgroundColor: theme.colors.outlineVariant }]} />
             <View style={styles.header}>
               <View style={styles.headerText}>
-                <Text variant="headlineSmall" numberOfLines={3} ellipsizeMode="tail" style={[styles.title, textStyles.start]}>
+                <Text variant="headlineSmall" style={[styles.title, textStyles.start]}>
                   {title}
                 </Text>
                 {subtitle ? (
                   <Text
                     variant="bodySmall"
-                    numberOfLines={4}
-                    ellipsizeMode="tail"
                     style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}
                   >
                     {subtitle}
@@ -114,16 +113,12 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(15, 23, 42, 0.32)'
   },
-  ltr: {
-    direction: 'ltr'
-  },
-  rtl: {
-    direction: 'rtl'
-  },
   pressableSheet: {
     width: '100%',
     alignSelf: 'stretch',
-    marginBottom: 0
+    marginBottom: 0,
+    minHeight: 0,
+    flexShrink: 1
   },
   sheet: {
     borderTopLeftRadius: radius.largeCard,
@@ -132,26 +127,31 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 0,
     gap: spacing.gap,
-    maxHeight: '88%'
+    minHeight: 0,
+    flexShrink: 1
   },
   handle: {
     alignSelf: 'center',
     width: 46,
     height: 5,
-    borderRadius: 999
+    borderRadius: 999,
+    flexShrink: 0
   },
   bodyWrap: {
     flexShrink: 1,
-    maxHeight: '72%'
+    minHeight: 0
   },
   scroll: {
-    flexGrow: 0
+    flexGrow: 0,
+    flexShrink: 1,
+    minHeight: 0
   },
   staticContent: {
     gap: spacing.gap
   },
   header: {
     flexDirection: 'row',
+    flexShrink: 0,
     alignItems: 'flex-start',
     gap: spacing.smallGap
   },
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     paddingTop: 8
   },
   title: {
-    fontWeight: '800',
+    fontWeight: '600',
     letterSpacing: 0
   },
   scrollContent: {
@@ -170,6 +170,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     gap: spacing.smallGap,
-    paddingTop: spacing.smallGap
+    paddingTop: spacing.smallGap,
+    flexShrink: 0
   }
 });

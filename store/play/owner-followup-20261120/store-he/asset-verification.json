@@ -1,0 +1,76 @@
+{
+  "asset_checks": [
+    {
+      "file": "01-import-he.jpg",
+      "bytes": 192872,
+      "size": [
+        1080,
+        1920
+      ],
+      "hash_matches": true
+    },
+    {
+      "file": "02-selection-he.jpg",
+      "bytes": 185515,
+      "size": [
+        1080,
+        1920
+      ],
+      "hash_matches": true
+    },
+    {
+      "file": "03-saving-he.jpg",
+      "bytes": 166217,
+      "size": [
+        1080,
+        1920
+      ],
+      "hash_matches": true
+    },
+    {
+      "file": "04-results-he.jpg",
+      "bytes": 180052,
+      "size": [
+        1080,
+        1920
+      ],
+      "hash_matches": true
+    },
+    {
+      "file": "05-transcript-he.jpg",
+      "bytes": 250920,
+      "size": [
+        1080,
+        1920
+      ],
+      "hash_matches": true
+    },
+    {
+      "file": "06-settings-he.jpg",
+      "bytes": 179868,
+      "size": [
+        1080,
+        1920
+      ],
+      "hash_matches": true
+    },
+    {
+      "file": "feature-he.jpg",
+      "bytes": 77186,
+      "size": [
+        1024,
+        500
+      ],
+      "hash_matches": true
+    }
+  ],
+  "native_capture_hashes_match": true,
+  "roles": {
+    "implementer": "Native renderer authored and Swift typecheck PASS",
+    "test_author": "All seven visual/static checks PASS",
+    "reviewer": "CLEAR; no actionable findings"
+  },
+  "console": "Upload/readback/submission recorded separately in owner-only Console receipt",
+  "application_source_changed": false,
+  "remaining_acceptance": "Owner real export, fresh Gallery order, private-byte observation, physical API33, actual16KiB and qualifying closed participation not established"
+}

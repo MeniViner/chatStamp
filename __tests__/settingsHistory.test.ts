@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { defaultSettings, mergeSettings } from '../src/store/settingsLogic';
-import { createExportHistoryItem } from '../src/store/historyLogic';
-import type { CompletionSummary, ExtractedMediaFile, MediaTypeSelection } from '../src/types/media';
+import { createExportHistoryItem, normalizeHistoryItem } from '../src/store/historyLogic';
+import type { CompletionSummary, ExportHistoryItem, ExtractedMediaFile, MediaTypeSelection } from '../src/types/media';
 
 const selectedTypes: MediaTypeSelection = {
   photo: true,
@@ -33,7 +33,11 @@ describe('settings and history helpers', () => {
     expect(merged.onboardingCompleted).toBe(false);
     expect(merged.baseFolder).toBe(defaultSettings.baseFolder);
     expect(merged.outputOrganization.mode).toBe('by-type');
-    expect(merged.outputOrganization.createExportTimestampFolder).toBe(true);
+    expect(merged.outputOrganization.createExportTimestampFolder).toBe(false);
+    expect(merged.outputOrganization.duplicateHandling).toBe('skip-existing');
+    expect(merged.alwaysUseMessageDate).toBe(true);
+    expect(mergeSettings({ alwaysUseMessageDate: true }).alwaysUseMessageDate).toBe(true);
+    expect(mergeSettings({ alwaysUseMessageDate: false }).alwaysUseMessageDate).toBe(false);
   });
 
   it('persists developer mode as an explicit opt-in', () => {
@@ -95,5 +99,26 @@ describe('settings and history helpers', () => {
     expect(item.counts.photos).toBe(1);
     expect(item.counts.voice).toBe(1);
     expect(JSON.stringify(item)).not.toContain('rawLine');
+  });
+
+  it('keeps legacy history usable with or without old provider URIs', () => {
+    const common = { ok: true, dateCorrectionVerified: false, galleryMaySortByImportTime: true };
+    const item: ExportHistoryItem = {
+      id: 'legacy', chatName: 'Chat', exportTimestampIso: '2026-05-02T12:00:00.000Z',
+      outputFolderPath: '/storage/emulated/0/Pictures/chatStamp/Chat', selectedSenders: [],
+      counts: { totalSaved: 2, photos: 1, videos: 0, voice: 0, stickers: 0, documents: 1, failed: 0 },
+      saveMethod: 'termux-parity', allFilesHadTimestampsFixed: false,
+      savedFiles: [
+        { ...common, filename: 'photo.jpg', scannedUri: 'content://media/external/images/media/11' },
+        { ...common, filename: 'note.txt', outputPath: '/storage/emulated/0/Pictures/chatStamp/Chat/note.txt' }
+      ]
+    };
+    expect(normalizeHistoryItem(item)).toMatchObject({
+      outputDirectory: item.outputFolderPath,
+      savedFiles: [
+        { outcome: 'saved', insertedUri: item.savedFiles?.[0]?.scannedUri, destinationKind: 'media-store' },
+        { outcome: 'saved', insertedUri: null, outputPath: item.savedFiles?.[1]?.outputPath, destinationKind: 'legacy-path' }
+      ]
+    });
   });
 });

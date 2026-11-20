@@ -1,10 +1,11 @@
+import { normalizeChatText } from './whatsappDate';
+
+export function normalizeArchivePath(path: string): string {
+  return normalizeChatText(path).trim().replace(/\\/g, '/').normalize('NFC').toLowerCase();
+}
+
 export function normalizeFilename(filename: string): string {
-  return filename
-    .replace(/[\u200e\u200f\u202a-\u202e]/g, '')
-    .trim()
-    .split(/[\\/]/)
-    .pop()!
-    .toLowerCase();
+  return normalizeArchivePath(filename).split('/').pop() ?? '';
 }
 
 export function getExtension(filename: string): string {

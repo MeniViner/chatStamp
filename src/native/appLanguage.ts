@@ -10,7 +10,7 @@ export async function openAppLanguageSettings(): Promise<OpenAppLanguageSettings
     return 'unsupported';
   }
 
-  const packageName = Application.applicationId ?? 'com.menis.chatstamp';
+  const packageName = Application.applicationId ?? 'com.menis10tec.chatstamp';
   try {
     await IntentLauncher.startActivityAsync('android.settings.APP_LOCALE_SETTINGS', {
       data: `package:${packageName}`

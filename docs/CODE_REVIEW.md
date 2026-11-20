@@ -1,54 +1,89 @@
-# Code Review Checklist
+# Code review checklist
 
-Use this checklist before accepting Codex changes.
+Current acceptance rules, 2026-11-19. Historical dated reviews below describe
+older implementations and do not authorize their superseded storage/RTL paths.
 
-## Product correctness
+## Product and dates
 
-- Does the change move the MVP toward real Gallery date sorting?
-- Does it avoid Phase 2 scope creep?
-- Does it keep the app local-only?
+- Import → Select → Save, exactly two permission-free onboarding pages.
+- Local-only: no database, accounts, analytics, ads, cloud or server APIs.
+- Saved, verified original message date and observed Gallery order are separate
+  facts. Approximate/ambiguous/undated results never masquerade as verified.
+- JPEG/PNG/WebP EXIF, MP4 headers, mtime and MediaStore are independently read
+  back where applicable. Check the real Gallery's creation-date order/details.
+- Duplicate reruns and locale changes reuse recorded paths and identities;
+  legacy save/history compatibility stays intact.
 
-## Android correctness
+## Android and lifecycle
 
-- Are Android permissions appropriate and minimal?
-- Does the change respect scoped storage?
-- Does it handle `content://` URIs?
-- Does it avoid relying only on filesystem timestamps?
+- Production ID com.menis10tec.chatstamp; test only the isolated
+  com.menis10tec.chatstamp.qa side-by-side. Historical old-package artifacts keep
+  their original identity; the native bridge library namespace is unchanged.
+- min SDK30, target/compile36, build-tools36.0.0, NDK27.1.12297006 resolve from
+  durable source after clean prebuild; generated android/ is ignored.
+- Only FGS/dataSync/notification platform permissions and the app-owned AndroidX
+  signature receiver permission; no broad storage/media, microphone or network.
+- Native source-URI streaming, single-pass validation/fingerprint, space/archive
+  limits and bounded transcript samples; no complete private ZIP copies.
+- Intent inbox cold-once/warm-event behavior, grant lifetime, busy-share queue,
+  typed failures and retry readability remain correct.
+- Save captures session/IDs/settings before asynchronous work. Cancel, Back,
+  activity recreation, service timeout and restart preserve correct ownership.
+- Cancellation removes own partial/pending output, retains complete files and
+  reports the remainder as cancelled. Startup reconciles own stale job state.
+- Import cancel/discard/replacement ownership is serialized; old continuations
+  cannot release or reset a replacement. Empty recovered retries require reimport.
+- Save workers enter finalization even when cancelled before dispatch. Await
+  pending output cleanup and stop the foreground service on Main only while
+  the operation owns it, then publish terminal state/promise. Startup failures,
+  stale Cancel deliveries and acknowledged-owner handover follow the same rules.
+- Atomic JSON details-before-index writes; no settings publication before commit.
+- Backup and device transfer disabled/excluded; temporary external read grants
+  only on explicit user open/share actions.
 
-## Performance
+## UI and performance
 
-- Does it avoid loading the whole ZIP into JS memory?
-- Are large file operations streamed or native-backed?
-- Does UI progress update during long operations?
+- Long imported names keep a one-line/tail-ellipsized header and full accessible
+  name; only the active category has filled styling. The importer-selected
+  transcript is first among eligible files, has an internal bounded UTF-8 reader
+  with safe page boundaries/handle cleanup, and never splits ordinary whole-day
+  selection groups. Native RTL governs paging glyphs/swipes. Settings categories
+  preserve all controls, serialized persistence and Back to the prior session.
+- Set selection, stable memoized cells and virtualized grid/day sections; Save
+  and footer use the current filter and preserve hidden selections.
+- Bounded native thumbnails; zero cell video players, at most one viewer video
+  player and one shared audio controller. Release on page/unmount/background.
+- Real progress with unknown totals supported; no fabricated steps/percentages.
+- Native policy before the first React surface, honoring committed language and
+  preserving unreadable/invalid settings; verify a fresh system-HE first screen
+  before any Settings navigation, language change or remount.
+- Native I18nManager direction only, explicit safe restart for direction changes,
+  app-language dates and actual dynamic palette or honest fallback.
+- English/Hebrew parity and zero unreachable keys; plain Hebrew without raw
+  placeholders/technical error leakage. Strict TypeScript has zero any.
+- Check Back, dialogs/sheets, keyboard and inset-safe primary actions on phone
+  and 600 dp layouts, 100/130% font sizes, both languages. Aggregate accessibility
+  checked/disabled/mixed transitions must agree with actual native descriptions.
+- Results and History expose every sharing batch with an explicit range and
+  separate user gesture; no truncation above 100 or chooser-as-delivery claim.
 
-## Parser quality
+## Required validation and custody
 
-- Are new WhatsApp text formats covered by tests?
-- Does parsing tolerate Unicode marks and multiline messages?
-- Does failure produce a skipped/unmatched result rather than a crash?
+Run npm ci, typecheck, test, lint, clean Android prebuild, two-worker arm64 QA
+assembly, manifest/APK policy checks, nonzero native JVM and connected tests,
+then cold-launch and the affected real-device cases. Restart the whole cycle
+from npm ci after a failure/fix. Verification tooling regressions also run in CI.
 
-## TypeScript quality
+Release checks additionally validate signed AAB/APK identity, upload certificate,
+SDK/permission/backup policy, nondebug/minified runtime and packaged ELF/16 KiB
+alignment. Static alignment does not certify a 16 KiB device run. Never replace
+or regenerate the owner's key; secrets remain outside the repository and logs.
 
-- No `any` unless justified.
-- Public service functions use typed inputs/outputs.
-- Errors are represented clearly.
-
-## Verification
-
-Run:
-
-```bash
-npm run typecheck
-npm run test
-npm run lint
-```
-
-For native changes, also run on Android device:
-
-```bash
-npx expo prebuild --platform android
-npx expo run:android
-```
+Review against the requested acceptance criteria, update the ExecPlan/rebuild/
+verification logs and distinguish source, local tests, fresh-checkout CI,
+artifact checks, device outcomes and Play distribution. Keep evidence minimal
+and under the cumulative 10 MB ceiling. The owner controls Play Console and real
+exports; a local bundle does not establish upload, tester counts or 14 days.
 
 ## Latest Review Status
 
@@ -80,3 +115,130 @@ npx expo run:android
 - 2026-05-23: Release-blocking native gap fixed. `ChatStampNative` now has a real Android Expo module again, so global share polling, native ZIP extraction, Termux Parity save, SAF folder selection, output sharing/deletion, and All Files Access checks no longer call an absent native bridge. ZIP handling remains native/streamed and local-only; the JS layer still receives extracted files and metadata rather than whole ZIP contents. The share polling guard now avoids trapping navigation if a future build lacks the native module. TypeScript, unit tests, lint, prebuild, release APK assembly, APK install, and clean launch logcat on the connected phone pass. Real WhatsApp share and Gallery date ordering are still the remaining device proof.
 - 2026-05-23: TXT preview is presentation-only and keeps the import/save pipeline local, stateless, and native-extraction-backed. Transcript documents are read from the extracted cache path, parsed with the existing WhatsApp parser grouping rules, shown as sender/date/message bubbles, and fall back to a clean raw text preview when parsing finds no chat messages. Added parser coverage for text-only conversation previews. Verified `npm run typecheck`, `npm run test -- --run`, `npm run lint`, `npx expo prebuild --platform android`, release APK assembly, APK install, and launch logcat on the connected phone with no chatStamp native-module or fatal crash lines.
 - 2026-05-23: TXT preview follow-up keeps the same local/native import and save semantics. Transcript preview content now uses a bounded nested Android scroll area, message timestamps use the compact `D/M/YY HH:mm` format with no seconds, and selectable text was removed from bubbles so scroll gestures are not captured. RTL/LTR switching now uses a live app-level layout-direction provider plus root and bottom-sheet `direction` styles instead of relying on `I18nManager.isRTL` for immediate in-session changes. Verified `npm run typecheck`, `npm run test -- --run` (25 files / 103 tests), `npm run lint`, `npx expo prebuild --platform android`, release APK assembly, APK install, and connected-phone launch logcat with no chatStamp fatal/native-module errors.
+
+
+- 2026-11-18: Stage C final review found no remaining actionable findings after
+  cancellation summary/history corrections. Independent acceptance adds31tests;
+  final smoke222Vitest/23JVM/10connected perAPI30/API36 passes. Physical share,
+  cache, background and cancellation plus API36 notification denial and official
+  timeout cleanup passed. API33 physical and real WhatsApp export remain unverified.
+
+- 2026-11-18: D final source review clear after bounded thumbnails, actual Set/cell/lifecycle tests, clipping replay and native gesture fixes. Full smoke305TS/35JVM/27connected perAPI30/API36 passes; signed code4 artifact checks and physical scoped runtime pass. E still owns sheet/footer accessibility; OEM HTML Viewer limitation and API33/real-export/Play gaps remain explicit.
+
+- 2026-11-18: E source review clear after Save-intent/restart/share-intake races, serialized partial settings patches, native localized-profile compatibility and consistent message-date facts/bilingual errors were fixed. Wholecycle448TS/40JVM/35connected perAPI30/API36 passed; minified UI/RTL and screenshots remain OPEN.
+
+
+-2026-11-19: E/F final source/docs findings resolved. Fullsmoke431host/40JVM/39connected perAPI30/API36,81Python, stricti18n/Knip and fresh Android CI pass. Code6 signed artifacts, final physical five-file/Gallery/duplicate/a11y/RTL/background/40-video and API36 reviewer scope pass. Cleanup/restoration pass. Full UI matrix/API33/real owner export/actual16KiB/Play participant facts remain explicitly unverified; no merge/upload. G2 owner-handoff review is separate.
+
+
+-2026-11-19 G2 handoff review clear: artifact identities/hashes/certificate, eight phone PNGs,11.17s privacy-safe demo and live policy checked. Owner-only Play/tester/account-date/real-export facts remain unverified. Final-head CI is checked separately after a transient Maven resolution failure; no assertion waived.
+
+
+- 2026-11-19 CI-only follow-up review clear: checksum/size-pinned official Maven
+  transport, exact plugin coordinates, safe composite/default Portal semantics,
+  and valid step-scoped runner path preserve all existing gates. Root actual
+  fresh CI44421242295 passes431host/105Python/40JVM and release policy. Three
+  later PR product findings remain under implementation/independent review.
+
+
+- 2026-11-19 code8 source follow-up clear after independent P1 ownership review.
+  Deferred cancel/source/job-release regressions preserve replacement B. Recovery
+  reimport/no-empty-save and complete bounded sharing remain clear. Root full
+  smoke and signed code8 runtime are separate acceptance gates.
+
+
+- 2026-11-19 code9 final source clear, including lexical hook safety and module
+  manifest capability. Root full472host/46JVM/47connected each plus105Python and
+  fresh offline firstHE native bounds pass. Signed/minified acceptance follows
+  separately on the exact source; no Play upload or merge is asserted.
+
+- 2026-11-19 code10/11 follow-up: independent25history regressions preserve
+  separate outputs/destinations and safe same-session replay. Native11source
+  review CLEAR after prestart cancellation, awaited cleanup/stop ordering, Main
+  ownership checks, startup failure and stale delivery fixes. Independent13JVM
+  and5native cases pass; isolatedDEFAULT fails4JVM+1native cases. Full11cycle
+  passes497host/59freshJVM/52connected each/105Python and offline0crash launches.
+  SourceCI44447719684 passes497/105/59executed0skip/93tasksall-executed, with
+  exact11manifest policy. Both signed/static11reports PASS. Physical current5/5
+  readback/Samsungcreationorder/2019Details and HE/ENduplicates pass; API36
+  notification-denied5/5, keep-both10/coldHistory and officialtimeout12saved/
+  12cancelled/no pending rows pass with fullcleanup/restoration. Fresh11demo,
+  finalphonecleanup and owner-handoff review finish separately. NoPlayupload.
+
+- 2026-11-19 final handoff closure: reviewed the exact code 11 fix, independent negative controls, full smoke/CI, signed/static receipts and scoped minified phone/emulator results against this checklist. Fresh11demo and hashes verified. Phone17outputs/2ZIPs and QA/helper removed; originals restored; emulator46outputs/2ZIPs removed, controls restored and root verified before shutdown. Final physicalCancel selection remains UNVERIFIED after two harness precondition/observation failures, with exact steps; no false pass. Manual package/declarations/tester guide and all remaining owner/device/provider gates are explicit. Store PNGs retain actual code9provenance; no Play upload or agent merge.
+
+- 2026-11-19 Console continuation: no app source/binary changed. Verified actual internal11active, saved bilingual listing/assets, exact AAB library reuse for Alpha, five list assignments, factual declarations and public reviewer demo. Alpha submission remains gated on pending explicit IARC agreement/content rating; portrait warning and zero closed opt-ins are reported. No tester-email delivery, closed availability or production result is invented. Private tester addresses remain outside Git/evidence.
+
+- 2026-11-19 code12 source review CLEAR: one durable optional portrait hardware feature and scoped required-attribute merger override; portrait activity, production identity,0.2.0 and security/runtime policies retained. Expo/native code12 synchronized. Independent seven plugin and eleven artifact-policy cases cover deduplication/idempotence, metadata preservation, implicit/default/duplicate requirements and unchanged activity orientation. Historical11 artifacts remain verifiable. Root host504/51files,116Python and fresh59JVM/release manifest pass; final connected/minified/artifact/Console results remain separate pending gates.
+
+- 2026-11-19 code12 release closure: actual signed products, unchanged security policy, explicit optional portrait in generated/final manifests and AAPT2,504host/116Python/59JVM/52connected each, exact minified A30-HE and API36-wide-EN five-file date results and source CI reviewed. Internal12is visibly available; Alpha12/16changes visibly in review. No closed availability, invitation delivery, tester clock or production result is fabricated. App Start over and exact run-scoped hygiene are checked separately in the current receipt. Original11/10/9evidence keeps its provenance.
+
+- 2026-11-19 final code 12 documentation/checkpoint review CLEAR: identity/hashes/counts, minified runtime and cleanup scope agree; internal availability and submitted Alpha review remain distinct from closed availability, invitation delivery and a qualifying period. All 36 checked local Markdown/proof links exist. Documentation-head CI is tracked separately from the accepted binary source.
+
+
+- 2026-11-19 code 13 identity source review CLEAR: explicit owner ID correction,
+  production/QA/probe/config/verifier coherence, production MainActivity namespace
+  in QA, dynamic own-package providers and receiver permission, unchanged bridge
+  namespace and existing key. Independent identity regressions preserve explicit
+  historical verification while rejecting stale current IDs. Root full smoke,
+  signed/final manifest checks, both-device minified five-file dates and actual
+  separate-UID 612-byte read grant PASS. Both source CI runs pass. Cleanup/restoration
+  and remaining owner gaps are explicit. New Play creation awaits two legal
+  declarations; no new app/upload/availability/tester period is invented. Earlier
+  code 12 closed state is separately refreshed. Final documentation review follows.
+
+- 2026-11-19 code 13 final documentation review CLEAR after resolving two P2
+  handoff findings: the product index now selects signed code 13, and the current
+  ExecPlan gate distinguishes new-entry legal approval from the old entry's
+  refreshed closed-testing state. New legal screenshot link and three-JPEG proof
+  count verified. No remaining material findings in the narrow re-review.
+
+- 2026-11-19 new Console checkpoint documentation review CLEAR. Independent
+  Test author and Reviewer found two stale current instructions: the owner
+  continuation still requested the already completed upload/demo work, and this
+  checklist retained the superseded package rule. Both are corrected; narrow
+  re-review is CLEAR. Internal 13 availability, saved Alpha/listings/five lists,
+  pending IARC and 15 unsent changes remain distinct from closed availability,
+  invitations and a qualifying period. Review was read-only document consistency;
+  Console observations belong to the root's fresh UI readback. No new native,
+  device or binary validation is implied.
+
+- 2026-11-20 IARC/submission documentation review CLEAR. Separate Test author
+  established agreement, exact rating, submission and availability criteria;
+  Reviewer checked the changed guides and fresh receipt after root's UI readback.
+  No stale current pending-IARC/15-unsent claims or approval/eligibility/invitation/
+  tester-period overclaims remain. IARC Completed,16submitted, quick checks running,
+  Alpha13in review and actual signed-in App not available remain separate facts.
+  Historical checkpoints and PR boundaries are explicit. Review was read-only
+  document consistency, not independent Console/device/native verification.
+
+- 2026-11-20 code14source review CLEAR after the transcript/day-group correction.
+  An initially pinned latest-day transcript could split Oldest date controls;
+  a dedicated headerless transcript section now preserves coherent ordinary day
+  groups. Independent actual-list/UI regressions cover that boundary, reader
+  replacement/double-tap behavior, native RTL mismatch, category Back and real
+  settings persistence. No remaining material source findings. Full root smoke
+  passes564host/55files,127Python,59freshJVM and52connected eachAPI30/API36;
+  signed/static/minified runtime and Play14remain separate pending gates.
+
+## 2026-11-20 — code 14 acceptance review closure
+
+App/config source `9e6c28f11117e8a6ff6531ccab874192c55cc61a` is frozen/pushed.
+Implementer Settings, independent Test author regressions and Reviewer source review
+are complete. Reviewer also read the exact fresh signed/runtime/CI/invitation
+receipts and four minified UI images: **CLEAR**, no material bug or overclaim.
+Root separately observed internal 14 availability and submitted Alpha 14; final
+publishing Changes in review, quick checks running. This later Console result was
+not included in the reviewer's earlier runtime-only availability scope.
+
+Full smoke: 564 host/55 files, 127 Python, 59 fresh JVM, 52 connected per API 30/36,
+zero failures/errors/skips; exact signed/static production and QA checks and both
+source CI runs pass. Fresh A30-HE and wide-EN affected UX/reader/language/category
+and independent five-file dates pass. Production app untouched; QA/fixtures/outputs
+removed, controls restored, owned AVD stopped, preexisting AVD retained.
+
+The 20-address all-list invitation is verified in Gmail SENT and exact-recipient
+readback. Dashboard count 1 is separate from 12 continuous closed testers/14 days.
+Real-export, private discarded bytes before uninstall, fresh Gallery visual order,
+physical API 33, actual 16 KiB, full UI/provider coverage and closed 14 availability
+remain unverified. Evidence: `dist/play/owner-ux-0.2.0-14-20261120/README.md`.

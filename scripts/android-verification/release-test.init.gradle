@@ -1,0 +1,10 @@
+// Build the minified release side by side without installing the production ID.
+gradle.beforeProject { project ->
+  if (project.path == ':app') {
+    project.pluginManager.withPlugin('com.android.application') {
+      project.extensions.getByName('androidComponents').finalizeDsl { android ->
+        android.buildTypes.getByName('release').applicationIdSuffix = '.qa'
+      }
+    }
+  }
+}

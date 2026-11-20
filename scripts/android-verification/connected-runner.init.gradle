@@ -1,0 +1,22 @@
+gradle.projectsEvaluated {
+  def project = gradle.rootProject.findProject(':chatstamp-native')
+  if (project == null && gradle.rootProject.name == 'chatstamp-storage-probe') {
+    project = gradle.rootProject
+  }
+  if (project == null) return
+
+  project.tasks.register('prepareChatStampConnectedRunner') {
+    doLast {
+      def runnerConfigurations = project.configurations.findAll {
+        it.canBeResolved && it.name.startsWith('_internal-unified-test-platform')
+      }
+      if (runnerConfigurations.isEmpty()) {
+        throw new GradleException('No Android connected-runner configurations')
+      }
+      runnerConfigurations.each { configuration ->
+        def artifacts = configuration.resolve()
+        println "Resolved ${configuration.name}: ${artifacts.size()} artifacts"
+      }
+    }
+  }
+}

@@ -1,19 +1,21 @@
 import React from 'react';
-import { AppState, BackHandler, ScrollView, StyleSheet, View } from 'react-native';
+import { BackHandler, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import * as Application from 'expo-application';
-import { Directory, Paths } from 'expo-file-system';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Snackbar, Text } from 'react-native-paper';
 import { BottomSheet } from '../components/BottomSheet';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { hasAllFilesAccess, openAllFilesAccessSettings } from '../native/allFilesAccess';
+import { SettingsCategoryPanel } from '../components/SettingsCategoryPanel';
 import { openAppLanguageSettings } from '../native/appLanguage';
-import { openOutputFolderPicker, testPickedFolderTimestampSupport } from '../native/outputFolderPicker';
+import { openOutputFolderPicker } from '../native/outputFolderPicker';
 import { usePipelineStore } from '../store/pipelineStore';
 import { useHistoryStore } from '../store/historyStore';
 import { useOnboardingStore } from '../store/onboardingStore';
-import { useSettingsStore } from '../store/settingsStore';
+import { useSettingsStore, type AppSettingsPatch } from '../store/settingsStore';
 import { syncI18nLanguage } from '../i18n';
+import { useLanguageRestartStore } from '../store/languageRestartStore';
+import { discardImport } from '../services/operationCoordinator';
+import { getChatStampNativeModule } from '../native/chatStampNativeModule';
 import { useAppTheme } from '../theme/useAppTheme';
 import { WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
@@ -25,7 +27,6 @@ import {
   SecondaryButton,
   SettingsSectionCard,
   SettingRow as UiSettingRow,
-  StatusBanner,
   textStyles
 } from '../components/AppUi';
 import { spacing } from '../theme/designTokens';
@@ -33,6 +34,7 @@ import { spacing } from '../theme/designTokens';
 const organizationModes: OutputOrganizationMode[] = ['all-in-one', 'by-type', 'by-sender', 'by-sender-and-type'];
 const duplicateModes: DuplicateHandlingMode[] = ['keep-both', 'skip-existing', 'replace-existing'];
 const languageOptions: AppLanguagePreference[] = ['system', 'en', 'he'];
+type SettingsCategory = 'saving' | 'language' | 'appearance' | 'storage' | 'help' | 'advanced';
 
 export function SettingsScreen() {
   const { t } = useTranslation();
@@ -43,101 +45,122 @@ export function SettingsScreen() {
   const closeOverlayStage = usePipelineStore((state) => state.closeOverlayStage);
   const requestOnboardingReplay = useOnboardingStore((state) => state.requestReplay);
   const clearHistory = useHistoryStore((state) => state.clearHistory);
-  const [allFilesAccessGranted, setAllFilesAccessGranted] = React.useState(false);
   const [snackbar, setSnackbar] = React.useState<string | undefined>();
   const [clearCacheOpen, setClearCacheOpen] = React.useState(false);
   const [clearHistoryOpen, setClearHistoryOpen] = React.useState(false);
   const [languageBusy, setLanguageBusy] = React.useState(false);
+  const languageReserved = React.useRef(false);
+  const restartRequired = useLanguageRestartStore((state) => state.required);
   const [organizationSheetOpen, setOrganizationSheetOpen] = React.useState(false);
+  const [category, setCategory] = React.useState<SettingsCategory | null>(null);
+  const categories = [
+    { id: 'saving', title: t('settings.categories.saving.title'), summary: t('settings.categories.saving.summary'), icon: 'folder-cog-outline' },
+    { id: 'language', title: t('settings.language'), summary: t('settings.categories.language.summary'), icon: 'translate' },
+    { id: 'appearance', title: t('settings.appearance'), summary: t('settings.categories.appearance.summary'), icon: 'theme-light-dark' },
+    { id: 'storage', title: t('settings.categories.storage.title'), summary: t('settings.categories.storage.summary'), icon: 'history' },
+    { id: 'help', title: t('settings.categories.help.title'), summary: t('settings.categories.help.summary'), icon: 'help-circle-outline' },
+    { id: 'advanced', title: t('settings.categories.advanced.title'), summary: t('settings.categories.advanced.summary'), icon: 'tune-variant' }
+  ] as const;
+  const currentCategory = categories.find((entry) => entry.id === category);
 
-  const refreshPermissions = React.useCallback(async () => {
-    try {
-      setAllFilesAccessGranted(await hasAllFilesAccess());
-    } catch {
-      setAllFilesAccessGranted(false);
-    }
-  }, []);
+  const goBack = React.useCallback(() => {
+    if (organizationSheetOpen) setOrganizationSheetOpen(false);
+    else if (clearCacheOpen) setClearCacheOpen(false);
+    else if (clearHistoryOpen) setClearHistoryOpen(false);
+    else if (category !== null) setCategory(null);
+    else closeOverlayStage('welcome');
+  }, [category, clearCacheOpen, clearHistoryOpen, closeOverlayStage, organizationSheetOpen]);
 
   React.useEffect(() => {
-    void refreshPermissions();
-    const appStateSubscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') void refreshPermissions();
-    });
     const backSubscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      closeOverlayStage('welcome');
+      goBack();
       return true;
     });
     return () => {
-      appStateSubscription.remove();
       backSubscription.remove();
     };
-  }, [closeOverlayStage, refreshPermissions]);
+  }, [goBack]);
+
+  async function saveSettings(patch: AppSettingsPatch) {
+    try { await updateSettings(patch); } catch { setSnackbar(t('settings.saveFailed')); }
+  }
 
   async function chooseFolder() {
     try {
       const folder = await openOutputFolderPicker();
-      const support = await testPickedFolderTimestampSupport(folder.treeUri);
+      if (!folder) return;
+      if (!folder.persistedPermission) {
+        setSnackbar(t('settings.folderPickFailed'));
+        return;
+      }
       await updateSettings({
         saveDestinationMode: 'custom-folder',
         useDefaultFolder: false,
         customFolder: folder,
-        customFolderTimestampSupport: support
+        customFolderTimestampSupport: null
       });
-    } catch (error) {
-      setSnackbar(error instanceof Error ? error.message : t('settings.folderPickFailed'));
+    } catch {
+      setSnackbar(t('settings.folderPickFailed'));
     }
   }
 
   async function applyLanguagePreference(languagePreference: AppLanguagePreference) {
-    setLanguageBusy(true);
+    if (languageReserved.current) return;
+    languageReserved.current = true; setLanguageBusy(true);
     try {
       await updateSettings({ languagePreference });
-      await syncI18nLanguage(languagePreference);
+      const required = await syncI18nLanguage(languagePreference);
+      useLanguageRestartStore.getState().setRequired(required, required);
+    } catch {
+      setSnackbar(t('settings.saveFailed'));
     } finally {
-      setLanguageBusy(false);
+      languageReserved.current = false; setLanguageBusy(false);
     }
   }
 
   async function clearCache() {
     try {
-      const cache = new Directory(Paths.cache);
-      if (cache.exists) cache.delete();
+      if (usePipelineStore.getState().workingDirectory) await discardImport();
+      await getChatStampNativeModule().cleanupStaleJobsAsync();
       setSnackbar(t('settings.cacheClearedBody'));
-    } catch (error) {
-      setSnackbar(error instanceof Error ? error.message : t('settings.couldNotClearCache'));
+    } catch {
+      setSnackbar(t('settings.couldNotClearCache'));
     } finally {
       setClearCacheOpen(false);
     }
   }
 
   async function confirmClearHistory() {
-    await clearHistory();
-    setClearHistoryOpen(false);
-    setSnackbar(t('settings.historyCleared'));
+    try {
+      await clearHistory();
+      setClearHistoryOpen(false);
+      setSnackbar(t('settings.historyCleared'));
+    } catch { setSnackbar(t('settings.saveFailed')); }
+  }
+
+  async function openSupportLink(url: string) {
+    try { await Linking.openURL(url); } catch { setSnackbar(t('settings.couldNotOpenLink')); }
   }
 
   return (
     <WizardScreen
       stage="settings"
-      title={t('settings.title')}
-      subtitle={t('settings.subtitle')}
-      onBack={() => closeOverlayStage('welcome')}
+      title={currentCategory?.title ?? t('settings.title')}
+      subtitle={currentCategory?.summary ?? t('settings.subtitle')}
+      onBack={goBack}
     >
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView key={category ?? 'menu'} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {category === null ? categories.map((entry) => <SettingsCategoryPanel key={entry.id}
+          title={entry.title} summary={entry.summary} icon={entry.icon} onPress={() => setCategory(entry.id)} />) : null}
+        {category === 'saving' ? <>
         <Section title={t('settings.saveLocation')} icon="folder-cog-outline">
-          <StatusBanner
-            tone={allFilesAccessGranted ? 'success' : 'warning'}
-            icon={allFilesAccessGranted ? 'shield-check-outline' : 'shield-alert-outline'}
-            title={allFilesAccessGranted ? t('settings.permissionReadyTitle') : t('settings.permissionMissingTitle')}
-            body={allFilesAccessGranted ? t('settings.granted') : t('settings.notGranted')}
-          />
           <DestinationCard
             title={t('settings.defaultAccurateFolder')}
             description={t('settings.defaultAccurateFolderBody')}
             selected={settings.saveDestinationMode === 'default-accurate-folder'}
             badge={t('settings.recommended')}
             onPress={() =>
-              void updateSettings({
+              void saveSettings({
                 saveDestinationMode: 'default-accurate-folder',
                 useDefaultFolder: true
               })
@@ -151,40 +174,27 @@ export function SettingsScreen() {
               t('settings.customFolderBody')
             }
             selected={settings.saveDestinationMode === 'custom-folder'}
-            onPress={() =>
-              void updateSettings({
-                saveDestinationMode: 'custom-folder',
-                useDefaultFolder: false
-              })
-            }
+            onPress={() => void chooseFolder()}
           />
           <View style={styles.compactButtonRow}>
             <SecondaryButton icon="folder-plus-outline" style={styles.compactButton} onPress={() => void chooseFolder()}>
               {t('settings.chooseFolder')}
             </SecondaryButton>
-            <SecondaryButton style={styles.compactButton} onPress={() => void resetSaveLocation()}>
+            <SecondaryButton style={styles.compactButton} onPress={() => { void resetSaveLocation().catch(() => setSnackbar(t('settings.saveFailed'))); }}>
               {t('settings.resetToDefault')}
             </SecondaryButton>
           </View>
-          <Detail
-            icon={allFilesAccessGranted ? 'shield-check-outline' : 'shield-alert-outline'}
-            label={t('settings.allFilesAccess')}
-            value={allFilesAccessGranted ? t('settings.granted') : t('settings.notGranted')}
-          />
-          <SecondaryButton icon="cog-outline" onPress={() => void openAllFilesAccessSettings()}>
-            {t('settings.openAllFilesAccess')}
-          </SecondaryButton>
-          {settings.customFolder ? (
-            <Detail
-              icon={settings.customFolderTimestampSupport?.timestampVerified ? 'calendar-check-outline' : 'calendar-alert-outline'}
-              label={t('settings.customFolderDateAccuracy')}
-              value={
-                settings.customFolderTimestampSupport?.timestampVerified
-                  ? t('settings.customFolderDateAccuracyReady')
-                  : t('settings.customFolderDateAccuracyLimited')
-              }
-            />
+          {settings.saveDestinationMode === 'custom-folder' ? (
+            <Detail icon="calendar-outline" label={t('settings.customFolderDateAccuracy')} value={t('settings.customFolderDateBody')} />
           ) : null}
+          <UiSettingRow
+            icon="calendar-sync-outline"
+            title={t('settings.alwaysUseMessageDate')}
+            description={t('settings.alwaysUseMessageDateBody')}
+            value={settings.alwaysUseMessageDate}
+            onValueChange={(alwaysUseMessageDate) => void saveSettings({ alwaysUseMessageDate })}
+          />
+          <Detail icon="folder-outline" label={t('settings.lastOutputFolder')} value={settings.lastOutputFolder ?? t('settings.noneYet')} path />
         </Section>
 
         <Section title={t('settings.outputOrg')} icon="folder-multiple-outline">
@@ -203,8 +213,8 @@ export function SettingsScreen() {
             title={t('settings.createExportTimestampFolder')}
             value={settings.outputOrganization.createExportTimestampFolder}
             onValueChange={(value) =>
-              void updateSettings({
-                outputOrganization: { ...settings.outputOrganization, createExportTimestampFolder: value }
+              void saveSettings({
+                outputOrganization: { createExportTimestampFolder: value }
               })
             }
           />
@@ -218,22 +228,22 @@ export function SettingsScreen() {
                 selected={settings.outputOrganization.duplicateHandling === mode}
                 caution={mode === 'replace-existing'}
                 onPress={() =>
-                  void updateSettings({
-                    outputOrganization: {
-                      ...settings.outputOrganization,
-                      duplicateHandling: mode
-                    }
+                  void saveSettings({
+                    outputOrganization: { duplicateHandling: mode }
                   })
                 }
               />
             ))}
           </View>
         </Section>
+        </> : null}
 
+        {category === 'language' ?
         <Section title={t('settings.language')} icon="translate">
           <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
             {t('settings.languageInfo')}
           </Text>
+          {restartRequired ? <SecondaryButton icon="restart" onPress={() => useLanguageRestartStore.getState().requestPrompt()}>{t('languageRestart.now')}</SecondaryButton> : null}
           <View style={styles.choiceList}>
             {languageOptions.map((languagePreference) => (
               <OptionChoiceCard
@@ -260,34 +270,48 @@ export function SettingsScreen() {
             {t('settings.openAppLanguageSettings')}
           </SecondaryButton>
         </Section>
+        : null}
 
+        {category === 'appearance' ?
         <Section title={t('settings.appearance')} icon="theme-light-dark">
           <View style={styles.choiceList}>
             <OptionChoiceCard
               title={t('settings.systemDefault')}
               description={t('settings.appearanceBodies.system')}
               selected={settings.appearance === 'system'}
-              onPress={() => void updateSettings({ appearance: 'system' })}
+              onPress={() => void saveSettings({ appearance: 'system' })}
             />
             <OptionChoiceCard
               title={t('settings.light')}
               description={t('settings.appearanceBodies.light')}
               selected={settings.appearance === 'light'}
-              onPress={() => void updateSettings({ appearance: 'light' })}
+              onPress={() => void saveSettings({ appearance: 'light' })}
             />
             <OptionChoiceCard
               title={t('settings.dark')}
               description={t('settings.appearanceBodies.dark')}
               selected={settings.appearance === 'dark'}
-              onPress={() => void updateSettings({ appearance: 'dark' })}
+              onPress={() => void saveSettings({ appearance: 'dark' })}
             />
           </View>
           <UiSettingRow
             title={t('settings.dynamicColors')}
             description={t('settings.dynamicColorsBody')}
             value={settings.useDynamicColors}
-            onValueChange={(value) => void updateSettings({ useDynamicColors: value })}
+            onValueChange={(value) => void saveSettings({ useDynamicColors: value })}
           />
+        </Section>
+        : null}
+
+        {category === 'help' ? <>
+        <Section title={t('settings.privacySupport')} icon="shield-account-outline">
+          <Text variant="bodyMedium" style={textStyles.start}>{t('settings.privacySummary')}</Text>
+          <SecondaryButton icon="shield-lock-outline" onPress={() => void openSupportLink('https://meniviner.github.io/chatStamp/privacy-policy.html')}>
+            {t('settings.privacyPolicy')}
+          </SecondaryButton>
+          <SecondaryButton icon="email-outline" onPress={() => void openSupportLink('mailto:menis10tec@gmail.com')}>
+            {t('settings.contactSupport')}
+          </SecondaryButton>
         </Section>
 
         <Section title={t('settings.appOptions')} icon="tune-variant">
@@ -295,31 +319,39 @@ export function SettingsScreen() {
           <SecondaryButton
             icon="play-circle-outline"
             onPress={() => {
-              closeOverlayStage('welcome');
               requestOnboardingReplay();
             }}
           >
             {t('settings.showWelcomeTourAgain')}
           </SecondaryButton>
-          <UiSettingRow
-            title={t('settings.developerModeToggle')}
-            description={t('settings.developerModeBody')}
-            value={settings.developerMode}
-            onValueChange={(value) => void updateSettings({ developerMode: value, showTechnicalLogs: value ? settings.showTechnicalLogs : false })}
-          />
-          {settings.developerMode ? (
-            <>
-              <UiSettingRow title={t('settings.showTechnicalLogs')} value={settings.showTechnicalLogs} onValueChange={(value) => void updateSettings({ showTechnicalLogs: value })} />
-              <UiSettingRow title={t('settings.keepCache')} value={settings.keepCacheAfterFailedRun} onValueChange={(value) => void updateSettings({ keepCacheAfterFailedRun: value })} />
-              <Detail icon="information-outline" label={t('settings.developerMode')} value={t('settings.developerModeBody')} />
-            </>
-          ) : null}
-          <Detail icon="folder-outline" label={t('settings.lastOutputFolder')} value={settings.lastOutputFolder ?? t('settings.noneYet')} path />
           <Detail
             icon="information-outline"
             label={t('settings.versionBuild')}
             value={`${Application.nativeApplicationVersion ?? '0.1.0'} (${Application.nativeBuildVersion ?? t('settings.devBuild')})`}
           />
+        </Section>
+        </> : null}
+
+        {category === 'advanced' ?
+        <Section title={t('settings.developerMode')} icon="tune-variant">
+          <UiSettingRow
+            title={t('settings.developerModeToggle')}
+            description={t('settings.developerModeBody')}
+            value={settings.developerMode}
+            onValueChange={(value) => void saveSettings(value ? { developerMode: true } : { developerMode: false, showTechnicalLogs: false })}
+          />
+          {settings.developerMode ? (
+            <>
+              <UiSettingRow title={t('settings.showTechnicalLogs')} value={settings.showTechnicalLogs} onValueChange={(value) => void saveSettings({ showTechnicalLogs: value })} />
+              <UiSettingRow title={t('settings.keepCache')} value={settings.keepCacheAfterFailedRun} onValueChange={(value) => void saveSettings({ keepCacheAfterFailedRun: value })} />
+              <Detail icon="information-outline" label={t('settings.developerMode')} value={t('settings.developerModeBody')} />
+            </>
+          ) : null}
+        </Section>
+        : null}
+
+        {category === 'storage' ?
+        <Section title={t('settings.categories.storage.title')} icon="history">
           <View style={styles.buttonRow}>
             <SecondaryButton onPress={() => setClearCacheOpen(true)}>
               {t('settings.clearAppCache')}
@@ -329,6 +361,7 @@ export function SettingsScreen() {
             </SecondaryButton>
           </View>
         </Section>
+        : null}
       </ScrollView>
 
       <OutputOrganizationSheet
@@ -336,8 +369,8 @@ export function SettingsScreen() {
         settings={settings}
         onDismiss={() => setOrganizationSheetOpen(false)}
         onModeChange={(mode) =>
-          void updateSettings({
-            outputOrganization: { ...settings.outputOrganization, mode }
+          void saveSettings({
+            outputOrganization: { mode }
           })
         }
       />

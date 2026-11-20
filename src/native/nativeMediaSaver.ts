@@ -1,36 +1,28 @@
 import {
   getChatStampNativeModule,
-  type NativeMp4DebugResult,
   type NativeSaveMediaItem,
-  type NativeSaveMediaResult,
-  type SafCustomFolderSaveOptions,
-  type TermuxParitySaveOptions
+  type ScopedSaveOptions,
+  type NativeSaveMediaResult
 } from './chatStampNativeModule';
+import type { OperationProgress } from '../lib/operationProgress';
+import { asPipelineError, PipelineError } from '../lib/pipelineErrors';
 
-export async function saveMediaWithOriginalDatesNative(
-  items: NativeSaveMediaItem[],
-  options?: { albumName?: string; keepFailedDebugFiles?: boolean }
+export async function saveMediaNative(
+  items: NativeSaveMediaItem[], options: ScopedSaveOptions, onProgress?: (progress: OperationProgress) => void
 ): Promise<NativeSaveMediaResult> {
-  return getChatStampNativeModule().saveMediaWithOriginalDatesAsync(items, options ?? null);
-}
-
-export async function saveMediaTermuxParityNative(
-  items: NativeSaveMediaItem[],
-  options?: TermuxParitySaveOptions
-): Promise<NativeSaveMediaResult> {
-  return getChatStampNativeModule().saveMediaTermuxParityAsync(items, options ?? null);
-}
-
-export async function saveMediaToSafFolderNative(
-  items: NativeSaveMediaItem[],
-  options: SafCustomFolderSaveOptions
-): Promise<NativeSaveMediaResult> {
-  return getChatStampNativeModule().saveMediaToSafFolderAsync(items, options);
-}
-
-export async function runMp4RewriteDiagnosticsNative(
-  sourceUri: string,
-  targetTimestampMillis: number
-): Promise<NativeMp4DebugResult> {
-  return getChatStampNativeModule().debugRewriteMp4DateAsync(sourceUri, targetTimestampMillis);
+  const native = getChatStampNativeModule();
+  const subscription = native.addListener('onSaveProgress', (event) => {
+    if (event.operationId === options.operationId) onProgress?.(event);
+  });
+  try {
+    return await native.saveMediaAsync(items, options);
+  } catch (error) {
+    const snapshot = await native.getOperationSnapshotAsync().catch(() => null);
+    if (snapshot?.progress.operationId === options.operationId && snapshot.error) {
+      throw new PipelineError(snapshot.error.code, snapshot.error.message, snapshot.error.missingBytes);
+    }
+    throw asPipelineError(error);
+  } finally {
+    subscription.remove();
+  }
 }

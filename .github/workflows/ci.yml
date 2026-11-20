@@ -1,0 +1,64 @@
+name: Android CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CI: 'true'
+      EXPO_NO_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '26.7.0'
+          cache: npm
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '17.0.19+10'
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          cmdline-tools-version: '15859902'
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0 ndk;27.1.12297006'
+      - name: Install the locked dependency graph
+        run: npm ci
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Unit and integration tests
+        run: npm run test
+      - name: Lint
+        run: npm run lint
+      - name: Verification tooling regressions
+        run: python3 -m unittest discover -s scripts/android-verification -p 'test_*.py'
+      - name: Generate Android from durable source
+        run: npx expo prebuild --platform android --clean
+      - name: Fetch the checksum-pinned Gradle bootstrap dependency
+        env:
+          CHATSTAMP_CI_BOOTSTRAP_REPOSITORY: ${{ runner.temp }}/chatstamp-ci-bootstrap
+        run: python3 scripts/android-verification/ci-bootstrap.py --repository "$CHATSTAMP_CI_BOOTSTRAP_REPOSITORY"
+      - name: Execute native JVM tests and merge the release manifest
+        env:
+          CHATSTAMP_CI_BOOTSTRAP_REPOSITORY: ${{ runner.temp }}/chatstamp-ci-bootstrap
+        run: >-
+          ./android/gradlew -p android --console=plain --max-workers=2
+          -I ../scripts/android-verification/ci-bootstrap.init.gradle
+          -I ../scripts/android-verification/ci-toolchain.init.gradle
+          :chatstampVerifyToolchain :chatstamp-native:testDebugUnitTest
+          :app:processReleaseManifest -PreactNativeArchitectures=arm64-v8a
+      - name: Enforce release permissions and executed native tests
+        run: >-
+          python3 scripts/android-verification/ci-policy.py
+          --manifest android/app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml
+          --junit-dir modules/chatstamp-native/android/build/test-results/testDebugUnitTest

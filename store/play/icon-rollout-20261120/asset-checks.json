@@ -1,0 +1,43 @@
+{
+  "scope": "Google Play store icons only; chatStamp leaves removed; banners and binaries unchanged",
+  "assets": [
+    {
+      "file": "chatstamp-icon-transparent.png",
+      "bytes": 224095,
+      "sha256": "5448946ba8a1b84fca36d151741337f81c2560fd1dfb69f70eaa8ef93806902e",
+      "width": 512,
+      "height": 512,
+      "format": "PNG",
+      "color_space": "sRGB",
+      "bits_per_pixel": 32,
+      "alpha": "preserved; genuine transparent background; most subject pixels alpha253",
+      "fully_transparent_pixels": 139084,
+      "corner_alpha": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "file": "tank-malle-icon-transparent.png",
+      "bytes": 206564,
+      "sha256": "81c5fcbd6eda1822e4975db7dfefa10c4a9fd734378063dfa8c478b37e19cb27",
+      "width": 512,
+      "height": 512,
+      "format": "PNG",
+      "color_space": "sRGB",
+      "bits_per_pixel": 32,
+      "alpha": "preserved; genuine transparent background; most subject pixels alpha253",
+      "fully_transparent_pixels": 149860,
+      "corner_alpha": [
+        0,
+        0,
+        1,
+        0
+      ]
+    }
+  ],
+  "independent_test_author": "PASS for both icons",
+  "independent_reviewer": "CLEAR for both icons and exporter"
+}

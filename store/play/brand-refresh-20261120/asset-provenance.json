@@ -1,0 +1,22 @@
+{
+  "mode": "Built-in image_gen edits; mechanical Swift 512 export only",
+  "files": {
+    "chatstamp-play-icon.png": {
+      "sha256": "f45ba5049160d784bd227634262de5dc74d78e69de4ad36204fbb1fad43a4c1e",
+      "bytes": 353086
+    },
+    "source/chatstamp-logo-master.png": {
+      "sha256": "6149db1331f2e39e35e9d3765ebc521530c4dc3f0b44410131c92dfe892b4cef",
+      "bytes": 1515255
+    }
+  },
+  "replaced_store_icon_previous_sha256": "1ce27d80469dfe079af4194f2032e0e4bdea12b780f7ef934ffd4c7f86771a10",
+  "chatStamp": "Owner authorized store-logo replacement; no launcher/AAB change",
+  "tankMalle": "Proposal stays local only, excluded from Git and not uploaded/applied before owner approval",
+  "source_identity": "Application source/config/native and binary code14 remain unchanged",
+  "reviews": {
+    "reviewer": "CLEAR",
+    "test_author": "PASS; both512square/32bit/sRGB/opaque; full folder under10MB"
+  },
+  "email": "Confirmed menis10tec@gmail.com; per-app fields published and freshly reloaded; listing literal support addresses will match; native/privacy/account contacts unchanged"
+}

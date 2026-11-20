@@ -1,0 +1,30 @@
+{
+  "zone": "Asia/Jerusalem",
+  "order": "dmy",
+  "entries": [
+    {
+      "path": "IMG-20240115-WA0003.jpg",
+      "expected": {
+        "sender": "דנה",
+        "dateSource": "chat",
+        "date": "2024-01-15T08:30:00.000Z"
+      }
+    },
+    {
+      "path": "VID-20240116-WA0001.mp4",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "filename",
+        "date": "2024-01-16T10:00:00.000Z"
+      }
+    },
+    {
+      "path": "extra.pdf",
+      "expected": {
+        "sender": "unknown",
+        "dateSource": "none",
+        "date": null
+      }
+    }
+  ]
+}

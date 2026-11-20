@@ -2,14 +2,13 @@ import React from 'react';
 import { Pressable, StatusBar, StyleSheet, View, type ImageStyle, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Appbar, Button, Chip, IconButton, ProgressBar, RadioButton, Surface, Switch, Text } from 'react-native-paper';
+import { Appbar, Button, Chip, ProgressBar, RadioButton, Surface, Switch, Text } from 'react-native-paper';
 import { Image as ExpoImage } from 'expo-image';
-import { useVideoPlayer } from 'expo-video';
 import { useTranslation } from 'react-i18next';
-import { useAppLayoutDirection } from '../i18n/AppLayoutDirectionContext';
-import { spacing, radius, size, appTypography, appColorTokens } from '../theme/designTokens';
+import { spacing, radius, size, appTypography } from '../theme/designTokens';
 import { useAppTheme } from '../theme/useAppTheme';
-import type { ExtractedMediaFile, MediaType } from '../types/media';
+import type { MediaType } from '../types/media';
+import { getThumbnail, invalidateThumbnail, type ThumbnailResult } from '../native/mediaPreviews';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -48,19 +47,19 @@ export function AppScreenScaffold({
   contentStyle?: StyleProp<ViewStyle>;
 }) {
   const theme = useAppTheme();
-  const layoutDirection = useAppLayoutDirection();
+  const { t } = useTranslation();
   const statusBarStyle = theme.dark ? 'light-content' : 'dark-content';
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.scaffoldSafeArea, { backgroundColor: theme.colors.background }]}>
       <StatusBar translucent backgroundColor="transparent" barStyle={statusBarStyle} />
       <Appbar.Header mode="small" elevated={false} statusBarHeight={0} style={[styles.scaffoldAppbar, { backgroundColor: theme.colors.background }]}>
-        {onBack ? <Appbar.BackAction disabled={backDisabled} onPress={onBack} /> : null}
+        {onBack ? <Appbar.BackAction accessibilityLabel={t('common.back')} disabled={backDisabled} onPress={onBack} /> : null}
         <CompactStepHeader stepLabel={stepLabel} title={title} />
         {actions}
       </Appbar.Header>
       {showProgress && typeof progress === 'number' ? (
-        <ProgressBar progress={progress} color={theme.colors.primary} style={[styles.scaffoldProgress, layoutDirection === 'rtl' ? styles.rtlProgress : null]} />
+        <ProgressBar progress={progress} color={theme.colors.primary} style={styles.scaffoldProgress} />
       ) : null}
       {subtitle ? <StepHeader title="" subtitle={subtitle} compact /> : null}
       <View style={[styles.scaffoldContent, contentStyle]}>{children}</View>
@@ -69,16 +68,17 @@ export function AppScreenScaffold({
   );
 }
 
-export function CompactStepHeader({ stepLabel, title }: { stepLabel?: string; title: string }) {
+function CompactStepHeader({ stepLabel, title }: { stepLabel?: string; title: string }) {
   const theme = useAppTheme();
   return (
     <View style={styles.compactStepHeader}>
-      <Text variant="titleMedium" numberOfLines={1} ellipsizeMode="tail" style={[styles.compactAppbarTitle, textStyles.start]}>
+      <Text variant="titleMedium" numberOfLines={1} ellipsizeMode="tail" accessibilityLabel={title}
+        style={[styles.compactAppbarTitle, textStyles.start]}>
         {title}
       </Text>
       {stepLabel ? (
         <View style={[styles.compactStepPill, { backgroundColor: theme.colors.secondaryContainer }]}>
-          <Text variant="labelSmall" numberOfLines={1} style={[styles.tabular, { color: theme.colors.onSecondaryContainer }]}>
+          <Text variant="labelSmall" style={[styles.tabular, { color: theme.colors.onSecondaryContainer }]}>
             {stepLabel}
           </Text>
         </View>
@@ -87,7 +87,7 @@ export function CompactStepHeader({ stepLabel, title }: { stepLabel?: string; ti
   );
 }
 
-export function StepHeader({
+function StepHeader({
   stepLabel,
   title,
   subtitle,
@@ -112,13 +112,13 @@ export function StepHeader({
               </Text>
             </View>
           ) : null}
-          <Text variant="titleSmall" numberOfLines={1} ellipsizeMode="tail" style={[styles.screenTitle, textStyles.start]}>
+          <Text variant="titleSmall" style={[styles.screenTitle, textStyles.start]}>
             {title}
           </Text>
         </View>
       ) : null}
       {subtitle ? (
-        <Text variant="bodySmall" numberOfLines={1} ellipsizeMode="tail" style={[styles.scaffoldSubtitle, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+        <Text variant="bodySmall" style={[styles.scaffoldSubtitle, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
           {subtitle}
         </Text>
       ) : null}
@@ -126,7 +126,7 @@ export function StepHeader({
   );
 }
 
-export function PrimaryBottomActionBar({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+function PrimaryBottomActionBar({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
   return (
@@ -136,7 +136,7 @@ export function PrimaryBottomActionBar({ children, style }: { children: React.Re
         styles.primaryBottomActionBar,
         {
           backgroundColor: theme.colors.surface,
-          paddingBottom: Math.max(insets.bottom, spacing.compactInner)
+          paddingBottom: insets.bottom + spacing.compactInner
         },
         style
       ]}
@@ -146,28 +146,19 @@ export function PrimaryBottomActionBar({ children, style }: { children: React.Re
   );
 }
 
-export function semanticColors(theme: ReturnType<typeof useAppTheme>) {
-  const tokens = appColorTokens[theme.dark ? 'dark' : 'light'];
+function semanticColors(theme: ReturnType<typeof useAppTheme>) {
   return {
     primaryBrown: theme.colors.primary,
-    primaryBrownOn: theme.colors.onPrimary,
     peachSelected: theme.colors.primaryContainer,
     peachSoft: theme.colors.secondaryContainer,
     surface: theme.colors.surface,
     surfaceVariant: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant,
     borderSubtle: theme.colors.outlineVariant,
-    textPrimary: theme.colors.onSurface,
-    textSecondary: theme.colors.onSurfaceVariant,
-    danger: theme.colors.error,
-    warning: tokens.warning,
-    warningContainer: tokens.warningContainer,
-    success: tokens.success,
-    successContainer: tokens.successContainer,
-    disabled: theme.colors.surfaceDisabled
+    textSecondary: theme.colors.onSurfaceVariant
   };
 }
 
-export function shortenMiddle(value: string, max = 76): string {
+function shortenMiddle(value: string, max = 76): string {
   if (value.length <= max) return value;
   const normalized = value.replace(/\\/g, '/');
   const keep = Math.max(12, Math.floor((max - 3) / 2));
@@ -222,45 +213,6 @@ export function StatusBadge({ label, selected = false, danger = false }: { label
   );
 }
 
-export function SelectableChip({
-  label,
-  selected,
-  onPress,
-  icon,
-  disabled,
-  style
-}: {
-  label: string;
-  selected: boolean;
-  onPress?: () => void;
-  icon?: IconName;
-  disabled?: boolean;
-  style?: StyleProp<ViewStyle>;
-}) {
-  const theme = useAppTheme();
-  const colors = semanticColors(theme);
-  return (
-    <Chip
-      selected={selected}
-      showSelectedCheck
-      icon={icon}
-      disabled={disabled}
-      onPress={onPress}
-      style={[
-        styles.filterChip,
-        {
-          backgroundColor: selected ? colors.peachSelected : colors.surface,
-          borderColor: selected ? colors.primaryBrown : colors.borderSubtle
-        },
-        style
-      ]}
-      textStyle={[styles.filterChipText, { color: selected ? theme.colors.onPrimaryContainer : colors.textSecondary }]}
-    >
-      {label}
-    </Chip>
-  );
-}
-
 export function PrimaryButton({
   children,
   icon,
@@ -283,6 +235,7 @@ export function PrimaryButton({
       style={[styles.fullButton, style]}
       contentStyle={styles.primaryButtonContent}
       labelStyle={styles.buttonLabel}
+      maxFontSizeMultiplier={2}
     >
       {children}
     </Button>
@@ -317,81 +270,10 @@ export function SecondaryButton({
       style={[styles.secondaryButton, style]}
       contentStyle={styles.secondaryButtonContent}
       labelStyle={styles.secondaryButtonLabel}
+      maxFontSizeMultiplier={2}
     >
       {children}
     </Button>
-  );
-}
-
-export function IconOnlyActionButton({
-  icon,
-  accessibilityLabel,
-  onPress,
-  selected,
-  disabled,
-  style
-}: {
-  icon: IconName;
-  accessibilityLabel: string;
-  onPress?: () => void;
-  selected?: boolean;
-  disabled?: boolean;
-  style?: StyleProp<ViewStyle>;
-}) {
-  const theme = useAppTheme();
-  const colors = semanticColors(theme);
-  return (
-    <IconButton
-      icon={icon}
-      mode={selected ? 'contained-tonal' : 'outlined'}
-      size={22}
-      disabled={disabled}
-      onPress={onPress}
-      accessibilityLabel={accessibilityLabel}
-      hitSlop={10}
-      style={[
-        styles.iconOnlyButton,
-        {
-          backgroundColor: selected ? colors.peachSelected : colors.surface,
-          borderColor: selected ? colors.primaryBrown : colors.borderSubtle
-        },
-        style
-      ]}
-    />
-  );
-}
-
-export function FilteredSelectionCountBadge({
-  selected,
-  total,
-  accessibilityLabel,
-  style
-}: {
-  selected: number;
-  total: number;
-  accessibilityLabel: string;
-  style?: StyleProp<ViewStyle>;
-}) {
-  const theme = useAppTheme();
-  return (
-    <Surface
-      elevation={0}
-      accessibilityRole="text"
-      accessibilityLabel={accessibilityLabel}
-      style={[
-        styles.filteredCountBadge,
-        {
-          backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant,
-          borderColor: theme.colors.outlineVariant
-        },
-        style
-      ]}
-    >
-      <MaterialCommunityIcons name="file-check-outline" size={20} color={theme.colors.primary} />
-      <Text variant="labelLarge" numberOfLines={1} style={styles.tabular}>
-        {selected}/{total}
-      </Text>
-    </Surface>
   );
 }
 
@@ -405,10 +287,10 @@ export function SettingsSectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <PremiumCard>
+    <View style={{ gap: spacing.gap }}>
       <SectionHeader icon={icon} label={title} />
       {children}
-    </PremiumCard>
+    </View>
   );
 }
 
@@ -439,7 +321,7 @@ export function PremiumCard({
             </View>
           ) : null}
           {title ? (
-            <Text variant="titleMedium" numberOfLines={3} style={[styles.sectionTitle, textStyles.start]}>
+            <Text variant="titleMedium" style={[styles.sectionTitle, textStyles.start]}>
               {title}
             </Text>
           ) : (
@@ -453,7 +335,7 @@ export function PremiumCard({
   );
 }
 
-export function SectionHeader({
+function SectionHeader({
   icon,
   label,
   style
@@ -469,58 +351,10 @@ export function SectionHeader({
       <View style={[styles.smallIconBubble, { backgroundColor: colors.peachSoft }]}>
         <MaterialCommunityIcons name={icon} size={20} color={colors.primaryBrown} />
       </View>
-      <Text variant="titleMedium" numberOfLines={3} style={[styles.sectionTitle, textStyles.start, { color: colors.primaryBrown }]}>
+      <Text variant="titleMedium" style={[styles.sectionTitle, textStyles.start, { color: colors.primaryBrown }]}>
         {label}
       </Text>
     </View>
-  );
-}
-
-export function StatusBanner({
-  tone = 'info',
-  title,
-  body,
-  icon,
-  style
-}: {
-  tone?: 'info' | 'success' | 'warning' | 'error';
-  title: string;
-  body?: string;
-  icon?: IconName;
-  style?: StyleProp<ViewStyle>;
-}) {
-  const theme = useAppTheme();
-  const colors = semanticColors(theme);
-  const toneColor =
-    tone === 'error'
-      ? theme.colors.error
-      : tone === 'warning'
-        ? colors.warning
-        : tone === 'success'
-          ? colors.success
-          : theme.colors.primary;
-  const background =
-    tone === 'error'
-      ? theme.colors.errorContainer
-      : tone === 'warning'
-        ? colors.warningContainer
-        : tone === 'success'
-          ? colors.successContainer
-          : theme.colors.primaryContainer;
-  return (
-    <Surface elevation={0} style={[styles.statusBanner, { backgroundColor: background, borderColor: toneColor }, style]}>
-      <MaterialCommunityIcons name={icon ?? (tone === 'success' ? 'check-circle-outline' : tone === 'error' ? 'alert-circle-outline' : 'information-outline')} size={24} color={toneColor} />
-      <View style={styles.flex}>
-        <Text variant="titleSmall" style={[styles.settingTitle, textStyles.start, { color: theme.colors.onSurface }]}>
-          {title}
-        </Text>
-        {body ? (
-          <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {body}
-          </Text>
-        ) : null}
-      </View>
-    </Surface>
   );
 }
 
@@ -571,7 +405,7 @@ export function OptionChoiceCard({
               <StatusBadge label={badge} selected={selected} />
             </View>
           ) : null}
-          <Text variant="bodyMedium" numberOfLines={2} style={[styles.optionTitle, textStyles.start]}>
+          <Text variant="bodyMedium" style={[styles.optionTitle, textStyles.start]}>
             {title}
           </Text>
         </View>
@@ -580,7 +414,6 @@ export function OptionChoiceCard({
       {description ? (
         <Text
           variant="bodySmall"
-          numberOfLines={3}
           style={[styles.optionDescription, textStyles.start, { color: selected ? theme.colors.onPrimaryContainer : colors.textSecondary }]}
         >
           {description}
@@ -610,44 +443,6 @@ export function OptionChoiceCard({
   return <Pressable onPress={onPress}>{content}</Pressable>;
 }
 
-export function SelectableOptionCard(props: React.ComponentProps<typeof OptionChoiceCard>) {
-  return <OptionChoiceCard {...props} />;
-}
-
-export function OptionCard(props: React.ComponentProps<typeof OptionChoiceCard>) {
-  return <OptionChoiceCard {...props} />;
-}
-
-export function FilterChipGroup<T extends string>({
-  values,
-  selectedValues,
-  getLabel,
-  onToggle,
-  style
-}: {
-  values: T[];
-  selectedValues: T[];
-  getLabel: (value: T) => string;
-  onToggle: (value: T) => void;
-  style?: StyleProp<ViewStyle>;
-}) {
-  return (
-    <View style={[styles.chipWrap, style]}>
-      {values.map((value) => {
-        const selected = selectedValues.includes(value);
-        return (
-          <SelectableChip
-            key={value}
-            selected={selected}
-            onPress={() => onToggle(value)}
-            label={getLabel(value)}
-          />
-        );
-      })}
-    </View>
-  );
-}
-
 export function SettingRow({
   icon,
   title,
@@ -673,11 +468,11 @@ export function SettingRow({
         </View>
       ) : null}
       <View style={styles.settingText}>
-        <Text variant="titleSmall" numberOfLines={2} style={[textStyles.start, styles.settingTitle]}>
+        <Text variant="titleSmall" style={[textStyles.start, styles.settingTitle]}>
           {title}
         </Text>
         {description ? (
-          <Text variant="bodySmall" numberOfLines={3} style={[textStyles.start, { color: colors.textSecondary }]}>
+          <Text variant="bodySmall" style={[textStyles.start, { color: colors.textSecondary }]}>
             {description}
           </Text>
         ) : null}
@@ -700,37 +495,6 @@ export function InfoRow({ icon, label, value, path }: { icon: IconName; label: s
         </Text>
       )}
     </SettingRow>
-  );
-}
-
-export function MetricTile({ label, value }: { label: string; value: string | number }) {
-  const theme = useAppTheme();
-  return (
-    <Surface elevation={0} style={[styles.metricTile, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]}>
-      <Text variant="titleMedium" numberOfLines={1} style={styles.tabular}>
-        {value}
-      </Text>
-      <Text variant="labelSmall" numberOfLines={2} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-        {label}
-      </Text>
-    </Surface>
-  );
-}
-
-export function SummaryMetricCard({ label, value, icon }: { label: string; value: string | number; icon?: IconName }) {
-  const theme = useAppTheme();
-  return (
-    <Surface elevation={0} style={[styles.summaryMetricCard, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]}>
-      {icon ? <MaterialCommunityIcons name={icon} size={20} color={theme.colors.primary} /> : null}
-      <View style={styles.flex}>
-        <Text variant="titleLarge" numberOfLines={1} style={styles.tabular}>
-          {value}
-        </Text>
-        <Text variant="labelMedium" numberOfLines={2} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-          {label}
-        </Text>
-      </View>
-    </Surface>
   );
 }
 
@@ -780,72 +544,7 @@ export function ExpandableTechnicalDetails({
   );
 }
 
-export function MediaFileListItem({
-  file,
-  selected,
-  onToggle,
-  onPreview
-}: {
-  file: ExtractedMediaFile;
-  selected: boolean;
-  onToggle: () => void;
-  onPreview: () => void;
-}) {
-  const { t } = useTranslation();
-  const theme = useAppTheme();
-  const colors = semanticColors(theme);
-  const sender = file.sourceKind === 'chat-transcript'
-    ? t('fileSelection.chatTranscript')
-    : file.matchedRecord?.sender ?? t('fileSelection.unknownSender');
-  const restoredDate = file.sourceKind === 'chat-transcript'
-    ? t('fileSelection.chatTranscriptFile')
-    : file.matchedRecord?.messageDateIso ? new Date(file.matchedRecord.messageDateIso).toLocaleString() : t('fileSelection.noDate');
-  return (
-    <Pressable onPress={onToggle} accessibilityRole="button">
-      <Surface
-        elevation={0}
-        style={[
-          styles.mediaItem,
-          {
-            backgroundColor: selected ? colors.peachSelected : colors.surface,
-            borderColor: selected ? colors.primaryBrown : colors.borderSubtle
-          }
-        ]}
-      >
-        <MediaThumbnail mediaType={file.mediaType} uri={file.uri} thumbnailUri={file.thumbnailUri} />
-        <View style={styles.mediaText}>
-          <View style={styles.mediaMainLine}>
-            <StatusBadge label={t(`media.singular.${file.mediaType}`)} selected={selected} />
-            {selected ? <MaterialCommunityIcons name="check-circle" size={22} color={colors.primaryBrown} /> : null}
-          </View>
-          <Text variant="titleSmall" numberOfLines={1} ellipsizeMode="tail" style={[styles.mediaTitle, textStyles.start]}>
-            {sender}
-          </Text>
-          <Text variant="bodySmall" numberOfLines={1} style={[textStyles.start, { color: colors.textSecondary }]}>
-            {restoredDate}
-          </Text>
-          <Text variant="bodySmall" numberOfLines={1} ellipsizeMode="middle" style={[textStyles.start, { color: colors.textSecondary }]}>
-            {file.filename}
-          </Text>
-        </View>
-        <IconButton
-          icon="eye-outline"
-          size={20}
-          onPress={(event) => {
-            event.stopPropagation();
-            onPreview();
-          }}
-          accessibilityLabel={t('fileSelection.previewFile')}
-        />
-      </Surface>
-    </Pressable>
-  );
-}
-
-const videoThumbnailCache = new Map<string, unknown>();
-const videoThumbnailFailures = new Set<string>();
-
-export function MediaThumbnail({
+export const MediaThumbnail = React.memo(function MediaThumbnail({
   mediaType,
   uri,
   thumbnailUri,
@@ -860,6 +559,24 @@ export function MediaThumbnail({
 }) {
   const theme = useAppTheme();
   const normalizedType = mediaType ?? 'unknown';
+  const [resolved, setResolved] = React.useState<{ source: string; result: ThumbnailResult } | null>(null);
+  const [failedSupplied, setFailedSupplied] = React.useState<string | null>(null);
+  const [retry, setRetry] = React.useState(0);
+  const retriedSource = React.useRef<string | null>(null);
+  const supplied = thumbnailUri && failedSupplied !== thumbnailUri ? thumbnailUri : null;
+  const source = uri ?? '';
+  const visual = normalizedType === 'photo' || normalizedType === 'sticker' || normalizedType === 'gif'
+    || normalizedType === 'video' || normalizedType === 'document';
+  React.useEffect(() => {
+    if (!source || !visual || supplied) return;
+    let disposed = false;
+    void getThumbnail(source, 256).then((result) => {
+      if (!disposed) setResolved({ source, result });
+    });
+    return () => { disposed = true; };
+  }, [retry, source, supplied, visual]);
+  const nativeImage = resolved?.source === source && resolved.result.available ? resolved.result.uri : null;
+  const image = supplied ?? nativeImage;
   const thumbStyle = [styles.mediaImage, { width: size, height: size }, style] as StyleProp<ImageStyle>;
   const iconStyle = [
     styles.mediaIcon,
@@ -867,11 +584,15 @@ export function MediaThumbnail({
     style
   ] as StyleProp<ViewStyle>;
 
-  if ((normalizedType === 'photo' || normalizedType === 'sticker' || normalizedType === 'gif') && (thumbnailUri || uri)) {
-    return <ExpoImage source={thumbnailUri ?? uri ?? undefined} contentFit="cover" style={thumbStyle} />;
-  }
-  if (normalizedType === 'video' && (thumbnailUri || uri)) {
-    return <VideoThumbnail uri={(thumbnailUri ?? uri) as string} imageStyle={thumbStyle} fallbackStyle={iconStyle} />;
+  if (image) {
+    return <ExpoImage source={image} contentFit="cover" style={thumbStyle} onError={() => {
+      if (supplied) setFailedSupplied(supplied);
+      else if (retriedSource.current !== source) {
+        retriedSource.current = source;
+        setResolved(null);
+        void invalidateThumbnail(image).then(() => setRetry((value) => value + 1), () => undefined);
+      } else setResolved(null);
+    }} />;
   }
 
   return (
@@ -879,63 +600,7 @@ export function MediaThumbnail({
       <MaterialCommunityIcons name={getMediaIcon(normalizedType)} size={Math.max(20, Math.round(size * 0.28))} color={theme.colors.primary} />
     </View>
   );
-}
-
-function VideoThumbnail({
-  uri,
-  imageStyle,
-  fallbackStyle
-}: {
-  uri: string;
-  imageStyle: StyleProp<ImageStyle>;
-  fallbackStyle: StyleProp<ViewStyle>;
-}) {
-  const theme = useAppTheme();
-  const cached = videoThumbnailCache.get(uri);
-  const [thumbnail, setThumbnail] = React.useState<unknown>(cached);
-  const [failed, setFailed] = React.useState(videoThumbnailFailures.has(uri));
-  const player = useVideoPlayer({ uri }, () => undefined);
-
-  React.useEffect(() => {
-    if (thumbnail || failed) return;
-    let cancelled = false;
-    player
-      .generateThumbnailsAsync([0], { maxWidth: 360, maxHeight: 360 })
-      .then((thumbs) => {
-        const nextThumbnail = thumbs[0];
-        if (nextThumbnail) videoThumbnailCache.set(uri, nextThumbnail);
-        if (!cancelled) {
-          if (nextThumbnail) setThumbnail(nextThumbnail);
-          else setFailed(true);
-        }
-      })
-      .catch(() => {
-        videoThumbnailFailures.add(uri);
-        if (!cancelled) setFailed(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [failed, player, thumbnail, uri]);
-
-  if (thumbnail) {
-    return <ExpoImage source={thumbnail} contentFit="cover" style={imageStyle} />;
-  }
-
-  return (
-    <View style={fallbackStyle}>
-      <MaterialCommunityIcons name={failed ? 'video-off-outline' : 'video-outline'} size={24} color={theme.colors.primary} />
-    </View>
-  );
-}
-
-export function rememberVideoThumbnail(uri: string, thumbnail: unknown) {
-  videoThumbnailCache.set(uri, thumbnail);
-}
-
-export function getCachedVideoThumbnail(uri: string): unknown {
-  return videoThumbnailCache.get(uri);
-}
+});
 
 function getMediaIcon(mediaType: MediaType): IconName {
   if (mediaType === 'video') return 'video-outline';
@@ -951,15 +616,15 @@ function createStyles() {
     flex: 1
   },
   scaffoldAppbar: {
-    height: 48,
+    minHeight: 64,
+    height: 'auto',
+    flexShrink: 0,
+    paddingVertical: 4,
     paddingHorizontal: 8,
     gap: 4
   },
   scaffoldProgress: {
     height: 3
-  },
-  rtlProgress: {
-    transform: [{ scaleX: -1 }]
   },
   stepHeader: {
     paddingHorizontal: spacing.screenHorizontal,
@@ -975,10 +640,10 @@ function createStyles() {
   compactStepHeader: {
     flex: 1,
     minWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: spacing.smallGap
+    alignItems: 'stretch',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    gap: 2
   },
   compactAppbarTitle: {
     flexShrink: 1,
@@ -988,10 +653,10 @@ function createStyles() {
   },
   compactStepPill: {
     flexShrink: 0,
-    borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    maxWidth: 116
+    alignSelf: 'flex-start',
+    borderRadius: 16,
+    paddingHorizontal: 6,
+    paddingVertical: 2
   },
   stepHeaderLine: {
     flexDirection: 'row',
@@ -1016,10 +681,12 @@ function createStyles() {
   },
   scaffoldContent: {
     flex: 1,
+    minHeight: 0,
     paddingHorizontal: spacing.screenHorizontal,
     paddingTop: spacing.tinyGap
   },
   primaryBottomActionBar: {
+    flexShrink: 0,
     paddingHorizontal: spacing.screenHorizontal,
     paddingTop: spacing.compactInner,
     minHeight: size.stickyFooterMinHeight,
@@ -1044,6 +711,8 @@ function createStyles() {
     writingDirection: 'auto'
   },
   fullButton: {
+    minHeight: size.buttonHeight,
+    flexShrink: 0,
     borderRadius: radius.button
   },
   primaryButtonContent: {
@@ -1053,6 +722,8 @@ function createStyles() {
     ...appTypography.button
   },
   secondaryButton: {
+    minHeight: size.smallButtonHeight,
+    flexShrink: 0,
     borderRadius: radius.smallButton
   },
   secondaryButtonContent: {
@@ -1062,24 +733,6 @@ function createStyles() {
     fontSize: 16,
     lineHeight: 21,
     fontWeight: '700'
-  },
-  iconOnlyButton: {
-    width: 44,
-    height: 44,
-    margin: 0,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 22
-  },
-  filteredCountBadge: {
-    height: 44,
-    minWidth: 74,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 22,
-    paddingHorizontal: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6
   },
   sectionCard: {
     borderWidth: StyleSheet.hairlineWidth,
@@ -1099,7 +752,7 @@ function createStyles() {
   smallIconBubble: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -1135,7 +788,7 @@ function createStyles() {
     flexWrap: 'wrap'
   },
   codePathContainer: {
-    borderRadius: 14,
+    borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 8
   },
@@ -1158,7 +811,7 @@ function createStyles() {
   rowIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -1170,24 +823,6 @@ function createStyles() {
   settingTitle: {
     fontWeight: '700'
   },
-  metricTile: {
-    flex: 1,
-    minWidth: 98,
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 4
-  },
-  summaryMetricCard: {
-    flex: 1,
-    minWidth: 112,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.smallGap
-  },
   expandableDetails: {
     gap: spacing.smallGap
   },
@@ -1198,54 +833,9 @@ function createStyles() {
     gap: spacing.smallGap
   },
   expandableBody: {
-    borderRadius: 18,
+    borderRadius: 16,
     padding: spacing.compactInner,
     gap: spacing.smallGap
-  },
-  statusBanner: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius.card,
-    padding: spacing.compactInner,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.gap
-  },
-  chipWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.smallGap
-  },
-  filterChip: {
-    minHeight: size.chipHeight,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius.chip
-  },
-  filterChipText: {
-    ...appTypography.caption,
-    fontWeight: '700'
-  },
-  mediaItem: {
-    minHeight: 104,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderRadius: radius.card,
-    padding: spacing.gap,
-    gap: spacing.gap,
-  },
-  mediaText: {
-    flex: 1,
-    minWidth: 0,
-    gap: 4
-  },
-  mediaMainLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.smallGap
-  },
-  mediaTitle: {
-    fontWeight: '700'
   },
   mediaImage: {
     width: 78,

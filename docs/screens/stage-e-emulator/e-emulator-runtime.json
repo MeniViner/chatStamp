@@ -1,0 +1,386 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-18T21:31:30.428969+00:00",
+  "status": "PREFLIGHT PASS within executed scope; Stage E remains open",
+  "lease": "RELEASED: no further emulator actions by this reviewer",
+  "artifact": {
+    "package": "com.menis.chatstamp.qa",
+    "version_name": "0.2.0",
+    "version_code": 5,
+    "variant": "minified QA release supplied by release owner",
+    "source_commit": "0db5579235fda9a5b2a710be4280a5ef733337f7",
+    "apk_sha256": "b468452850f952b314fae00ea9000753743f7bfa388c84ea2135ade984431470",
+    "metro_started": false,
+    "adb_reverse_at_end": "none",
+    "note": "Later coordinator save-policy snapshot fix and F cleanup are outside this installed APK."
+  },
+  "device": {
+    "serial": "emulator-5554",
+    "model": "sdk_gphone64_arm64",
+    "api": 36,
+    "android_language": "en-US",
+    "timezone": "Asia/Jerusalem",
+    "physical_size": "1080x2400",
+    "physical_density": 420,
+    "tested_override_density": 288,
+    "font_percent": [
+      100,
+      130
+    ]
+  },
+  "language_restarts": {
+    "status": "PASS: actual same-bundle Restart now EN→HE→EN; repeated after layout changes",
+    "root_he": {
+      "היסטוריית פעולות": "[184,160][289,265]",
+      "הגדרות": "[37,160][142,265]"
+    },
+    "root_en": {
+      "History": "[791,160][896,265]",
+      "Settings": "[938,160][1043,265]"
+    },
+    "native_modal_he": {
+      "סגירה": "[79,241][184,346]",
+      "אישור": "[63,2190][1017,2337]"
+    },
+    "native_modal_en": {
+      "Close": "[896,241][1001,346]",
+      "OK": "[63,2190][1017,2337]"
+    },
+    "restart_dialog_back": "PASS: dismissed as Later, text preference retained, old native direction remained until Restart now",
+    "runtime_pid": 27750
+  },
+  "onboarding": {
+    "status": "PASS: exactly two pages, no permission dialog during fresh onboarding or replay",
+    "fresh": "EN, phone411dp,100%; Next/Back/final action reach Import",
+    "replay": "EN600dp130%; HE600dp130% and411dp130%; both pages, reachable final action, return to Settings",
+    "fresh_primary_bounds_px": {
+      "Choose a chat export": "[63,2148][1017,2295]"
+    },
+    "he_phone130_primary_bounds_px": {
+      "בחירת ייצוא של שיחה": "[63,2148][1017,2295]"
+    }
+  },
+  "filter_matrix": [
+    {
+      "language": "en",
+      "width_dp": 411,
+      "font_percent": 100,
+      "reset_and_apply": "PASS: both actual finger taps; hidden transcript remains unchecked",
+      "bounds_px": {
+        "Reset filters": "[63,1953][1017,2053]",
+        "Apply": "[63,2190][1017,2337]"
+      }
+    },
+    {
+      "language": "en",
+      "width_dp": 411,
+      "font_percent": 130,
+      "reset_and_apply": "PASS: both actual finger taps; hidden transcript remains unchecked",
+      "bounds_px": {
+        "Reset filters": "[63,1944][1017,2053]",
+        "Apply": "[63,2190][1017,2337]"
+      }
+    },
+    {
+      "language": "en",
+      "width_dp": 600,
+      "font_percent": 100,
+      "reset_and_apply": "PASS: both actual finger taps; hidden transcript remains unchecked",
+      "bounds_px": {
+        "Reset filters": "[43,2079][1037,2147]",
+        "Apply": "[43,2241][1037,2342]"
+      }
+    },
+    {
+      "language": "en",
+      "width_dp": 600,
+      "font_percent": 130,
+      "reset_and_apply": "PASS: both actual finger taps; hidden transcript remains unchecked",
+      "bounds_px": {
+        "Reset filters": "[43,2071][1037,2147]",
+        "Apply": "[43,2240][1037,2341]"
+      }
+    },
+    {
+      "language": "he",
+      "width_dp": 411,
+      "font_percent": 100,
+      "reset_and_apply": "PASS: both actual finger taps; hidden transcript remains unchecked",
+      "bounds_px": {
+        "איפוס הסינון": "[63,1953][1017,2053]",
+        "החלה": "[63,2190][1017,2337]"
+      }
+    },
+    {
+      "language": "he",
+      "width_dp": 411,
+      "font_percent": 130,
+      "reset_and_apply": "PASS: both actual finger taps; hidden transcript remains unchecked",
+      "bounds_px": {
+        "איפוס הסינון": "[63,1944][1017,2053]",
+        "החלה": "[63,2190][1017,2337]"
+      }
+    },
+    {
+      "language": "he",
+      "width_dp": 600,
+      "font_percent": 100,
+      "reset_and_apply": "PASS: both actual finger taps; hidden transcript remains unchecked",
+      "bounds_px": {
+        "איפוס הסינון": "[43,2079][1037,2147]",
+        "החלה": "[43,2241][1037,2342]"
+      }
+    },
+    {
+      "language": "he",
+      "width_dp": 600,
+      "font_percent": 130,
+      "reset_and_apply": "PASS: both actual finger taps; hidden transcript remains unchecked",
+      "bounds_px": {
+        "איפוס הסינון": "[43,2071][1037,2147]",
+        "החלה": "[43,2240][1037,2341]"
+      }
+    }
+  ],
+  "direct_save": {
+    "status": "PASS: Step1 Import → Step2 Select → visible Save directly → Step3 Results; no output-options step",
+    "first": {
+      "language": "en",
+      "filter": "Photos",
+      "selected_visible": 3,
+      "saved": 3,
+      "message_dates_verified": 3,
+      "failed": 0,
+      "cancelled": 0,
+      "font_percent": 130,
+      "width_dp": 411
+    },
+    "second": {
+      "language": "he",
+      "filter": "Videos",
+      "selected_visible": 2,
+      "saved": 2,
+      "message_dates_verified": 2,
+      "failed": 0,
+      "cancelled": 0,
+      "font_percent": 130,
+      "width_dp": 411
+    },
+    "hidden_selection": "Transcript deliberately unchecked; 5/6 retained across Reset and configuration changes; Photos3/3 retained after Settings and cancelled custom-folder picker",
+    "notifications": "Requested at visible Save only; both prompts denied; both real saves completed",
+    "policy_snapshot_after_async_permission": "UNVERIFIED on rebuilt fix: installed APK predates the owner’s captured-policy correction",
+    "output_rows": [
+      {
+        "file": "IMG-20200316-WA8814.png",
+        "uri": "content://media/external/images/media/313",
+        "relative_path": "Pictures/chatStamp/chatstamp-qa-eemu-20261118-mixed/",
+        "expected_utc": "2020-03-16T13:16:00+00:00",
+        "filesystem_utc": "2020-03-16T13:16:00+00:00",
+        "date_taken_utc": "2020-03-16T13:16:00+00:00",
+        "date_modified_utc": "2020-03-16T13:16:00+00:00",
+        "date_added_utc": "2026-11-18T21:16:01+00:00",
+        "matches_taken": true,
+        "matches_modified": true,
+        "internal_date": {
+          "DateTime": "2020:03:16 15:16:00",
+          "DateTimeOriginal": "2020:03:16 15:16:00",
+          "DateTimeDigitized": "2020:03:16 15:16:00",
+          "OffsetTime": "+02:00",
+          "OffsetTimeDigitized": "+02:00",
+          "OffsetTimeOriginal": "+02:00"
+        }
+      },
+      {
+        "file": "IMG-20200316-WA8813.jpg",
+        "uri": "content://media/external/images/media/314",
+        "relative_path": "Pictures/chatStamp/chatstamp-qa-eemu-20261118-mixed/",
+        "expected_utc": "2020-03-16T13:15:00+00:00",
+        "filesystem_utc": "2020-03-16T13:15:00+00:00",
+        "date_taken_utc": "2020-03-16T13:15:00+00:00",
+        "date_modified_utc": "2020-03-16T13:15:00+00:00",
+        "date_added_utc": "2026-11-18T21:16:01+00:00",
+        "matches_taken": true,
+        "matches_modified": true,
+        "internal_date": {
+          "DateTime": "2020:03:16 15:15:00",
+          "DateTimeOriginal": "2020:03:16 15:15:00",
+          "DateTimeDigitized": "2020:03:16 15:15:00",
+          "OffsetTime": "+02:00",
+          "OffsetTimeDigitized": "+02:00",
+          "OffsetTimeOriginal": "+02:00"
+        }
+      },
+      {
+        "file": "IMG-20190215-WA8811.jpg",
+        "uri": "content://media/external/images/media/315",
+        "relative_path": "Pictures/chatStamp/chatstamp-qa-eemu-20261118-mixed/",
+        "expected_utc": "2019-02-15T08:30:00+00:00",
+        "filesystem_utc": "2019-02-15T08:30:00+00:00",
+        "date_taken_utc": "2019-02-15T08:30:00+00:00",
+        "date_modified_utc": "2019-02-15T08:30:00+00:00",
+        "date_added_utc": "2026-11-18T21:16:01+00:00",
+        "matches_taken": true,
+        "matches_modified": true,
+        "internal_date": {
+          "DateTime": "2019:02:15 10:30:00",
+          "DateTimeOriginal": "2019:02:15 10:30:00",
+          "DateTimeDigitized": "2019:02:15 10:30:00",
+          "OffsetTime": "+02:00",
+          "OffsetTimeDigitized": "+02:00",
+          "OffsetTimeOriginal": "+02:00"
+        }
+      },
+      {
+        "file": "VID-20200317-WA8816.mp4",
+        "uri": "content://media/external/video/media/316",
+        "relative_path": "Pictures/chatStamp/chatstamp-qa-eemu-20261118-mixed/",
+        "expected_utc": "2020-03-17T10:00:00+00:00",
+        "filesystem_utc": "2020-03-17T10:00:00+00:00",
+        "date_taken_utc": "2020-03-17T10:00:00+00:00",
+        "date_modified_utc": "2020-03-17T10:00:00+00:00",
+        "date_added_utc": "2026-11-18T21:22:59+00:00",
+        "matches_taken": true,
+        "matches_modified": true,
+        "internal_date": "2020-03-17T10:00:00.000000Z"
+      },
+      {
+        "file": "VID-20190216-WA8812.mp4",
+        "uri": "content://media/external/video/media/317",
+        "relative_path": "Pictures/chatStamp/chatstamp-qa-eemu-20261118-mixed/",
+        "expected_utc": "2019-02-16T09:30:00+00:00",
+        "filesystem_utc": "2019-02-16T09:30:00+00:00",
+        "date_taken_utc": "2019-02-16T09:30:00+00:00",
+        "date_modified_utc": "2019-02-16T09:30:00+00:00",
+        "date_added_utc": "2026-11-18T21:22:59+00:00",
+        "matches_taken": true,
+        "matches_modified": true,
+        "internal_date": "2019-02-16T09:30:00.000000Z"
+      }
+    ],
+    "original_three_rows_unchanged_after_he_video_save": true
+  },
+  "back_and_recovery": {
+    "passed": [
+      "Onboarding page2→page1; replay page1→Settings",
+      "Photo viewer and video viewer→same Select/filter",
+      "Filter sheet→Select",
+      "Select discard dialog→Stay via Android Back with unchecked transcript retained",
+      "Settings→same Photos3/3 selection",
+      "System custom-folder picker cancel→Settings retaining default destination",
+      "History→Import",
+      "Results Details→same summary",
+      "Results start-over dialog dismiss→same results, then confirmed cleanup→Import",
+      "Google Photos opened from primary Gallery action and Android Back returned to Results",
+      "Hebrew corrupt-ZIP picker error→Import; typed localized recovery actions",
+      "Restart dialog Android Back→Later without reload"
+    ],
+    "not_claimed": [
+      "Busy import/save Back and cancellation timing were not repeated in this E preflight",
+      "Keyboard presence was not independently established by the attempted date-input check",
+      "Shell SEND without a usable URI grant exercised localized expired-access recovery; it is not a valid-share lifecycle acceptance case"
+    ]
+  },
+  "dates": {
+    "status": "PASS: HE Select/viewer/History dates rendered in Hebrew while Android picker and system remained English",
+    "example": "15 בפבר׳ 2019, 10:30",
+    "history_after_two_saves": "5 saved, 3 photos/2 videos, completed; Hebrew date label"
+  },
+  "dynamic_colors": {
+    "status": "PASS: actual UI pixels match native palette ON and app fallback OFF; restored ON",
+    "native_readback": {
+      "method": "adb shell cmd overlay lookup android android:color/<resource>",
+      "system_accent1_600": "#ff475d92",
+      "system_neutral1_10": "#fffefbff"
+    },
+    "same_settings_region_px": [
+      20,
+      300,
+      1060,
+      2300
+    ],
+    "on_pixel_counts": {
+      "#475d92": 21530,
+      "#fefbff": 1901322,
+      "#8b5433": 0,
+      "#fffaf4": 0,
+      "#fbf6ef": 0
+    },
+    "off_pixel_counts": {
+      "#475d92": 0,
+      "#fefbff": 0,
+      "#8b5433": 21530,
+      "#fffaf4": 542463,
+      "#fbf6ef": 1359209
+    },
+    "scope": "Light/system appearance on this API36 palette; dark palette and wallpaper-change refresh not separately repeated"
+  },
+  "runtime_errors": {
+    "qa_pid_log_candidates": 0,
+    "matched_patterns": [
+      "FATAL EXCEPTION",
+      "Fatal signal",
+      "ReactNativeJS Error/TypeError/ReferenceError",
+      "addViewAt failed",
+      "removeViewAt",
+      "OutOfMemory",
+      "ANR in"
+    ],
+    "harness_note": "One uiautomator dump failed around the permission dialog, followed by a UiAutomation registration crash in the shell automation process. The app stayed alive at PID27750; the dialog was inspected by screenshot and the observed Deny control was tapped."
+  },
+  "remaining_acceptance": [
+    "Rebuilt APK after save-policy snapshot fix and any later source changes",
+    "Full all-screens×all-eight-configurations visual matrix, including transient saving and partial/failure result variants",
+    "Physical phone gate: owner secure unlock; requested API33 handset absent (actual phone is API30)",
+    "Custom-provider localized folder profiles and all organization modes were not runtime-tested here",
+    "No Play upload or closed-track receipt was performed by this reviewer"
+  ],
+  "cleanup": {
+    "state": "device",
+    "locale": "",
+    "timezone": "Asia/Jerusalem",
+    "stayon": "1",
+    "font_scale": "1.0",
+    "density": "Physical density: 420",
+    "size": "Physical size: 1080x2400",
+    "navigation_mode": "2",
+    "animator_duration_scale": "null",
+    "packages": "",
+    "run_media": "No result found.",
+    "fixture_folder": "",
+    "scratch_window": "",
+    "reverse": "",
+    "matches_initial": {
+      "locale": true,
+      "timezone": true,
+      "stayon": true,
+      "font_scale": true,
+      "density": true,
+      "size": true,
+      "navigation_mode": true,
+      "animator_duration_scale": true,
+      "packages": true
+    }
+  },
+  "screenshots": [
+    {
+      "file": "results-filtered-en-phone130.png",
+      "bytes": 125935,
+      "sha256": "5ac6b23ebebbaaeb2eadfd96905afd097f5c3658a37d97a50a111c800f4e6106"
+    },
+    {
+      "file": "organization-he-wide130.png",
+      "bytes": 184492,
+      "sha256": "3e29e0b376018ff3a557dd71423325538b189ab48545ece7c6cf7076cba99980"
+    },
+    {
+      "file": "onboarding2-he-phone130.png",
+      "bytes": 151959,
+      "sha256": "fbac62ba83277431a2eea9e9bc116315b83bb5cbdeafd2c2d18bc6c32a31acad"
+    },
+    {
+      "file": "filter-he-phone130.png",
+      "bytes": 140696,
+      "sha256": "491031bad70148fb0fb0cf2878b8447260bfd5be1dcc46d0c10d83ec442facdd"
+    }
+  ]
+}

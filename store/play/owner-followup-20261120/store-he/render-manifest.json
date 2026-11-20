@@ -1,0 +1,227 @@
+{
+  "files" : [
+    {
+      "bodyPointSize" : 43,
+      "bytes" : 192872,
+      "captureFile" : "01-import.png",
+      "captureSha256" : "4b7f3f7e75e64e6ce48b6bdc2bbdf1f871a4b92e28bc8f8871436401d85e484a",
+      "captureSize" : [
+        1080,
+        2340
+      ],
+      "file" : "01-import-he.jpg",
+      "geometry" : {
+        "angleDegrees" : 6,
+        "captureBounds" : [
+          32,
+          706.95680327997809,
+          558,
+          1010.0863934400438
+        ],
+        "innerSize" : [
+          435.39941866087747,
+          943.36540709856774
+        ],
+        "transform" : "uniform contain + rotation only; complete source pixels; no crop or UI overlay"
+      },
+      "headline" : "מייבאים שיחה.\nהקבצים כאן.",
+      "headlinePointSize" : 113,
+      "palette" : "cream",
+      "sha256" : "936afb3182cea18f42ef2f8e89d86bdfa439cacb62fd54efe839d3bd86864ec7",
+      "size" : [
+        1080,
+        1920
+      ],
+      "supportCopy" : "משתפים ייצוא של שיחה\nאו בוחרים קובץ ייצוא שמור.\nהעיבוד נשאר במכשיר."
+    },
+    {
+      "bodyPointSize" : 43,
+      "bytes" : 185515,
+      "captureFile" : "02-selection.png",
+      "captureSha256" : "3cd6581d27829de2711daf23a73ba42d61ac09ad18006cb0684a980238f564eb",
+      "captureSize" : [
+        1080,
+        2340
+      ],
+      "file" : "02-selection-he.jpg",
+      "geometry" : {
+        "angleDegrees" : -5,
+        "captureBounds" : [
+          32,
+          694.9432741689933,
+          558,
+          1034.1134516620134
+        ],
+        "innerSize" : [
+          448.9326248150212,
+          972.68735376587915
+        ],
+        "transform" : "uniform contain + rotation only; complete source pixels; no crop or UI overlay"
+      },
+      "headline" : "בוחרים בדיוק\nמה לשמור.",
+      "headlinePointSize" : 127,
+      "palette" : "ink",
+      "sha256" : "55d3df585f87d6710d53a0d0adc089f8de7e723c35268a7e6913c4d66f734f4b",
+      "size" : [
+        1080,
+        1920
+      ],
+      "supportCopy" : "מסננים לפי שולח וסוג.\nמסמנים רק את הקבצים\nשרוצים לשמור."
+    },
+    {
+      "bodyPointSize" : 43,
+      "bytes" : 166217,
+      "captureFile" : "03-saving.png",
+      "captureSha256" : "8710a7dc2c90b18bf68f3f7b5d82d6414aa21827f39b53e00567732372b3f6de",
+      "captureSize" : [
+        1080,
+        2340
+      ],
+      "file" : "03-saving-he.jpg",
+      "geometry" : {
+        "angleDegrees" : 5,
+        "captureBounds" : [
+          32,
+          694.9432741689933,
+          558,
+          1034.1134516620134
+        ],
+        "innerSize" : [
+          448.9326248150212,
+          972.68735376587915
+        ],
+        "transform" : "uniform contain + rotation only; complete source pixels; no crop or UI overlay"
+      },
+      "headline" : "שומרים בנחת.\nרואים התקדמות.",
+      "headlinePointSize" : 102,
+      "palette" : "mint",
+      "sha256" : "1c3b67ffa98f60dce66186a530ac2c3d8616aed379f8fa701b07a956587c0249",
+      "size" : [
+        1080,
+        1920
+      ],
+      "supportCopy" : "ההתקדמות מוצגת בזמן אמת.\nאפשר להמשיך ברקע,\nולבטל לפי הצורך."
+    },
+    {
+      "bodyPointSize" : 43,
+      "bytes" : 180052,
+      "captureFile" : "04-results.png",
+      "captureSha256" : "90ee55e3436e6d5f9d889b677d4e3d7fdf1ebc873a708f74a91e860dd2c66d1f",
+      "captureSize" : [
+        1080,
+        2340
+      ],
+      "file" : "04-results-he.jpg",
+      "geometry" : {
+        "angleDegrees" : -6,
+        "captureBounds" : [
+          32,
+          706.95680327997809,
+          558,
+          1010.0863934400438
+        ],
+        "innerSize" : [
+          435.39941866087747,
+          943.36540709856774
+        ],
+        "transform" : "uniform contain + rotation only; complete source pixels; no crop or UI overlay"
+      },
+      "headline" : "התאריכים\nנבדקים.",
+      "headlinePointSize" : 148,
+      "palette" : "teal",
+      "sha256" : "cc1f06fa400deeaacb104a7a355649574538f4e16bbc4def433caad5c6e54372",
+      "size" : [
+        1080,
+        1920
+      ],
+      "supportCopy" : "רואים מה נשמר,\nואילו תאריכים אומתו.\nהדיוק תלוי בקובץ וביעד."
+    },
+    {
+      "bodyPointSize" : 43,
+      "bytes" : 250920,
+      "captureFile" : "05-transcript.png",
+      "captureSha256" : "11349abdf8c33819f146721c704068b95e19689f94521661512ea26fa6cd5369",
+      "captureSize" : [
+        1080,
+        2340
+      ],
+      "file" : "05-transcript-he.jpg",
+      "geometry" : {
+        "angleDegrees" : 6,
+        "captureBounds" : [
+          32,
+          706.95680327997809,
+          558,
+          1010.0863934400438
+        ],
+        "innerSize" : [
+          435.39941866087747,
+          943.36540709856774
+        ],
+        "transform" : "uniform contain + rotation only; complete source pixels; no crop or UI overlay"
+      },
+      "headline" : "כל השיחה.\nבתוך האפליקציה.",
+      "headlinePointSize" : 97,
+      "palette" : "cream",
+      "sha256" : "92c4394b0134e7f74a47a41379b9841133a377400ef090ba34f589b6de91388b",
+      "size" : [
+        1080,
+        1920
+      ],
+      "supportCopy" : "פותחים את תמליל השיחה\nוקוראים גם את ההודעות,\nכאן בתוך האפליקציה."
+    },
+    {
+      "bodyPointSize" : 43,
+      "bytes" : 179868,
+      "captureFile" : "06-settings.png",
+      "captureSha256" : "f262de243f2e325feee3aebad6fe7bf3c2c35b7aead547721902aa23a101ee48",
+      "captureSize" : [
+        1080,
+        2340
+      ],
+      "file" : "06-settings-he.jpg",
+      "geometry" : {
+        "angleDegrees" : -5,
+        "captureBounds" : [
+          32,
+          694.9432741689933,
+          558,
+          1034.1134516620134
+        ],
+        "innerSize" : [
+          448.9326248150212,
+          972.68735376587915
+        ],
+        "transform" : "uniform contain + rotation only; complete source pixels; no crop or UI overlay"
+      },
+      "headline" : "כל הגדרה.\nבמקום שלה.",
+      "headlinePointSize" : 138,
+      "palette" : "ink",
+      "sha256" : "9cbf311f423290062d60e2b89d893435c7c48ffeae4e26a9466a7192f58e27bc",
+      "size" : [
+        1080,
+        1920
+      ],
+      "supportCopy" : "שפה, תיקיות, כפילויות.\nתפריט קצר ומסודר,\nוהבחירות נשמרות במכשיר."
+    },
+    {
+      "bytes" : 77186,
+      "file" : "feature-he.jpg",
+      "illustrationLabel" : "המחשה בעזרת בינה מלאכותית",
+      "illustrationSha256" : "e10e1b82bdee6bb1285eca869fd7e96efc6451e699894a56a8fe3eadf6bdd4b3",
+      "illustrationSize" : [
+        1254,
+        1254
+      ],
+      "noUiGeneration" : true,
+      "sha256" : "bdc011de65cefa68b66c392132c8ea1f91876986c4ccd65999ffcc0f69c0ab2e",
+      "size" : [
+        1024,
+        500
+      ]
+    }
+  ],
+  "imageBytes" : 1232630,
+  "inputPolicy" : "Only supplied full actual captures; decorative captions outside UI",
+  "renderer" : "Native AppKit/CoreGraphics/CoreText; opaque sRGB JPEG"
+}

@@ -1,0 +1,3 @@
+The approved chatStamp logo now also appears on the installed app icon.
+Updated Android adaptive, round and monochrome icons.
+Direct WhatsApp sharing and the six-step guide remain available.

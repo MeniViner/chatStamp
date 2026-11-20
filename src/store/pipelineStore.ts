@@ -9,7 +9,12 @@ import type {
   ProcessingProgress
 } from '../types/media';
 import { logger } from '../lib/logger';
+import { getMediaSender } from '../lib/mediaMetadata';
 import { toggleMediaTypeSelection, toggleSenderSelection } from './selectionLogic';
+import { reduceProgress, startOperation } from '../lib/operationProgress';
+import { asPipelineError, type PipelineError } from '../lib/pipelineErrors';
+import { isSaveableMediaType } from '../lib/mediaUi';
+import { setIdsSelected, toggleId } from './fileSelectionState';
 
 export type PipelineState = {
   stage: PipelineStage;
@@ -17,20 +22,25 @@ export type PipelineState = {
   zipUri?: string;
   zipName?: string;
   workingDirectory?: string;
+  archiveFingerprint?: string;
+  importOperationId?: string;
   mediaFiles: ExtractedMediaFile[];
   importSummary?: ImportSummary;
   selectedSenders: string[];
   selectedMediaTypes: MediaTypeSelection;
-  selectedFileIds: string[];
+  selectedFileIds: ReadonlySet<string>;
+  pendingSaveIds?: readonly string[];
   progress?: ProcessingProgress;
   completion?: CompletionSummary;
-  error?: string;
+  error?: PipelineError;
   setStage: (stage: PipelineStage) => void;
   openOverlayStage: (stage: 'settings' | 'history') => void;
   closeOverlayStage: (fallback?: PipelineStage) => void;
   setZip: (zip: { uri: string; name: string }) => void;
   setImportResult: (result: {
     workingDirectory: string;
+    archiveFingerprint: string;
+    operationId: string;
     mediaFiles: ExtractedMediaFile[];
     importSummary: ImportSummary;
   }) => void;
@@ -39,9 +49,12 @@ export type PipelineState = {
   toggleFile: (fileId: string) => void;
   selectFiles: (fileIds: string[]) => void;
   clearFiles: (fileIds: string[]) => void;
+  setSelectedFiles: (selection: ReadonlySet<string>) => void;
+  prepareSave: (fileIds: readonly string[]) => void;
   setProgress: (progress: ProcessingProgress) => void;
+  startProgress: (operationId: string, kind: 'import' | 'save') => void;
   setCompletion: (completion: CompletionSummary) => void;
-  setError: (error: string) => void;
+  setError: (error: unknown) => void;
   clearError: () => void;
   reset: () => void;
 };
@@ -49,11 +62,11 @@ export type PipelineState = {
 const defaultMediaTypeSelection: MediaTypeSelection = {
   photo: true,
   video: true,
-  voice: false,
-  audio: false,
-  sticker: false,
-  gif: false,
-  document: false,
+  voice: true,
+  audio: true,
+  sticker: true,
+  gif: true,
+  document: true,
   unknown: false
 };
 
@@ -62,7 +75,7 @@ export const usePipelineStore = create<PipelineState>((set) => ({
   mediaFiles: [],
   selectedSenders: [],
   selectedMediaTypes: defaultMediaTypeSelection,
-  selectedFileIds: [],
+  selectedFileIds: new Set(),
   setStage: (stage) => {
     logger.debug('wizardStepChanged', { stage });
     set((state) => ({
@@ -83,29 +96,18 @@ export const usePipelineStore = create<PipelineState>((set) => ({
       return { stage, overlayReturnStage: undefined };
     }),
   setZip: (zip) => set({ zipUri: zip.uri, zipName: zip.name }),
-  setImportResult: ({ workingDirectory, mediaFiles, importSummary }) =>
+  setImportResult: ({ workingDirectory, archiveFingerprint, operationId, mediaFiles, importSummary }) =>
     set(() => {
-      const hasDefaultMediaSelection = mediaFiles.some(
-        (file) => file.matchedRecord && (file.mediaType === 'photo' || file.mediaType === 'video')
-      );
-      const shouldSelectTranscriptOnly =
-        !hasDefaultMediaSelection &&
-        mediaFiles.length === 1 &&
-        mediaFiles[0]?.sourceKind === 'chat-transcript';
       return {
         workingDirectory,
+        archiveFingerprint,
+        importOperationId: operationId,
         mediaFiles,
         importSummary,
-        selectedSenders: Array.from(new Set(mediaFiles.map((file) => file.matchedRecord?.sender).filter(Boolean))) as string[],
-        selectedMediaTypes: shouldSelectTranscriptOnly
-          ? { ...defaultMediaTypeSelection, document: true }
-          : defaultMediaTypeSelection,
-        selectedFileIds: mediaFiles
-          .filter((file) =>
-            file.matchedRecord &&
-            (file.mediaType === 'photo' || file.mediaType === 'video' || (shouldSelectTranscriptOnly && file.sourceKind === 'chat-transcript'))
-          )
-          .map((file) => file.id),
+        selectedSenders: Array.from(new Set(mediaFiles.map(getMediaSender))),
+        selectedMediaTypes: { ...defaultMediaTypeSelection },
+        selectedFileIds: new Set(mediaFiles.filter((file) => isSaveableMediaType(file.mediaType)).map((file) => file.id)),
+        pendingSaveIds: undefined,
         stage: 'selectFiles'
       };
     }),
@@ -123,28 +125,31 @@ export const usePipelineStore = create<PipelineState>((set) => ({
     }),
   toggleFile: (fileId) =>
     set((state) => {
-      const selectedFileIds = state.selectedFileIds.includes(fileId)
-        ? state.selectedFileIds.filter((id) => id !== fileId)
-        : [...state.selectedFileIds, fileId];
-      logger.debug('fileSelectionChanged', { fileId, selected: selectedFileIds.includes(fileId) });
+      const selectedFileIds = toggleId(state.selectedFileIds, fileId);
+      logger.debug('fileSelectionChanged', { fileId, selected: selectedFileIds.has(fileId) });
       return { selectedFileIds };
     }),
   selectFiles: (fileIds) =>
     set((state) => {
-      const selectedFileIds = Array.from(new Set([...state.selectedFileIds, ...fileIds]));
-      logger.debug('Select all visible files', { added: fileIds.length, selectedCount: selectedFileIds.length });
+      const selectedFileIds = setIdsSelected(state.selectedFileIds, fileIds, true);
+      logger.debug('Select all visible files', { added: fileIds.length, selectedCount: selectedFileIds.size });
       return { selectedFileIds };
     }),
   clearFiles: (fileIds) =>
     set((state) => {
-      const clearSet = new Set(fileIds);
-      const selectedFileIds = state.selectedFileIds.filter((id) => !clearSet.has(id));
-      logger.debug('Clear visible files', { cleared: fileIds.length, selectedCount: selectedFileIds.length });
+      const selectedFileIds = setIdsSelected(state.selectedFileIds, fileIds, false);
+      logger.debug('Clear visible files', { cleared: fileIds.length, selectedCount: selectedFileIds.size });
       return { selectedFileIds };
     }),
-  setProgress: (progress) => set({ progress }),
+  setSelectedFiles: (selection) => set((state) => ({ selectedFileIds: selection.size === state.selectedFileIds.size && [...selection].every((id) => state.selectedFileIds.has(id)) ? state.selectedFileIds : new Set(selection) })),
+  prepareSave: (fileIds) => set((state) => {
+    const eligible = new Set(state.mediaFiles.filter((file) => isSaveableMediaType(file.mediaType)).map((file) => file.id));
+    return { pendingSaveIds: [...new Set(fileIds)].filter((id) => state.selectedFileIds.has(id) && eligible.has(id)) };
+  }),
+  setProgress: (progress) => set((state) => ({ progress: reduceProgress(state.progress ?? null, progress) })),
+  startProgress: (operationId, kind) => set({ progress: startOperation(operationId, kind) }),
   setCompletion: (completion) => set({ completion, stage: 'results' }),
-  setError: (error) => set({ error, stage: 'error' }),
+  setError: (error) => set({ error: asPipelineError(error), stage: 'error' }),
   clearError: () => set({ error: undefined }),
   reset: () =>
     set({
@@ -153,11 +158,14 @@ export const usePipelineStore = create<PipelineState>((set) => ({
       zipUri: undefined,
       zipName: undefined,
       workingDirectory: undefined,
+      archiveFingerprint: undefined,
+      importOperationId: undefined,
       mediaFiles: [],
       importSummary: undefined,
       selectedSenders: [],
       selectedMediaTypes: defaultMediaTypeSelection,
-      selectedFileIds: [],
+      selectedFileIds: new Set(),
+      pendingSaveIds: undefined,
       progress: undefined,
       completion: undefined,
       error: undefined

@@ -1,1025 +1,173 @@
 import React from 'react';
-import { BackHandler, FlatList, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Image as ExpoImage } from 'expo-image';
-import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { VideoView, useVideoPlayer } from 'expo-video';
-import * as FileSystem from 'expo-file-system/legacy';
-import { PremiumBottomSheet } from '../components/BottomSheet';
-import { Button, Chip, ProgressBar, Searchbar, Surface, Switch, Text } from 'react-native-paper';
-import { usePipelineStore } from '../store/pipelineStore';
-import { useSettingsStore } from '../store/settingsStore';
-import { countSelectedSaveableFiles } from '../store/selectionLogic';
-import { filterVisibleFiles, getVisibleSaveableFileIds } from '../store/fileFiltering';
-import type { ExtractedMediaFile, MediaType } from '../types/media';
-import { visibleMediaTypes } from '../lib/mediaUi';
-import { parseWhatsAppChatPreview, type ChatPreviewMessage } from '../lib/chatParser';
-import { formatShortChatTimestamp } from '../lib/previewDateFormat';
-import { useAppTheme } from '../theme/useAppTheme';
-import { FooterActions, WizardScreen } from './WizardScreen';
-import { runMp4RewriteDiagnosticsNative } from '../native/nativeMediaSaver';
+import { BackHandler, FlatList, Keyboard, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Button, Chip, IconButton, Searchbar, Text, TextInput } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import {
-  defaultFileSelectionUiState,
-  getFilteredSelectionCount,
-  getVideoPreviewMode,
-  getVoicePreviewProgress,
-  shouldShowDeveloperDiagnostics,
-  toggleCategoryFilter,
-  type SortMode
-} from './fileSelectionUi';
-import {
-  FilterChipGroup,
-  FilteredSelectionCountBadge,
-  getCachedVideoThumbnail,
-  IconOnlyActionButton,
-  MediaFileListItem,
-  OptionCard,
-  PrimaryButton,
-  rememberVideoThumbnail,
-  SecondaryButton,
-  SectionHeader,
-  textStyles
-} from '../components/AppUi';
-import { spacing } from '../theme/designTokens';
+import { usePipelineStore } from '../store/pipelineStore';
+import { useAppTheme } from '../theme/useAppTheme';
+import { getMediaDateIso, getMediaSaveTime, getMediaSender, isApproximateDate, UNKNOWN_SENDER, CHAT_TRANSCRIPT_SENDER } from '../lib/mediaMetadata';
+import { outputChatName } from '../lib/outputOrganization';
+import { isSaveableMediaType } from '../lib/mediaUi';
+import { dayKeyAt, selectionState, selectionTotals, selectedIdsInOrder, setIdsSelected } from '../store/fileSelectionState';
+import { MediaSelectionList, SelectionFooter, type MediaCellItem } from '../components/MediaSelectionList';
+import { MediaViewer, useSharedMediaAudio, useViewerVideoController } from '../components/MediaViewer';
+import { useMediaThumbnails } from '../components/useMediaThumbnails';
+import { PremiumBottomSheet } from '../components/BottomSheet';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { captureSaveIntent, discardImport, startSaving } from '../services/operationCoordinator';
+import { PrimaryButton } from '../components/AppUi';
+import { WizardScreen } from './WizardScreen';
+
+type Tab = 'all' | 'photos' | 'videos' | 'voice' | 'documents';
+const tabs: readonly Tab[] = ['all', 'photos', 'videos', 'voice', 'documents'];
+const inTab = (item: MediaCellItem, tab: Tab) => tab === 'all' || (tab === 'photos' ? ['photo', 'gif', 'sticker'].includes(item.mediaType)
+  : tab === 'videos' ? item.mediaType === 'video' : tab === 'voice' ? ['audio', 'voice'].includes(item.mediaType) : item.mediaType === 'document');
 
 export function FileSelectionScreen() {
-  const { t } = useTranslation();
-  const theme = useAppTheme();
-  const [query, setQuery] = React.useState('');
-  const [searchOpen, setSearchOpen] = React.useState(defaultFileSelectionUiState.searchOpen);
-  const [filterSheetOpen, setFilterSheetOpen] = React.useState(defaultFileSelectionUiState.filterSheetOpen);
-  const [sortSheetOpen, setSortSheetOpen] = React.useState(defaultFileSelectionUiState.sortSheetOpen);
-  const [saveableOnly, setSaveableOnly] = React.useState(defaultFileSelectionUiState.saveableOnly);
-  const [sortMode, setSortMode] = React.useState<SortMode>(defaultFileSelectionUiState.sortMode);
-  const [categoryFilters, setCategoryFilters] = React.useState<MediaType[]>(defaultFileSelectionUiState.categoryFilters);
-  const [previewFile, setPreviewFile] = React.useState<ExtractedMediaFile | undefined>();
-  const [mp4Diagnostic, setMp4Diagnostic] = React.useState<string | undefined>();
-  const developerMode = useSettingsStore((state) => state.settings.developerMode);
-  const mediaFiles = usePipelineStore((state) => state.mediaFiles);
-  const importSummary = usePipelineStore((state) => state.importSummary);
-  const selectedSenders = usePipelineStore((state) => state.selectedSenders);
-  const selectedMediaTypes = usePipelineStore((state) => state.selectedMediaTypes);
-  const selectedFileIds = usePipelineStore((state) => state.selectedFileIds);
-  const toggleSender = usePipelineStore((state) => state.toggleSender);
-  const toggleMediaType = usePipelineStore((state) => state.toggleMediaType);
-  const toggleFile = usePipelineStore((state) => state.toggleFile);
-  const selectFiles = usePipelineStore((state) => state.selectFiles);
-  const clearFiles = usePipelineStore((state) => state.clearFiles);
-  const setStage = usePipelineStore((state) => state.setStage);
-
+  const { t, i18n } = useTranslation();
+  const theme = useAppTheme(), dimensions = useWindowDimensions();
+  const mediaFiles = usePipelineStore((state) => state.mediaFiles), selectedIds = usePipelineStore((state) => state.selectedFileIds);
+  const active = usePipelineStore((state) => state.stage === 'selectFiles');
+  const openOverlay = usePipelineStore((state) => state.openOverlayStage);
+  const zipName = usePipelineStore((state) => state.zipName), importSummary = usePipelineStore((state) => state.importSummary);
+  const toggle = usePipelineStore((state) => state.toggleFile), setSelection = usePipelineStore((state) => state.setSelectedFiles);
+  const [query, setQuery] = React.useState(''), [tab, setTab] = React.useState<Tab>('all');
+  const [search, setSearch] = React.useState(false), [filters, setFilters] = React.useState(false), [discard, setDiscard] = React.useState(false);
+  const [summaryOpen, setSummaryOpen] = React.useState(false);
+  const [senders, setSenders] = React.useState<ReadonlySet<string> | null>(null);
+  const [from, setFrom] = React.useState(''), [to, setTo] = React.useState(''), [newest, setNewest] = React.useState(true);
+  const [currentId, setCurrentId] = React.useState<string | null>(null), [listWidth, setListWidth] = React.useState(dimensions.width - 48);
+  const saveReserved = React.useRef(false);
+  const saveGeneration = React.useRef(0), alive = React.useRef(true);
+  const [startingSave, setStartingSave] = React.useState(false);
+  const cancelPendingSave = React.useCallback(() => { saveGeneration.current++; saveReserved.current = false; setStartingSave(false); }, []);
   React.useEffect(() => {
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      setStage('welcome');
-      return true;
-    });
-    return () => subscription.remove();
-  }, [setStage]);
-
-  const senders = React.useMemo(
-    () => Array.from(new Set(mediaFiles.map((file) => file.matchedRecord?.sender).filter(Boolean))) as string[],
-    [mediaFiles]
-  );
-
-  const visibleFiles = React.useMemo(() => {
-    const filtered = filterVisibleFiles({
-      files: mediaFiles,
-      selectedSenders,
-      selectedMediaTypes,
-      query,
-      categoryFilters,
-      saveableOnly
-    });
-    return [...filtered].sort(createSortComparator(sortMode));
-  }, [categoryFilters, mediaFiles, query, saveableOnly, selectedMediaTypes, selectedSenders, sortMode]);
-
-  const visibleSaveableFileIds = React.useMemo(() => getVisibleSaveableFileIds(visibleFiles), [visibleFiles]);
-  const visibleSelectionCount = React.useMemo(
-    () => getFilteredSelectionCount(visibleSaveableFileIds, selectedFileIds),
-    [selectedFileIds, visibleSaveableFileIds]
-  );
-  const selectedCount = countSelectedSaveableFiles(mediaFiles, selectedSenders, selectedMediaTypes, selectedFileIds);
-  const otherFoundCount =
-    (importSummary?.voice ?? 0) + (importSummary?.stickers ?? 0) + (importSummary?.documents ?? 0) + (importSummary?.unknown ?? 0);
-  const filtersActive = selectedSenders.length < senders.length || categoryFilters.length > 0 || !saveableOnly;
-  const selectedByType = React.useMemo(
-    () => ({
-      photos: mediaFiles.filter((file) => selectedFileIds.includes(file.id) && file.mediaType === 'photo').length,
-      videos: mediaFiles.filter((file) => selectedFileIds.includes(file.id) && file.mediaType === 'video').length,
-      other: mediaFiles.filter((file) => selectedFileIds.includes(file.id) && file.mediaType !== 'photo' && file.mediaType !== 'video').length
-    }),
-    [mediaFiles, selectedFileIds]
-  );
-  const selectedMp4 = mediaFiles.find(
-    (file) => selectedFileIds.includes(file.id) && file.mediaType === 'video' && file.filename.toLowerCase().endsWith('.mp4')
-  );
-
-  async function runMp4Diagnostics() {
-    if (!selectedMp4?.matchedRecord) return;
-    setMp4Diagnostic(t('fileSelection.runningDiagnostics'));
-    try {
-      const result = await runMp4RewriteDiagnosticsNative(
-        selectedMp4.uri,
-        new Date(selectedMp4.matchedRecord.messageDateIso).getTime()
-      );
-      setMp4Diagnostic(JSON.stringify(result, null, 2));
-    } catch (error) {
-      setMp4Diagnostic(error instanceof Error ? error.message : t('fileSelection.diagnosticsFailed'));
-    }
-  }
-
-  function ensureMediaTypesEnabled(files: ExtractedMediaFile[]) {
-    const typesToEnable = new Set(
-      files.map((file) => file.mediaType).filter((mediaType) => !selectedMediaTypes[mediaType])
-    );
-    typesToEnable.forEach((mediaType) => toggleMediaType(mediaType));
-  }
-
-  function toggleVisibleFile(file: ExtractedMediaFile) {
-    if (!selectedFileIds.includes(file.id)) ensureMediaTypesEnabled([file]);
-    toggleFile(file.id);
-  }
-
-  function selectVisibleFiles() {
-    ensureMediaTypesEnabled(visibleFiles);
-    selectFiles(visibleSaveableFileIds);
-  }
-
-  function clearVisibleSelections() {
-    clearFiles(visibleSaveableFileIds);
-  }
-
-  function resetFilters() {
-    senders.forEach((sender) => {
-      if (!selectedSenders.includes(sender)) toggleSender(sender);
-    });
-    setCategoryFilters([]);
-    setSaveableOnly(true);
-  }
-
-  return (
-    <WizardScreen
-      stage="selectFiles"
-      title={t('fileSelection.title')}
-      onBack={() => setStage('welcome')}
-      footer={
-        filterSheetOpen || sortSheetOpen || previewFile ? undefined :
-        <FooterActions>
-          {selectedCount === 0 ? (
-            <Text variant="bodySmall" numberOfLines={2} style={[textStyles.start, { color: theme.colors.error }]}>
-              {t('fileSelection.disabledNoSelection')}
-            </Text>
-          ) : null}
-          <Text variant="labelLarge" numberOfLines={2} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {t('fileSelection.footerSelected', {
-              selected: selectedCount,
-              photos: selectedByType.photos,
-              videos: selectedByType.videos,
-              other: selectedByType.other
-            })}
-          </Text>
-          <PrimaryButton disabled={selectedCount === 0} onPress={() => setStage('outputOptions')}>
-            {t('fileSelection.continue')}
-          </PrimaryButton>
-        </FooterActions>
-      }
-    >
-      <View style={styles.toolbarBlock}>
-        {searchOpen ? (
-          <View style={styles.searchToolbar}>
-            <Searchbar
-              placeholder={t('fileSelection.searchPlaceholder')}
-              value={query}
-              onChangeText={setQuery}
-              style={styles.search}
-              inputStyle={styles.searchInput}
-              autoFocus
-            />
-            <IconOnlyActionButton
-              icon="close"
-              accessibilityLabel={t('fileSelection.closeSearch')}
-              onPress={() => {
-                setQuery('');
-                setSearchOpen(false);
-              }}
-            />
-          </View>
-        ) : null}
-
-        {!searchOpen ? (
-          <View style={styles.toolbarRow}>
-            <IconOnlyActionButton
-              icon="filter-variant"
-              selected={filtersActive}
-              accessibilityLabel={filtersActive ? t('fileSelection.filtersActive') : t('fileSelection.filter')}
-              onPress={() => setFilterSheetOpen(true)}
-            />
-            <IconOnlyActionButton
-              icon="sort"
-              accessibilityLabel={t('fileSelection.sort')}
-              onPress={() => setSortSheetOpen(true)}
-            />
-            <IconOnlyActionButton
-              icon="magnify"
-              selected={query.trim().length > 0}
-              accessibilityLabel={t('fileSelection.search')}
-              onPress={() => setSearchOpen(true)}
-            />
-            <IconOnlyActionButton
-              icon="select-all"
-              accessibilityLabel={t('fileSelection.selectAll')}
-              disabled={visibleSelectionCount.total === 0}
-              onPress={selectVisibleFiles}
-            />
-            <IconOnlyActionButton
-              icon="selection-remove"
-              accessibilityLabel={t('fileSelection.clear')}
-              disabled={visibleSelectionCount.selected === 0}
-              onPress={clearVisibleSelections}
-            />
-            <FilteredSelectionCountBadge
-              selected={visibleSelectionCount.selected}
-              total={visibleSelectionCount.total}
-              accessibilityLabel={t('fileSelection.filteredCountA11y', visibleSelectionCount)}
-              style={styles.countBadge}
-            />
-          </View>
-        ) : null}
-      </View>
-
-      <FlatList
-        data={visibleFiles}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <MediaFileListItem
-            file={item}
-            selected={selectedFileIds.includes(item.id)}
-            onToggle={() => toggleVisibleFile(item)}
-            onPreview={() => setPreviewFile(item)}
-          />
-        )}
-        contentContainerStyle={styles.listContent}
-        initialNumToRender={12}
-        maxToRenderPerBatch={14}
-        windowSize={9}
-        removeClippedSubviews
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <MaterialCommunityIcons name="file-search-outline" size={42} color={theme.colors.outline} />
-            <Text variant="titleMedium">{t('fileSelection.emptyStateTitle')}</Text>
-            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-              {t('fileSelection.emptyStateBody')}
-            </Text>
-          </View>
-        }
-      />
-
-      {shouldShowDeveloperDiagnostics(developerMode) ? (
-        <Surface elevation={0} style={[styles.diagnosticPanel, { borderColor: theme.colors.outlineVariant }]}>
-          <Button mode="outlined" compact disabled={!selectedMp4} onPress={() => void runMp4Diagnostics()}>
-            {t('fileSelection.runDiagnostics')}
-          </Button>
-          {mp4Diagnostic ? <Text variant="bodySmall">{mp4Diagnostic}</Text> : null}
-        </Surface>
-      ) : null}
-
-      <MediaPreviewSheet
-        file={previewFile}
-        selected={previewFile ? selectedFileIds.includes(previewFile.id) : false}
-        onDismiss={() => setPreviewFile(undefined)}
-        onToggle={() => {
-          if (previewFile) toggleVisibleFile(previewFile);
-        }}
-      />
-      <FilterSheet
-        visible={filterSheetOpen}
-        senders={senders}
-        selectedSenders={selectedSenders}
-        categoryFilters={categoryFilters}
-        saveableOnly={saveableOnly}
-        counts={{
-          all: mediaFiles.length,
-          photos: importSummary?.photos ?? mediaFiles.filter((file) => file.mediaType === 'photo').length,
-          videos: importSummary?.videos ?? mediaFiles.filter((file) => file.mediaType === 'video').length,
-          other: otherFoundCount
-        }}
-        totalShown={visibleFiles.length}
-        onDismiss={() => setFilterSheetOpen(false)}
-        onToggleSender={toggleSender}
-        onSetCategoryFilters={setCategoryFilters}
-        onReset={resetFilters}
-        onApply={() => setFilterSheetOpen(false)}
-        onSaveableOnly={setSaveableOnly}
-      />
-      <SortSheet visible={sortSheetOpen} sortMode={sortMode} onDismiss={() => setSortSheetOpen(false)} onSortMode={setSortMode} />
-    </WizardScreen>
-  );
-}
-
-function FilterSheet({
-  visible,
-  senders,
-  selectedSenders,
-  categoryFilters,
-  saveableOnly,
-  counts,
-  totalShown,
-  onDismiss,
-  onToggleSender,
-  onSetCategoryFilters,
-  onReset,
-  onApply,
-  onSaveableOnly
-}: {
-  visible: boolean;
-  senders: string[];
-  selectedSenders: string[];
-  categoryFilters: MediaType[];
-  saveableOnly: boolean;
-  counts: { all: number; photos: number; videos: number; other: number };
-  totalShown: number;
-  onDismiss: () => void;
-  onToggleSender: (sender: string) => void;
-  onSetCategoryFilters: React.Dispatch<React.SetStateAction<MediaType[]>>;
-  onReset: () => void;
-  onApply: () => void;
-  onSaveableOnly: (value: boolean) => void;
-}) {
-  const { t } = useTranslation();
-  const theme = useAppTheme();
-  const otherTypes: MediaType[] = visibleMediaTypes.filter((mediaType) => mediaType !== 'photo' && mediaType !== 'video');
-  const otherSelected = otherTypes.some((mediaType) => categoryFilters.includes(mediaType));
-
-  function toggleSingleType(mediaType: MediaType) {
-    onSetCategoryFilters((current) => toggleCategoryFilter(current, mediaType));
-  }
-
-  function toggleOtherTypes() {
-    onSetCategoryFilters((current) => {
-      const currentSet = new Set(current);
-      const allOtherSelected = otherTypes.every((mediaType) => currentSet.has(mediaType));
-      if (allOtherSelected) return current.filter((mediaType) => !otherTypes.includes(mediaType));
-      return Array.from(new Set([...current, ...otherTypes]));
-    });
-  }
-
-  return (
-    <PremiumBottomSheet
-      visible={visible}
-      title={t('fileSelection.filterTitle')}
-      onDismiss={onDismiss}
-      footer={
-        <View style={styles.sheetFooter}>
-          <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {t('fileSelection.willShow', { count: totalShown })}
-          </Text>
-          <View style={styles.sheetFooterActions}>
-            <PrimaryButton style={styles.sheetPrimaryAction} onPress={onApply}>{t('fileSelection.applyFilter')}</PrimaryButton>
-            <SecondaryButton style={styles.sheetSecondaryAction} onPress={onReset}>{t('fileSelection.resetFilter')}</SecondaryButton>
-          </View>
-        </View>
-      }
-    >
-      <SectionHeader icon="file-multiple-outline" label={t('fileSelection.byFileType')} />
-      <View style={styles.filterTypeGrid}>
-        <FilterTypeOption
-          icon="file-multiple-outline"
-          label={t('fileSelection.all')}
-          count={counts.all}
-          selected={categoryFilters.length === 0}
-          onPress={() => onSetCategoryFilters([])}
-        />
-        <FilterTypeOption
-          icon="image-outline"
-          label={t('fileSelection.photos')}
-          count={counts.photos}
-          selected={categoryFilters.includes('photo')}
-          onPress={() => toggleSingleType('photo')}
-        />
-        <FilterTypeOption
-          icon="video-outline"
-          label={t('fileSelection.videos')}
-          count={counts.videos}
-          selected={categoryFilters.includes('video')}
-          onPress={() => toggleSingleType('video')}
-        />
-        <FilterTypeOption
-          icon="file-outline"
-          label={t('fileSelection.other')}
-          count={counts.other}
-          selected={otherSelected}
-          onPress={toggleOtherTypes}
-        />
-      </View>
-      <SectionHeader icon="account-outline" label={t('fileSelection.bySender')} />
-      <FilterChipGroup
-        values={senders}
-        selectedValues={selectedSenders}
-        getLabel={(sender) => (sender === 'Chat transcript' ? t('fileSelection.chatTranscript') : sender)}
-        onToggle={onToggleSender}
-      />
-      <View style={styles.switchRow}>
-        <View style={styles.flex}>
-          <Text variant="titleSmall">{t('fileSelection.saveableOnly')}</Text>
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-            {t('fileSelection.saveableOnlyBody')}
-          </Text>
-        </View>
-        <Switch value={saveableOnly} onValueChange={onSaveableOnly} />
-      </View>
-    </PremiumBottomSheet>
-  );
-}
-
-function FilterTypeOption({
-  icon,
-  label,
-  count,
-  selected,
-  onPress
-}: {
-  icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
-  label: string;
-  count: number;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  const theme = useAppTheme();
-  return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityState={{ selected }}>
-      <Surface
-        elevation={0}
-        style={[
-          styles.filterTypeOption,
-          {
-            backgroundColor: selected ? theme.colors.primaryContainer : theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant,
-            borderColor: selected ? theme.colors.primary : theme.colors.outlineVariant
-          }
-        ]}
-      >
-        <View style={[styles.filterTypeIcon, { backgroundColor: selected ? theme.colors.surface : theme.colors.secondaryContainer }]}>
-          <MaterialCommunityIcons name={icon} size={20} color={theme.colors.primary} />
-        </View>
-        <View style={styles.flex}>
-          <Text variant="labelLarge" numberOfLines={1} style={[textStyles.start, styles.filterTypeLabel]}>
-            {label}
-          </Text>
-          <Text variant="labelSmall" numberOfLines={1} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {count}
-          </Text>
-        </View>
-        {selected ? <MaterialCommunityIcons name="check-circle" size={20} color={theme.colors.primary} /> : null}
-      </Surface>
-    </Pressable>
-  );
-}
-
-function SortSheet({
-  visible,
-  sortMode,
-  onDismiss,
-  onSortMode
-}: {
-  visible: boolean;
-  sortMode: SortMode;
-  onDismiss: () => void;
-  onSortMode: (value: SortMode) => void;
-}) {
-  const { t } = useTranslation();
-  const options: SortMode[] = ['date-desc', 'date-asc', 'name', 'sender', 'type'];
-  return (
-    <PremiumBottomSheet
-      visible={visible}
-      title={t('fileSelection.sortTitle')}
-      subtitle={t('fileSelection.sortSubtitle')}
-      onDismiss={onDismiss}
-      footer={<PrimaryButton onPress={onDismiss}>{t('common.ok')}</PrimaryButton>}
-    >
-      <View style={styles.selectableList}>
-        {options.map((option) => (
-          <OptionCard
-            key={option}
-            title={t(`fileSelection.sortModes.${option}`)}
-            selected={sortMode === option}
-            onPress={() => onSortMode(option)}
-          />
-        ))}
-      </View>
-    </PremiumBottomSheet>
-  );
-}
-
-function MediaPreviewSheet({
-  file,
-  selected,
-  onDismiss,
-  onToggle
-}: {
-  file?: ExtractedMediaFile;
-  selected: boolean;
-  onDismiss: () => void;
-  onToggle: () => void;
-}) {
-  const { t } = useTranslation();
-  const theme = useAppTheme();
-  const { height } = useWindowDimensions();
-  const previewScrollMaxHeight = Math.max(220, Math.min(420, Math.round(height * 0.42)));
-
-  if (!file) return null;
-
-  return (
-    <PremiumBottomSheet
-      visible
-      title={file.filename}
-      subtitle={file.sourceKind === 'chat-transcript' ? t('fileSelection.chatTranscript') : file.matchedRecord?.sender ?? t('fileSelection.unknownSender')}
-      onDismiss={onDismiss}
-      scrollable={false}
-    >
-      <Surface elevation={0} style={[styles.previewPanel, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]}>
-        {isTextTranscript(file) ? (
-          <TextTranscriptPreview uri={file.uri} maxScrollHeight={previewScrollMaxHeight} />
-        ) : file.mediaType === 'photo' || file.mediaType === 'sticker' ? (
-          <ExpoImage source={file.thumbnailUri ?? file.uri} contentFit="contain" style={styles.previewMedia} />
-        ) : file.mediaType === 'video' ? (
-          <VideoPreview uri={file.uri} />
-        ) : file.mediaType === 'voice' || file.mediaType === 'audio' ? (
-          <VoicePreview uri={file.uri} />
-        ) : (
-          <View style={styles.fallbackPreview}>
-            <MaterialCommunityIcons name={getPreviewIcon(file.mediaType)} size={72} color={theme.colors.primary} />
-          </View>
-        )}
-      </Surface>
-      <Chip compact>{t(`media.singular.${file.mediaType}`)}</Chip>
-      <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-        {file.matchedRecord?.messageDateIso ? new Date(file.matchedRecord.messageDateIso).toLocaleString() : t('fileSelection.noDate')}
-      </Text>
-      <Button mode={selected ? 'contained' : 'outlined'} onPress={onToggle}>
-        {selected ? t('fileSelection.selected') : t('fileSelection.selectFile')}
-      </Button>
-    </PremiumBottomSheet>
-  );
-}
-
-function TextTranscriptPreview({ uri, maxScrollHeight }: { uri: string; maxScrollHeight: number }) {
-  const { t } = useTranslation();
-  const theme = useAppTheme();
-  const [state, setState] = React.useState<
-    | { status: 'loading' }
-    | { status: 'ready'; messages: ChatPreviewMessage[]; totalMessages: number; rawFallback?: string; truncated: boolean }
-    | { status: 'error'; error: string }
-  >({ status: 'loading' });
-
-  React.useEffect(() => {
-    let cancelled = false;
-    setState({ status: 'loading' });
-    FileSystem.readAsStringAsync(uri)
-      .then((text) => {
-        if (cancelled) return;
-        const parsed = parseWhatsAppChatPreview(text, 160);
-        setState({
-          status: 'ready',
-          messages: parsed.messages,
-          totalMessages: parsed.totalMessages,
-          rawFallback: parsed.messages.length === 0 ? text.slice(0, 12000) : undefined,
-          truncated: parsed.truncated
-        });
-      })
-      .catch((error) => {
-        if (cancelled) return;
-        setState({
-          status: 'error',
-          error: error instanceof Error ? error.message : t('fileSelection.transcriptPreviewFailed')
-        });
+    const generation = saveGeneration;
+    alive.current = true;
+    return () => { alive.current = false; generation.current++; };
+  }, []);
+  const video = useViewerVideoController(), audio = useSharedMediaAudio();
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const allItems = React.useMemo<readonly MediaCellItem[]>(() => mediaFiles.filter((file) => isSaveableMediaType(file.mediaType)).map((file) => {
+    const rawSender = getMediaSender(file), millis = getMediaSaveTime(file), date = getMediaDateIso(file);
+    return { id: file.id, filename: file.filename, uri: file.uri, mediaType: file.mediaType, sourceKind: file.sourceKind, sizeBytes: file.sizeBytes, dateMillis: millis,
+      sender: rawSender === UNKNOWN_SENDER ? t('fileSelection.unknownSender') : rawSender === CHAT_TRANSCRIPT_SENDER ? t('picker.transcript') : rawSender,
+      dateLabel: date && Number.isFinite(Date.parse(date)) ? new Intl.DateTimeFormat(i18n.resolvedLanguage ?? 'en', { dateStyle: 'medium', timeStyle: 'short', timeZone }).format(new Date(date)) : t('picker.date.missing'),
+      dateBadge: millis === undefined ? 'missing' : isApproximateDate(file) ? 'approximate' : 'known', dayKey: dayKeyAt(millis, timeZone) };
+  }), [mediaFiles, i18n.resolvedLanguage, t, timeZone]);
+  const senderOptions = React.useMemo(() => [...new Set(allItems.map((item) => item.sender))], [allItems]);
+  const validDate = (value: string) => value === '' || (/^\d{4}-\d{2}-\d{2}$/.test(value) && dayKeyAt(Date.parse(`${value}T12:00:00Z`), 'UTC') === value);
+  const datesValid = validDate(from) && validDate(to) && (!from || !to || from <= to);
+  const baseItems = React.useMemo(() => {
+    const normalized = query.trim().toLocaleLowerCase();
+    return allItems.filter((item) => (!senders || senders.has(item.sender))
+      && (!normalized || `${item.filename} ${item.sender}`.toLocaleLowerCase().includes(normalized))
+      && (!from || !datesValid || (item.dayKey !== null && item.dayKey >= from))
+      && (!to || !datesValid || (item.dayKey !== null && item.dayKey <= to)))
+      .sort((a, b) => {
+        const aTranscript = a.sourceKind === 'chat-transcript', bTranscript = b.sourceKind === 'chat-transcript';
+        if (aTranscript !== bTranscript) return aTranscript ? -1 : 1;
+        if (a.dateMillis === undefined) return b.dateMillis === undefined ? 0 : 1;
+        if (b.dateMillis === undefined) return -1;
+        return (newest ? -1 : 1) * (a.dateMillis - b.dateMillis);
       });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [t, uri]);
-
-  if (state.status === 'loading') {
-    return (
-      <View style={styles.transcriptLoading}>
-        <MaterialCommunityIcons name="file-document-outline" size={40} color={theme.colors.primary} />
-        <Text variant="bodyMedium">{t('fileSelection.loadingTranscript')}</Text>
-        <ProgressBar indeterminate style={styles.transcriptProgress} />
-      </View>
-    );
-  }
-
-  if (state.status === 'error') {
-    return (
-      <View style={styles.fallbackPreview}>
-        <MaterialCommunityIcons name="alert-circle-outline" size={48} color={theme.colors.error} />
-        <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.error }]}>
-          {state.error}
-        </Text>
-      </View>
-    );
-  }
-
-  if (state.rawFallback !== undefined) {
-    return (
-      <View style={styles.transcriptPreview}>
-        <View style={styles.transcriptHeader}>
-          <MaterialCommunityIcons name="text-box-outline" size={24} color={theme.colors.primary} />
-          <View style={styles.flex}>
-            <Text variant="titleSmall" style={textStyles.start}>{t('fileSelection.rawTranscriptTitle')}</Text>
-            <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-              {t('fileSelection.rawTranscriptBody')}
-            </Text>
-          </View>
-        </View>
-        <ScrollView
-          nestedScrollEnabled
-          showsVerticalScrollIndicator
-          style={[styles.transcriptScroll, { maxHeight: maxScrollHeight }]}
-          contentContainerStyle={[styles.rawTranscriptCard, { backgroundColor: theme.colors.surface }]}
-        >
-          <Text variant="bodySmall" style={[styles.rawTranscriptText, { color: theme.colors.onSurface }]}>
-            {state.rawFallback}
-          </Text>
-        </ScrollView>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.transcriptPreview}>
-      <View style={styles.transcriptHeader}>
-        <MaterialCommunityIcons name="message-text-outline" size={24} color={theme.colors.primary} />
-        <View style={styles.flex}>
-          <Text variant="titleSmall" style={textStyles.start}>{t('fileSelection.transcriptPreviewTitle')}</Text>
-          <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-            {state.truncated
-              ? t('fileSelection.transcriptPreviewLimited', { shown: state.messages.length, total: state.totalMessages })
-              : t('fileSelection.transcriptPreviewCount', { count: state.totalMessages })}
-          </Text>
-        </View>
-      </View>
-      <ScrollView
-        nestedScrollEnabled
-        showsVerticalScrollIndicator
-        style={[styles.transcriptScroll, { maxHeight: maxScrollHeight }]}
-        contentContainerStyle={styles.transcriptThread}
-      >
-        {state.messages.map((message, index) => (
-          <TranscriptBubble key={message.id} message={message} tone={index % 3} />
-        ))}
-      </ScrollView>
-    </View>
-  );
-}
-
-function TranscriptBubble({ message, tone }: { message: ChatPreviewMessage; tone: number }) {
-  const theme = useAppTheme();
-  const backgroundColor =
-    tone === 0
-      ? theme.colors.primaryContainer
-      : tone === 1
-        ? theme.colors.secondaryContainer
-        : theme.colors.surface;
-  const foregroundColor =
-    tone === 0
-      ? theme.colors.onPrimaryContainer
-      : tone === 1
-        ? theme.colors.onSecondaryContainer
-        : theme.colors.onSurface;
-
-  return (
-    <Surface elevation={0} style={[styles.transcriptBubble, { backgroundColor, borderColor: theme.colors.outlineVariant }]}>
-      <View style={styles.transcriptBubbleMeta}>
-        <Text variant="labelLarge" numberOfLines={1} ellipsizeMode="tail" style={[styles.flex, textStyles.start, { color: foregroundColor }]}>
-          {message.sender}
-        </Text>
-        <Text variant="labelSmall" style={{ color: foregroundColor }}>
-          {formatShortChatTimestamp(message.messageDateIso)}
-        </Text>
-      </View>
-      <Text variant="bodyMedium" style={[styles.transcriptMessageBody, textStyles.start, { color: foregroundColor }]}>
-        {message.body}
-      </Text>
-    </Surface>
-  );
-}
-
-function VoicePreview({ uri }: { uri: string }) {
-  const { t } = useTranslation();
-  const isMounted = React.useRef(true);
-  const player = useAudioPlayer({ uri }, { updateInterval: 250 });
-  const status = useAudioPlayerStatus(player);
-
+  }, [allItems, datesValid, from, newest, query, senders, to]);
+  const visibleItems = React.useMemo(() => baseItems.filter((item) => inTab(item, tab)), [baseItems, tab]);
+  const visibleIds = React.useMemo(() => visibleItems.map((item) => item.id), [visibleItems]);
+  const { thumbnails, onViewableIds, onThumbnailError } = useMediaThumbnails(visibleItems);
+  const totals = selectionTotals(visibleItems, selectedIds), allState = selectionState(selectedIds, visibleIds);
+  const current = React.useRef({ visibleItems, audio, selectedIds, visibleIds }); current.current = { visibleItems, audio, selectedIds, visibleIds };
+  const pageGeneration = React.useRef(0);
+  const page = React.useCallback((id: string) => {
+    const p = current.current, item = p.visibleItems.find((entry) => entry.id === id); if (!item) return;
+    const request = ++pageGeneration.current;
+    p.audio.stop(); video.request(null); setCurrentId(id);
+    if (item.mediaType === 'video') void p.audio.release().then(() => {
+      if (request === pageGeneration.current) video.request({ fileId: item.id, uri: item.uri });
+    }, () => { if (request === pageGeneration.current) video.failClosed(); });
+  }, [video]);
+  const dismissViewer = React.useCallback(() => { pageGeneration.current++; current.current.audio.stop(); video.request(null); setCurrentId(null); }, [video]);
   React.useEffect(() => {
-    return () => {
-      isMounted.current = false;
-      try {
-        player.pause();
-      } catch {
-        // Ignore errors during cleanup
-      }
-    };
-  }, [player]);
-
-  const progress = getVoicePreviewProgress(status.currentTime, status.duration);
-
-  return (
-    <View style={styles.voicePreview}>
-      <Button mode="contained-tonal" icon={status.playing ? 'pause' : 'play'} onPress={() => (status.playing ? player.pause() : player.play())}>
-        {status.playing ? t('fileSelection.pause') : t('fileSelection.play')}
-      </Button>
-      <Text variant="bodySmall">
-        {formatSeconds(status.currentTime)} / {formatSeconds(status.duration)}
-      </Text>
-      <ProgressBar progress={Number.isFinite(progress) ? progress : 0} style={styles.voiceProgress} />
-    </View>
-  );
-}
-
-function VideoPreview({ uri }: { uri: string }) {
-  const { t } = useTranslation();
-  const isMounted = React.useRef(true);
-  const [thumbnail, setThumbnail] = React.useState<unknown>(() => getCachedVideoThumbnail(uri));
-  const [error, setError] = React.useState<string | undefined>();
-  
-  const player = useVideoPlayer({ uri }, (videoPlayer) => {
-    videoPlayer.muted = false;
-  });
-
+    if (!active) { cancelPendingSave(); dismissViewer(); void current.current.audio.release().catch(() => undefined); }
+  }, [active, cancelPendingSave, dismissViewer]);
+  const playAudio = React.useCallback((id: string) => {
+    const p = current.current, item = p.visibleItems.find((entry) => entry.id === id); if (item) { video.request(null); p.audio.play(item); }
+  }, [video]);
+  const toggleAll = React.useCallback(() => {
+    const p = current.current; setSelection(setIdsSelected(p.selectedIds, p.visibleIds, selectionState(p.selectedIds, p.visibleIds) !== 'all'));
+  }, [setSelection]);
+  const save = React.useCallback(() => {
+    if (saveReserved.current) return;
+    const p = current.current;
+    const ids = [...selectedIdsInOrder(p.visibleIds, p.selectedIds)];
+    const intent = captureSaveIntent();
+    if (!ids.length || !intent) return;
+    const request = ++saveGeneration.current;
+    saveReserved.current = true; setStartingSave(true);
+    usePipelineStore.getState().prepareSave(ids);
+    p.audio.stop();
+    video.request(null);
+    void p.audio.release().then(() => {
+      if (alive.current && request === saveGeneration.current) return startSaving(intent);
+      return undefined;
+    }).catch((error: unknown) => {
+      if (alive.current && request === saveGeneration.current) usePipelineStore.getState().setError(error);
+    }).finally(() => { if (alive.current && request === saveGeneration.current) cancelPendingSave(); });
+  }, [cancelPendingSave, video]);
   React.useEffect(() => {
-    isMounted.current = true;
-    setError(undefined);
-    const cachedThumbnail = getCachedVideoThumbnail(uri);
-    if (cachedThumbnail) {
-      setThumbnail(cachedThumbnail);
-    } else {
-      setThumbnail(undefined);
-      player
-        .generateThumbnailsAsync([0], { maxWidth: 1280, maxHeight: 720 })
-        .then((thumbs) => {
-          if (thumbs[0]) rememberVideoThumbnail(uri, thumbs[0]);
-          if (isMounted.current) setThumbnail(thumbs[0]);
-        })
-        .catch((thumbnailError) => {
-          if (isMounted.current) setError(thumbnailError instanceof Error ? thumbnailError.message : t('fileSelection.videoPreviewFailed'));
-        });
-    }
-
-    const subscription = player.addListener('statusChange', ({ status, error: playerError }) => {
-      if (isMounted.current && status === 'error') {
-        setError(playerError?.message ?? t('fileSelection.videoPreviewFailed'));
-      }
-    });
-
-    return () => {
-      isMounted.current = false;
-      subscription.remove();
-      // No need to call player.pause() here as useVideoPlayer handles disposal
-      // and calling it during unmount can cause the shared object rejection error
-    };
-  }, [player, t, uri]);
-
-  if (getVideoPreviewMode(error) === 'fallback') {
-    return (
-      <View style={styles.fallbackPreview}>
-        {thumbnail ? <ExpoImage source={thumbnail} contentFit="cover" style={styles.previewMedia} /> : null}
-        <Text variant="bodySmall" style={{ textAlign: 'center', marginTop: 12 }}>{error}</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.videoPreview}>
-      {thumbnail && !error ? <ExpoImage pointerEvents="none" source={thumbnail} contentFit="cover" style={styles.videoPoster} /> : null}
-      <VideoView
-        player={player}
-        style={styles.previewMedia}
-        contentFit="contain"
-        nativeControls
-        fullscreenOptions={{ enable: false }}
-        buttonOptions={{ showSettings: false, showSeekBackward: true, showSeekForward: true, showPlayPause: true }}
-        surfaceType="textureView"
-        useExoShutter={false}
-      />
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (currentId) dismissViewer(); else if (filters) setFilters(false); else if (search) setSearch(false); else { cancelPendingSave(); setDiscard(true); }
+      return true;
+    }); return () => sub.remove();
+  }, [cancelPendingSave, currentId, dismissViewer, filters, search]);
+  React.useEffect(() => { if (currentId && !visibleIds.includes(currentId)) dismissViewer(); }, [currentId, dismissViewer, visibleIds]);
+  return <WizardScreen stage="selectFiles" title={zipName ? outputChatName(zipName) : t('outputFolders.importedChat')} onBack={() => { cancelPendingSave(); setDiscard(true); }}
+    actions={<><IconButton icon="magnify" accessibilityLabel={t('picker.search')} onPress={() => setSearch((value) => !value)} /><IconButton icon="filter-variant" accessibilityLabel={t('picker.filters')} onPress={() => setFilters(true)} /><IconButton icon="cog-outline" accessibilityLabel={t('settings.title')} onPress={() => { cancelPendingSave(); Keyboard.dismiss(); openOverlay('settings'); }} /></>}
+    footer={<SelectionFooter {...totals} saving={startingSave} state={allState} onToggleAll={toggleAll} onSave={save} />}>
+    {search ? <Searchbar value={query} onChangeText={setQuery} placeholder={t('picker.search')} accessibilityLabel={t('picker.search')} /> : null}
+    <ScrollView horizontal style={styles.tabs} contentContainerStyle={styles.tabContent} showsHorizontalScrollIndicator={false}>
+      {tabs.map((kind) => { const count = baseItems.filter((item) => inTab(item, kind)).length;
+        const selected = tab === kind;
+        return count || kind === 'all' ? <Chip key={kind} selected={selected} mode={selected ? 'flat' : 'outlined'} accessibilityRole="tab"
+          accessibilityState={{ selected }} accessibilityLabel={t('picker.tabCount', { tab: t(`picker.tabs.${kind}`), count })}
+          style={{ backgroundColor: selected ? theme.colors.primaryContainer : 'transparent', borderWidth: 1, borderColor: selected ? theme.colors.primary : theme.colors.outline }}
+          selectedColor={selected ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant}
+          textStyle={{ color: selected ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant }}
+          onPress={() => setTab(kind)}>{t(`picker.tabs.${kind}`)} {count}</Chip> : null;
+      })}
+    </ScrollView>
+    <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>{t('picker.rangeHint')}</Text>
+    {Boolean(importSummary?.skippedZipEntries) ? <Button compact onPress={() => setSummaryOpen(true)}>{t('picker.skippedEntries', { count: importSummary?.skippedZipEntries })}</Button> : null}
+    <View style={styles.list} onLayout={({ nativeEvent }) => setListWidth(nativeEvent.layout.width)}>
+      <MediaSelectionList items={visibleItems} selectedIds={selectedIds} thumbnails={thumbnails} columns={dimensions.width >= 600 ? 5 : 3} width={listWidth}
+        onOpen={page} onToggle={toggle} onSetSelection={setSelection} onViewableIds={onViewableIds} onThumbnailError={onThumbnailError}
+        playingAudioId={audio.status.playing ? audio.activeId : undefined} onPlayAudio={playAudio} />
     </View>
-  );
+    {audio.activeId && !currentId ? <View style={styles.inlineAudio}><Text>{t(audio.error ? 'viewer.audioError' : !audio.status.isLoaded ? 'viewer.loading' : 'viewer.audioProgress', { current: Math.floor(audio.status.currentTime), total: Math.floor(audio.status.duration) })}</Text><Button onPress={audio.stop}>{t('viewer.pause')}</Button></View> : null}
+    <PremiumBottomSheet visible={filters} title={t('picker.filters')} onDismiss={() => setFilters(false)} footer={<PrimaryButton onPress={() => setFilters(false)} disabled={!datesValid}>{t('picker.apply')}</PrimaryButton>}>
+      <Text variant="titleMedium">{t('picker.senders')}</Text>
+      <View style={styles.senderChips}>{senderOptions.map((sender) => <Chip key={sender} selected={!senders || senders.has(sender)} onPress={() => setSenders((old) => {
+        const next = new Set(old ?? senderOptions); if (next.has(sender)) next.delete(sender); else next.add(sender); return next;
+      })}>{sender}</Chip>)}</View>
+      <Text variant="titleMedium">{t('picker.dateRange')}</Text>
+      <TextInput label={t('picker.from')} value={from} onChangeText={setFrom} placeholder="YYYY-MM-DD" accessibilityLabel={t('picker.from')} error={!datesValid} />
+      <TextInput label={t('picker.to')} value={to} onChangeText={setTo} placeholder="YYYY-MM-DD" accessibilityLabel={t('picker.to')} error={!datesValid} />
+      {!datesValid ? <Text accessibilityRole="alert">{t('picker.invalidDate')}</Text> : null}
+      <Text variant="titleMedium">{t('picker.sort')}</Text>
+      <View style={styles.senderChips}><Chip selected={newest} onPress={() => setNewest(true)}>{t('picker.newest')}</Chip><Chip selected={!newest} onPress={() => setNewest(false)}>{t('picker.oldest')}</Chip></View>
+      <Button onPress={() => { setSenders(null); setFrom(''); setTo(''); setNewest(true); setQuery(''); setTab('all'); }}>{t('picker.reset')}</Button>
+    </PremiumBottomSheet>
+    <PremiumBottomSheet visible={summaryOpen} title={t('picker.importSummary')} onDismiss={() => setSummaryOpen(false)} scrollable={false}>
+      <Text>{t('picker.skippedSample', { shown: importSummary?.skippedEntries?.length ?? 0, total: importSummary?.skippedZipEntries ?? 0 })}</Text>
+      <FlatList data={importSummary?.skippedEntries ?? []} keyExtractor={(entry, index) => `${index}:${entry.sourcePath}`}
+        renderItem={({ item }) => <View style={styles.skipped}><Text>{item.sourcePath}</Text><Text>{t(`picker.skippedReasons.${item.reason}`)}</Text></View>} />
+    </PremiumBottomSheet>
+    <MediaViewer items={visibleItems} currentId={active ? currentId : null} selectedIds={selectedIds} onPage={page} onDismiss={dismissViewer} onToggle={toggle} video={video} audio={audio} />
+    <ConfirmDialog visible={discard} title={t('session.discardTitle')} body={t('session.discardBody')} confirmLabel={t('session.discard')} cancelLabel={t('common.cancel')}
+      onDismiss={() => setDiscard(false)} onConfirm={() => { audio.stop(); video.request(null); void discardImport(); }} />
+  </WizardScreen>;
 }
-
-function createSortComparator(sortMode: SortMode) {
-  return (a: ExtractedMediaFile, b: ExtractedMediaFile) => {
-    const aDate = new Date(a.matchedRecord?.messageDateIso ?? 0).getTime();
-    const bDate = new Date(b.matchedRecord?.messageDateIso ?? 0).getTime();
-    if (sortMode === 'name') return a.filename.localeCompare(b.filename);
-    if (sortMode === 'sender') return (a.matchedRecord?.sender ?? '').localeCompare(b.matchedRecord?.sender ?? '');
-    if (sortMode === 'type') return a.mediaType.localeCompare(b.mediaType) || a.filename.localeCompare(b.filename);
-    if (sortMode === 'date-asc') return aDate - bDate;
-    return bDate - aDate;
-  };
-}
-
-function getPreviewIcon(mediaType: MediaType): React.ComponentProps<typeof MaterialCommunityIcons>['name'] {
-  if (mediaType === 'video') return 'video-outline';
-  if (mediaType === 'voice' || mediaType === 'audio') return 'microphone-outline';
-  if (mediaType === 'sticker') return 'sticker-outline';
-  if (mediaType === 'document') return 'file-document-outline';
-  return 'file-question-outline';
-}
-
-function isTextTranscript(file: ExtractedMediaFile): boolean {
-  return file.sourceKind === 'chat-transcript' || file.filename.toLowerCase().endsWith('.txt');
-}
-
-function formatSeconds(value: number): string {
-  const totalSeconds = Math.max(0, Math.floor(value || 0));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = String(totalSeconds % 60).padStart(2, '0');
-  return `${minutes}:${seconds}`;
-}
-
 const styles = StyleSheet.create({
-  toolbarBlock: {
-    gap: spacing.smallGap,
-    paddingBottom: spacing.tinyGap
-  },
-  toolbarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.tinyGap
-  },
-  searchToolbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.smallGap
-  },
-  search: {
-    flex: 1,
-    minHeight: 48,
-    borderRadius: 24
-  },
-  searchInput: {
-    minHeight: 48
-  },
-  countBadge: {
-    marginStart: 'auto'
-  },
-  listContent: {
-    paddingBottom: 144,
-    gap: spacing.smallGap
-  },
-  emptyState: {
-    alignItems: 'center',
-    padding: 20,
-    gap: 8
-  },
-  diagnosticPanel: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: 8,
-    gap: 8
-  },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.gap
-  },
-  selectableList: {
-    gap: spacing.smallGap
-  },
-  filterTypeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.smallGap
-  },
-  filterTypeOption: {
-    width: '48%',
-    minHeight: 58,
-    borderRadius: 18,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.smallGap
-  },
-  filterTypeIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  filterTypeLabel: {
-    fontWeight: '800'
-  },
-  sheetFooter: {
-    gap: spacing.smallGap
-  },
-  sheetFooterActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.smallGap
-  },
-  sheetPrimaryAction: {
-    flex: 1.4
-  },
-  sheetSecondaryAction: {
-    flex: 1
-  },
-  previewPanel: {
-    minHeight: 220,
-    borderRadius: 16,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  previewMedia: {
-    width: '100%',
-    height: 280
-  },
-  fallbackPreview: {
-    width: '100%',
-    minHeight: 240,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    padding: 16
-  },
-  transcriptLoading: {
-    width: '100%',
-    minHeight: 220,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.smallGap,
-    padding: spacing.gap
-  },
-  transcriptProgress: {
-    width: '86%',
-    height: 6,
-    borderRadius: 999
-  },
-  transcriptPreview: {
-    width: '100%',
-    alignSelf: 'stretch',
-    padding: spacing.gap,
-    gap: spacing.gap
-  },
-  transcriptHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.smallGap
-  },
-  transcriptThread: {
-    gap: spacing.smallGap,
-    paddingBottom: spacing.tinyGap
-  },
-  transcriptScroll: {
-    alignSelf: 'stretch',
-    width: '100%'
-  },
-  transcriptBubble: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 14,
-    padding: spacing.gap,
-    gap: spacing.tinyGap
-  },
-  transcriptBubbleMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.smallGap
-  },
-  transcriptMessageBody: {
-    lineHeight: 21
-  },
-  rawTranscriptCard: {
-    borderRadius: 14,
-    padding: spacing.gap
-  },
-  rawTranscriptText: {
-    fontFamily: 'monospace',
-    lineHeight: 20,
-    writingDirection: 'auto',
-    textAlign: 'auto'
-  },
-  voicePreview: {
-    width: '100%',
-    minHeight: 180,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
-    padding: 16
-  },
-  voiceProgress: {
-    width: '100%',
-    height: 8,
-    borderRadius: 999
-  },
-  videoPreview: {
-    width: '100%',
-    minHeight: 280
-  },
-  videoPoster: {
-    ...StyleSheet.absoluteFillObject
-  },
-  flex: {
-    flex: 1
-  }
+  tabs: { flexGrow: 0, marginVertical: 8 }, tabContent: { gap: 6 }, list: { flex: 1 }, senderChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  inlineAudio: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  skipped: { minHeight: 64, paddingVertical: 8 },
 });

@@ -1,11 +1,25 @@
 export type MediaType = 'photo' | 'video' | 'voice' | 'audio' | 'sticker' | 'gif' | 'document' | 'unknown';
+export type DateSource = 'chat' | 'filename' | 'zip-entry' | 'none';
+export type DatePrecision = 'day' | 'minute' | 'second';
+
+type ChatPreviewMessage = {
+  id: string;
+  sender: string;
+  messageDateIso: string;
+  body: string;
+};
+
+export type ChatPreview = {
+  messages: ChatPreviewMessage[];
+  totalMessages: number;
+  truncated: boolean;
+  rawFallback?: string;
+};
 
 export type PipelineStage =
   | 'welcome'
   | 'analyzing'
   | 'selectFiles'
-  | 'outputOptions'
-  | 'reviewSave'
   | 'saving'
   | 'results'
   | 'settings'
@@ -19,6 +33,10 @@ export type ChatMediaRecord = {
   sender: string;
   messageDateIso: string;
   rawLine: string;
+  archiveEntryId?: string;
+  messageIndex?: number;
+  datePrecision?: Exclude<DatePrecision, 'day'>;
+  dateAmbiguous?: boolean;
 };
 
 export type ExtractedMediaFile = {
@@ -28,17 +46,19 @@ export type ExtractedMediaFile = {
   uri: string;
   mediaType: MediaType;
   sourceKind?: 'zip-media' | 'chat-transcript';
+  sourcePath?: string;
+  modificationTime?: string;
+  sizeBytes?: number;
   thumbnailUri?: string;
   matchedRecord?: ChatMediaRecord;
-};
-
-export type SenderSummary = {
-  sender: string;
-  total: number;
-  photos: number;
-  videos: number;
-  voice: number;
-  other: number;
+  dateSource?: DateSource;
+  dateIso?: string;
+  saveDateIso?: string;
+  datePrecision?: DatePrecision;
+  dateAmbiguous?: boolean;
+  timeZone?: string;
+  timeZoneAssumed?: boolean;
+  transcriptPreview?: ChatPreview;
 };
 
 export type ImportSummary = {
@@ -46,13 +66,16 @@ export type ImportSummary = {
   skippedChatLines: number;
   extractedEntries: number;
   skippedZipEntries: number;
+  skippedEntries?: { sourcePath: string; reason: 'unsafe-path' | 'unsupported-type' }[];
   matchedMedia: number;
   unmatchedMedia: number;
   senders: number;
   photos: number;
   videos: number;
   voice: number;
+  audio?: number;
   stickers: number;
+  gifs?: number;
   documents: number;
   unknown: number;
   extractionMode: 'native-selective';
@@ -60,17 +83,13 @@ export type ImportSummary = {
 
 export type MediaTypeSelection = Record<MediaType, boolean>;
 
-export type ProcessingProgress = {
-  stageLabel: string;
-  processed: number;
-  total: number;
-  failed: number;
-};
+export type ProcessingProgress = import('../lib/operationProgress').OperationProgress;
 
 export type CompletionSummary = {
   saved: number;
   copied?: number;
   skipped: number;
+  cancelled?: number;
   failed: number;
   filesystemTimestampFixed?: number;
   exifFixed?: number;
@@ -85,9 +104,9 @@ export type CompletionSummary = {
   results?: SaveFileResult[];
 };
 
-export type SaveMethod = 'termux-parity' | 'saf-custom-folder';
+export type SaveMethod = 'scoped-media-store' | 'saf-custom-folder' | 'termux-parity';
 
-export type SaveDestinationMode = 'default-accurate-folder' | 'custom-folder';
+type SaveDestinationMode = 'default-accurate-folder' | 'custom-folder';
 export type OutputOrganizationMode = 'all-in-one' | 'by-type' | 'by-sender' | 'by-sender-and-type';
 export type DuplicateHandlingMode = 'keep-both' | 'skip-existing' | 'replace-existing';
 export type AppAppearance = 'system' | 'light' | 'dark';
@@ -106,7 +125,7 @@ export type PickedFolderResult = {
   readablePathLabel?: string | null;
 };
 
-export type PickedFolderTimestampSupportResult = {
+type PickedFolderTimestampSupportResult = {
   treeUri: string;
   canWriteFile: boolean;
   canCreateSubfolders: boolean;
@@ -129,6 +148,7 @@ export type AppSettings = {
   languagePreference: AppLanguagePreference;
   appearance: AppAppearance;
   useDynamicColors: boolean;
+  alwaysUseMessageDate: boolean;
   developerMode: boolean;
   showTechnicalLogs: boolean;
   keepCacheAfterFailedRun: boolean;
@@ -137,6 +157,8 @@ export type AppSettings = {
 
 export type ExportHistoryItem = {
   id: string;
+  exportFingerprint?: string;
+  detailsMissing?: boolean;
   exportTimestampIso: string;
   chatName: string;
   outputFolderPath: string;
@@ -149,6 +171,7 @@ export type ExportHistoryItem = {
     stickers: number;
     documents: number;
     failed: number;
+    cancelled?: number;
   };
   saveMethod: SaveMethod;
   outputDirectory?: string | null;
@@ -160,12 +183,25 @@ export type ExportHistoryItem = {
 export type SaveFileResult = {
   filename: string;
   ok: boolean;
+  entryId?: string;
+  outcome?: 'saved' | 'skipped' | 'failed' | 'cancelled';
+  dateVerification?: 'verified' | 'mtime-only' | 'unverified';
+  targetTimestampMillis?: number | null;
+  timestampSource?: DateSource | 'capture';
+  embeddedTimestampMillis?: number | null;
+  observedModifiedMillis?: number | null;
+  destinationKind?: 'media-store' | 'document-provider' | 'legacy-path';
+  outputDirectory?: string | null;
+  mimeType?: string | null;
+  verificationReason?: string | null;
+  replacementWarning?: string | null;
   insertedUri?: string | null;
   outputPath?: string | null;
   displayName?: string | null;
   mediaType?: MediaType;
   originalTimestampMillis?: number;
   whatsAppDateIso?: string | null;
+  dateAmbiguous?: boolean;
   copied?: boolean;
   setLastModifiedReturned?: boolean;
   actualLastModifiedMillis?: number | null;
@@ -191,4 +227,5 @@ export type SaveFileResult = {
   debugOriginalPath?: string | null;
   debugRewrittenPath?: string | null;
   failureReason?: string | null;
+  failureCode?: import('../lib/pipelineErrors').PipelineErrorCode;
 };

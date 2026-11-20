@@ -1,0 +1,14 @@
+{
+  "saved_synthetic_outputs_deleted": 9,
+  "source_zip_deleted": true,
+  "qa_and_helper_removed": true,
+  "restored": {
+    "stay_on_while_plugged_in": "7",
+    "screen_off_timeout": "600000",
+    "font_scale": "1.1"
+  },
+  "production_installer": "package:com.menis10tec.chatstamp  installer=com.android.vending",
+  "production_kept": true,
+  "owned_only": true,
+  "cleanup_note": "Initial delete result text was inconclusive; reconciled exact remaining rows, used authoritative no-result readback, no duplicate delete."
+}

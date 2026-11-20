@@ -1,0 +1,49 @@
+# Google Play listing package
+
+Alpha14 is now ACTIVE in **com.menis10tec.chatstamp /4975002762311404414**, and actual native Google Play installed14 on the connected A30 (installer com.android.vending). EN banners/screenshots and other text remain unchanged; the new default icon and support-footer address are the scoped exceptions. Hebrew now uses **six split1080×1920 posters with fresh actual physical QA14 captures plus one localized1024×500 feature**. They were saved, reopened, ordered and submitted in the prior artwork checkpoint. The latest three icon/description changes are in review, as recorded below. [Current grouped delivery](owner-followup-20261120/README.md), [artwork/provenance](owner-followup-20261120/store-he/README.md), [release continuation](../../docs/PLAY_UPLOAD_STEPS.md). Original code9 PNGs remain historical; they are not relabeled14. The current public foreground demo remains actual code11.
+
+Latest branding continuation: [new chatStamp store icon and support metadata](brand-refresh-20261120/README.md). Default icon replaced and inherited by Hebrew; icon plus two address-only description edits submitted, now in review. Both per-app support fields separately published without an AAB. Existing banners/screenshots remain unchanged; the Tank Malle logo proposal is local-only pending owner approval.
+
+## Text files
+
+| Console language | Directory | Fields |
+| --- | --- | --- |
+| English (United States), `en-US` | [en-US/](en-US/) | `title.txt`, `short-description.txt`, `full-description.txt`, `release-notes.txt` |
+| Hebrew, `he-IL` | [he-IL/](he-IL/) | Same four fields; Hebrew text is authored, not an automatic translation. |
+
+Paste file contents only, without filenames or Markdown fences. Title≤30, short description≤80 and full description≤4000 characters; release notes≤500 characters per language. Recheck counts after editing. The owner-confirmed per-app Play support contact is now **menis10tec@gmail.com**, published/reloaded in both chatStamp and Tank Malle. The same address replaces only the support footer in these two chatStamp description files; privacy and native in-app contacts retain their separate scope. The listing describes current functionality and explicitly limits date guarantees; it includes the implemented three-step picker/preview/RTL redesign. Replace release notes/version references for each later candidate.
+
+## Historical asset map and required verification
+
+The release owner supplies and verifies the assets; this text preparation does not certify them. Do not mark the package complete until every file below exists, is inspected, and depicts the verified candidate.
+
+| File(s) | Required format / content |
+| --- | --- |
+| `icon.png` | 512×512, 32-bit PNG with alpha, ≤1024 KB, sRGB. Full square; no pre-rendered outer corner mask or shadow. |
+| `feature-graphic.png` | 1024×500, 24-bit PNG without alpha; JPEG is also accepted if the actual filename is updated here. Use actual branding without ranking/award claims. |
+| `screenshots/en-US/01-import.png` | Actual physical-phone import screen, synthetic data, English. |
+| `screenshots/en-US/02-selection.png` | Actual selected supported files, synthetic names/content, English. |
+| `screenshots/en-US/03-saving.png` | Actual user-started save/progress, English; do not stage a finished run as active. |
+| `screenshots/en-US/04-results.png` | Actual saved/date-verified counts from the same candidate, English. |
+| `screenshots/he-IL/01-import.png` through `04-results.png` | The corresponding actual-phone Hebrew screens, readable RTL. |
+
+Phone screenshots: JPEG or 24-bit PNG without alpha, 320–3840 px per dimension and longest side ≤2×shortest; at most 8 per device type. Play needs at least 2 screenshots to publish; this task requires **four per language**. Prefer 1080×1920 portrait for the recommendation format. A raw1080×2340 capture is too tall: the current Hebrew posters uniformly contain the complete capture on a1080×1920 canvas, without crop or edits inside actual UI. Other future assets need equally truthful compliant composition. Do not invent UI, hide relevant results, use real chats/names/photos, or substitute emulator images for the required phone captures. Keep a brief provenance record of phone, candidate, language, synthetic run and any crop; do not place raw logs here.
+
+The shared `feature-graphic.png` contains English copy and remains the unchanged English default. Hebrew now uses `owner-followup-20261120/store-he/feature-he.jpg`. Its new illustration is labeled separately from actual UI. All seven Hebrew composite assets carry the Console AI label because they include the existing AI-created logo or the new illustration. Suggested alt text: English “chatStamp imports a chat export and saves selected files with verified date results.” Hebrew “chatStamp מייבאת ייצוא שיחה ושומרת קבצים נבחרים עם תוצאות אימות תאריך.”
+
+Before handoff inspect image dimensions/channels and every screen, validate text limits, scan for private content/secrets, and state any missing asset. Do not copy build outputs, old evidence, raw videos or a real export into this folder. Keep the combined current evidence set under 10,000,000 bytes; release APK/AAB artifacts belong under ignored `dist/`, not the listing folder.
+
+## Sources checked 2026-11-18
+
+- [Play listing fields](https://support.google.com/googleplay/android-developer/answer/9859152?hl=en): localized title/short/full limits and a listing shared across tracks.
+- [Play preview assets](https://support.google.com/googleplay/android-developer/answer/9866151?hl=en): icon/feature graphic, screenshot counts, format, size/aspect and actual-app content requirements. The article's explicit 8 MB limit is for Android XR; no universal phone 8 MB ceiling is asserted here.
+- [Play icon specifications](https://developer.android.com/distribute/google-play/resources/icon-design-specifications): dimensions, sRGB, full square and Play-applied corner mask/shadow.
+- [Prepare a release](https://support.google.com/googleplay/android-developer/answer/9859348?hl=en): localized release notes. Use the current Console limit if it changes.
+
+## לבעל החשבון
+
+קובצי הטקסט באנגלית ובעברית מוכנים להעתקה, אך אין בכך אישור שהחנות או הבדיקה הסגורה פורסמו. יש לוודא שקיימים ונבדקו סמל 512×512, תמונת נושא 1024×500 וארבעה צילומי מסך אמיתיים מכל שפה, עם מידע מלאכותי בלבד. יש לעדכן גרסה, הערות הפצה וצילומים בכל העלאה עתידית ולפעול לפי [הוראות ההעלאה](../../docs/PLAY_UPLOAD_STEPS.md). עמוד הפרטיות פורסם ואומת לציבור; יש לבדוק גם את פתיחתו מהאפליקציה המותקנת.
+
+All eight actual-phone screenshots were replaced on 2026-11-19 with the minified code 9 three-step UI. Exact device, synthetic runs, native direction, dimensions and hashes are in `screenshots/provenance.json`. Results intentionally show the actual distinct runs: English 4/4 background demo and Hebrew 5/5 Gallery regression. Both Saving images show the actual initial four-video operation, not fabricated progress.
+
+The eight PNGs were recaptured on the physical Samsung A30 using the signed code 9 QA build. Its exact source and binary hashes are in screenshots/provenance.json. Code 11 includes the history/session correction and native save finalization fixes; code 12 changes portrait eligibility/version codes and code 13 changes application identity/version codes. These screenshots retain the actual code 9 UI; the Selection presentation now differs in 14. A fresh actual code 11 foreground demonstration accompanies the final package. They are explicitly code 9 captures, with no relabeling or duplicate copies.

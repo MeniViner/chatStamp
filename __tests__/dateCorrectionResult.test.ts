@@ -1,67 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { mapDateCorrectionStatus } from '../src/services/dateCorrectionResult';
-import type { NativeSavedMediaFileResult } from '../src/native/chatStampNativeModule';
+import { getResultStatusKey } from '../src/screens/resultsLogic';
+import type { SaveFileResult } from '../src/types/media';
 
-function result(overrides: Partial<NativeSavedMediaFileResult>): NativeSavedMediaFileResult {
-  return {
-    filename: 'a.jpg',
-    ok: true,
-    originalTimestampMillis: 1,
-    dateCorrectionSupported: true,
-    dateCorrectionVerified: false,
-    galleryMaySortByImportTime: false,
-    metadataWritten: false,
-    ...overrides
-  };
+function row(overrides: Partial<SaveFileResult>): SaveFileResult {
+  return { filename: 'photo.jpg', ok: true, dateCorrectionVerified: false, galleryMaySortByImportTime: false, ...overrides };
 }
 
-describe('mapDateCorrectionStatus', () => {
-  it('maps verified', () => {
-    expect(mapDateCorrectionStatus(result({ dateCorrectionVerified: true }))).toBe('verified');
+describe('save outcome and date verification', () => {
+  it('does not show a skipped item as failed or as a new date fix', () => {
+    expect(getResultStatusKey(row({ outcome: 'skipped', dateCorrectionVerified: true }))).toBe('results.status.alreadySaved');
   });
 
-  it('maps unsupported', () => {
-    expect(mapDateCorrectionStatus(result({ dateCorrectionSupported: false }))).toBe('unsupported');
+  it('distinguishes preserved capture dates from restored message dates', () => {
+    expect(getResultStatusKey(row({ timestampSource: 'capture', dateVerification: 'verified' }))).toBe('results.status.capturePreserved');
+    expect(getResultStatusKey(row({ timestampSource: 'chat', dateCorrectionVerified: true, dateVerification: 'verified' }))).toBe('results.status.dateFixed');
   });
 
-  it('maps MP4 box rewrite failure before generic unsupported', () => {
-    expect(mapDateCorrectionStatus(result({
-      dateCorrectionSupported: false,
-      failureReason: 'MP4 boxes were not rewritten'
-    }))).toBe('mp4_boxes_not_rewritten');
-  });
-
-  it('maps native MP4 box rewrite failure code before generic unsupported', () => {
-    expect(mapDateCorrectionStatus(result({
-      dateCorrectionSupported: false,
-      failureReason: 'mp4BoxRewriteFailed',
-      mp4RewriteFailureCode: 'mp4BoxRewriteFailed'
-    }))).toBe('mp4_boxes_not_rewritten');
-  });
-
-  it('maps MP4 retriever missing after box rewrite', () => {
-    expect(mapDateCorrectionStatus(result({
-      failureReason: 'MP4 boxes were rewritten, but Android MediaMetadataRetriever did not expose a date'
-    }))).toBe('mp4_boxes_updated_retriever_missing');
-  });
-
-  it('maps native MP4 retriever missing failure reason', () => {
-    expect(mapDateCorrectionStatus(result({
-      failureReason: 'mp4BoxesUpdatedButRetrieverDateMissing'
-    }))).toBe('mp4_boxes_updated_retriever_missing');
-  });
-
-  it('maps MP4 MediaStore indexing failure', () => {
-    expect(mapDateCorrectionStatus(result({
-      failureReason: 'MP4 boxes were rewritten and retriever date was correct, but MediaStore did not index the date'
-    }))).toBe('mp4_retriever_ok_mediastore_missing');
-  });
-
-  it('maps may show import time', () => {
-    expect(mapDateCorrectionStatus(result({ galleryMaySortByImportTime: true }))).toBe('may_show_import_time');
-  });
-
-  it('maps failed', () => {
-    expect(mapDateCorrectionStatus(result({}))).toBe('failed');
+  it('reports index verification limits even when the file was saved', () => {
+    expect(getResultStatusKey(row({ dateVerification: 'mtime-only' }))).toBe('results.status.modificationTime');
+    expect(getResultStatusKey(row({ dateVerification: 'unverified' }))).toBe('results.status.dateUnverified');
+    expect(getResultStatusKey(row({ verificationReason: 'date-unavailable' }))).toBe('results.status.dateUnavailable');
   });
 });

@@ -1,5 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-  <application>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <application android:supportsRtl="true">
+    <service
+      android:name=".SaveForegroundService"
+      android:exported="false"
+      android:foregroundServiceType="dataSync" />
     <provider
       android:name=".ChatStampFileProvider"
       android:authorities="${applicationId}.ChatStampFileProvider"

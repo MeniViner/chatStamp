@@ -2,19 +2,21 @@ import React from 'react';
 import { BackHandler, FlatList, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { IconButton, Menu, Snackbar, Text } from 'react-native-paper';
-import { PremiumBottomSheet } from '../components/BottomSheet';
+import { ShareOutputSheet } from '../components/ShareOutputSheet';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { FolderFallbackSheet } from '../components/FolderFallbackSheet';
 import { openFolderBestEffort, openGalleryBestEffort, shouldShowOpenGallery } from '../native/androidIntents';
-import { deleteOutputFiles, shareOutputFiles } from '../native/outputFiles';
+import { deleteOutputFiles } from '../native/outputFiles';
 import { useHistoryStore } from '../store/historyStore';
+import { historyPresentation } from '../store/historyLogic';
 import { usePipelineStore } from '../store/pipelineStore';
-import type { ExportHistoryItem, MediaType } from '../types/media';
+import type { ExportHistoryItem } from '../types/media';
 import { useAppTheme } from '../theme/useAppTheme';
 import { WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
-import { ExpandableTechnicalDetails, FilePathText, PremiumCard, PrimaryButton, SecondaryButton, StatusBadge, textStyles } from '../components/AppUi';
+import { ExpandableTechnicalDetails, FilePathText, PremiumCard, SecondaryButton, StatusBadge, textStyles } from '../components/AppUi';
 import { spacing } from '../theme/designTokens';
+import { formatAppDate } from '../lib/localeDateFormat';
 
 export function HistoryScreen() {
   const { t } = useTranslation();
@@ -65,6 +67,7 @@ export function HistoryScreen() {
             onDeleteRecord={() => setDeleteRecordId(item.id)}
             onDeleteWithFiles={() => setDeleteWithFilesId(item.id)}
             onFallbackNotice={() => setFolderFallbackItemId(item.id)}
+            onShareError={setSnackbar}
           />
         )}
         ListEmptyComponent={
@@ -134,17 +137,21 @@ function HistoryCard({
   item,
   onDeleteRecord,
   onDeleteWithFiles,
-  onFallbackNotice
+  onFallbackNotice,
+  onShareError
 }: {
   item: ExportHistoryItem;
   onDeleteRecord: () => void;
   onDeleteWithFiles: () => void;
   onFallbackNotice: () => void;
+  onShareError: (message: string) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useAppTheme();
   const [shareOpen, setShareOpen] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const loadDetails = useHistoryStore((state) => state.loadHistoryDetails);
+  React.useEffect(() => { void loadDetails(item.id); }, [item.id, loadDetails]);
 
   async function openFolder() {
     const outcome = await openFolderBestEffort(item.outputFolderPath, null, item.outputDirectory ?? item.outputFolderPath);
@@ -153,22 +160,23 @@ function HistoryCard({
     }
   }
 
-  const completed = item.counts.failed === 0;
+  const presentation = historyPresentation(item);
+  const completed = presentation.status === 'completed';
 
   return (
     <PremiumCard style={styles.card}>
       <View style={styles.header}>
         <View style={styles.flex}>
           <Text variant="titleMedium" numberOfLines={2} style={[styles.cardTitle, textStyles.start]}>
-            {t('history.saveFrom', { date: new Date(item.exportTimestampIso).toLocaleString() })}
+            {t('history.saveFrom', { date: formatAppDate(item.exportTimestampIso, i18n.resolvedLanguage ?? 'en') })}
           </Text>
         </View>
         <View style={styles.headerActions}>
-          <StatusBadge label={completed ? t('history.completed') : t('history.needsCheck')} selected={completed} danger={!completed} />
+          <StatusBadge label={t(presentation.statusKey)} selected={completed} danger={!completed} />
           <Menu
             visible={menuOpen}
             onDismiss={() => setMenuOpen(false)}
-            anchor={<IconButton icon="dots-vertical" size={20} style={styles.iconButton} onPress={() => setMenuOpen(true)} />}
+            anchor={<IconButton icon="dots-vertical" size={20} style={styles.iconButton} accessibilityLabel={t('history.actions')} onPress={() => setMenuOpen(true)} />}
           >
             <Menu.Item
               leadingIcon="delete-outline"
@@ -191,8 +199,9 @@ function HistoryCard({
         </View>
       </View>
       <Text variant="labelLarge" style={textStyles.start}>
-        {t('history.summaryCounts', { saved: item.counts.totalSaved, failed: item.counts.failed })}
+        {t(presentation.descriptionKey, presentation.values)}
       </Text>
+      {item.detailsMissing ? <Text variant="bodySmall" style={textStyles.start}>{t('session.detailsMissing')}</Text> : null}
       <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
         {t('history.mediaCounts', {
           photos: item.counts.photos,
@@ -226,74 +235,9 @@ function HistoryCard({
           {t('history.shareFiles')}
         </SecondaryButton>
       </View>
-      <HistoryShareSheet
-        visible={shareOpen}
-        item={item}
-        onDismiss={() => setShareOpen(false)}
-        onShare={(categories) => {
-          setShareOpen(false);
-          void shareOutputFiles(item.savedFiles ?? [], categories);
-        }}
-      />
+      <ShareOutputSheet visible={shareOpen} results={item.savedFiles ?? []} preferVisualTypes
+        subtitle={t('history.shareFilesBody')} onDismiss={() => setShareOpen(false)} onError={onShareError} />
     </PremiumCard>
-  );
-}
-
-function HistoryShareSheet({
-  visible,
-  item,
-  onDismiss,
-  onShare
-}: {
-  visible: boolean;
-  item: ExportHistoryItem;
-  onDismiss: () => void;
-  onShare: (categories: MediaType[]) => void;
-}) {
-  const { t } = useTranslation();
-  const available = React.useMemo(
-    () => Array.from(new Set((item.savedFiles ?? []).filter((result) => result.ok && result.mediaType).map((result) => result.mediaType as MediaType))),
-    [item.savedFiles]
-  );
-  const counts = React.useMemo(() => {
-    const next = new Map<MediaType, number>();
-    (item.savedFiles ?? []).forEach((result) => {
-      if (result.ok && result.mediaType) next.set(result.mediaType, (next.get(result.mediaType) ?? 0) + 1);
-    });
-    return next;
-  }, [item.savedFiles]);
-  const [selected, setSelected] = React.useState<MediaType[]>([]);
-
-  React.useEffect(() => {
-    const defaults = available.filter((type) => type === 'photo' || type === 'video');
-    setSelected(defaults.length > 0 ? defaults : available);
-  }, [available]);
-
-  function toggle(type: MediaType) {
-    setSelected((current) => (current.includes(type) ? current.filter((itemType) => itemType !== type) : [...current, type]));
-  }
-
-  return (
-    <PremiumBottomSheet
-      visible={visible}
-      title={t('results.shareSheetTitle')}
-      subtitle={t('history.shareFilesBody')}
-      onDismiss={onDismiss}
-      footer={
-        <PrimaryButton disabled={selected.length === 0} onPress={() => onShare(selected)}>
-          {t('results.shareAction')}
-        </PrimaryButton>
-      }
-    >
-      <SecondaryButton selected={selected.length === available.length && available.length > 0} onPress={() => setSelected(available)}>
-        {t('results.shareAll', { count: available.reduce((sum, type) => sum + (counts.get(type) ?? 0), 0) })}
-      </SecondaryButton>
-      {available.map((type) => (
-        <SecondaryButton key={type} selected={selected.includes(type)} onPress={() => toggle(type)}>
-          {t('results.shareCategory', { label: t(`media.plural.${type}`), count: counts.get(type) ?? 0 })}
-        </SecondaryButton>
-      ))}
-    </PremiumBottomSheet>
   );
 }
 
