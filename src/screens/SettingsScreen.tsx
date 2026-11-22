@@ -1,11 +1,10 @@
 import React from 'react';
-import { BackHandler, Linking, ScrollView, StyleSheet, View } from 'react-native';
+import { BackHandler, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import * as Application from 'expo-application';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Snackbar, Text } from 'react-native-paper';
 import { BottomSheet } from '../components/BottomSheet';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { SettingsCategoryPanel } from '../components/SettingsCategoryPanel';
 import { openAppLanguageSettings } from '../native/appLanguage';
 import { openOutputFolderPicker } from '../native/outputFolderPicker';
 import { usePipelineStore } from '../store/pipelineStore';
@@ -21,15 +20,22 @@ import { WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
 import type { AppLanguagePreference, AppSettings, DuplicateHandlingMode, OutputOrganizationMode } from '../types/media';
 import {
+  AppLogo,
   InfoRow,
+  ListGroup,
+  ListItem,
+  NavigationItem,
   OptionChoiceCard,
   PrimaryButton,
   SecondaryButton,
   SettingsSectionCard,
   SettingRow as UiSettingRow,
+  surfaceRoles,
   textStyles
 } from '../components/AppUi';
-import { spacing } from '../theme/designTokens';
+import { radius, spacing } from '../theme/designTokens';
+
+const appearanceModes: AppSettings['appearance'][] = ['system', 'light', 'dark'];
 
 const organizationModes: OutputOrganizationMode[] = ['all-in-one', 'by-type', 'by-sender', 'by-sender-and-type'];
 const duplicateModes: DuplicateHandlingMode[] = ['keep-both', 'skip-existing', 'replace-existing'];
@@ -62,6 +68,7 @@ export function SettingsScreen() {
     { id: 'advanced', title: t('settings.categories.advanced.title'), summary: t('settings.categories.advanced.summary'), icon: 'tune-variant' }
   ] as const;
   const currentCategory = categories.find((entry) => entry.id === category);
+  const appVersion = `\u200e${Application.nativeApplicationVersion ?? '0.1.0'} (${Application.nativeBuildVersion ?? t('settings.devBuild')})`;
 
   const goBack = React.useCallback(() => {
     if (organizationSheetOpen) setOrganizationSheetOpen(false);
@@ -142,84 +149,91 @@ export function SettingsScreen() {
     try { await Linking.openURL(url); } catch { setSnackbar(t('settings.couldNotOpenLink')); }
   }
 
+  const menuGroups = [categories.slice(0, 3), categories.slice(3)];
   return (
     <WizardScreen
       stage="settings"
       title={currentCategory?.title ?? t('settings.title')}
-      subtitle={currentCategory?.summary ?? t('settings.subtitle')}
+      subtitle={currentCategory?.summary}
       onBack={goBack}
     >
       <ScrollView key={category ?? 'menu'} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {category === null ? categories.map((entry) => <SettingsCategoryPanel key={entry.id}
-          title={entry.title} summary={entry.summary} icon={entry.icon} onPress={() => setCategory(entry.id)} />) : null}
+        {category === null ? <>
+          {menuGroups.map((group, index) => <ListGroup key={index}>
+            {group.map((entry) => <NavigationItem key={entry.id} icon={entry.icon} title={entry.title}
+              description={entry.summary} onPress={() => setCategory(entry.id)} />)}
+          </ListGroup>)}
+          <ListGroup style={styles.aboutGroup}>
+            <ListItem leading={<AppLogo />}
+              title={t('onboarding.appName')} description={appVersion} onPress={() => setCategory('help')} />
+          </ListGroup>
+        </> : null}
         {category === 'saving' ? <>
         <Section title={t('settings.saveLocation')} icon="folder-cog-outline">
-          <DestinationCard
-            title={t('settings.defaultAccurateFolder')}
-            description={t('settings.defaultAccurateFolderBody')}
-            selected={settings.saveDestinationMode === 'default-accurate-folder'}
-            badge={t('settings.recommended')}
-            onPress={() =>
-              void saveSettings({
-                saveDestinationMode: 'default-accurate-folder',
-                useDefaultFolder: true
-              })
-            }
-          />
-          <DestinationCard
-            title={t('settings.customFolder')}
-            description={
-              settings.customFolder?.readablePathLabel ??
-              settings.customFolder?.displayName ??
-              t('settings.customFolderBody')
-            }
-            selected={settings.saveDestinationMode === 'custom-folder'}
-            onPress={() => void chooseFolder()}
-          />
-          <View style={styles.compactButtonRow}>
-            <SecondaryButton icon="folder-plus-outline" style={styles.compactButton} onPress={() => void chooseFolder()}>
-              {t('settings.chooseFolder')}
-            </SecondaryButton>
-            <SecondaryButton style={styles.compactButton} onPress={() => { void resetSaveLocation().catch(() => setSnackbar(t('settings.saveFailed'))); }}>
-              {t('settings.resetToDefault')}
-            </SecondaryButton>
-          </View>
-          {settings.saveDestinationMode === 'custom-folder' ? (
-            <Detail icon="calendar-outline" label={t('settings.customFolderDateAccuracy')} value={t('settings.customFolderDateBody')} />
-          ) : null}
-          <UiSettingRow
-            icon="calendar-sync-outline"
-            title={t('settings.alwaysUseMessageDate')}
-            description={t('settings.alwaysUseMessageDateBody')}
-            value={settings.alwaysUseMessageDate}
-            onValueChange={(alwaysUseMessageDate) => void saveSettings({ alwaysUseMessageDate })}
-          />
-          <Detail icon="folder-outline" label={t('settings.lastOutputFolder')} value={settings.lastOutputFolder ?? t('settings.noneYet')} path />
+          <ListGroup>
+            <DestinationCard
+              title={t('settings.defaultAccurateFolder')}
+              description={t('settings.defaultAccurateFolderBody')}
+              selected={settings.saveDestinationMode === 'default-accurate-folder'}
+              badge={t('settings.recommended')}
+              onPress={() =>
+                void saveSettings({
+                  saveDestinationMode: 'default-accurate-folder',
+                  useDefaultFolder: true
+                })
+              }
+            />
+            <DestinationCard
+              title={t('settings.customFolder')}
+              description={
+                settings.customFolder?.readablePathLabel ??
+                settings.customFolder?.displayName ??
+                t('settings.customFolderBody')
+              }
+              selected={settings.saveDestinationMode === 'custom-folder'}
+              onPress={() => void chooseFolder()}
+            />
+            <ListItem icon="folder-plus-outline" title={t('settings.chooseFolder')} onPress={() => void chooseFolder()} />
+            <ListItem icon="restore" title={t('settings.resetToDefault')}
+              onPress={() => { void resetSaveLocation().catch(() => setSnackbar(t('settings.saveFailed'))); }} />
+          </ListGroup>
+          <ListGroup>
+            {settings.saveDestinationMode === 'custom-folder' ? (
+              <Detail icon="calendar-outline" label={t('settings.customFolderDateAccuracy')} value={t('settings.customFolderDateBody')} />
+            ) : null}
+            <UiSettingRow
+              icon="calendar-sync-outline"
+              title={t('settings.alwaysUseMessageDate')}
+              description={t('settings.alwaysUseMessageDateBody')}
+              value={settings.alwaysUseMessageDate}
+              onValueChange={(alwaysUseMessageDate) => void saveSettings({ alwaysUseMessageDate })}
+            />
+            <Detail icon="folder-outline" label={t('settings.lastOutputFolder')} value={settings.lastOutputFolder ?? t('settings.noneYet')} path />
+          </ListGroup>
         </Section>
 
         <Section title={t('settings.outputOrg')} icon="folder-multiple-outline">
-          <View style={styles.summaryRow}>
-            <Text variant="titleSmall" numberOfLines={2} style={[styles.flex, textStyles.start]}>
-              {t(`settings.organizationModes.${settings.outputOrganization.mode}.title`)}
-            </Text>
-            <SecondaryButton style={styles.compactAction} onPress={() => setOrganizationSheetOpen(true)}>
-              {t('settings.change')}
-            </SecondaryButton>
-          </View>
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-            {getOrganizationSummaryText(t, settings.outputOrganization)}
-          </Text>
-          <UiSettingRow
-            title={t('settings.createExportTimestampFolder')}
-            value={settings.outputOrganization.createExportTimestampFolder}
-            onValueChange={(value) =>
-              void saveSettings({
-                outputOrganization: { createExportTimestampFolder: value }
-              })
-            }
-          />
-          <Text variant="labelLarge">{t('settings.duplicateHandling')}</Text>
-          <View style={styles.choiceList}>
+          <ListGroup>
+            <ListItem icon="file-tree-outline"
+              title={t(`settings.organizationModes.${settings.outputOrganization.mode}.title`)}
+              description={getOrganizationSummaryText(t, settings.outputOrganization)}
+              onPress={() => setOrganizationSheetOpen(true)}
+              trailing={<Text variant="labelLarge" style={{ color: theme.colors.primary }}>{t('settings.change')}</Text>} />
+            <UiSettingRow
+              icon="folder-clock-outline"
+              title={t('settings.createExportTimestampFolder')}
+              value={settings.outputOrganization.createExportTimestampFolder}
+              onValueChange={(value) =>
+                void saveSettings({
+                  outputOrganization: { createExportTimestampFolder: value }
+                })
+              }
+            />
+          </ListGroup>
+        </Section>
+
+        <Section title={t('settings.duplicateHandling')} icon="content-duplicate">
+          <ListGroup>
             {duplicateModes.map((mode) => (
               <OptionChoiceCard
                 key={mode}
@@ -234,17 +248,17 @@ export function SettingsScreen() {
                 }
               />
             ))}
-          </View>
+          </ListGroup>
         </Section>
         </> : null}
 
         {category === 'language' ?
         <Section title={t('settings.language')} icon="translate">
-          <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+          <Text variant="bodyMedium" style={[styles.note, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
             {t('settings.languageInfo')}
           </Text>
           {restartRequired ? <SecondaryButton icon="restart" onPress={() => useLanguageRestartStore.getState().requestPrompt()}>{t('languageRestart.now')}</SecondaryButton> : null}
-          <View style={styles.choiceList}>
+          <ListGroup>
             {languageOptions.map((languagePreference) => (
               <OptionChoiceCard
                 key={languagePreference}
@@ -255,111 +269,83 @@ export function SettingsScreen() {
                 onPress={() => void applyLanguagePreference(languagePreference)}
               />
             ))}
-          </View>
-          <SecondaryButton
-            icon="android"
-            onPress={async () => {
-              const outcome = await openAppLanguageSettings();
-              if (outcome === 'opened-system-settings') {
-                setSnackbar(t('settings.languageSettingsFallbackOpened'));
-              } else if (outcome === 'unsupported') {
-                setSnackbar(t('settings.languageSystemFallback'));
-              }
-            }}
-          >
-            {t('settings.openAppLanguageSettings')}
-          </SecondaryButton>
+          </ListGroup>
+          <ListGroup>
+            <NavigationItem
+              icon="android"
+              title={t('settings.openAppLanguageSettings')}
+              onPress={() => {
+                void openAppLanguageSettings().then((outcome) => {
+                  if (outcome === 'opened-system-settings') setSnackbar(t('settings.languageSettingsFallbackOpened'));
+                  else if (outcome === 'unsupported') setSnackbar(t('settings.languageSystemFallback'));
+                });
+              }}
+            />
+          </ListGroup>
         </Section>
         : null}
 
         {category === 'appearance' ?
-        <Section title={t('settings.appearance')} icon="theme-light-dark">
-          <View style={styles.choiceList}>
-            <OptionChoiceCard
-              title={t('settings.systemDefault')}
-              description={t('settings.appearanceBodies.system')}
-              selected={settings.appearance === 'system'}
-              onPress={() => void saveSettings({ appearance: 'system' })}
+        <Section title={t('settings.appearance')} icon="palette-outline">
+          <ListGroup>
+            <ThemeModeSelector value={settings.appearance} onChange={(appearance) => void saveSettings({ appearance })} />
+            <UiSettingRow
+              icon="palette-swatch-variant"
+              title={t('settings.dynamicColors')}
+              description={t('settings.dynamicColorsBody')}
+              value={settings.useDynamicColors}
+              onValueChange={(value) => void saveSettings({ useDynamicColors: value })}
             />
-            <OptionChoiceCard
-              title={t('settings.light')}
-              description={t('settings.appearanceBodies.light')}
-              selected={settings.appearance === 'light'}
-              onPress={() => void saveSettings({ appearance: 'light' })}
-            />
-            <OptionChoiceCard
-              title={t('settings.dark')}
-              description={t('settings.appearanceBodies.dark')}
-              selected={settings.appearance === 'dark'}
-              onPress={() => void saveSettings({ appearance: 'dark' })}
-            />
-          </View>
-          <UiSettingRow
-            title={t('settings.dynamicColors')}
-            description={t('settings.dynamicColorsBody')}
-            value={settings.useDynamicColors}
-            onValueChange={(value) => void saveSettings({ useDynamicColors: value })}
-          />
+          </ListGroup>
         </Section>
         : null}
 
         {category === 'help' ? <>
         <Section title={t('settings.privacySupport')} icon="shield-account-outline">
-          <Text variant="bodyMedium" style={textStyles.start}>{t('settings.privacySummary')}</Text>
-          <SecondaryButton icon="shield-lock-outline" onPress={() => void openSupportLink('https://meniviner.github.io/chatStamp/privacy-policy.html')}>
-            {t('settings.privacyPolicy')}
-          </SecondaryButton>
-          <SecondaryButton icon="email-outline" onPress={() => void openSupportLink('mailto:menis10tec@gmail.com')}>
-            {t('settings.contactSupport')}
-          </SecondaryButton>
+          <Text variant="bodyMedium" style={[styles.note, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>{t('settings.privacySummary')}</Text>
+          <ListGroup>
+            <NavigationItem icon="shield-lock-outline" title={t('settings.privacyPolicy')}
+              onPress={() => void openSupportLink('https://meniviner.github.io/chatStamp/privacy-policy.html')} />
+            <NavigationItem icon="email-outline" title={t('settings.contactSupport')}
+              onPress={() => void openSupportLink('mailto:menis10tec@gmail.com')} />
+          </ListGroup>
         </Section>
 
         <Section title={t('settings.appOptions')} icon="tune-variant">
-          <Detail icon="star-four-points-outline" label={t('settings.welcomeTour')} value={t('settings.welcomeTourBody')} />
-          <SecondaryButton
-            icon="play-circle-outline"
-            onPress={() => {
-              requestOnboardingReplay();
-            }}
-          >
-            {t('settings.showWelcomeTourAgain')}
-          </SecondaryButton>
-          <Detail
-            icon="information-outline"
-            label={t('settings.versionBuild')}
-            value={`${Application.nativeApplicationVersion ?? '0.1.0'} (${Application.nativeBuildVersion ?? t('settings.devBuild')})`}
-          />
+          <ListGroup>
+            <NavigationItem icon="play-circle-outline" title={t('settings.showWelcomeTourAgain')}
+              description={t('settings.welcomeTourBody')} onPress={() => requestOnboardingReplay()} />
+            <Detail icon="information-outline" label={t('settings.versionBuild')} value={appVersion} />
+          </ListGroup>
         </Section>
         </> : null}
 
         {category === 'advanced' ?
-        <Section title={t('settings.developerMode')} icon="tune-variant">
-          <UiSettingRow
-            title={t('settings.developerModeToggle')}
-            description={t('settings.developerModeBody')}
-            value={settings.developerMode}
-            onValueChange={(value) => void saveSettings(value ? { developerMode: true } : { developerMode: false, showTechnicalLogs: false })}
-          />
-          {settings.developerMode ? (
-            <>
-              <UiSettingRow title={t('settings.showTechnicalLogs')} value={settings.showTechnicalLogs} onValueChange={(value) => void saveSettings({ showTechnicalLogs: value })} />
-              <UiSettingRow title={t('settings.keepCache')} value={settings.keepCacheAfterFailedRun} onValueChange={(value) => void saveSettings({ keepCacheAfterFailedRun: value })} />
-              <Detail icon="information-outline" label={t('settings.developerMode')} value={t('settings.developerModeBody')} />
-            </>
-          ) : null}
+        <Section title={t('settings.developerMode')} icon="code-braces">
+          <ListGroup>
+            <UiSettingRow
+              icon="bug-outline"
+              title={t('settings.developerModeToggle')}
+              description={t('settings.developerModeBody')}
+              value={settings.developerMode}
+              onValueChange={(value) => void saveSettings(value ? { developerMode: true } : { developerMode: false, showTechnicalLogs: false })}
+            />
+            {settings.developerMode ? <UiSettingRow icon="text-box-search-outline" title={t('settings.showTechnicalLogs')}
+              value={settings.showTechnicalLogs} onValueChange={(value) => void saveSettings({ showTechnicalLogs: value })} /> : null}
+            {settings.developerMode ? <UiSettingRow icon="archive-outline" title={t('settings.keepCache')}
+              value={settings.keepCacheAfterFailedRun} onValueChange={(value) => void saveSettings({ keepCacheAfterFailedRun: value })} /> : null}
+          </ListGroup>
         </Section>
         : null}
 
         {category === 'storage' ?
-        <Section title={t('settings.categories.storage.title')} icon="history">
-          <View style={styles.buttonRow}>
-            <SecondaryButton onPress={() => setClearCacheOpen(true)}>
-              {t('settings.clearAppCache')}
-            </SecondaryButton>
-            <SecondaryButton danger onPress={() => setClearHistoryOpen(true)}>
-              {t('settings.clearHistory')}
-            </SecondaryButton>
-          </View>
+        <Section title={t('settings.categories.storage.title')} icon="database-outline">
+          <ListGroup>
+            <ListItem icon="broom" title={t('settings.clearAppCache')} description={t('settings.clearCacheBody')}
+              onPress={() => setClearCacheOpen(true)} />
+            <ListItem icon="delete-outline" iconTone="error" title={t('settings.clearHistory')} description={t('settings.clearHistoryBody')}
+              onPress={() => setClearHistoryOpen(true)} />
+          </ListGroup>
         </Section>
         : null}
       </ScrollView>
@@ -424,16 +410,18 @@ function OutputOrganizationSheet({
       onDismiss={onDismiss}
       footer={<PrimaryButton onPress={onDismiss}>{t('common.ok')}</PrimaryButton>}
     >
-      {organizationModes.map((mode) => (
-        <PressCard
-          key={mode}
-          title={t(`settings.organizationModes.${mode}.title`)}
-          body={t(`settings.organizationModes.${mode}.body`)}
-          example={t(`settings.organizationModes.${mode}.example`)}
-          selected={settings.outputOrganization.mode === mode}
-          onPress={() => onModeChange(mode)}
-        />
-      ))}
+      <ListGroup>
+        {organizationModes.map((mode) => (
+          <PressCard
+            key={mode}
+            title={t(`settings.organizationModes.${mode}.title`)}
+            body={t(`settings.organizationModes.${mode}.body`)}
+            example={t(`settings.organizationModes.${mode}.example`)}
+            selected={settings.outputOrganization.mode === mode}
+            onPress={() => onModeChange(mode)}
+          />
+        ))}
+      </ListGroup>
       <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
         {t('settings.outputOrgFooter')}
       </Text>
@@ -493,6 +481,38 @@ function Detail({ icon, label, value, path = false }: { icon: React.ComponentPro
   return <InfoRow icon={icon} label={label} value={value} path={path} />;
 }
 
+const appearanceIcons = { system: 'brightness-auto', light: 'white-balance-sunny', dark: 'weather-night' } as const;
+
+/** Three round mode buttons, with the selected mode shown as a filled rounded square. */
+function ThemeModeSelector({ value, onChange }: { value: AppSettings['appearance']; onChange: (value: AppSettings['appearance']) => void }) {
+  const { t } = useTranslation();
+  const theme = useAppTheme();
+  const label = (mode: AppSettings['appearance']) => t(mode === 'system' ? 'settings.systemDefault' : `settings.${mode}`);
+  return (
+    <View style={styles.themeSelector}>
+      <View style={styles.themeOptions} accessibilityRole="radiogroup">
+        {appearanceModes.map((mode) => {
+          const selected = value === mode;
+          return (
+            <Pressable key={mode} accessibilityRole="radio" accessibilityState={{ checked: selected }} accessibilityLabel={label(mode)}
+              onPress={() => onChange(mode)} style={styles.themeOption}>
+              <View style={[styles.themeIcon, {
+                borderRadius: selected ? radius.card / 1.5 : 32,
+                backgroundColor: selected ? theme.colors.secondaryContainer : surfaceRoles(theme).groupPressed
+              }]}>
+                <MaterialCommunityIcons name={appearanceIcons[mode]} size={26}
+                  color={selected ? theme.colors.onSecondaryContainer : theme.colors.onSurfaceVariant} />
+              </View>
+              <Text variant="labelLarge" numberOfLines={2} style={[styles.themeLabel, { color: selected ? theme.colors.onSurface : theme.colors.onSurfaceVariant }]}>{label(mode)}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>{t(`settings.appearanceBodies.${value}`)}</Text>
+    </View>
+  );
+}
+
 function getOrganizationSummaryText(
   t: (key: string) => string,
   organization: AppSettings['outputOrganization']
@@ -505,34 +525,37 @@ function getOrganizationSummaryText(
 
 const styles = StyleSheet.create({
   content: {
-    gap: spacing.card,
+    gap: spacing.section,
     paddingBottom: spacing.section
   },
-  summaryRow: {
+  note: {
+    paddingHorizontal: spacing.tinyGap
+  },
+  aboutGroup: {
+    marginTop: spacing.smallGap
+  },
+  themeSelector: {
+    padding: spacing.compactInner,
+    gap: spacing.gap
+  },
+  themeOptions: {
     flexDirection: 'row',
+    gap: spacing.smallGap
+  },
+  themeOption: {
+    flex: 1,
+    minWidth: 0,
     alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: spacing.smallGap
+    gap: spacing.smallGap,
+    paddingVertical: spacing.tinyGap
   },
-  buttonRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.smallGap
+  themeLabel: {
+    textAlign: 'center'
   },
-  choiceList: {
-    gap: spacing.smallGap
-  },
-  compactButtonRow: {
-    flexDirection: 'row',
-    gap: spacing.smallGap
-  },
-  compactAction: {
-    alignSelf: 'flex-start'
-  },
-  compactButton: {
-    flex: 1
-  },
-  flex: {
-    flex: 1
+  themeIcon: {
+    width: 64,
+    height: 64,
+    alignItems: 'center',
+    justifyContent: 'center'
   }
 });

@@ -76,7 +76,12 @@
     "transcriptSection": "Transcript section {{current}}",
     "transcriptPreviousSection": "Previous section",
     "transcriptNextSection": "Continue transcript",
-    "transcriptEnd": "End of transcript"
+    "transcriptEnd": "End of transcript",
+    "transcriptSearch": "Search this section",
+    "transcriptMe": "Which one is you?",
+    "transcriptMatches": "Matches in this section: {{count}}",
+    "transcriptNoMatches": "No matching messages in this section",
+    "transcriptAttachment": "Attached file"
   },
   "common": {
     "back": "Back",
@@ -119,9 +124,7 @@
     }
   },
   "import": {
-    "title": "Import",
     "sharedExportName": "WhatsApp export",
-    "subtitle": "Already have an export ZIP? Choose it below.",
     "chooseZip": "Choose ZIP",
     "heroTitle": "chatStamp",
     "heroBody": "Save exported media as real Android files with their original WhatsApp dates.",
@@ -134,20 +137,45 @@
     "appName": "chatStamp",
     "intro": {
       "title": "Put memories back in time",
-      "body": "Import a WhatsApp chat export, choose the files you want, and save them with their original message dates.",
-      "note": "Everything is processed on your phone. No login, uploads or storage permission."
+      "body": "Import a WhatsApp chat export, choose the files you want, and save them with their original message dates."
     },
     "export": {
       "title": "Export a chat from WhatsApp",
-      "body": "Open a WhatsApp chat. From its three-dot menu choose More if shown, then Export chat and Include media. Choose chatStamp in the share sheet. You can also choose an export ZIP already saved in Files.",
+      "body": "It takes less than a minute in WhatsApp:",
       "note": "Choose the people and media you want before saving. Date checks are shown separately from files saved."
     },
     "start": "Choose a chat export",
-    "saveFailed": "Could not save your preference. Try again."
+    "saveFailed": "Could not save your preference. Try again.",
+    "welcomeTo": "Welcome to",
+    "features": {
+      "dates": {
+        "title": "Original dates",
+        "body": "Photos and videos return to the day they were sent."
+      },
+      "local": {
+        "title": "Stays on your phone",
+        "body": "No account, upload or storage permission."
+      },
+      "choose": {
+        "title": "You choose what to save",
+        "body": "Pick people and media, and see which dates were verified."
+      }
+    },
+    "permissions": {
+      "title": "Notifications (optional)",
+      "body": "Allow notifications to see save progress while chatStamp works in the background. Saving works without them.",
+      "notifications": {
+        "title": "Notifications",
+        "body": "Show save progress in the notification bar"
+      },
+      "grant": "Allow",
+      "granted": "Allowed",
+      "openSettings": "Settings",
+      "note": "You can change this later in Android settings."
+    }
   },
   "settings": {
     "title": "Settings",
-    "subtitle": "Choose a category to adjust your preferences.",
     "recommended": "Recommended",
     "change": "Change",
     "historyCleared": "History cleared.",
@@ -220,7 +248,6 @@
       "dark": "Warm dark background with readable text."
     },
     "appOptions": "App options",
-    "welcomeTour": "Welcome tour",
     "welcomeTourBody": "Replay the introduction at any time.",
     "showWelcomeTourAgain": "Show welcome tour again",
     "developerMode": "Developer mode",

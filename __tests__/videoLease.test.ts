@@ -184,6 +184,9 @@ vi.mock('react-native', () => ({ View: 'View', Pressable: 'Pressable', Modal: 'M
   StyleSheet: { create: <T,>(styles: T) => styles, absoluteFillObject: {} } }));
 vi.mock('react-native-paper', () => ({ Text: 'Text', Button: 'Button', IconButton: 'IconButton', ActivityIndicator: 'ActivityIndicator' }));
 vi.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }));
+// Transcript rendering is covered by ownerUx14Viewer; these suites only exercise media pages.
+vi.mock('../src/components/TranscriptReader', () => ({ TranscriptReader: 'TranscriptReader' }));
+vi.mock('@expo/vector-icons', () => ({ MaterialCommunityIcons: 'Icon' }));
 vi.mock('../src/theme/useAppTheme', () => {
   const theme = { colors: { background: '#fff', primary: '#123', surfaceVariant: '#eee' } };
   return { useAppTheme: () => theme };

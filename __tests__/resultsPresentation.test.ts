@@ -11,7 +11,7 @@ vi.mock('react-native', async () => {
   type ListProps = { data: readonly SaveFileResult[]; initialNumToRender: number; ListHeaderComponent?: React.ReactNode;
     keyExtractor: (row: SaveFileResult, index: number) => string;
     renderItem: (value: { item: SaveFileResult; index: number }) => React.ReactNode };
-  return { View: 'View', StyleSheet: { create: <T,>(styles: T) => styles, hairlineWidth: 1 },
+  return { View: 'View', Pressable: 'Pressable', StatusBar: 'StatusBar', I18nManager: { isRTL: false }, StyleSheet: { create: <T,>(styles: T) => styles, hairlineWidth: 1 },
     BackHandler: { addEventListener: (_event: string, listener: () => boolean) => { state.listeners.push(listener); return { remove: () => { state.listeners.splice(state.listeners.indexOf(listener), 1); } }; } },
     // Windowing belongs to RN. This adapter executes the production renderItem
     // for the requested initial window, preserving the real memoized ResultRow.
@@ -23,7 +23,13 @@ vi.mock('react-native-paper', () => ({ Text: 'Text', Snackbar: 'Snackbar' }));
 vi.mock('../src/components/ConfirmDialog', () => ({ ConfirmDialog: 'ConfirmDialog' }));
 vi.mock('../src/components/FolderFallbackSheet', () => ({ FolderFallbackSheet: 'FolderFallbackSheet' }));
 vi.mock('../src/components/BottomSheet', () => ({ PremiumBottomSheet: 'PremiumBottomSheet' }));
-vi.mock('../src/components/AppUi', () => ({ textStyles: { start: {} }, PrimaryButton: 'PrimaryButton', SecondaryButton: 'SecondaryButton', MediaThumbnail: 'MediaThumbnail', ExpandableTechnicalDetails: 'ExpandableTechnicalDetails', FilePathText: 'FilePathText' }));
+vi.mock('@expo/vector-icons', () => ({ MaterialCommunityIcons: 'Icon' }));
+vi.mock('expo-image', () => ({ Image: 'Image' }));
+vi.mock('react-native-safe-area-context', () => ({ SafeAreaView: 'SafeAreaView', useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }));
+vi.mock('../src/native/mediaPreviews', () => ({ getThumbnail: vi.fn(), invalidateThumbnail: vi.fn() }));
+// Real StatusBadge/InfoBanner/list rows keep status labels and action targets observable as rendered text and Pressables.
+vi.mock('../src/components/AppUi', async (importOriginal) => ({ ...await importOriginal<typeof import('../src/components/AppUi')>(),
+  PrimaryButton: 'PrimaryButton', SecondaryButton: 'SecondaryButton', MediaThumbnail: 'MediaThumbnail', ExpandableTechnicalDetails: 'ExpandableTechnicalDetails', FilePathText: 'FilePathText' }));
 vi.mock('../src/screens/WizardScreen', async () => {
   const { createElement } = await import('react');
   return { FooterActions: 'FooterActions', WizardScreen: ({ footer, children, ...props }: { footer?: React.ReactNode; children?: React.ReactNode }) => createElement('WizardScreen', props, children, footer) };
@@ -33,7 +39,8 @@ vi.mock('../src/services/operationCoordinator', () => ({ discardImport: state.di
 vi.mock('../src/native/androidIntents', () => ({ openGalleryBestEffort: state.openGallery, openSavedFileBestEffort: state.openFile,
   openFolderBestEffort: vi.fn(), shouldShowOpenGallery: (rows: SaveFileResult[]) => rows.some((row) => row.ok && row.mediaType === 'photo') }));
 vi.mock('../src/native/outputFiles', () => ({ shareOutputFiles: vi.fn() }));
-vi.mock('../src/theme/useAppTheme', () => ({ useAppTheme: () => ({ colors: { outlineVariant: '#ccc', onSurface: '#123', error: '#900' } }) }));
+// Each color resolves to its role name so the banner tone stays observable.
+vi.mock('../src/theme/useAppTheme', () => ({ useAppTheme: () => ({ colors: new Proxy<Record<string, string>>({}, { get: (_target, key) => `role:${String(key)}` }) }) }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string, values?: Record<string, unknown>) => values ? `${key}|${JSON.stringify(values)}` : key, i18n: { resolvedLanguage: state.language } }) }));
 
 const host = (name: string) => name as React.ElementType;
@@ -122,8 +129,12 @@ describe('production Results details virtualization and Back', () => {
     const renderer = await mount(React.createElement(DoneScreen));
     const ids = () => renderer.root.findByType(host('FlatList')).props.data.map((value: SaveFileResult) => value.entryId);
     expect(ids()).toEqual(['dateIssue', 'failed', 'cancelled']);
-    const details = renderer.root.findAllByType(host('SecondaryButton')).find((node) => node.props.children === 'results.details')!;
-    await act(async () => details.props.onPress()); expect(ids()).toEqual(results.map((value) => value.entryId));
+    const toggle = () => renderer.root.findAllByType(host('Pressable')).find((node) => node.props.accessibilityLabel === 'results.details' || node.props.accessibilityLabel === 'results.hideDetails')!;
+    expect(toggle().props.accessibilityLabel).toBe('results.details');
+    expect(text(renderer)).toContain('results.issues');
+    await act(async () => toggle().props.onPress()); expect(ids()).toEqual(results.map((value) => value.entryId));
+    expect(toggle().props.accessibilityLabel).toBe('results.hideDetails');
+    expect(text(renderer)).not.toContain('results.issues');
     await act(async () => { expect([...state.listeners].reverse().some((listener) => listener())).toBe(true); });
     expect(ids()).toEqual(['dateIssue', 'failed', 'cancelled']);
     expect(renderer.root.findByType(host('ConfirmDialog')).props.visible).toBe(false);
@@ -143,5 +154,36 @@ describe('production Results details virtualization and Back', () => {
     await act(async () => primary.props.onPress());
     expect(state.openGallery).toHaveBeenCalledExactlyOnceWith('/Pictures/chatStamp/Synthetic', results);
     expect(state.openFile).not.toHaveBeenCalled();
+  });
+});
+
+describe('Done summary banner reports success only without failures, cancellations or date issues', () => {
+  const bannerIcon = (renderer: ReactTestRenderer) => renderer.root.findAllByType(host('Icon'))
+    .find((node) => node.props.name === 'check-circle-outline' || node.props.name === 'alert-circle-outline')!;
+  async function banner(results: SaveFileResult[]) {
+    usePipelineStore.getState().setCompletion(completion(results));
+    const renderer = await mount(React.createElement(DoneScreen));
+    const icon = bannerIcon(renderer);
+    expect(icon).toBeDefined();
+    return { name: icon.props.name as string, color: icon.props.color as string };
+  }
+
+  it('shows the success check when every file saved with a verified date', async () => {
+    expect(await banner([row('a'), row('b')])).toEqual({ name: 'check-circle-outline', color: 'role:onPrimaryContainer' });
+  });
+
+  it.each([
+    ['an unverified date', { dateCorrectionVerified: false, dateVerification: 'unverified' }],
+    ['a Gallery that may sort by import time', { galleryMaySortByImportTime: true }],
+  ] as const)('shows the neutral alert when a saved file has %s', async (_label, patch) => {
+    const result = await banner([row('a'), row('b', patch)]);
+    expect(result).toEqual({ name: 'alert-circle-outline', color: 'role:onSurfaceVariant' });
+  });
+
+  it.each([
+    ['failed', { ok: false, outcome: 'failed', dateCorrectionVerified: false }],
+    ['cancelled', { ok: false, outcome: 'cancelled', dateCorrectionVerified: false }],
+  ] as const)('shows the neutral alert when a file %s', async (_label, patch) => {
+    expect(await banner([row('a'), row('b', patch)])).toEqual({ name: 'alert-circle-outline', color: 'role:onSurfaceVariant' });
   });
 });

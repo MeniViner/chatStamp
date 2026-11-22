@@ -1,66 +1,60 @@
 export const spacing = {
-  screenHorizontal: 24,
-  listHorizontal: 20,
-  section: 32,
-  card: 18,
-  innerCard: 22,
+  screenHorizontal: 16,
+  section: 28,
+  card: 16,
+  innerCard: 20,
   compactInner: 16,
   gap: 12,
   smallGap: 8,
-  tinyGap: 4
+  tinyGap: 4,
+  segmentGap: 2
 } as const;
 
+/**
+ * Grouped lists use large outer corners and small inner corners, so adjacent
+ * rows read as one segmented surface. Buttons are full pills.
+ */
 export const radius = {
-  card: 16,
-  largeCard: 16,
-  button: 16,
-  smallButton: 16,
-  chip: 16,
-  thumbnail: 16
+  card: 24,
+  largeCard: 28,
+  segment: 6,
+  button: 999,
+  smallButton: 999,
+  chip: 8,
+  thumbnail: 12,
+  dialog: 28,
+  bubble: 18
 } as const;
 
 export const size = {
   buttonHeight: 56,
-  smallButtonHeight: 48,
-  chipHeight: 36,
-  stickyFooterMinHeight: 92,
-  iconContainer: 48,
-  listItemMinHeight: 82,
-  touchTarget: 48
+  smallButtonHeight: 44,
+  chipHeight: 28,
+  iconContainer: 40,
+  listItemMinHeight: 64,
+  touchTarget: 48,
+  topBarHeight: 56
 } as const;
 
 export const appTypography = {
-  screenTitle: {
-    fontSize: 30,
-    lineHeight: 38,
-    fontWeight: '800' as const
+  largeTitle: {
+    fontSize: 34,
+    lineHeight: 42,
+    fontWeight: '400' as const
   },
   sectionTitle: {
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 20,
     fontWeight: '600' as const
-  },
-  cardTitle: {
-    fontSize: 17,
-    lineHeight: 24,
-    fontWeight: '600' as const
-  },
-  body: {
-    fontSize: 16,
-    lineHeight: 24
-  },
-  secondaryBody: {
-    fontSize: 15,
-    lineHeight: 21
   },
   caption: {
-    fontSize: 13,
-    lineHeight: 20
+    fontSize: 12,
+    lineHeight: 16
   },
   button: {
-    fontSize: 17,
+    fontSize: 16,
     lineHeight: 22,
-    fontWeight: '700' as const
+    fontWeight: '600' as const
   }
 } as const;
 

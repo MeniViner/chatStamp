@@ -12,16 +12,27 @@ vi.mock('expo-video', () => ({ VideoView: 'VideoView', createVideoPlayer: contro
 vi.mock('expo-audio', () => ({ createAudioPlayer: control.audio }));
 vi.mock('expo-image', () => ({ Image: 'Image' }));
 vi.mock('expo-file-system', () => ({ File: class {} }));
-vi.mock('react-native', () => ({
-  Modal: 'Modal', Pressable: 'Pressable', ScrollView: 'ScrollView', View: 'View',
-  I18nManager: { get isRTL() { return control.rtl; } },
-  PanResponder: { create: (handlers: object) => ({ panHandlers: handlers }) },
-  StyleSheet: { create: <T,>(styles: T) => styles },
-}));
-vi.mock('react-native-paper', () => ({ Text: 'Text', Button: 'Button', IconButton: 'IconButton', ActivityIndicator: 'ActivityIndicator' }));
-vi.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }));
-vi.mock('../src/theme/useAppTheme', () => ({ useAppTheme: () => ({ colors: { background: '#fff', surfaceVariant: '#eee', primary: '#123' } }) }));
-vi.mock('../src/native/mediaPreviews', () => ({ awaitMediaRelease: async () => undefined, getThumbnail: vi.fn(), openFileInOtherApp: control.external }));
+vi.mock('react-native', async () => {
+  const { createElement, Fragment } = await import('react');
+  type ListProps<T> = { data: readonly T[]; keyExtractor: (item: T) => string; renderItem: (info: { item: T; index: number }) => React.ReactNode };
+  // Renders every row so assertions see the whole bounded section, as a fully scrolled list would.
+  const FlatList = <T,>({ data, keyExtractor, renderItem, ...props }: ListProps<T>) => createElement('FlatList', { ...props, data },
+    data.map((item, index) => createElement(Fragment, { key: keyExtractor(item) }, renderItem({ item, index }))));
+  return {
+    Modal: 'Modal', Pressable: 'Pressable', ScrollView: 'ScrollView', View: 'View', TextInput: 'TextInput', StatusBar: 'StatusBar', FlatList,
+    I18nManager: { get isRTL() { return control.rtl; } },
+    PanResponder: { create: (handlers: object) => ({ panHandlers: handlers }) },
+    StyleSheet: { create: <T,>(styles: T) => styles, hairlineWidth: 1 },
+  };
+});
+vi.mock('@expo/vector-icons', () => ({ MaterialCommunityIcons: 'Icon' }));
+vi.mock('react-native-paper', () => ({ Text: 'Text', Button: 'Button', IconButton: 'IconButton', ActivityIndicator: 'ActivityIndicator', Chip: 'Chip' }));
+vi.mock('react-native-safe-area-context', () => ({ SafeAreaView: 'SafeAreaView', useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }));
+vi.mock('../src/theme/useAppTheme', () => ({ useAppTheme: () => ({ dark: false, colors: {
+  background: '#fff', surfaceVariant: '#eee', primary: '#123', primaryContainer: '#mine', onPrimaryContainer: '#onmine',
+  onSurface: '#111', onSurfaceVariant: '#444', secondaryContainer: '#sel', onSecondaryContainer: '#onsel', outlineVariant: '#ccc',
+} }) }));
+vi.mock('../src/native/mediaPreviews', () => ({ awaitMediaRelease: async () => undefined, getThumbnail: vi.fn(), invalidateThumbnail: vi.fn(), openFileInOtherApp: control.external }));
 vi.mock('../src/components/MediaSelectionList', () => ({ formatSelectionBytes: (bytes: number) => `${bytes} B` }));
 vi.mock('../src/services/transcriptReader', () => ({ readTranscriptPage: control.read }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({
@@ -110,8 +121,12 @@ describe('owner UX14 actual media arrow direction and page identity', () => {
     await press(ui.button('viewer.next'));
     const checkbox = ui.renderer.root.findAllByType(host('Pressable')).find((node) => node.props.accessibilityRole === 'checkbox')!;
     expect(checkbox.props.accessibilityState.checked).toBe(false);
+    expect(checkbox.findByType(host('Icon')).props.name).toBe('checkbox-blank-circle-outline');
     await press(checkbox);
     expect(ui.onToggle).toHaveBeenCalledExactlyOnceWith('middle');
+    const toggled = ui.renderer.root.findAllByType(host('Pressable')).find((node) => node.props.accessibilityRole === 'checkbox')!;
+    expect(toggled.props.accessibilityState.checked).toBe(true);
+    expect(toggled.findByType(host('Icon')).props.name).toBe('check-circle');
     expect(ui.selection()).toEqual(new Set(['first', 'middle', 'hidden']));
     await press(ui.button('viewer.next'));
     expect(ui.button('viewer.next').props.disabled).toBe(true);
@@ -157,6 +172,19 @@ async function mountReader(uri = 'file:///synthetic/chat.txt') {
   };
 }
 const textNodes = (renderer: ReactTestRenderer) => renderer.root.findAllByType(host('Text')).map((node) => node.props.children);
+const flatten = (style: unknown): Record<string, unknown> => Array.isArray(style) ? Object.assign({}, ...style.map(flatten)) : (style && typeof style === 'object' ? style as Record<string, unknown> : {});
+/** Each message bubble is the single accessible View inside a bubble row. */
+function bubbleNodes(renderer: ReactTestRenderer) {
+  return renderer.root.findAllByType(host('View')).filter((node) => node.props.accessible === true && typeof node.props.accessibilityLabel === 'string'
+    && node.parent !== null && flatten(node.parent.props.style).flexDirection === 'row');
+}
+const bubbleLabels = (renderer: ReactTestRenderer) => bubbleNodes(renderer).map((node) => node.props.accessibilityLabel);
+/** Bubble rows are the only row containers that set a main-axis side (start for others, end for "me"). */
+function bubbles(renderer: ReactTestRenderer) {
+  return renderer.root.findAllByType(host('View')).filter((node) => {
+    const style = flatten(node.props.style); return style.flexDirection === 'row' && (style.justifyContent === 'flex-start' || style.justifyContent === 'flex-end');
+  }).map((row) => ({ mine: flatten(row.props.style).justifyContent === 'flex-end', texts: row.findAllByType(host('Text')).map((node) => node.props.children) }));
+}
 
 describe('owner UX14 actual bounded transcript reader and document distinction', () => {
   it('opens the actual transcript inside the viewer with long Hebrew/multiline selectable content and no external chooser', async () => {
@@ -165,11 +193,12 @@ describe('owner UX14 actual bounded transcript reader and document distinction',
     const item = { ...document('actual-selected-chat'), sourceKind: 'chat-transcript' as const };
     const ui = await mountViewer(item.id, [item]);
     expect(control.read).toHaveBeenCalledExactlyOnceWith(item.uri, 0);
-    const scroll = ui.renderer.root.findByType(host('ScrollView'));
-    expect(scroll.props).toMatchObject({ accessibilityLabel: item.filename, nestedScrollEnabled: true });
-    const content = scroll.findByType(host('Text'));
-    expect(content.props).toMatchObject({ selectable: true, children: text });
-    expect(Object.assign({}, ...content.props.style).writingDirection).toBe('auto');
+    const list = ui.renderer.root.findByType(host('FlatList'));
+    expect(list.props).toMatchObject({ accessibilityLabel: item.filename, nestedScrollEnabled: true });
+    const bodies = list.findAllByType(host('Text')).filter((node) => node.props.selectable && node.props.children === 'שלום משפחה\nהמשך ההודעה בשורה חדשה');
+    expect(bodies).toHaveLength(300);
+    for (const body of bodies) expect(flatten(body.props.style).writingDirection).toBe('auto');
+    expect(list.findAllByType(host('Text')).filter((node) => node.props.children === 'דנה')).toHaveLength(1);
     expect(ui.renderer.root.findAllByType(host('Button')).some((node) => node.props.children === 'viewer.openExternal')).toBe(false);
     expect(control.external).not.toHaveBeenCalled();
     expect(control.read).toHaveBeenCalledTimes(1);
@@ -232,5 +261,130 @@ describe('owner UX14 actual bounded transcript reader and document distinction',
     expect(textNodes(ui.renderer)).toContain('viewer.transcriptEnd');
     expect(ui.renderer.root.findAllByType(host('Button'))).toHaveLength(0);
     expect(control.read).toHaveBeenCalledTimes(1);
+  });
+});
+
+const chat = [
+  '26.2.2019, 10:00 - Messages and calls are end-to-end encrypted.',
+  '26.2.2019, 10:01 - דנה: מי מביא פיצה?',
+  '26.2.2019, 10:02 - דנה: ושתייה',
+  '26.2.2019, 10:03 - אבא: אני מביא פיצה',
+  '27.2.2019, 09:00 - אבא: IMG-20190227-WA0001.jpg (file attached)',
+  '27.2.2019, 09:05 - Gil: <Media omitted>',
+].join('\n');
+
+describe('owner UX14 transcript bubbles, "me" choice and in-section search', () => {
+  beforeEach(() => { control.read.mockResolvedValue({ text: chat, offset: 0, nextOffset: null, totalBytes: chat.length }); });
+
+  it('renders parsed messages as bubbles with day separators, a centered system line and an attachment row', async () => {
+    const ui = await mountReader();
+    const rows = bubbles(ui.renderer);
+    expect(rows).toHaveLength(5);
+    expect(rows.every((row) => !row.mine)).toBe(true);
+    expect(rows.map((row) => row.texts)).toEqual([
+      ['דנה', 'מי מביא פיצה?', '10:01'], ['ושתייה', '10:02'], ['אבא', 'אני מביא פיצה', '10:03'],
+      ['אבא', 'IMG-20190227-WA0001.jpg', '09:00'], ['Gil', '<Media omitted>', '09:05'],
+    ]);
+    const texts = textNodes(ui.renderer);
+    expect(texts).toEqual(expect.arrayContaining(['26.2.2019', '27.2.2019', 'Messages and calls are end-to-end encrypted.']));
+    // The attachment is announced through its bubble; the paperclip itself is decorative.
+    const clip = ui.renderer.root.findAllByType(host('Icon')).filter((node) => node.props.name === 'paperclip');
+    expect(clip).toHaveLength(1);
+    expect(clip[0].props.importantForAccessibility).toBe('no');
+    expect(bubbleLabels(ui.renderer)).toContain('אבא, 09:00: viewer.transcriptAttachment IMG-20190227-WA0001.jpg');
+    expect(control.read).toHaveBeenCalledOnce();
+    expect(control.external).not.toHaveBeenCalled();
+  });
+
+  it('makes every bubble one accessible element labelled sender, time and content, including follow-on and "me" bubbles', async () => {
+    const ui = await mountReader();
+    const expected = [
+      'דנה, 10:01: מי מביא פיצה?', 'דנה, 10:02: ושתייה', 'אבא, 10:03: אני מביא פיצה',
+      'אבא, 09:00: viewer.transcriptAttachment IMG-20190227-WA0001.jpg', 'Gil, 09:05: <Media omitted>',
+    ];
+    expect(bubbleLabels(ui.renderer)).toEqual(expected);
+    // The follow-on bubble draws no name, yet its label still names the sender.
+    expect(bubbles(ui.renderer)[1].texts).not.toContain('דנה');
+    for (const bubble of bubbleNodes(ui.renderer)) {
+      expect(bubble.findAll((node) => node !== bubble && node.props.accessible === true)).toHaveLength(0);
+    }
+    await press(ui.renderer.root.findAllByType(host('Chip')).find((node) => node.props.children === 'אבא')!);
+    const rows = bubbles(ui.renderer);
+    expect(rows.filter((row) => row.mine).some((row) => row.texts.includes('אבא'))).toBe(false);
+    expect(bubbleLabels(ui.renderer)).toEqual(expected);
+  });
+
+  it('renders an attachment caption under the attachment row and adds it to the bubble label', async () => {
+    const text = '27.2.2019, 09:00 - אבא: IMG-1.jpg (file attached)\nLook at this';
+    control.read.mockResolvedValue({ text, offset: 0, nextOffset: null, totalBytes: text.length });
+    const ui = await mountReader();
+    expect(bubbleLabels(ui.renderer)).toEqual(['אבא, 09:00: viewer.transcriptAttachment IMG-1.jpg, Look at this']);
+    const [bubble] = bubbleNodes(ui.renderer);
+    const children = bubble.children.filter((node): node is ReactTestInstance => typeof node !== 'string');
+    const attachmentIndex = children.findIndex((node) => node.findAllByType(host('Text')).some((textNode) => textNode.props.children === 'IMG-1.jpg'));
+    const captionIndex = children.findIndex((node) => node.type === host('Text') && node.props.children === 'Look at this');
+    expect(attachmentIndex).toBeGreaterThanOrEqual(0);
+    expect(captionIndex).toBeGreaterThan(attachmentIndex);
+  });
+
+  it('moves only the chosen sender\'s bubbles to the "me" side and toggles back', async () => {
+    const ui = await mountReader();
+    expect(textNodes(ui.renderer)).toContain('viewer.transcriptMe');
+    const chip = (name: string) => ui.renderer.root.findAllByType(host('Chip')).find((node) => node.props.children === name)!;
+    expect(ui.renderer.root.findAllByType(host('Chip')).map((node) => node.props.children).sort()).toEqual(['Gil', 'אבא', 'דנה'].sort());
+    await press(chip('אבא'));
+    expect(chip('אבא').props.selected).toBe(true); expect(chip('דנה').props.selected).toBe(false);
+    const rows = bubbles(ui.renderer);
+    expect(rows.map((row) => row.mine)).toEqual([false, false, true, true, false]);
+    expect(rows.filter((row) => row.mine).some((row) => row.texts.includes('אבא'))).toBe(false);
+    await press(chip('דנה'));
+    expect(bubbles(ui.renderer).map((row) => row.mine)).toEqual([true, true, false, false, false]);
+    await press(chip('דנה'));
+    expect(bubbles(ui.renderer).every((row) => !row.mine)).toBe(true);
+    expect(control.read).toHaveBeenCalledOnce();
+  });
+
+  it('offers no "me" choice when the section has a single sender', async () => {
+    control.read.mockResolvedValue({ text: '26.2.2019, 10:01 - דנה: אחת\n26.2.2019, 10:02 - דנה: שתיים', offset: 0, nextOffset: null, totalBytes: 60 });
+    const ui = await mountReader();
+    expect(ui.renderer.root.findAllByType(host('Chip'))).toHaveLength(0);
+    expect(textNodes(ui.renderer)).not.toContain('viewer.transcriptMe');
+    expect(bubbles(ui.renderer)).toHaveLength(2);
+  });
+
+  it('filters the current section to matching messages, shows the count and restores everything on close', async () => {
+    const ui = await mountReader();
+    const search = () => ui.renderer.root.findAllByType(host('IconButton')).find((node) => node.props.accessibilityLabel === 'viewer.transcriptSearch')!;
+    await press(search());
+    const input = () => ui.renderer.root.findByType(host('TextInput'));
+    expect(input().props.accessibilityLabel).toBe('viewer.transcriptSearch');
+    await act(async () => input().props.onChangeText('  פיצה '));
+    expect(bubbles(ui.renderer).map((row) => row.texts[row.texts.length - 2])).toEqual(['מי מביא פיצה?', 'אני מביא פיצה']);
+    expect(textNodes(ui.renderer)).toContain('viewer.transcriptMatches|{"count":2}');
+    expect(textNodes(ui.renderer)).not.toContain('26.2.2019');
+    await act(async () => input().props.onChangeText('Gil'));
+    expect(bubbles(ui.renderer)).toHaveLength(1);
+    await act(async () => input().props.onChangeText('לא קיים'));
+    expect(bubbles(ui.renderer)).toHaveLength(0);
+    expect(textNodes(ui.renderer)).toContain('viewer.transcriptNoMatches|{"count":0}');
+    const close = ui.renderer.root.findAllByType(host('IconButton')).find((node) => node.props.accessibilityLabel === 'common.close')!;
+    expect(flatten(close.props.style)).toMatchObject({ width: 48, height: 48 });
+    await press(close);
+    expect(ui.renderer.root.findAllByType(host('TextInput'))).toHaveLength(0);
+    expect(bubbles(ui.renderer)).toHaveLength(5);
+    expect(textNodes(ui.renderer).some((value) => typeof value === 'string' && value.startsWith('viewer.transcriptMatches'))).toBe(false);
+    expect(control.read).toHaveBeenCalledOnce();
+  });
+
+  it('keeps bounded paging for parsed sections: only the current section is shown and duplicate next taps read once', async () => {
+    const second = '28.2.2019, 08:00 - דנה: חלק שני';
+    control.read.mockImplementation(async (_uri: string, offset: number) => offset === 0
+      ? { text: chat, offset: 0, nextOffset: 4096, totalBytes: 8000 } : { text: second, offset: 4096, nextOffset: null, totalBytes: 8000 });
+    const ui = await mountReader();
+    const next = ui.button('viewer.transcriptNextSection');
+    await act(async () => { next.props.onPress(); next.props.onPress(); await flush(); });
+    expect(control.read.mock.calls).toEqual([['file:///synthetic/chat.txt', 0], ['file:///synthetic/chat.txt', 4096]]);
+    expect(bubbles(ui.renderer).map((row) => row.texts)).toEqual([['דנה', 'חלק שני', '08:00']]);
+    expect(textNodes(ui.renderer)).toEqual(expect.arrayContaining(['viewer.transcriptEnd', 'viewer.transcriptSection|{"current":2}']));
   });
 });

@@ -1521,3 +1521,35 @@ Fresh report/selected actual JPEGs/static checks/compact receipts are together i
 are together separately in **dist/play/native-launcher-release-20261120/**.
 Earlier evidence remains unchanged. Final PR1 stays open/unmerged; real owner
 WhatsApp/Gallery/physical/16KiB/testing-period gates retain UNVERIFIED scope.
+
+## 2026-11-22 — Owner design pass verification
+
+Host (worktree `claude/revanced-design-chatstamp-7834de`, uncommitted):
+`npm ci` PASS; `npm run typecheck` PASS; `npm run test` 60 files / 655 tests PASS;
+`npm run lint` PASS; `node scripts/i18n-audit.js` ok:true.
+`npx expo prebuild --platform android --clean` PASS; QA `:app:assembleDebug`
+(device-test init script, arm64-v8a) PASS; `:chatstamp-native:testDebugUnitTest`
+67 tests / 0 failures and `:chatstamp-native:connectedDebugAndroidTest` 74 tests on
+SM-A305F (Android 11) PASS. These native runs used this pass's source before the
+review fixes; the fixes changed TypeScript only and the QA APK was rebuilt after them.
+APK: `com.menis10tec.chatstamp.qa`, versionCode 16, minSdk 30, targetSdk 36.
+Permissions: FOREGROUND_SERVICE, FOREGROUND_SERVICE_DATA_SYNC, POST_NOTIFICATIONS,
+the dynamic-receiver permission and debug-only SYSTEM_ALERT_WINDOW; no storage,
+MANAGE_EXTERNAL_STORAGE or READ_MEDIA_* permission.
+
+Device (SM-A305F, API 30, QA package only, synthetic Hebrew group export
+`chatstamp-qa-design-20261122-reader.zip`, fictional names): cold launch with an
+empty crash buffer; onboarding shows two pages on API 30 with the logo header;
+Home, Settings menu/categories/theme selector, Select tabs/grid and the transcript
+reader render in Hebrew RTL; bubbles show sender names/colors, day pills, centered
+system notices, the "which one is you" alignment and attachment rows; in-section
+search finds the single matching message.
+
+UNVERIFIED: the Android 13+ notifications onboarding page on a device (needs an
+API 33+ device or emulator: replay onboarding from Settings → Help, press Allow,
+deny twice, confirm the Settings action and return re-check); dynamic Material
+colors (API 30 has none; brown fallback shown); the cold-start first frame after
+`initialWindowMetrics` (screen capture too slow to catch the transition); TalkBack
+reading of bubbles and option rows on a device; Processing/Done/History restyle
+with a real save; real WhatsApp export and Gallery date acceptance are unchanged
+from earlier entries and not re-run here.

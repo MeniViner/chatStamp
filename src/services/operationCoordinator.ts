@@ -1,5 +1,6 @@
-import { AppState, PermissionsAndroid, Platform } from 'react-native';
+import { AppState } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import { requestNotificationPermission } from '../native/notificationPermission';
 import { getChatStampNativeModule, type NativeSharedZipResult, type OperationSnapshot } from '../native/chatStampNativeModule';
 import { usePipelineStore } from '../store/pipelineStore';
 import { useHistoryStore, createExportHistoryItem } from '../store/historyStore';
@@ -246,9 +247,8 @@ export async function startSaving(intent?: SaveIntent): Promise<void> {
   initial.setStage('saving');
   const task = (async () => {
     try {
-      if (Platform.OS === 'android' && Number(Platform.Version) >= 33) {
-        await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
-      }
+      // Optional: without it the foreground service still saves, only its progress notification is hidden.
+      await requestNotificationPermission().catch(() => undefined);
       const completion = await runSavePipeline({
         files: initial.mediaFiles, selectedSenders: initial.selectedSenders,
         selectedMediaTypes: initial.selectedMediaTypes, selectedFileIds: initial.pendingSaveIds ?? initial.selectedFileIds,

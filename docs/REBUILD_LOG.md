@@ -1614,3 +1614,46 @@ Fresh report/selected actual JPEGs/static checks/compact receipts are together i
 are together separately in **dist/play/native-launcher-release-20261120/**.
 Earlier evidence remains unchanged. Final PR1 stays open/unmerged; real owner
 WhatsApp/Gallery/physical/16KiB/testing-period gates retain UNVERIFIED scope.
+
+## 2026-11-22 — Owner design pass: ReVanced-style visual language and chat reader
+
+Owner request: adopt ReVanced Manager's visual language (installed reference app on
+the owner's SM-A305F, API 30) across chatStamp, restyle Settings to match, and make
+the transcript reader readable. Owner decisions: keep the brown/peach palette and
+always prefer the user's dynamic Material colors; add a permissions onboarding
+screen only for what is needed (notifications, no battery exemption); WhatsApp-style
+chat bubbles.
+
+Changes (presentation only; import, matching, native save and date verification
+are untouched):
+- Shared design language in `src/theme/designTokens.ts` and `src/components/AppUi.tsx`:
+  segmented grouped lists (24dp outer / 6dp inner corners, 2dp gaps), tonal icon
+  circles, large start-aligned titles, 56dp pill buttons, colored info banners,
+  28dp dialogs with text buttons, tag badges. `SettingsCategoryPanel` was deleted
+  and replaced by `ListGroup` / `ListItem` / `NavigationItem`.
+- Settings menu, categories, three-circle theme selector and About row; Home,
+  History, Processing, Error, Done, Select and the WhatsApp guide restyled.
+- Onboarding: "Welcome to chatStamp" header with the app logo on every page. Two
+  pages (intro, export steps). On Android 13+ only, an optional notifications page
+  sits between them; it never blocks Next and says saving works without it.
+  `src/native/notificationPermission.ts` is now the single POST_NOTIFICATIONS path,
+  also used at save time by `operationCoordinator`. `docs/CODE_REVIEW.md` onboarding
+  rule updated to this owner decision.
+- Transcript reader: `src/lib/transcriptMessages.ts` turns a bounded section into
+  day, system, message and plain-text entries (Android and iOS forms, iOS group
+  notices, omitted/deleted media, attachment captions). `TranscriptReader` shows
+  bubbles with sender colors, run grouping, day pills, a "which one is you" chooser
+  and in-section search; each bubble is one accessible element with sender, time
+  and text.
+- Small in-app logo `assets/app-logo.png` (192px) instead of the 1024px icon.
+- `SafeAreaProvider` receives `initialWindowMetrics` so cold-start top bars do not
+  draw under the status bar.
+
+Roles: Implementer (main session), Test author and Reviewer as separate sub-agents.
+Reviewer findings (1 blocker, 4 major, 8 minor) were all resolved: onboarding rule
+aligned with the owner decision and the permission made optional and API-gated;
+row accessibility with extras fixed; bubbles grouped for TalkBack; duplicate
+permission request removed; honest permission copy; iOS notice/omitted/caption
+parsing; shared line split; dead tokens/props removed; 48dp targets; duplicate
+Home row removed; Done success icon requires verified dates; small logo asset.
+The compact Select title keeps its untruncated text as the accessible name.

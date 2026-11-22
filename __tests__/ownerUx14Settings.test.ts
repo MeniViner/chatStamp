@@ -14,7 +14,7 @@ const control = vi.hoisted(() => ({
   replay: vi.fn(), clearHistory: vi.fn(), discard: vi.fn(), cleanup: vi.fn(),
 }));
 vi.mock('react-native', () => ({
-  View: 'View', ScrollView: 'ScrollView', Pressable: 'Pressable', Linking: { openURL: control.openURL },
+  View: 'View', ScrollView: 'ScrollView', Pressable: 'Pressable', StatusBar: 'StatusBar', Linking: { openURL: control.openURL },
   I18nManager: { get isRTL() { return control.rtl; } },
   StyleSheet: { create: <T,>(styles: T) => styles, hairlineWidth: 1 },
   BackHandler: { addEventListener: (_name: string, callback: () => boolean) => {
@@ -30,8 +30,13 @@ vi.mock('../src/components/BottomSheet', async () => {
     createElement('BottomSheet', props, props.visible ? children : null, props.visible ? footer : null) };
 });
 vi.mock('../src/components/ConfirmDialog', () => ({ ConfirmDialog: 'ConfirmDialog' }));
-vi.mock('../src/components/AppUi', () => ({
-  textStyles: { start: {} }, InfoRow: 'InfoRow', OptionChoiceCard: 'OptionChoiceCard', PrimaryButton: 'PrimaryButton', SecondaryButton: 'SecondaryButton',
+vi.mock('expo-image', () => ({ Image: 'Image' }));
+vi.mock('react-native-safe-area-context', () => ({ SafeAreaView: 'SafeAreaView', useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }));
+vi.mock('../src/native/mediaPreviews', () => ({ getThumbnail: vi.fn(), invalidateThumbnail: vi.fn() }));
+// Real list rows (ListGroup/ListItem/NavigationItem/AppLogo) prove targets, labels and chevrons; leaf controls stay inspectable hosts.
+vi.mock('../src/components/AppUi', async (importOriginal) => ({
+  ...await importOriginal<typeof import('../src/components/AppUi')>(),
+  InfoRow: 'InfoRow', OptionChoiceCard: 'OptionChoiceCard', PrimaryButton: 'PrimaryButton', SecondaryButton: 'SecondaryButton',
   SettingsSectionCard: 'SettingsSectionCard', SettingRow: 'SettingRow',
 }));
 vi.mock('../src/screens/WizardScreen', async () => {
@@ -89,19 +94,27 @@ async function mount(prior: PipelineStage = 'selectFiles') {
 const find = (renderer: ReactTestRenderer, name: string, matches: (node: ReactTestInstance) => boolean = () => true) => renderer.root.findAllByType(host(name)).find(matches)!;
 const button = (renderer: ReactTestRenderer, text: string) => find(renderer, 'SecondaryButton', (node) => node.props.children === text);
 async function press(node: ReactTestInstance) { await act(async () => { node.props.onPress(); await flush(); }); }
-async function enter(renderer: ReactTestRenderer, title: string) { await press(find(renderer, 'Pressable', (node) => node.props.accessibilityLabel === title)); }
+/** A real ListItem row is a Pressable labelled "title" or "title, description". */
+const labelled = (title: string) => (node: ReactTestInstance) => node.props.accessibilityLabel === title || String(node.props.accessibilityLabel).startsWith(`${title}, `);
+const row = (renderer: ReactTestRenderer, title: string) => find(renderer, 'Pressable', labelled(title));
+async function enter(renderer: ReactTestRenderer, title: string) { await press(row(renderer, title)); }
+const flatten = (style: unknown): Record<string, unknown> => Array.isArray(style) ? Object.assign({}, ...style.map(flatten)) : (style && typeof style === 'object' ? style as Record<string, unknown> : {});
 async function hardwareBack() { await act(async () => { expect([...control.listeners].reverse().some((callback) => callback())).toBe(true); await flush(); }); }
 async function toolbarBack(renderer: ReactTestRenderer) { await act(async () => find(renderer, 'WizardScreen').props.onBack()); }
 async function change(renderer: ReactTestRenderer, title: string, value: boolean) {
   await act(async () => { find(renderer, 'SettingRow', (node) => node.props.title === title).props.onValueChange(value); await flush(); });
 }
+// The version is shown as an LTR-isolated run so "0.2.0 (14)" keeps its order inside RTL rows.
+const version = '\u200e0.2.0 (14)';
 const categoryTitles = ['settings.categories.saving.title', 'settings.language', 'settings.appearance', 'settings.categories.storage.title', 'settings.categories.help.title', 'settings.categories.advanced.title'];
+const categorySummaries = ['saving', 'language', 'appearance', 'storage', 'help', 'advanced'].map((id) => `settings.categories.${id}.summary`);
 
 describe('owner UX14 actual Settings category navigation', () => {
   it('opens exactly the category menu and leaves its controls and destructive actions closed', async () => {
     const renderer = await mount();
     const entries = renderer.root.findAllByType(host('Pressable')).filter((node) => node.props.accessibilityRole === 'button');
-    expect(entries.map((node) => node.props.accessibilityLabel)).toEqual(categoryTitles);
+    expect(entries.map((node) => node.props.accessibilityLabel)).toEqual([
+      ...categoryTitles.map((title, index) => `${title}, ${categorySummaries[index]}`), `onboarding.appName, ${version}`]);
     expect(renderer.root.findAllByType(host('SettingRow'))).toHaveLength(0);
     expect(renderer.root.findAllByType(host('OptionChoiceCard'))).toHaveLength(0);
     expect(renderer.root.findAllByType(host('ConfirmDialog')).every((node) => !node.props.visible)).toBe(true);
@@ -112,14 +125,14 @@ describe('owner UX14 actual Settings category navigation', () => {
     ['settings.categories.saving.title', 'SettingRow', 'settings.alwaysUseMessageDate'],
     ['settings.language', 'OptionChoiceCard', 'settings.languageOptions.he'],
     ['settings.appearance', 'SettingRow', 'settings.dynamicColors'],
-    ['settings.categories.storage.title', 'SecondaryButton', 'settings.clearHistory'],
-    ['settings.categories.help.title', 'SecondaryButton', 'settings.privacyPolicy'],
+    ['settings.categories.storage.title', 'Pressable', 'settings.clearHistory'],
+    ['settings.categories.help.title', 'Pressable', 'settings.privacyPolicy'],
     ['settings.categories.advanced.title', 'SettingRow', 'settings.developerModeToggle'],
   ])('opens %s controls and returns to menu before the retained Select session', async (title, kind, label) => {
     const renderer = await mount();
     await enter(renderer, title);
     expect(find(renderer, 'WizardScreen').props.title).toBe(title);
-    expect(find(renderer, kind, (node) => node.props.title === label || node.props.children === label)).toBeDefined();
+    expect(find(renderer, kind, (node) => node.props.title === label || labelled(label)(node))).toBeDefined();
     await hardwareBack();
     expect(find(renderer, 'WizardScreen').props.title).toBe('settings.title');
     expect(usePipelineStore.getState().stage).toBe('settings');
@@ -127,6 +140,16 @@ describe('owner UX14 actual Settings category navigation', () => {
     expect(usePipelineStore.getState()).toMatchObject({ stage: 'selectFiles', workingDirectory: 'file:///cache/chatstamp/retained/' });
     expect(usePipelineStore.getState().selectedFileIds).toEqual(new Set(['visible', 'hidden']));
     expect(control.discard).not.toHaveBeenCalled();
+  });
+
+  it('opens Help from the About row with the app logo and version', async () => {
+    const renderer = await mount();
+    const about = row(renderer, 'onboarding.appName');
+    expect(about.findAllByType(host('Image'))).toHaveLength(1);
+    await press(about);
+    expect(find(renderer, 'WizardScreen').props.title).toBe('settings.categories.help.title');
+    expect(find(renderer, 'InfoRow', (node) => node.props.label === 'settings.versionBuild').props.value).toBe(version);
+    await hardwareBack(); expect(find(renderer, 'WizardScreen').props.title).toBe('settings.title');
   });
 
   it.each(['welcome', 'results'] as const)('returns the menu to its actual %s caller', async (prior) => {
@@ -139,17 +162,20 @@ describe('owner UX14 actual Settings category navigation', () => {
   it.each([false, true])('keeps category entry labels,48dp targets and native RTL=%s chevrons accessible', async (rtl) => {
     control.rtl = rtl;
     const renderer = await mount();
-    const entry = find(renderer, 'Pressable', (node) => node.props.accessibilityLabel === 'settings.language');
-    expect(entry.props).toMatchObject({ accessible: true, accessibilityRole: 'button', accessibilityHint: 'settings.categories.language.summary' });
-    const style = Object.assign({}, ...entry.props.style({ pressed: false }));
-    expect(style.minHeight).toBeGreaterThanOrEqual(48);
+    const entry = row(renderer, 'settings.language');
+    // RN Pressable is accessible unless told otherwise: the row is one element exposing role and label.
+    expect(entry.props.accessible).not.toBe(false);
+    expect(entry.props).toMatchObject({ accessibilityRole: 'button', accessibilityLabel: 'settings.language, settings.categories.language.summary' });
+    expect(entry.findAll((node) => node !== entry && (node.props.accessible === true || typeof node.props.accessibilityRole === 'string'))).toHaveLength(0);
+    expect(flatten(entry.props.style({ pressed: false })).minHeight).toBeGreaterThanOrEqual(48);
+    expect(flatten(entry.props.style({ pressed: true })).minHeight).toBeGreaterThanOrEqual(48);
     expect(entry.findAllByType(host('Icon')).at(-1)?.props.name).toBe(rtl ? 'chevron-left' : 'chevron-right');
   });
 
   it('dismisses the organization sheet before returning saving→menu→caller', async () => {
     const renderer = await mount();
     await enter(renderer, 'settings.categories.saving.title');
-    await press(button(renderer, 'settings.change'));
+    await press(find(renderer, 'Pressable', (node) => node.findAllByType(host('Text')).some((text) => text.props.children === 'settings.change')));
     expect(find(renderer, 'BottomSheet').props.visible).toBe(true);
     await hardwareBack();
     expect(find(renderer, 'BottomSheet').props.visible).toBe(false);
@@ -159,7 +185,7 @@ describe('owner UX14 actual Settings category navigation', () => {
   });
 
   it.each(['settings.clearAppCache', 'settings.clearHistory'])('Back dismisses %s confirmation before its category', async (action) => {
-    const renderer = await mount(); await enter(renderer, 'settings.categories.storage.title'); await press(button(renderer, action));
+    const renderer = await mount(); await enter(renderer, 'settings.categories.storage.title'); await press(row(renderer, action));
     expect(renderer.root.findAllByType(host('ConfirmDialog')).some((node) => node.props.visible)).toBe(true);
     await toolbarBack(renderer);
     expect(renderer.root.findAllByType(host('ConfirmDialog')).every((node) => !node.props.visible)).toBe(true);
@@ -176,7 +202,12 @@ describe('owner UX14 category controls preserve actual persisted settings/action
     await change(renderer, 'settings.createExportTimestampFolder', true);
     await press(find(renderer, 'OptionChoiceCard', (node) => node.props.title === 'settings.duplicateModes.keep-both'));
     await toolbarBack(renderer); await enter(renderer, 'settings.appearance');
-    await press(find(renderer, 'OptionChoiceCard', (node) => node.props.title === 'settings.dark'));
+    const dark = () => find(renderer, 'Pressable', (node) => node.props.accessibilityRole === 'radio' && node.props.accessibilityLabel === 'settings.dark');
+    expect(renderer.root.findAllByType(host('Pressable')).filter((node) => node.props.accessibilityRole === 'radio').map((node) => node.props.accessibilityLabel))
+      .toEqual(['settings.systemDefault', 'settings.light', 'settings.dark']);
+    expect(dark().props.accessibilityState).toEqual({ checked: false });
+    await press(dark());
+    expect(dark().props.accessibilityState).toEqual({ checked: true });
     await change(renderer, 'settings.dynamicColors', false);
     await act(async () => useSettingsStore.getState().loadSettings());
     expect(useSettingsStore.getState().settings).toMatchObject({ alwaysUseMessageDate: false, appearance: 'dark', useDynamicColors: false,
@@ -212,37 +243,38 @@ describe('owner UX14 category controls preserve actual persisted settings/action
     await act(async () => useLanguageRestartStore.getState().dismiss());
     await toolbarBack(renderer); await enter(renderer, 'settings.language'); await press(button(renderer, 'languageRestart.now'));
     expect(useLanguageRestartStore.getState().promptOpen).toBe(true);
-    await press(button(renderer, 'settings.openAppLanguageSettings'));
+    await press(row(renderer, 'settings.openAppLanguageSettings'));
     expect(control.appLanguage).toHaveBeenCalledOnce();
   });
 
   it('retains custom-folder selection, picker cancellation and persisted reset from the saving category', async () => {
     control.folder.mockResolvedValueOnce({ treeUri: 'content://synthetic/treeA', displayName: 'QA destination', persistedPermission: true });
     const renderer = await mount(); await enter(renderer, 'settings.categories.saving.title');
-    await press(button(renderer, 'settings.chooseFolder'));
+    await press(row(renderer, 'settings.chooseFolder'));
     expect(useSettingsStore.getState().settings).toMatchObject({ saveDestinationMode: 'custom-folder', customFolder: { treeUri: 'content://synthetic/treeA' } });
-    await press(button(renderer, 'settings.chooseFolder'));
+    await press(row(renderer, 'settings.chooseFolder'));
     expect(useSettingsStore.getState().settings.customFolder?.treeUri).toBe('content://synthetic/treeA');
-    await press(button(renderer, 'settings.resetToDefault'));
+    await press(row(renderer, 'settings.resetToDefault'));
     await act(async () => useSettingsStore.getState().loadSettings());
     expect(useSettingsStore.getState().settings).toMatchObject({ saveDestinationMode: 'default-accurate-folder', customFolder: null, useDefaultFolder: true });
   });
 
   it('keeps privacy/support, welcome replay and version information reachable from Help', async () => {
     const renderer = await mount(); await enter(renderer, 'settings.categories.help.title');
-    await press(button(renderer, 'settings.privacyPolicy')); await press(button(renderer, 'settings.contactSupport'));
+    await press(row(renderer, 'settings.privacyPolicy')); await press(row(renderer, 'settings.contactSupport'));
     expect(control.openURL.mock.calls).toEqual([['https://meniviner.github.io/chatStamp/privacy-policy.html'], ['mailto:menis10tec@gmail.com']]);
-    await press(button(renderer, 'settings.showWelcomeTourAgain')); expect(control.replay).toHaveBeenCalledOnce();
-    expect(find(renderer, 'InfoRow', (node) => node.props.label === 'settings.versionBuild').props.value).toBe('0.2.0 (14)');
+    expect(row(renderer, 'settings.showWelcomeTourAgain').props.accessibilityLabel).toBe('settings.showWelcomeTourAgain, settings.welcomeTourBody');
+    await press(row(renderer, 'settings.showWelcomeTourAgain')); expect(control.replay).toHaveBeenCalledOnce();
+    expect(find(renderer, 'InfoRow', (node) => node.props.label === 'settings.versionBuild').props.value).toBe(version);
   });
 
   it('keeps clear-history/cache confirmation and original cleanup ordering reachable from Storage', async () => {
     const renderer = await mount(); await enter(renderer, 'settings.categories.storage.title');
-    await press(button(renderer, 'settings.clearHistory'));
+    await press(row(renderer, 'settings.clearHistory'));
     expect(control.clearHistory).not.toHaveBeenCalled();
     await act(async () => { find(renderer, 'ConfirmDialog', (node) => node.props.title === 'settings.clearHistoryTitle').props.onConfirm(); await flush(); });
     expect(control.clearHistory).toHaveBeenCalledOnce();
-    await press(button(renderer, 'settings.clearAppCache'));
+    await press(row(renderer, 'settings.clearAppCache'));
     expect(control.discard).not.toHaveBeenCalled();
     await act(async () => { find(renderer, 'ConfirmDialog', (node) => node.props.title === 'settings.clearCacheTitle').props.onConfirm(); await flush(); });
     expect(control.events).toEqual(['discard', 'cleanup']);

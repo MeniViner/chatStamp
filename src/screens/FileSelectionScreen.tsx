@@ -120,18 +120,19 @@ export function FileSelectionScreen() {
     }); return () => sub.remove();
   }, [cancelPendingSave, currentId, dismissViewer, filters, search]);
   React.useEffect(() => { if (currentId && !visibleIds.includes(currentId)) dismissViewer(); }, [currentId, dismissViewer, visibleIds]);
-  return <WizardScreen stage="selectFiles" title={zipName ? outputChatName(zipName) : t('outputFolders.importedChat')} onBack={() => { cancelPendingSave(); setDiscard(true); }}
+  return <WizardScreen stage="selectFiles" titleMode="compact" title={zipName ? outputChatName(zipName) : t('outputFolders.importedChat')} onBack={() => { cancelPendingSave(); setDiscard(true); }}
     actions={<><IconButton icon="magnify" accessibilityLabel={t('picker.search')} onPress={() => setSearch((value) => !value)} /><IconButton icon="filter-variant" accessibilityLabel={t('picker.filters')} onPress={() => setFilters(true)} /><IconButton icon="cog-outline" accessibilityLabel={t('settings.title')} onPress={() => { cancelPendingSave(); Keyboard.dismiss(); openOverlay('settings'); }} /></>}
     footer={<SelectionFooter {...totals} saving={startingSave} state={allState} onToggleAll={toggleAll} onSave={save} />}>
-    {search ? <Searchbar value={query} onChangeText={setQuery} placeholder={t('picker.search')} accessibilityLabel={t('picker.search')} /> : null}
+    {search ? <Searchbar value={query} onChangeText={setQuery} placeholder={t('picker.search')} accessibilityLabel={t('picker.search')} autoFocus
+      style={[styles.search, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant }]} /> : null}
     <ScrollView horizontal style={styles.tabs} contentContainerStyle={styles.tabContent} showsHorizontalScrollIndicator={false}>
       {tabs.map((kind) => { const count = baseItems.filter((item) => inTab(item, kind)).length;
         const selected = tab === kind;
-        return count || kind === 'all' ? <Chip key={kind} selected={selected} mode={selected ? 'flat' : 'outlined'} accessibilityRole="tab"
+        return count || kind === 'all' ? <Chip key={kind} selected={selected} mode="flat" accessibilityRole="tab"
           accessibilityState={{ selected }} accessibilityLabel={t('picker.tabCount', { tab: t(`picker.tabs.${kind}`), count })}
-          style={{ backgroundColor: selected ? theme.colors.primaryContainer : 'transparent', borderWidth: 1, borderColor: selected ? theme.colors.primary : theme.colors.outline }}
-          selectedColor={selected ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant}
-          textStyle={{ color: selected ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant }}
+          showSelectedCheck={false} style={[styles.tab, { backgroundColor: selected ? theme.colors.secondaryContainer : theme.colors.surfaceContainer ?? theme.colors.surfaceVariant }]}
+          selectedColor={selected ? theme.colors.onSecondaryContainer : theme.colors.onSurfaceVariant}
+          textStyle={{ color: selected ? theme.colors.onSecondaryContainer : theme.colors.onSurfaceVariant, fontWeight: selected ? '700' : '500' }}
           onPress={() => setTab(kind)}>{t(`picker.tabs.${kind}`)} {count}</Chip> : null;
       })}
     </ScrollView>
@@ -167,7 +168,7 @@ export function FileSelectionScreen() {
   </WizardScreen>;
 }
 const styles = StyleSheet.create({
-  tabs: { flexGrow: 0, marginVertical: 8 }, tabContent: { gap: 6 }, list: { flex: 1 }, senderChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tabs: { flexGrow: 0, marginVertical: 8 }, tabContent: { gap: 8 }, tab: { borderRadius: 999 }, search: { borderRadius: 999, marginBottom: 4 }, list: { flex: 1 }, senderChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   inlineAudio: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   skipped: { minHeight: 64, paddingVertical: 8 },
 });

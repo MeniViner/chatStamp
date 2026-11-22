@@ -56,6 +56,19 @@ export function isWhatsAppMessageLine(line: string): boolean {
   return !!header && header.body.indexOf(':') > 0;
 }
 
+/** Date, time and remaining text of a WhatsApp message header line, after removing direction marks. */
+export function parseWhatsAppLineHeader(line: string): Readonly<Header> | undefined {
+  return parseHeader(normalizeChatText(line).trim());
+}
+
+/** The attached file name in a message body, in either the Android or the iOS export form. */
+export function attachedFileName(body: string): string | undefined {
+  const tagged = iosAttachment.exec(body)?.[1];
+  if (tagged) return tagged.trim();
+  const suffix = androidAttachment.exec(body);
+  return suffix ? body.slice(0, suffix.index).trim() : undefined;
+}
+
 function parseHeader(line: string): Header | undefined {
   for (const pattern of headers) {
     const groups = pattern.exec(line)?.groups;

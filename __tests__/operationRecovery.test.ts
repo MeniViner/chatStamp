@@ -19,7 +19,7 @@ const control = vi.hoisted(() => ({
 vi.mock('react-native', async () => {
   const { createElement } = await import('react');
   return {
-    View: 'View', StyleSheet: { create: <T,>(value: T) => value, hairlineWidth: 1 },
+    View: 'View', Pressable: 'Pressable', StatusBar: 'StatusBar', I18nManager: { isRTL: false }, StyleSheet: { create: <T,>(value: T) => value, hairlineWidth: 1 },
     Platform: { OS: 'android', Version: 30 },
     PermissionsAndroid: { PERMISSIONS: { POST_NOTIFICATIONS: 'notifications' }, request: vi.fn() },
     BackHandler: { addEventListener: () => ({ remove: vi.fn() }) },
@@ -55,7 +55,13 @@ vi.mock('../src/store/historyStore', () => ({ useHistoryStore: { getState: () =>
 vi.mock('../src/i18n', () => ({ default: { t: (key: string) => key } }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { resolvedLanguage: 'en' } }) }));
 vi.mock('../src/lib/logger', () => ({ logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
-vi.mock('../src/components/AppUi', () => ({ textStyles: { start: {} }, MediaThumbnail: 'MediaThumbnail', PrimaryButton: 'PrimaryButton', SecondaryButton: 'SecondaryButton', ExpandableTechnicalDetails: 'ExpandableTechnicalDetails', FilePathText: 'FilePathText' }));
+vi.mock('@expo/vector-icons', () => ({ MaterialCommunityIcons: 'Icon' }));
+vi.mock('expo-image', () => ({ Image: 'Image' }));
+vi.mock('react-native-safe-area-context', () => ({ SafeAreaView: 'SafeAreaView', useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }));
+vi.mock('../src/native/mediaPreviews', () => ({ getThumbnail: vi.fn(), invalidateThumbnail: vi.fn() }));
+// Real result action rows (NavigationItem/ListItem) so retry/reimport targets are the rendered Pressables.
+vi.mock('../src/components/AppUi', async (importOriginal) => ({ ...await importOriginal<typeof import('../src/components/AppUi')>(),
+  MediaThumbnail: 'MediaThumbnail', PrimaryButton: 'PrimaryButton', SecondaryButton: 'SecondaryButton', ExpandableTechnicalDetails: 'ExpandableTechnicalDetails', FilePathText: 'FilePathText' }));
 vi.mock('../src/components/ConfirmDialog', () => ({ ConfirmDialog: 'ConfirmDialog' }));
 vi.mock('../src/components/FolderFallbackSheet', () => ({ FolderFallbackSheet: 'FolderFallbackSheet' }));
 vi.mock('../src/components/ShareOutputSheet', () => ({ ShareOutputSheet: 'ShareOutputSheet' }));
@@ -64,7 +70,7 @@ vi.mock('../src/screens/WizardScreen', async () => {
   return { FooterActions: 'FooterActions', WizardScreen: ({ children, footer }: { children?: React.ReactNode; footer?: React.ReactNode }) => createElement('WizardScreen', {}, children, footer) };
 });
 vi.mock('../src/native/androidIntents', () => ({ openFolderBestEffort: vi.fn(), openGalleryBestEffort: vi.fn(), openSavedFileBestEffort: vi.fn(), shouldShowOpenGallery: () => true }));
-vi.mock('../src/theme/useAppTheme', () => ({ useAppTheme: () => ({ colors: { outlineVariant: '#aaa', onSurface: '#000', error: '#b00' } }) }));
+vi.mock('../src/theme/useAppTheme', () => ({ useAppTheme: () => ({ colors: new Proxy<Record<string, string>>({}, { get: () => '#123456' }) }) }));
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -130,8 +136,9 @@ describe('actual runtime recovery, retry UI and asynchronous import ownership', 
     await act(async () => { renderer = TestRenderer.create(React.createElement(DoneScreen)); renderers.push(renderer); });
     return renderer;
   }
+  const actions = (renderer: ReactTestRenderer) => renderer.root.findAllByType(host('Pressable')).filter((node) => node.props.accessibilityRole === 'button' && typeof node.props.accessibilityLabel === 'string');
   function button(renderer: ReactTestRenderer, label: string): ReactTestInstance {
-    const found = renderer.root.findAllByType(host('SecondaryButton')).find((node) => node.props.children === label);
+    const found = actions(renderer).find((node) => node.props.accessibilityLabel === label || node.props.accessibilityLabel.startsWith(`${label}, `));
     expect(found, `Expected actionable ${label}`).toBeDefined();
     return found!;
   }
@@ -161,7 +168,8 @@ describe('actual runtime recovery, retry UI and asynchronous import ownership', 
     const renderer = await mountDone();
     expect(store.getState()).toMatchObject({ workingDirectory: 'file:///cache/chatstamp/retained-job/', completion: { saved: 1, cacheCleared: false } });
     expect(renderer.root.findAllByType(host('Text')).some((node) => node.props.children === 'results.reimportRequired')).toBe(true);
-    expect(renderer.root.findAllByType(host('SecondaryButton')).some((node) => ['results.retryRemainingFiles', 'results.retryFailedFiles'].includes(node.props.children))).toBe(false);
+    expect(button(renderer, 'results.reimportRemainingFiles').props.accessibilityLabel).toBe('results.reimportRemainingFiles, results.reimportRequired');
+    expect(actions(renderer).some((node) => ['results.retryRemainingFiles', 'results.retryFailedFiles'].some((key) => node.props.accessibilityLabel.startsWith(key)))).toBe(false);
     const pendingPicker = deferred<{ canceled: true; assets: null }>();
     control.picker.mockReturnValueOnce(pendingPicker.promise);
     await act(async () => { button(renderer, 'results.reimportRemainingFiles').props.onPress(); await flush(); });

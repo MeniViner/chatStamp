@@ -46,7 +46,7 @@ vi.mock('../src/services/operationCoordinator', () => ({ startSaving: control.st
 vi.mock('../src/native/mediaPreviews', () => ({ getThumbnail: vi.fn(), invalidateThumbnail: vi.fn() }));
 vi.mock('../src/theme/useAppTheme', () => ({ useAppTheme: () => ({ dark: false, colors: {
   background: '#fff', surface: '#fff', primary: '#123456', primaryContainer: '#c1ddff', onPrimaryContainer: '#123456',
-  secondaryContainer: '#d2e3ff', onSecondaryContainer: '#112233',
+  secondaryContainer: '#d2e3ff', onSecondaryContainer: '#112233', surfaceContainer: '#eef0f4',
   onSurfaceVariant: '#456789', outlineVariant: '#ccc',
 } }) }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({
@@ -99,7 +99,9 @@ describe('owner UX14 actual Select header and category surfaces', () => {
     const renderer = await mount();
     const heading = find(renderer, 'Text', (node) => node.props.children === fullName);
     expect(heading).toBeDefined();
-    expect(heading.props).toMatchObject({ numberOfLines: 1, ellipsizeMode: 'tail', accessibilityLabel: fullName });
+    // The compact top-bar title keeps the untruncated name as its text (its accessible name) while drawing one line.
+    expect(heading.props).toMatchObject({ numberOfLines: 1, ellipsizeMode: 'tail', accessibilityRole: 'header', children: fullName });
+    expect(find(renderer, 'AppbarHeader').findAllByType(host('Text')).map((node) => node.props.children)).toContain(fullName);
     expect(find(renderer, 'AppbarHeader').findAllByType(host('IconButton'))).toHaveLength(3);
   });
 
@@ -109,9 +111,9 @@ describe('owner UX14 actual Select header and category surfaces', () => {
       await press(category(renderer, tab));
       for (const kind of ['all', 'photos', 'documents']) {
         const props = category(renderer, kind).props;
-        expect(props).toMatchObject({ selected: kind === tab, mode: kind === tab ? 'flat' : 'outlined', accessibilityState: { selected: kind === tab } });
-        expect(props.selected && props.showSelectedCheck !== false).toBe(kind === tab);
-        expect(props.style.backgroundColor).toBe(kind === tab ? '#c1ddff' : 'transparent');
+        expect(props).toMatchObject({ selected: kind === tab, mode: 'flat', showSelectedCheck: false, accessibilityState: { selected: kind === tab } });
+        expect(Object.assign({}, ...props.style).backgroundColor).toBe(kind === tab ? '#d2e3ff' : '#eef0f4');
+        expect(props.textStyle).toMatchObject({ color: kind === tab ? '#112233' : '#456789', fontWeight: kind === tab ? '700' : '500' });
       }
       expect(find(renderer, 'SelectionFooter').props).toMatchObject({ selected, total });
       expect(usePipelineStore.getState().selectedFileIds).toEqual(new Set(files.map((file) => file.id)));

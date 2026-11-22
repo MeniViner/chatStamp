@@ -17,6 +17,7 @@ type WizardScreenProps = {
   actions?: React.ReactNode;
   scroll?: false;
   contentStyle?: ViewStyle;
+  titleMode?: 'large' | 'compact';
 };
 
 export function WizardScreen({
@@ -28,12 +29,14 @@ export function WizardScreen({
   onBack,
   backDisabled,
   actions,
-  contentStyle
+  contentStyle,
+  titleMode
 }: WizardScreenProps) {
   const { t } = useTranslation();
   const stepIndex = getWizardStepIndex(stage);
   const progress = (stepIndex + 1) / wizardSteps.length;
-  const isWizardStage = stage === 'welcome' || stage === 'analyzing' || stage === 'selectFiles' || stage === 'saving' || stage === 'results';
+  // Home is the starting point, not a numbered step.
+  const isWizardStage = stage === 'analyzing' || stage === 'selectFiles' || stage === 'saving' || stage === 'results';
 
   return (
     <AppScreenScaffold
@@ -47,6 +50,7 @@ export function WizardScreen({
       actions={actions}
       footer={footer}
       contentStyle={contentStyle}
+      titleMode={titleMode}
     >
       {children}
     </AppScreenScaffold>
