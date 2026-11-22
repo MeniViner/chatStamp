@@ -5,7 +5,9 @@ older implementations and do not authorize their superseded storage/RTL paths.
 
 ## Product and dates
 
-- Import → Select → Save, exactly two permission-free onboarding pages.
+- Import → Select → Save. Onboarding has two pages; on Android 13+ only, an optional
+  notifications page sits between them (owner decision 2026-11-22). It never blocks
+  Next, never claims saving needs it, and requests no other permission.
 - Local-only: no database, accounts, analytics, ads, cloud or server APIs.
 - Saved, verified original message date and observed Gallery order are separate
   facts. Approximate/ambiguous/undated results never masquerade as verified.

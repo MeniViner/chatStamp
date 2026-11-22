@@ -17,7 +17,7 @@ vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: translation.t.bind
 vi.mock('react-native', async () => {
   const { createElement } = await import('react');
   return {
-    View: 'View', StyleSheet: { create: <T,>(styles: T) => styles, hairlineWidth: 1 },
+    View: 'View', Pressable: 'Pressable', StatusBar: 'StatusBar', I18nManager: { isRTL: false }, StyleSheet: { create: <T,>(styles: T) => styles, hairlineWidth: 1 },
     BackHandler: { addEventListener: () => ({ remove: vi.fn() }) },
     FlatList: ({ data, renderItem, ListHeaderComponent }: { data: unknown[]; renderItem: (item: { item: unknown; index: number }) => React.ReactNode; ListHeaderComponent?: React.ReactElement }) =>
       createElement('FlatList', {}, ListHeaderComponent, data.map((item, index) => createElement(React.Fragment, { key: index }, renderItem({ item, index }))))
@@ -30,7 +30,13 @@ vi.mock('react-native-paper', async () => {
   ) };
 });
 vi.mock('@expo/vector-icons', () => ({ MaterialCommunityIcons: 'Icon' }));
-vi.mock('../src/components/AppUi', () => ({ textStyles: { start: {} }, MediaThumbnail: 'MediaThumbnail', PrimaryButton: 'PrimaryButton', SecondaryButton: 'SecondaryButton', ExpandableTechnicalDetails: 'ExpandableTechnicalDetails', FilePathText: 'FilePathText', PremiumCard: 'PremiumCard', StatusBadge: 'StatusBadge' }));
+vi.mock('expo-image', () => ({ Image: 'Image' }));
+vi.mock('react-native-safe-area-context', () => ({ SafeAreaView: 'SafeAreaView', useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }));
+vi.mock('../src/native/mediaPreviews', () => ({ getThumbnail: vi.fn(), invalidateThumbnail: vi.fn() }));
+// Real list rows keep the Done share entry a rendered Pressable; buttons and cards stay inspectable hosts.
+vi.mock('../src/components/AppUi', async (importOriginal) => ({ ...await importOriginal<typeof import('../src/components/AppUi')>(),
+  MediaThumbnail: 'MediaThumbnail', PrimaryButton: 'PrimaryButton', SecondaryButton: 'SecondaryButton', ExpandableTechnicalDetails: 'ExpandableTechnicalDetails',
+  FilePathText: 'FilePathText', PremiumCard: 'PremiumCard', StatusBadge: 'StatusBadge' }));
 vi.mock('../src/components/BottomSheet', async () => {
   const { createElement } = await import('react');
   return { PremiumBottomSheet: ({ visible, children, footer, ...props }: { visible: boolean; children?: React.ReactNode; footer?: React.ReactNode }) =>
@@ -94,8 +100,8 @@ async function mount(screen: 'done' | 'history', results: SaveFileResult[]) {
   return renderer;
 }
 function findButton(root: ReactTestInstance, label: string) {
-  const button = root.findAll((node) => [host('PrimaryButton'), host('SecondaryButton')].includes(node.type as React.ElementType)
-    && node.props.children === label)[0];
+  const button = root.findAll((node) => ([host('PrimaryButton'), host('SecondaryButton')].includes(node.type as React.ElementType) && node.props.children === label)
+    || (node.type === host('Pressable') && node.props.accessibilityRole === 'button' && node.props.accessibilityLabel === label))[0];
   expect(button, `Expected visible action: ${label}`).toBeDefined();
   return button;
 }

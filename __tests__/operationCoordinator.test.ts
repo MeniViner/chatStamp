@@ -27,13 +27,18 @@ const mocks = vi.hoisted(() => {
     },
     importZip: vi.fn(), clearWorkingDirectory: vi.fn(), runSave: vi.fn(), summarizeSave: vi.fn(),
     addHistory: vi.fn(), createHistory: vi.fn(), updateSettings: vi.fn(), pick: vi.fn(), requestPermission: vi.fn(),
-    settings: {} as AppSettings, translate: vi.fn()
+    settings: {} as AppSettings, translate: vi.fn(),
+    platform: { OS: 'android', Version: 33 as number }
   };
 });
 
 vi.mock('react-native', () => ({
-  Platform: { OS: 'android', Version: 33 },
-  PermissionsAndroid: { PERMISSIONS: { POST_NOTIFICATIONS: 'android.permission.POST_NOTIFICATIONS' }, request: mocks.requestPermission },
+  Platform: mocks.platform,
+  PermissionsAndroid: {
+    PERMISSIONS: { POST_NOTIFICATIONS: 'android.permission.POST_NOTIFICATIONS' },
+    RESULTS: { GRANTED: 'granted', DENIED: 'denied', NEVER_ASK_AGAIN: 'never_ask_again' },
+    request: mocks.requestPermission
+  },
   AppState: { addEventListener: (_name: string, listener: (value: string) => void) => {
     mocks.appListeners.add(listener);
     return { remove: () => { mocks.appListeners.delete(listener); } };
@@ -113,6 +118,7 @@ describe('pipeline runtime share and foreground-service coordination', () => {
     mocks.translate.mockReset().mockImplementation((key: string) => key);
     mocks.createHistory.mockReset().mockReturnValue({ id: 'a'.repeat(64) });
     mocks.requestPermission.mockReset().mockResolvedValue('denied');
+    mocks.platform.Version = 33;
     mocks.pick.mockReset().mockResolvedValue({ canceled: true, assets: null });
     coordinator = await import('../src/services/operationCoordinator');
     store = (await import('../src/store/pipelineStore')).usePipelineStore;
@@ -329,6 +335,30 @@ describe('pipeline runtime share and foreground-service coordination', () => {
       notificationTitle: 'Saving A', notificationCancelLabel: 'Cancel A',
       folderLabels: expect.objectContaining({ importedChat: 'Imported A', media: 'Media A' })
     }));
+  });
+
+  it.each([
+    ['granted', () => mocks.requestPermission.mockResolvedValueOnce('granted')],
+    ['denied', () => mocks.requestPermission.mockResolvedValueOnce('denied')],
+    ['permanently denied', () => mocks.requestPermission.mockResolvedValueOnce('never_ask_again')],
+    ['rejected', () => mocks.requestPermission.mockRejectedValueOnce(new Error('activity gone'))]
+  ])('requests notifications once on Android 13+ and still saves when the permission is %s', async (_label, arrange) => {
+    arrange();
+    store.getState().setZip({ uri: 'content://provider/first.zip', name: 'first.zip' });
+    store.getState().setImportResult(imported());
+    await coordinator.startSaving(coordinator.captureSaveIntent()!);
+    expect(mocks.requestPermission).toHaveBeenCalledExactlyOnceWith('android.permission.POST_NOTIFICATIONS');
+    expect(mocks.runSave).toHaveBeenCalledOnce();
+    expect(mocks.addHistory).toHaveBeenCalledOnce();
+  });
+
+  it('never requests notifications below Android 13 and still saves', async () => {
+    mocks.platform.Version = 32;
+    store.getState().setZip({ uri: 'content://provider/first.zip', name: 'first.zip' });
+    store.getState().setImportResult(imported());
+    await coordinator.startSaving(coordinator.captureSaveIntent()!);
+    expect(mocks.requestPermission).not.toHaveBeenCalled();
+    expect(mocks.runSave).toHaveBeenCalledOnce();
   });
 
   it('keeps the click-time policy when settings publish B before the captured intent starts saving', async () => {

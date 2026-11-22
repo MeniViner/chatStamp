@@ -7,7 +7,7 @@ import { getChatStampNativeModule } from '../native/chatStampNativeModule';
 import { beginImport, chooseZip, discardImport } from '../services/operationCoordinator';
 import { errorMessageKey, isRetryAllowed } from '../lib/pipelineErrors';
 import { FooterActions, WizardScreen } from './WizardScreen';
-import { PremiumCard, PrimaryButton, SecondaryButton, textStyles } from '../components/AppUi';
+import { InfoBanner, PrimaryButton, SecondaryButton, textStyles } from '../components/AppUi';
 import { spacing } from '../theme/designTokens';
 
 export function ErrorScreen() {
@@ -44,13 +44,14 @@ export function ErrorScreen() {
         : <PrimaryButton onPress={() => { void chooseZip(); }}>{t('session.chooseAnother')}</PrimaryButton>}
       {code === 'PERMISSION_LOST' ? <SecondaryButton onPress={() => openSettings('settings')}>{t('settings.title')}</SecondaryButton> : null}
     </FooterActions>}>
-    <ScrollView contentContainerStyle={styles.content}><PremiumCard>
-      <Text variant="bodyLarge" style={textStyles.start}>{t(errorMessageKey(code))}</Text>
-      {recoveryFailed ? <Text accessibilityRole="alert">{t('error.recoveryFailed')}</Text> : null}
-      {error?.missingBytes ? <Text variant="bodyMedium" style={textStyles.start}>
-        {t('session.spaceMissing', { bytes: Math.ceil(error.missingBytes / 1048576) })}</Text> : null}
-    </PremiumCard></ScrollView>
+    <ScrollView contentContainerStyle={styles.content}>
+      <InfoBanner icon="alert-circle-outline" tone="error" body={t(errorMessageKey(code))}>
+        {error?.missingBytes ? <Text variant="bodyMedium" style={textStyles.start}>
+          {t('session.spaceMissing', { bytes: Math.ceil(error.missingBytes / 1048576) })}</Text> : null}
+      </InfoBanner>
+      {recoveryFailed ? <Text accessibilityRole="alert" style={textStyles.start}>{t('error.recoveryFailed')}</Text> : null}
+    </ScrollView>
   </WizardScreen>;
 }
 
-const styles = StyleSheet.create({ content: { gap: spacing.section } });
+const styles = StyleSheet.create({ content: { gap: spacing.card } });

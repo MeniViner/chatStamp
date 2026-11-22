@@ -5,7 +5,7 @@ import { IconButton, Surface, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../theme/useAppTheme';
 import { spacing, radius } from '../theme/designTokens';
-import { textStyles } from './AppUi';
+import { surfaceRoles, textStyles } from './AppUi';
 import { getBottomSheetBottomPadding } from './bottomSheetLayout';
 
 type BottomSheetProps = {
@@ -52,12 +52,12 @@ export function PremiumBottomSheet({
             style={[
               styles.sheet,
               {
-                backgroundColor: theme.colors.surface,
+                backgroundColor: surfaceRoles(theme).low,
                 maxHeight: maximumHeight
               }
             ]}
           >
-            <View style={[styles.handle, { backgroundColor: theme.colors.outlineVariant }]} />
+            <View style={[styles.handle, { backgroundColor: theme.colors.onSurfaceVariant }]} />
             <View style={styles.header}>
               <View style={styles.headerText}>
                 <Text variant="headlineSmall" style={[styles.title, textStyles.start]}>
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(15, 23, 42, 0.32)'
+    backgroundColor: 'rgba(0, 0, 0, 0.4)'
   },
   pressableSheet: {
     width: '100%',
@@ -132,9 +132,10 @@ const styles = StyleSheet.create({
   },
   handle: {
     alignSelf: 'center',
-    width: 46,
-    height: 5,
-    borderRadius: 999,
+    width: 32,
+    height: 4,
+    borderRadius: 2,
+    opacity: 0.4,
     flexShrink: 0
   },
   bodyWrap: {
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
     paddingTop: 8
   },
   title: {
-    fontWeight: '600',
+    fontWeight: '400',
     letterSpacing: 0
   },
   scrollContent: {

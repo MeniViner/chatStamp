@@ -11,7 +11,7 @@ import { defaultSettings } from '../src/store/settingsLogic';
 import type { AppSettings } from '../src/types/media';
 
 const state = vi.hoisted(() => ({ settings: {} as AppSettings, update: vi.fn(), sync: vi.fn(), folder: vi.fn(), discard: vi.fn(), cancel: vi.fn(), read: vi.fn(), listeners: [] as (() => boolean)[] }));
-vi.mock('react-native', () => ({ View: 'View', ScrollView: 'ScrollView', FlatList: 'FlatList', Pressable: 'Pressable', Linking: { openURL: vi.fn() }, I18nManager: { isRTL: false },
+vi.mock('react-native', () => ({ View: 'View', ScrollView: 'ScrollView', FlatList: 'FlatList', Pressable: 'Pressable', StatusBar: 'StatusBar', Linking: { openURL: vi.fn() }, I18nManager: { isRTL: false },
   StyleSheet: { create: <T,>(styles: T) => styles, hairlineWidth: 1 },
   BackHandler: { addEventListener: (_name: string, listener: () => boolean) => { state.listeners.push(listener); return { remove: () => { state.listeners.splice(state.listeners.indexOf(listener), 1); } }; } },
 }));
@@ -21,7 +21,13 @@ vi.mock('react-native-paper', () => ({ Text: 'Text', Snackbar: 'Snackbar', IconB
 vi.mock('../src/components/BottomSheet', () => ({ BottomSheet: 'BottomSheet', PremiumBottomSheet: 'PremiumBottomSheet' }));
 vi.mock('../src/components/ConfirmDialog', () => ({ ConfirmDialog: 'ConfirmDialog' }));
 vi.mock('../src/components/FolderFallbackSheet', () => ({ FolderFallbackSheet: 'FolderFallbackSheet' }));
-vi.mock('../src/components/AppUi', () => ({ textStyles: { start: {} }, InfoRow: 'InfoRow', OptionChoiceCard: 'OptionChoiceCard', PrimaryButton: 'PrimaryButton', SecondaryButton: 'SecondaryButton', SettingsSectionCard: 'SettingsSectionCard', SettingRow: 'SettingRow', ExpandableTechnicalDetails: 'ExpandableTechnicalDetails', FilePathText: 'FilePathText', PremiumCard: 'PremiumCard', StatusBadge: 'StatusBadge' }));
+vi.mock('expo-image', () => ({ Image: 'Image' }));
+vi.mock('react-native-safe-area-context', () => ({ SafeAreaView: 'SafeAreaView', useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }));
+vi.mock('../src/native/mediaPreviews', () => ({ getThumbnail: vi.fn(), invalidateThumbnail: vi.fn() }));
+// Real list rows/banners; leaf controls remain inspectable hosts.
+vi.mock('../src/components/AppUi', async (importOriginal) => ({ ...await importOriginal<typeof import('../src/components/AppUi')>(),
+  InfoRow: 'InfoRow', OptionChoiceCard: 'OptionChoiceCard', PrimaryButton: 'PrimaryButton', SecondaryButton: 'SecondaryButton', SettingsSectionCard: 'SettingsSectionCard',
+  SettingRow: 'SettingRow', ExpandableTechnicalDetails: 'ExpandableTechnicalDetails', FilePathText: 'FilePathText', PremiumCard: 'PremiumCard', StatusBadge: 'StatusBadge' }));
 vi.mock('../src/screens/WizardScreen', async () => {
   const { createElement } = await import('react');
   return { FooterActions: 'FooterActions', WizardScreen: ({ children, footer, ...props }: { children?: React.ReactNode; footer?: React.ReactNode }) => createElement('WizardScreen', props, children, footer) };
@@ -57,7 +63,10 @@ afterEach(async () => { await act(async () => renderers.splice(0).forEach((rende
 async function mount(screen: React.ComponentType) { let renderer!: ReactTestRenderer; await act(async () => { renderer = TestRenderer.create(React.createElement(screen)); renderers.push(renderer); await flush(); }); return renderer; }
 async function back() { await act(async () => { expect([...state.listeners].reverse().some((listener) => listener())).toBe(true); await flush(); }); }
 async function choose(renderer: ReactTestRenderer, title: string) { await act(async () => { renderer.root.findAllByType(host('OptionChoiceCard')).find((node) => node.props.title === title)!.props.onPress(); await flush(); }); }
-async function enterCategory(renderer: ReactTestRenderer, title: string) { await act(async () => { renderer.root.findAllByType(host('Pressable')).find((node) => node.props.accessibilityLabel === title)!.props.onPress(); }); }
+/** Real ListItem rows are Pressables labelled "title" or "title, description". */
+const row = (renderer: ReactTestRenderer, title: string) => renderer.root.findAllByType(host('Pressable'))
+  .find((node) => node.props.accessibilityLabel === title || String(node.props.accessibilityLabel).startsWith(`${title}, `))!;
+async function enterCategory(renderer: ReactTestRenderer, title: string) { await act(async () => { row(renderer, title).props.onPress(); }); }
 
 describe('actual Settings language/folder UI commit ordering', () => {
   it('does not apply native flags or a restart prompt when preference persistence fails', async () => {
@@ -93,7 +102,7 @@ describe('actual Settings language/folder UI commit ordering', () => {
     state.settings.customFolder = { treeUri: 'content://tree/synthetic', displayName: 'Synthetic', persistedPermission: true };
     const renderer = await mount(SettingsScreen);
     await enterCategory(renderer, 'settings.categories.saving.title');
-    const pick = renderer.root.findAllByType(host('SecondaryButton')).find((node) => node.props.children === 'settings.chooseFolder')!;
+    const pick = row(renderer, 'settings.chooseFolder');
     await act(async () => { pick.props.onPress(); await flush(); });
     expect(state.folder).toHaveBeenCalledOnce(); expect(state.update).not.toHaveBeenCalled();
     expect(state.settings.customFolder.treeUri).toBe('content://tree/synthetic');

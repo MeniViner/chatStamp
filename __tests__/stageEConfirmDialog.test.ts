@@ -4,8 +4,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { ConfirmDialog } from '../src/components/ConfirmDialog';
 
 vi.mock('react-native', () => ({ ScrollView: 'ScrollView', StyleSheet: { create: <T,>(styles: T) => styles } }));
-vi.mock('../src/components/AppUi', () => ({ textStyles: { start: {} } }));
-vi.mock('../src/theme/useAppTheme', () => ({ useAppTheme: () => ({ colors: { surface: '#fff', error: '#900' } }) }));
+vi.mock('../src/components/AppUi', () => ({ textStyles: { start: {} }, surfaceRoles: () => ({ raised: '#eee' }) }));
+vi.mock('../src/theme/useAppTheme', () => ({ useAppTheme: () => ({ colors: { surface: '#fff', error: '#900', primary: '#123' } }) }));
 vi.mock('react-native-paper', async () => {
   const { createElement } = await import('react');
   const Dialog = Object.assign(({ children, ...props }: { children?: React.ReactNode }) => createElement('Dialog', props, children),
@@ -35,5 +35,10 @@ describe('real confirmation busy controls', () => {
     expect(buttons().every((button) => button.props.disabled === false && typeof button.props.onPress === 'function')).toBe(true);
     await act(async () => { buttons()[0].props.onPress(); buttons()[1].props.onPress(); });
     expect(dismiss).toHaveBeenCalledOnce(); expect(confirm).toHaveBeenCalledOnce();
+    expect(buttons().every((button) => button.props.contentStyle.minHeight >= 48)).toBe(true);
+    expect(buttons()[1].props).toMatchObject({ mode: 'text', textColor: '#123' });
+    await act(async () => renderer.update(React.createElement(ConfirmDialog, { visible: true, destructive: true, title: 'Clear', body: 'Synthetic',
+      confirmLabel: 'Clear', cancelLabel: 'Cancel', onConfirm: confirm, onDismiss: dismiss })));
+    expect(buttons()[1].props).toMatchObject({ mode: 'text', textColor: '#900' });
   });
 });

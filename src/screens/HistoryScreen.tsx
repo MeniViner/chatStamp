@@ -14,7 +14,7 @@ import type { ExportHistoryItem } from '../types/media';
 import { useAppTheme } from '../theme/useAppTheme';
 import { WizardScreen } from './WizardScreen';
 import { useTranslation } from 'react-i18next';
-import { ExpandableTechnicalDetails, FilePathText, PremiumCard, SecondaryButton, StatusBadge, textStyles } from '../components/AppUi';
+import { ExpandableTechnicalDetails, FilePathText, IconCircle, PremiumCard, SecondaryButton, StatusBadge, textStyles } from '../components/AppUi';
 import { spacing } from '../theme/designTokens';
 import { formatAppDate } from '../lib/localeDateFormat';
 
@@ -72,7 +72,7 @@ export function HistoryScreen() {
         )}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <MaterialCommunityIcons name="history" size={48} color={theme.colors.outline} />
+            <IconCircle icon="history" size={72} />
             <Text variant="titleMedium">{t('history.emptyTitle')}</Text>
             <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
               {t('history.emptyBody')}
@@ -166,13 +166,14 @@ function HistoryCard({
   return (
     <PremiumCard style={styles.card}>
       <View style={styles.header}>
-        <View style={styles.flex}>
+        <IconCircle icon={completed ? 'check' : 'alert-outline'} tone={completed ? 'tonal' : 'error'} />
+        <View style={styles.headerText}>
           <Text variant="titleMedium" numberOfLines={2} style={[styles.cardTitle, textStyles.start]}>
             {t('history.saveFrom', { date: formatAppDate(item.exportTimestampIso, i18n.resolvedLanguage ?? 'en') })}
           </Text>
+          <StatusBadge label={t(presentation.statusKey)} selected={completed} danger={!completed} />
         </View>
         <View style={styles.headerActions}>
-          <StatusBadge label={t(presentation.statusKey)} selected={completed} danger={!completed} />
           <Menu
             visible={menuOpen}
             onDismiss={() => setMenuOpen(false)}
@@ -209,9 +210,12 @@ function HistoryCard({
           other: item.counts.voice + item.counts.stickers + item.counts.documents
         })}
       </Text>
-      <Text variant="bodySmall" numberOfLines={1} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-        {getFriendlyFolderName(item.outputFolderPath)}
-      </Text>
+      <View style={styles.folderRow}>
+        <MaterialCommunityIcons name="folder-outline" size={16} color={theme.colors.onSurfaceVariant} importantForAccessibility="no" />
+        <Text variant="bodySmall" numberOfLines={1} style={[styles.flex, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+          {getFriendlyFolderName(item.outputFolderPath)}
+        </Text>
+      </View>
       <ExpandableTechnicalDetails collapsedTitle={t('history.details')} expandedTitle={t('common.hideTechnicalDetails')}>
         <Text variant="bodySmall" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
           {item.chatName}
@@ -248,7 +252,7 @@ function getFriendlyFolderName(path: string): string {
 
 const styles = StyleSheet.create({
   content: {
-    gap: spacing.card,
+    gap: spacing.smallGap,
     paddingBottom: 144
   },
   emptyContent: {
@@ -266,7 +270,17 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 8
+    gap: spacing.gap
+  },
+  headerText: {
+    flex: 1,
+    minWidth: 0,
+    gap: spacing.tinyGap + 2
+  },
+  folderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
   },
   headerActions: {
     flexDirection: 'row',
@@ -280,21 +294,16 @@ const styles = StyleSheet.create({
     gap: spacing.smallGap
   },
   actionButton: {
-    alignSelf: 'flex-start',
-    minWidth: 116
+    flexGrow: 1,
+    flexBasis: 128
   },
   iconButton: {
     width: 36,
     height: 36,
     margin: 0
   },
-  shareChipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6
-  },
   cardTitle: {
-    fontWeight: '700'
+    fontWeight: '500'
   },
   flex: {
     flex: 1

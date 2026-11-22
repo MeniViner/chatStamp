@@ -83,9 +83,12 @@ async function mount() {
 }
 const textValues = (renderer: ReactTestRenderer) => renderer.root.findAllByType(host('Text')).map((node) => node.props.children);
 const button = (renderer: ReactTestRenderer, key: string) => renderer.root.findAllByType(host('Button')).find((node) => node.props.children === translate(key))!;
+/** A real home list row or banner: a Pressable labelled "title" or "title, description". */
+const entry = (renderer: ReactTestRenderer, key: string) => renderer.root.findAllByType(host('Pressable'))
+  .find((node) => node.props.accessibilityRole === 'button' && (node.props.accessibilityLabel === translate(key) || String(node.props.accessibilityLabel).startsWith(`${translate(key)}, `)))!;
 async function press(node: ReactTestInstance) { await act(async () => { node.props.onPress(); await flush(); }); }
 async function open(renderer: ReactTestRenderer, page = 0) {
-  await press(button(renderer, 'import.openGuide'));
+  await press(entry(renderer, 'import.openGuide'));
   for (let index = 0; index < page; index++) await press(button(renderer, 'common.next'));
 }
 function assertNoIntakeSideEffects() {
@@ -99,13 +102,26 @@ describe('actual bilingual WhatsApp home guidance and guide flow', () => {
     const renderer = await mount();
     expect(textValues(renderer)).toContain(translate('import.shareTitle'));
     expect(textValues(renderer)).toContain(translate('import.shareBody'));
-    expect(button(renderer, 'import.openGuide').props.mode).toBe('contained');
-    expect(button(renderer, 'import.chooseZip')).toBeDefined();
     expect(translate('import.shareBody')).toMatch(/WhatsApp/);
+    // The share guidance is the first, prominent banner and itself opens the guide; a list row offers the same guide.
+    const banner = entry(renderer, 'import.shareTitle');
+    expect(banner.props.accessibilityLabel).toBe(`${translate('import.shareTitle')}, ${translate('import.shareBody')}`);
+    expect(entry(renderer, 'import.openGuide')).toBeDefined();
+    // "Choose ZIP" is the footer primary action only; no list row duplicates it.
+    const choose = renderer.root.findAllByType(host('Button')).filter((node) => node.props.children === translate('import.chooseZip'));
+    expect(choose).toHaveLength(1);
+    expect(choose[0].props.mode).toBe('contained');
+    expect(entry(renderer, 'import.chooseZip')).toBeUndefined();
+    expect(renderer.root.findAllByType(host('Pressable')).some((node) => String(node.props.accessibilityLabel ?? '').includes(translate('import.chooseZip')))).toBe(false);
+    expect(entry(renderer, 'history.title').props.accessibilityLabel).toBe(`${translate('history.title')}, ${translate('history.subtitle')}`);
+    expect(translate('import.subtitle')).toBe('import.subtitle');
     assertNoIntakeSideEffects();
-    await press(button(renderer, 'import.chooseZip'));
+    await press(choose[0]);
     expect(control.picker).toHaveBeenCalledOnce();
     expect(control.reset).not.toHaveBeenCalled();
+    await press(banner);
+    expect(textValues(renderer)).toContain(translate('whatsAppGuide.steps.openChat.title'));
+    expect(control.picker).toHaveBeenCalledOnce();
   });
 
   it.each(['en', 'he'])('renders all six translated instruction pages in %s with bounded Previous/Next and explicit finish', async (language) => {
@@ -132,7 +148,7 @@ describe('actual bilingual WhatsApp home guidance and guide flow', () => {
     expect(translate('whatsAppGuide.steps.includeMedia.body')).toMatch(language === 'he' ? /מדיה/ : /media/i);
     expect(translate('whatsAppGuide.steps.shareToApp.body')).toMatch(/chatStamp/);
     await press(button(renderer, 'whatsAppGuide.finish'));
-    expect(button(renderer, 'import.openGuide')).toBeDefined(); assertNoIntakeSideEffects();
+    expect(entry(renderer, 'import.openGuide')).toBeDefined(); assertNoIntakeSideEffects();
     expect(usePipelineStore.getState().stage).toBe('welcome');
   });
 
@@ -148,7 +164,7 @@ describe('actual bilingual WhatsApp home guidance and guide flow', () => {
       const target = renderer.root.findAll((node) => typeof node.type === 'string' && node.props.accessibilityLabel === label && typeof node.props.onPress === 'function')[0];
       expect(target).toBeDefined(); await press(target);
     }
-    expect(button(renderer, 'import.openGuide')).toBeDefined();
+    expect(entry(renderer, 'import.openGuide')).toBeDefined();
     expect(usePipelineStore.getState().stage).toBe('welcome'); assertNoIntakeSideEffects();
   });
 
@@ -163,7 +179,7 @@ describe('actual bilingual WhatsApp home guidance and guide flow', () => {
     expect(usePipelineStore.getState()).toMatchObject({ zipUri: 'content://com.whatsapp.provider.media/synthetic', workingDirectory: 'file:///cache/chatstamp/incoming/' });
     expect(usePipelineStore.getState().selectedFileIds).toEqual(new Set(['retained-selection']));
     await act(async () => usePipelineStore.getState().setStage('welcome'));
-    expect(button(renderer, 'import.openGuide')).toBeDefined(); assertNoIntakeSideEffects();
+    expect(entry(renderer, 'import.openGuide')).toBeDefined(); assertNoIntakeSideEffects();
   });
 
   it.each(['history', 'settings'] as const)('retains the existing %s action from home', async (stage) => {
@@ -172,6 +188,19 @@ describe('actual bilingual WhatsApp home guidance and guide flow', () => {
     expect(usePipelineStore.getState()).toMatchObject({ stage, overlayReturnStage: 'welcome' });
     expect(renderer.root.findAllByType(host(stage === 'history' ? 'HistoryScreen' : 'SettingsScreen'))).toHaveLength(1);
     assertNoIntakeSideEffects();
+  });
+
+  it('opens History from the home list row as well as the toolbar', async () => {
+    const renderer = await mount();
+    await press(entry(renderer, 'history.title'));
+    expect(usePipelineStore.getState()).toMatchObject({ stage: 'history', overlayReturnStage: 'welcome' });
+    expect(renderer.root.findAllByType(host('HistoryScreen'))).toHaveLength(1);
+    assertNoIntakeSideEffects();
+  });
+
+  it.each(['en', 'he'] as const)('removed import.subtitle from the %s locale', (language) => {
+    const locale: Record<string, unknown> = (language === 'he' ? he : en).import;
+    expect(locale).not.toHaveProperty('subtitle');
   });
 
   it.each(['close-button', 'dialog-dismiss'] as const)('shows a busy unsupported share as dismiss-only information via %s', async (action) => {

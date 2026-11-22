@@ -1,6 +1,7 @@
 import React from 'react';
 import { I18nManager, Modal, PanResponder, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ActivityIndicator, Button, IconButton, Text } from 'react-native-paper';
 import { Image } from 'expo-image';
 import { VideoView, createVideoPlayer, type VideoPlayer } from 'expo-video';
@@ -103,7 +104,8 @@ export function MediaViewer({ items, currentId, selectedIds, onPage, onDismiss, 
         <View style={styles.heading}><Text variant="titleMedium" numberOfLines={1} ellipsizeMode="tail" accessibilityLabel={item.sender}>{item.sender}</Text><Text variant="bodySmall">{item.dateLabel}</Text></View>
         <Pressable style={styles.touch} accessibilityRole="checkbox" accessibilityLabel={t('picker.selectItem', { name: item.filename })}
           accessibilityState={{ checked: selectedIds.has(item.id) }} onPress={() => onToggle(item.id)}>
-          <Text style={{ fontSize: 26, color: theme.colors.primary }}>{selectedIds.has(item.id) ? '☑' : '☐'}</Text>
+          <MaterialCommunityIcons name={selectedIds.has(item.id) ? 'check-circle' : 'checkbox-blank-circle-outline'} size={28}
+            color={selectedIds.has(item.id) ? theme.colors.primary : theme.colors.onSurfaceVariant} />
         </Pressable>
       </View>
       <Text variant="bodySmall" numberOfLines={1} ellipsizeMode="tail" accessibilityLabel={item.filename} style={styles.filename}>{item.filename}</Text>

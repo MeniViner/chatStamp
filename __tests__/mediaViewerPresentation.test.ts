@@ -13,6 +13,9 @@ vi.mock('expo-file-system', () => ({ File: class {} }));
 vi.mock('react-native', () => ({ Modal: 'Modal', Pressable: 'Pressable', View: 'View', I18nManager: { isRTL: false }, PanResponder: { create: (handlers: object) => ({ panHandlers: handlers }) }, StyleSheet: { create: <T,>(styles: T) => styles } }));
 vi.mock('react-native-paper', () => ({ Text: 'Text', Button: 'Button', IconButton: 'IconButton', ActivityIndicator: 'ActivityIndicator' }));
 vi.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }));
+// Transcript rendering is covered by ownerUx14Viewer; these suites only exercise media pages.
+vi.mock('../src/components/TranscriptReader', () => ({ TranscriptReader: 'TranscriptReader' }));
+vi.mock('@expo/vector-icons', () => ({ MaterialCommunityIcons: 'Icon' }));
 vi.mock('../src/theme/useAppTheme', () => ({ useAppTheme: () => ({ colors: { background: '#fff', surfaceVariant: '#eee', primary: '#123' } }) }));
 vi.mock('../src/native/mediaPreviews', () => ({ awaitMediaRelease: async () => undefined, getThumbnail: vi.fn(), openFileInOtherApp: vi.fn() }));
 vi.mock('../src/components/MediaSelectionList', () => ({ formatSelectionBytes: (value: number) => `${value} B` }));

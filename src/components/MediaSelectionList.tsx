@@ -74,7 +74,8 @@ export const MediaGridCell = React.memo(function MediaGridCell(props: MediaCellP
   React.useEffect(() => setImageFailed(false), [thumbnailUri, thumbnailStatus]);
   const registerRef = React.useCallback((view: View | null) => onRegisterCell(item.id, view), [item.id, onRegisterCell]);
   return <View ref={registerRef} style={{ width, height: width }} collapsable={false}>
-    <Pressable style={[styles.gridCell, { backgroundColor: theme.colors.surfaceVariant }]}
+    <Pressable style={[styles.gridCell, { backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant },
+      selected ? [styles.gridCellSelected, { borderColor: theme.colors.primary }] : null]}
       accessibilityRole="button" accessibilityLabel={t('picker.openItem', { name: item.filename, sender: item.sender, date: item.dateLabel })}
       accessibilityState={{ selected }} onPress={() => { if (!held.current) onOpen(item.id); held.current = false; }}
       onPressIn={() => { held.current = false; }} onLongPress={() => { held.current = true; onStartRange(item.id); }} delayLongPress={450}>
@@ -102,11 +103,17 @@ export const CompactMediaRow = React.memo(function CompactMediaRow(props: MediaC
   const transcript = item.sourceKind === 'chat-transcript';
   const held = React.useRef(false);
   const registerRef = React.useCallback((view: View | null) => onRegisterCell(item.id, view), [item.id, onRegisterCell]);
-  return <View ref={registerRef} collapsable={false} style={[styles.compact, { borderBottomColor: theme.colors.outlineVariant }]}>
+  return <View ref={registerRef} collapsable={false} style={[styles.compact, {
+    backgroundColor: selected ? theme.colors.secondaryContainer : theme.colors.surfaceContainer ?? theme.colors.surfaceVariant
+  }]}>
     {audio ? <Pressable onPress={() => onPlayAudio?.(item.id)} style={styles.checkTouch} accessibilityRole="button"
       accessibilityLabel={t(playing ? 'picker.pauseAudio' : 'picker.playAudio', { name: item.filename })}>
-      <MaterialCommunityIcons name={playing ? 'pause' : 'play'} size={28} color={theme.colors.primary} />
-    </Pressable> : <MaterialCommunityIcons name="file-document-outline" size={28} color={theme.colors.onSurfaceVariant} style={styles.documentIcon} />}
+      <View style={[styles.rowIcon, { backgroundColor: theme.colors.primary }]}>
+        <MaterialCommunityIcons name={playing ? 'pause' : 'play'} size={24} color={theme.colors.onPrimary} />
+      </View>
+    </Pressable> : <View style={[styles.rowIcon, styles.documentIcon, { backgroundColor: theme.colors.secondaryContainer }]}>
+      <MaterialCommunityIcons name={transcript ? 'message-text-outline' : 'file-document-outline'} size={22} color={theme.colors.onSecondaryContainer} />
+    </View>}
     <Pressable style={styles.rowText} accessibilityRole="button" accessibilityLabel={t('picker.openItem', { name: transcript ? `${t('picker.transcript')}, ${item.filename}` : item.filename, sender: item.sender, date: item.dateLabel })}
       accessibilityState={{ selected }} onPress={() => { if (!held.current) onOpen(item.id); held.current = false; }}
       onPressIn={() => { held.current = false; }} onLongPress={() => { held.current = true; onStartRange(item.id); }} delayLongPress={450}>
@@ -125,8 +132,8 @@ export const DaySelectionHeader = React.memo(function DaySelectionHeader({ group
   return <Pressable onPress={() => onToggleDay(groupKey)} accessibilityRole="checkbox" accessibilityLabel={t('picker.selectDay', { date: label })}
     // RN Android otherwise retains the old mixed-state description on boolean transitions.
     accessibilityState={{ checked: state === 'some' ? 'mixed' : state === 'all', busy: false }}
-    style={[styles.dayHeader, { backgroundColor: theme.colors.surface }]}>
-    <Text variant="titleSmall" style={styles.dayTitle}>{label}</Text>
+    style={[styles.dayHeader, { backgroundColor: theme.colors.background }]}>
+    <Text variant="labelLarge" style={[styles.dayTitle, { color: theme.colors.primary }]}>{label}</Text>
     <MaterialCommunityIcons name={state === 'all' ? 'checkbox-marked' : state === 'some' ? 'minus-box' : 'checkbox-blank-outline'} size={24} color={theme.colors.primary} />
   </Pressable>;
 });
@@ -234,12 +241,13 @@ export function MediaSelectionList(props: MediaSelectionListProps) {
 
 const styles = StyleSheet.create({
   list: { flex: 1 }, gridRow: { flexDirection: 'row', gap: 4, marginBottom: 4 },
-  gridCell: { flex: 1, overflow: 'hidden', borderRadius: 16 }, placeholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  gridCell: { flex: 1, overflow: 'hidden', borderRadius: 12 }, gridCellSelected: { borderWidth: 3, borderRadius: 18 }, placeholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   corner: { position: 'absolute', top: 0, end: 0 }, checkTouch: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   checkIcon: { backgroundColor: '#00000099', borderRadius: 16 }, mediaBadge: { position: 'absolute', bottom: 6, start: 6, backgroundColor: '#000000aa', borderRadius: 16, paddingHorizontal: 4 },
   overlayText: { color: 'white', fontSize: 11 }, dateBadge: { position: 'absolute', bottom: 6, end: 6, backgroundColor: '#000000aa', borderRadius: 16 },
-  compact: { flex: 1, flexDirection: 'row', alignItems: 'center', height: 64, borderBottomWidth: StyleSheet.hairlineWidth },
-  documentIcon: { marginHorizontal: 10 }, rowText: { flex: 1, justifyContent: 'center' },
+  compact: { flex: 1, flexDirection: 'row', alignItems: 'center', minHeight: 64, borderRadius: 16, paddingEnd: 4 },
+  rowIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  documentIcon: { marginHorizontal: 4 }, rowText: { flex: 1, justifyContent: 'center', paddingVertical: 8 },
   dayHeader: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
   dayTitle: { flex: 1, fontWeight: '600' }, footer: { gap: 4 }, footerSelect: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 8 },
   footerCount: { flex: 1 }, empty: { textAlign: 'center', padding: 24 },

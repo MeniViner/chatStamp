@@ -25,6 +25,7 @@ vi.mock('../src/components/ConfirmDialog', () => ({ ConfirmDialog: 'ConfirmDialo
 vi.mock('../src/components/AppUi', async () => {
   const { createElement } = await import('react');
   return { textStyles: { start: {} }, PrimaryButton: 'PrimaryButton', SecondaryButton: 'SecondaryButton', PremiumCard: 'PremiumCard',
+    IconCircle: 'IconCircle', StatusBadge: 'StatusBadge',
     AppScreenScaffold: ({ children, footer, actions, ...props }: { children?: React.ReactNode; footer?: React.ReactNode; actions?: React.ReactNode }) => createElement('AppScreenScaffold', props, actions, children, footer) };
 });
 vi.mock('../src/theme/useAppTheme', () => ({ useAppTheme: () => ({ colors: { onSurfaceVariant: '#456' } }) }));

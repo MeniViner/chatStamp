@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Font from 'expo-font';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { initialWindowMetrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppNavigator } from './src/screens/AppNavigator';
 import { OnboardingFlow } from './src/screens/onboarding/OnboardingFlow';
 import { AppThemeProvider } from './src/theme/theme';
@@ -79,7 +79,7 @@ export default function App() {
 
   if (assetState !== 'ready') {
     return (
-      <SafeAreaProvider>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <View style={styles.container}>
           {assetState === 'loading' ? (
             <>
@@ -104,7 +104,7 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <View style={styles.appRoot}>
         <AppThemeProvider>
           {onboardingCompleted ? <View style={{ flex: 1, display: replayRequested ? 'none' : 'flex' }}><AppNavigator /></View> : null}

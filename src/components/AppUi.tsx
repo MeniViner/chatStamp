@@ -1,16 +1,17 @@
 import React from 'react';
-import { Pressable, StatusBar, StyleSheet, View, type ImageStyle, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
+import { I18nManager, Pressable, StatusBar, StyleSheet, View, type ImageStyle, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Appbar, Button, Chip, ProgressBar, RadioButton, Surface, Switch, Text } from 'react-native-paper';
+import { Appbar, Button, ProgressBar, RadioButton, Switch, Text } from 'react-native-paper';
 import { Image as ExpoImage } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { spacing, radius, size, appTypography } from '../theme/designTokens';
-import { useAppTheme } from '../theme/useAppTheme';
+import { useAppTheme, type AppTheme } from '../theme/useAppTheme';
 import type { MediaType } from '../types/media';
 import { getThumbnail, invalidateThumbnail, type ThumbnailResult } from '../native/mediaPreviews';
+import appIconSource from '../../assets/app-logo.png';
 
-type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+export type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 export const textStyles = StyleSheet.create({
   start: {
@@ -20,6 +21,30 @@ export const textStyles = StyleSheet.create({
 });
 
 const styles = createStyles();
+
+/** Surface roles with fallbacks for palettes that predate the container roles. */
+export function surfaceRoles(theme: AppTheme) {
+  return {
+    group: theme.colors.surfaceContainer ?? theme.colors.surfaceVariant,
+    groupPressed: theme.colors.surfaceContainerHighest ?? theme.colors.surfaceVariant,
+    raised: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant,
+    low: theme.colors.surfaceContainerLow ?? theme.colors.surface
+  };
+}
+
+const forwardChevron = (): IconName => I18nManager.isRTL ? 'chevron-left' : 'chevron-right';
+export const forwardArrow = (): IconName => I18nManager.isRTL ? 'arrow-left' : 'arrow-right';
+
+/** The launcher artwork in a round frame, as used in headers and the About row. */
+export function AppLogo({ size: diameter = 40 }: { size?: number }) {
+  const theme = useAppTheme();
+  return (
+    <View importantForAccessibility="no-hide-descendants"
+      style={[styles.logo, { width: diameter, height: diameter, borderRadius: diameter / 2, borderColor: theme.colors.outlineVariant }]}>
+      <ExpoImage source={appIconSource} contentFit="cover" style={styles.logoImage} />
+    </View>
+  );
+}
 
 export function AppScreenScaffold({
   title,
@@ -32,7 +57,8 @@ export function AppScreenScaffold({
   actions,
   children,
   footer,
-  contentStyle
+  contentStyle,
+  titleMode = 'large'
 }: {
   title: string;
   subtitle?: string;
@@ -45,117 +71,84 @@ export function AppScreenScaffold({
   children: React.ReactNode;
   footer?: React.ReactNode;
   contentStyle?: StyleProp<ViewStyle>;
+  /**
+   * Large titles sit under the top bar; compact titles stay inside it for dense
+   * screens; none leaves the heading to the screen content.
+   */
+  titleMode?: 'large' | 'compact' | 'none';
 }) {
   const theme = useAppTheme();
   const { t } = useTranslation();
   const statusBarStyle = theme.dark ? 'light-content' : 'dark-content';
+  const large = titleMode === 'large';
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.scaffoldSafeArea, { backgroundColor: theme.colors.background }]}>
       <StatusBar translucent backgroundColor="transparent" barStyle={statusBarStyle} />
       <Appbar.Header mode="small" elevated={false} statusBarHeight={0} style={[styles.scaffoldAppbar, { backgroundColor: theme.colors.background }]}>
         {onBack ? <Appbar.BackAction accessibilityLabel={t('common.back')} disabled={backDisabled} onPress={onBack} /> : null}
-        <CompactStepHeader stepLabel={stepLabel} title={title} />
+        <View style={styles.flex}>
+          {titleMode === 'compact' ? (
+            <Text variant="titleLarge" numberOfLines={1} ellipsizeMode="tail" accessibilityRole="header"
+              style={[styles.compactTitle, textStyles.start]}>
+              {title}
+            </Text>
+          ) : null}
+        </View>
         {actions}
       </Appbar.Header>
-      {showProgress && typeof progress === 'number' ? (
-        <ProgressBar progress={progress} color={theme.colors.primary} style={styles.scaffoldProgress} />
+      {large ? (
+        <View style={styles.largeHeader}>
+          {stepLabel ? <StepPill label={stepLabel} /> : null}
+          <Text variant="headlineLarge" accessibilityRole="header" style={[styles.largeTitle, textStyles.start, { color: theme.colors.onBackground }]}>
+            {title}
+          </Text>
+          {subtitle ? (
+            <Text variant="bodyMedium" style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+              {subtitle}
+            </Text>
+          ) : null}
+        </View>
+      ) : titleMode === 'compact' && (stepLabel || subtitle) ? (
+        <View style={styles.compactHeaderMeta}>
+          {stepLabel ? <StepPill label={stepLabel} /> : null}
+          {subtitle ? (
+            <Text variant="bodySmall" style={[styles.flex, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+              {subtitle}
+            </Text>
+          ) : null}
+        </View>
       ) : null}
-      {subtitle ? <StepHeader title="" subtitle={subtitle} compact /> : null}
+      {showProgress && typeof progress === 'number' ? (
+        <View style={styles.progressWrap}>
+          <ProgressBar progress={progress} color={theme.colors.primary} style={[styles.progress, { backgroundColor: surfaceRoles(theme).raised }]} />
+        </View>
+      ) : null}
       <View style={[styles.scaffoldContent, contentStyle]}>{children}</View>
-      {footer ? <PrimaryBottomActionBar>{footer}</PrimaryBottomActionBar> : null}
+      {footer ? <BottomActionBar>{footer}</BottomActionBar> : null}
     </SafeAreaView>
   );
 }
 
-function CompactStepHeader({ stepLabel, title }: { stepLabel?: string; title: string }) {
+function StepPill({ label }: { label: string }) {
   const theme = useAppTheme();
   return (
-    <View style={styles.compactStepHeader}>
-      <Text variant="titleMedium" numberOfLines={1} ellipsizeMode="tail" accessibilityLabel={title}
-        style={[styles.compactAppbarTitle, textStyles.start]}>
-        {title}
+    <View style={[styles.stepPill, { backgroundColor: theme.colors.secondaryContainer }]}>
+      <Text variant="labelMedium" numberOfLines={1} style={[styles.tabular, { color: theme.colors.onSecondaryContainer }]}>
+        {label}
       </Text>
-      {stepLabel ? (
-        <View style={[styles.compactStepPill, { backgroundColor: theme.colors.secondaryContainer }]}>
-          <Text variant="labelSmall" style={[styles.tabular, { color: theme.colors.onSecondaryContainer }]}>
-            {stepLabel}
-          </Text>
-        </View>
-      ) : null}
     </View>
   );
 }
 
-function StepHeader({
-  stepLabel,
-  title,
-  subtitle,
-  style,
-  compact
-}: {
-  stepLabel?: string;
-  title: string;
-  subtitle?: string;
-  style?: StyleProp<ViewStyle>;
-  compact?: boolean;
-}) {
-  const theme = useAppTheme();
-  return (
-    <View style={[compact ? styles.stepSubtitleOnly : styles.stepHeader, style]}>
-      {!compact ? (
-        <View style={styles.stepHeaderLine}>
-          {stepLabel ? (
-            <View style={[styles.stepPill, { backgroundColor: theme.colors.secondaryContainer }]}>
-              <Text variant="labelSmall" numberOfLines={1} style={[styles.tabular, { color: theme.colors.onSecondaryContainer }]}>
-                {stepLabel}
-              </Text>
-            </View>
-          ) : null}
-          <Text variant="titleSmall" style={[styles.screenTitle, textStyles.start]}>
-            {title}
-          </Text>
-        </View>
-      ) : null}
-      {subtitle ? (
-        <Text variant="bodySmall" style={[styles.scaffoldSubtitle, textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
-          {subtitle}
-        </Text>
-      ) : null}
-    </View>
-  );
-}
-
-function PrimaryBottomActionBar({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+function BottomActionBar({ children }: { children: React.ReactNode }) {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
   return (
-    <Surface
-      elevation={2}
-      style={[
-        styles.primaryBottomActionBar,
-        {
-          backgroundColor: theme.colors.surface,
-          paddingBottom: insets.bottom + spacing.compactInner
-        },
-        style
-      ]}
-    >
+    <View style={[styles.bottomActionBar, { backgroundColor: theme.colors.background, paddingBottom: insets.bottom + spacing.compactInner }]}>
       {children}
-    </Surface>
+    </View>
   );
-}
-
-function semanticColors(theme: ReturnType<typeof useAppTheme>) {
-  return {
-    primaryBrown: theme.colors.primary,
-    peachSelected: theme.colors.primaryContainer,
-    peachSoft: theme.colors.secondaryContainer,
-    surface: theme.colors.surface,
-    surfaceVariant: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant,
-    borderSubtle: theme.colors.outlineVariant,
-    textSecondary: theme.colors.onSurfaceVariant
-  };
 }
 
 function shortenMiddle(value: string, max = 76): string {
@@ -190,26 +183,17 @@ export function FilePathText({
   );
 }
 
+/** Small rounded tag, used for counts, statuses and badges. */
 export function StatusBadge({ label, selected = false, danger = false }: { label: string; selected?: boolean; danger?: boolean }) {
   const theme = useAppTheme();
-  const colors = semanticColors(theme);
+  const background = danger ? theme.colors.errorContainer : selected ? theme.colors.secondaryContainer : surfaceRoles(theme).groupPressed;
+  const color = danger ? theme.colors.onErrorContainer : selected ? theme.colors.onSecondaryContainer : theme.colors.onSurfaceVariant;
   return (
-    <Chip
-      compact
-      style={[
-        styles.badge,
-        {
-          backgroundColor: danger ? theme.colors.errorContainer : selected ? colors.peachSelected : colors.surfaceVariant,
-          borderColor: danger ? theme.colors.error : selected ? colors.primaryBrown : colors.borderSubtle
-        }
-      ]}
-      textStyle={[
-        styles.badgeText,
-        { color: danger ? theme.colors.onErrorContainer : selected ? theme.colors.onPrimaryContainer : colors.textSecondary }
-      ]}
-    >
-      {label}
-    </Chip>
+    <View style={[styles.badge, { backgroundColor: background }]}>
+      <Text variant="labelMedium" numberOfLines={1} style={[styles.badgeText, { color }]}>
+        {label}
+      </Text>
+    </View>
   );
 }
 
@@ -217,12 +201,15 @@ export function PrimaryButton({
   children,
   icon,
   disabled,
+  iconAfterLabel = false,
   onPress,
   style
 }: {
   children: React.ReactNode;
   icon?: string;
   disabled?: boolean;
+  /** Places a directional icon after the label, as in "Next →". */
+  iconAfterLabel?: boolean;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
 }) {
@@ -233,7 +220,7 @@ export function PrimaryButton({
       disabled={disabled}
       onPress={onPress}
       style={[styles.fullButton, style]}
-      contentStyle={styles.primaryButtonContent}
+      contentStyle={[styles.primaryButtonContent, iconAfterLabel ? styles.iconAfterLabel : null]}
       labelStyle={styles.buttonLabel}
       maxFontSizeMultiplier={2}
     >
@@ -262,7 +249,7 @@ export function SecondaryButton({
   const theme = useAppTheme();
   return (
     <Button
-      mode={selected ? 'contained-tonal' : danger ? 'text' : 'outlined'}
+      mode={selected ? 'contained' : danger ? 'text' : 'contained-tonal'}
       icon={icon}
       disabled={disabled}
       textColor={danger ? theme.colors.error : undefined}
@@ -277,6 +264,19 @@ export function SecondaryButton({
   );
 }
 
+/** Primary colored icon and label above a group of settings. */
+export function SectionHeader({ icon, label, style }: { icon?: IconName; label: string; style?: StyleProp<ViewStyle> }) {
+  const theme = useAppTheme();
+  return (
+    <View style={[styles.sectionHeader, style]} accessibilityRole="header">
+      {icon ? <MaterialCommunityIcons name={icon} size={18} color={theme.colors.primary} importantForAccessibility="no" /> : null}
+      <Text variant="labelLarge" style={[styles.sectionHeaderLabel, textStyles.start, { color: theme.colors.primary }]}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
 export function SettingsSectionCard({
   title,
   icon,
@@ -287,11 +287,141 @@ export function SettingsSectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <View style={{ gap: spacing.gap }}>
+    <View style={styles.section}>
       <SectionHeader icon={icon} label={title} />
       {children}
     </View>
   );
+}
+
+/**
+ * Segmented group: each child becomes one row of a shared rounded surface,
+ * with large outer corners and small inner corners.
+ */
+export function ListGroup({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+  const theme = useAppTheme();
+  const rows = React.Children.toArray(children).filter(React.isValidElement);
+  const background = surfaceRoles(theme).group;
+  return (
+    <View style={[styles.listGroup, style]}>
+      {rows.map((row, index) => (
+        <View key={row.key ?? index} style={[styles.segment, {
+          backgroundColor: background,
+          borderTopLeftRadius: index === 0 ? radius.card : radius.segment,
+          borderTopRightRadius: index === 0 ? radius.card : radius.segment,
+          borderBottomLeftRadius: index === rows.length - 1 ? radius.card : radius.segment,
+          borderBottomRightRadius: index === rows.length - 1 ? radius.card : radius.segment
+        }]}>
+          {row}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+export function IconCircle({ icon, tone = 'tonal', size: diameter = size.iconContainer }: {
+  icon: IconName;
+  tone?: 'tonal' | 'primary' | 'error' | 'success';
+  size?: number;
+}) {
+  const theme = useAppTheme();
+  const colors = tone === 'primary' ? [theme.colors.primary, theme.colors.onPrimary]
+    : tone === 'error' ? [theme.colors.errorContainer, theme.colors.onErrorContainer]
+      : tone === 'success' ? [theme.colors.tertiaryContainer, theme.colors.onTertiaryContainer]
+        : [theme.colors.secondaryContainer, theme.colors.onSecondaryContainer];
+  return (
+    <View importantForAccessibility="no-hide-descendants"
+      style={[styles.iconCircle, { width: diameter, height: diameter, borderRadius: diameter / 2, backgroundColor: colors[0] }]}>
+      <MaterialCommunityIcons name={icon} size={Math.round(diameter * 0.5)} color={colors[1]} />
+    </View>
+  );
+}
+
+/** One row inside a ListGroup: leading icon, title, supporting text and trailing control. */
+export function ListItem({
+  icon,
+  iconTone,
+  leading,
+  title,
+  description,
+  trailing,
+  onPress,
+  selected = false,
+  disabled = false,
+  accessibilityRole,
+  accessibilityState,
+  children,
+  titleNumberOfLines
+}: {
+  icon?: IconName;
+  iconTone?: 'tonal' | 'primary' | 'error' | 'success';
+  leading?: React.ReactNode;
+  title: string;
+  description?: string;
+  trailing?: React.ReactNode;
+  onPress?: () => void;
+  selected?: boolean;
+  disabled?: boolean;
+  accessibilityRole?: 'button' | 'radio' | 'switch' | 'checkbox' | 'link';
+  accessibilityState?: { checked?: boolean; selected?: boolean; disabled?: boolean };
+  children?: React.ReactNode;
+  titleNumberOfLines?: number;
+}) {
+  const theme = useAppTheme();
+  const roles = surfaceRoles(theme);
+  const hasLeading = Boolean(leading ?? icon);
+  // Extra controls (badges, details toggles) sit below the pressable row, so the row itself stays one
+  // accessible element that exposes its role and checked state while the extras stay separately focusable.
+  const extras = React.Children.toArray(children).length > 0 ? (
+    <View style={[styles.listExtras, hasLeading ? styles.listExtrasIndented : null]}>{children}</View>
+  ) : null;
+  const body = (
+    <>
+      {leading ?? (icon ? <IconCircle icon={icon} tone={iconTone} /> : null)}
+      <View style={styles.listText}>
+        <Text variant="titleMedium" numberOfLines={titleNumberOfLines}
+          style={[styles.listTitle, textStyles.start, { color: selected ? theme.colors.onSecondaryContainer : theme.colors.onSurface }]}>
+          {title}
+        </Text>
+        {description ? (
+          <Text variant="bodyMedium" style={[textStyles.start, { color: selected ? theme.colors.onSecondaryContainer : theme.colors.onSurfaceVariant }]}>
+            {description}
+          </Text>
+        ) : null}
+      </View>
+      {trailing}
+    </>
+  );
+  const rowStyle = [styles.listItem, extras ? styles.listItemWithExtras : null, { opacity: disabled ? 0.5 : 1 }];
+  const selectedSurface = selected ? { backgroundColor: theme.colors.secondaryContainer } : null;
+  if (!onPress) {
+    return <View style={selectedSurface}><View style={rowStyle}>{body}</View>{extras}</View>;
+  }
+  return (
+    <View style={selectedSurface}>
+      <Pressable
+        accessibilityRole={accessibilityRole ?? 'button'}
+        accessibilityLabel={description ? `${title}, ${description}` : title}
+        accessibilityState={{ disabled, ...accessibilityState }}
+        disabled={disabled}
+        onPress={onPress}
+        android_ripple={{ color: roles.groupPressed }}
+        style={({ pressed }) => [rowStyle, { backgroundColor: !selected && pressed ? roles.groupPressed : 'transparent' }]}
+      >
+        {body}
+      </Pressable>
+      {extras}
+    </View>
+  );
+}
+
+/** Navigation row that opens a deeper page. */
+export function NavigationItem({ icon, title, description, onPress }: {
+  icon: IconName; title: string; description?: string; onPress: () => void;
+}) {
+  const theme = useAppTheme();
+  return <ListItem icon={icon} title={title} description={description} onPress={onPress}
+    trailing={<MaterialCommunityIcons name={forwardChevron()} size={24} color={theme.colors.onSurfaceVariant} importantForAccessibility="no" />} />;
 }
 
 export function PremiumCard({
@@ -310,18 +440,13 @@ export function PremiumCard({
   contentStyle?: StyleProp<ViewStyle>;
 }) {
   const theme = useAppTheme();
-  const colors = semanticColors(theme);
   return (
-    <Surface elevation={0} style={[styles.sectionCard, { borderColor: colors.borderSubtle, backgroundColor: colors.surface }, style]}>
+    <View style={[styles.sectionCard, { backgroundColor: surfaceRoles(theme).group }, style]}>
       {title || icon || trailing ? (
-        <View style={styles.sectionHeader}>
-          {icon ? (
-            <View style={[styles.smallIconBubble, { backgroundColor: colors.peachSoft }]}>
-              <MaterialCommunityIcons name={icon} size={20} color={colors.primaryBrown} />
-            </View>
-          ) : null}
+        <View style={styles.cardHeader}>
+          {icon ? <IconCircle icon={icon} /> : null}
           {title ? (
-            <Text variant="titleMedium" style={[styles.sectionTitle, textStyles.start]}>
+            <Text variant="titleMedium" style={[styles.flex, styles.listTitle, textStyles.start]}>
               {title}
             </Text>
           ) : (
@@ -331,30 +456,40 @@ export function PremiumCard({
         </View>
       ) : null}
       <View style={[styles.cardContent, contentStyle]}>{children}</View>
-    </Surface>
+    </View>
   );
 }
 
-function SectionHeader({
-  icon,
-  label,
-  style
-}: {
+/** Prominent colored notice with a leading icon, optionally tappable. */
+export function InfoBanner({ icon, title, body, tone = 'primary', onPress, children }: {
   icon: IconName;
-  label: string;
-  style?: StyleProp<ViewStyle>;
+  title?: string;
+  body?: string;
+  tone?: 'primary' | 'error' | 'neutral';
+  onPress?: () => void;
+  children?: React.ReactNode;
 }) {
   const theme = useAppTheme();
-  const colors = semanticColors(theme);
-  return (
-    <View style={[styles.sectionHeader, style]}>
-      <View style={[styles.smallIconBubble, { backgroundColor: colors.peachSoft }]}>
-        <MaterialCommunityIcons name={icon} size={20} color={colors.primaryBrown} />
+  const [background, foreground] = tone === 'error' ? [theme.colors.errorContainer, theme.colors.onErrorContainer]
+    : tone === 'neutral' ? [surfaceRoles(theme).group, theme.colors.onSurfaceVariant]
+      : [theme.colors.primaryContainer, theme.colors.onPrimaryContainer];
+  const content = (
+    <View style={styles.bannerRow}>
+      <MaterialCommunityIcons name={icon} size={24} color={foreground} importantForAccessibility="no" />
+      <View style={styles.listText}>
+        {title ? <Text variant="titleMedium" style={[styles.listTitle, textStyles.start, { color: foreground }]}>{title}</Text> : null}
+        {body ? <Text variant="bodyMedium" style={[textStyles.start, { color: foreground }]}>{body}</Text> : null}
+        {children}
       </View>
-      <Text variant="titleMedium" style={[styles.sectionTitle, textStyles.start, { color: colors.primaryBrown }]}>
-        {label}
-      </Text>
     </View>
+  );
+  const shape = [styles.banner, { backgroundColor: background }];
+  if (!onPress) return <View style={shape}>{content}</View>;
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={[title, body].filter(Boolean).join(', ')} onPress={onPress}
+      android_ripple={{ color: foreground + '22' }} style={shape}>
+      {content}
+    </Pressable>
   );
 }
 
@@ -383,64 +518,39 @@ export function OptionChoiceCard({
 }) {
   const { t } = useTranslation();
   const theme = useAppTheme();
-  const colors = semanticColors(theme);
   const [detailsOpen, setDetailsOpen] = React.useState(false);
   const detail = technicalDetail ?? example;
-  const content = (
-    <Surface
-      elevation={0}
-      style={[
-        styles.optionCard,
-        {
-          backgroundColor: selected ? colors.peachSelected : colors.surface,
-          borderColor: caution && selected ? theme.colors.error : selected ? colors.primaryBrown : colors.borderSubtle,
-          opacity: disabled ? 0.56 : 1
-        }
-      ]}
+  const textColor = selected ? theme.colors.onSecondaryContainer : theme.colors.onSurfaceVariant;
+  return (
+    <ListItem
+      title={title}
+      description={description}
+      selected={selected}
+      disabled={disabled}
+      onPress={disabled ? undefined : onPress}
+      accessibilityRole="radio"
+      accessibilityState={{ checked: selected }}
+      trailing={showRadio ? (
+        <RadioButton value={title} status={selected ? 'checked' : 'unchecked'} disabled={disabled} onPress={onPress}
+          color={caution ? theme.colors.error : theme.colors.primary} />
+      ) : selected ? (
+        <MaterialCommunityIcons name="check-circle" size={24} color={caution ? theme.colors.error : theme.colors.primary} importantForAccessibility="no" />
+      ) : null}
     >
-      <View style={styles.optionTop}>
-        <View style={styles.optionText}>
-          {badge ? (
-            <View style={styles.badgeLine}>
-              <StatusBadge label={badge} selected={selected} />
-            </View>
-          ) : null}
-          <Text variant="bodyMedium" style={[styles.optionTitle, textStyles.start]}>
-            {title}
-          </Text>
-        </View>
-        {showRadio ? <RadioButton value={title} status={selected ? 'checked' : 'unchecked'} disabled={disabled} onPress={onPress} /> : null}
-      </View>
-      {description ? (
-        <Text
-          variant="bodySmall"
-          style={[styles.optionDescription, textStyles.start, { color: selected ? theme.colors.onPrimaryContainer : colors.textSecondary }]}
-        >
-          {description}
-        </Text>
-      ) : null}
+      {badge ? <View style={styles.badgeLine}><StatusBadge label={badge} selected={!selected} /></View> : null}
       {detail ? (
-        <Button
-          mode="text"
-          compact
-          icon={detailsOpen ? 'chevron-up' : 'chevron-down'}
-          onPress={() => setDetailsOpen((value) => !value)}
-          style={styles.detailsButton}
-          labelStyle={styles.detailsButtonLabel}
-        >
-          {detailsOpen ? t('common.hideTechnicalDetails') : t('common.showTechnicalDetails')}
-        </Button>
+        <Pressable accessibilityRole="button" accessibilityState={{ expanded: detailsOpen }}
+          onPress={() => setDetailsOpen((value) => !value)} style={styles.detailsToggle}>
+          <Text variant="labelLarge" style={{ color: selected ? theme.colors.onSecondaryContainer : theme.colors.primary }}>
+            {detailsOpen ? t('common.hideTechnicalDetails') : t('common.showTechnicalDetails')}
+          </Text>
+          <MaterialCommunityIcons name={detailsOpen ? 'chevron-up' : 'chevron-down'} size={18}
+            color={selected ? theme.colors.onSecondaryContainer : theme.colors.primary} />
+        </Pressable>
       ) : null}
-      {detail && detailsOpen ? (
-        <Surface elevation={0} style={[styles.codePathContainer, { backgroundColor: theme.colors.surface }]}>
-          <FilePathText value={detail} maxLines={3} style={{ color: colors.textSecondary }} />
-        </Surface>
-      ) : null}
-    </Surface>
+      {detail && detailsOpen ? <FilePathText value={detail} maxLines={3} style={{ color: textColor }} /> : null}
+    </ListItem>
   );
-
-  if (disabled || !onPress) return content;
-  return <Pressable onPress={onPress}>{content}</Pressable>;
 }
 
 export function SettingRow({
@@ -458,28 +568,19 @@ export function SettingRow({
   onValueChange?: (value: boolean) => void;
   children?: React.ReactNode;
 }) {
-  const theme = useAppTheme();
-  const colors = semanticColors(theme);
+  const toggles = typeof value === 'boolean' && onValueChange;
   return (
-    <View style={styles.settingRow}>
-      {icon ? (
-        <View style={[styles.rowIcon, { backgroundColor: colors.peachSoft }]}>
-          <MaterialCommunityIcons name={icon} size={20} color={colors.primaryBrown} />
-        </View>
-      ) : null}
-      <View style={styles.settingText}>
-        <Text variant="titleSmall" style={[textStyles.start, styles.settingTitle]}>
-          {title}
-        </Text>
-        {description ? (
-          <Text variant="bodySmall" style={[textStyles.start, { color: colors.textSecondary }]}>
-            {description}
-          </Text>
-        ) : null}
-        {children}
-      </View>
-      {typeof value === 'boolean' && onValueChange ? <Switch value={value} onValueChange={onValueChange} /> : null}
-    </View>
+    <ListItem
+      icon={icon}
+      title={title}
+      description={description}
+      onPress={toggles ? () => onValueChange(!value) : undefined}
+      accessibilityRole={toggles ? 'switch' : undefined}
+      accessibilityState={toggles ? { checked: value } : undefined}
+      trailing={toggles ? <Switch value={value} onValueChange={onValueChange} /> : undefined}
+    >
+      {children}
+    </ListItem>
   );
 }
 
@@ -490,7 +591,7 @@ export function InfoRow({ icon, label, value, path }: { icon: IconName; label: s
       {path ? (
         <FilePathText value={value} maxLines={2} />
       ) : (
-        <Text variant="bodySmall" numberOfLines={3} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
+        <Text variant="bodyMedium" numberOfLines={3} style={[textStyles.start, { color: theme.colors.onSurfaceVariant }]}>
           {value}
         </Text>
       )}
@@ -529,16 +630,16 @@ export function ExpandableTechnicalDetails({
   }
   return (
     <View style={[styles.expandableDetails, style]}>
-      <Pressable onPress={toggleOpen} style={styles.expandableHeader}>
+      <Pressable onPress={toggleOpen} accessibilityRole="button" accessibilityState={{ expanded: open }} style={styles.expandableHeader}>
         <Text variant="labelLarge" style={[styles.flex, textStyles.start, { color: theme.colors.primary }]}>
           {label}
         </Text>
         <MaterialCommunityIcons name={open ? 'chevron-up' : 'chevron-down'} size={22} color={theme.colors.primary} />
       </Pressable>
       {open ? (
-        <Surface elevation={0} style={[styles.expandableBody, { backgroundColor: theme.colors.surfaceContainerLow ?? theme.colors.surfaceVariant }]}>
+        <View style={[styles.expandableBody, { backgroundColor: surfaceRoles(theme).low }]}>
           {children}
-        </Surface>
+        </View>
       ) : null}
     </View>
   );
@@ -548,7 +649,7 @@ export const MediaThumbnail = React.memo(function MediaThumbnail({
   mediaType,
   uri,
   thumbnailUri,
-  size = 78,
+  size: diameter = 78,
   style
 }: {
   mediaType?: MediaType;
@@ -577,10 +678,10 @@ export const MediaThumbnail = React.memo(function MediaThumbnail({
   }, [retry, source, supplied, visual]);
   const nativeImage = resolved?.source === source && resolved.result.available ? resolved.result.uri : null;
   const image = supplied ?? nativeImage;
-  const thumbStyle = [styles.mediaImage, { width: size, height: size }, style] as StyleProp<ImageStyle>;
+  const thumbStyle = [styles.mediaImage, { width: diameter, height: diameter }, style] as StyleProp<ImageStyle>;
   const iconStyle = [
     styles.mediaIcon,
-    { width: size, height: size, backgroundColor: theme.colors.surfaceContainerHigh ?? theme.colors.surfaceVariant },
+    { width: diameter, height: diameter, backgroundColor: theme.colors.secondaryContainer },
     style
   ] as StyleProp<ViewStyle>;
 
@@ -597,7 +698,7 @@ export const MediaThumbnail = React.memo(function MediaThumbnail({
 
   return (
     <View style={iconStyle}>
-      <MaterialCommunityIcons name={getMediaIcon(normalizedType)} size={Math.max(20, Math.round(size * 0.28))} color={theme.colors.primary} />
+      <MaterialCommunityIcons name={getMediaIcon(normalizedType)} size={Math.max(20, Math.round(diameter * 0.4))} color={theme.colors.onSecondaryContainer} />
     </View>
   );
 });
@@ -607,6 +708,7 @@ function getMediaIcon(mediaType: MediaType): IconName {
   if (mediaType === 'voice' || mediaType === 'audio') return 'microphone-outline';
   if (mediaType === 'sticker') return 'sticker-outline';
   if (mediaType === 'document') return 'file-document-outline';
+  if (mediaType === 'photo' || mediaType === 'gif') return 'image-outline';
   return 'file-question-outline';
 }
 
@@ -616,80 +718,56 @@ function createStyles() {
     flex: 1
   },
   scaffoldAppbar: {
-    minHeight: 64,
+    minHeight: size.topBarHeight,
     height: 'auto',
     flexShrink: 0,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    gap: 4
+    paddingHorizontal: 4,
+    gap: 0
   },
-  scaffoldProgress: {
-    height: 3
-  },
-  stepHeader: {
-    paddingHorizontal: spacing.screenHorizontal,
-    paddingTop: spacing.tinyGap,
-    paddingBottom: spacing.smallGap,
-    gap: 2
-  },
-  stepSubtitleOnly: {
-    paddingHorizontal: spacing.screenHorizontal,
-    paddingTop: spacing.tinyGap,
-    paddingBottom: spacing.tinyGap
-  },
-  compactStepHeader: {
-    flex: 1,
-    minWidth: 0,
-    alignItems: 'stretch',
-    justifyContent: 'center',
-    paddingVertical: 4,
-    gap: 2
-  },
-  compactAppbarTitle: {
-    flexShrink: 1,
-    minWidth: 0,
-    fontWeight: '800',
+  compactTitle: {
+    paddingHorizontal: 12,
     letterSpacing: 0
   },
-  compactStepPill: {
-    flexShrink: 0,
-    alignSelf: 'flex-start',
-    borderRadius: 16,
-    paddingHorizontal: 6,
-    paddingVertical: 2
+  largeHeader: {
+    paddingHorizontal: spacing.screenHorizontal + 4,
+    paddingTop: spacing.smallGap,
+    paddingBottom: spacing.card,
+    gap: spacing.smallGap
   },
-  stepHeaderLine: {
+  largeTitle: {
+    ...appTypography.largeTitle,
+    letterSpacing: 0
+  },
+  compactHeaderMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.smallGap
+    gap: spacing.smallGap,
+    paddingHorizontal: spacing.screenHorizontal,
+    paddingBottom: spacing.smallGap
+  },
+  progressWrap: {
+    paddingHorizontal: spacing.screenHorizontal,
+    paddingBottom: spacing.smallGap
+  },
+  progress: {
+    height: 4,
+    borderRadius: 2
   },
   stepPill: {
     alignSelf: 'flex-start',
-    borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    maxWidth: 112
-  },
-  screenTitle: {
-    ...appTypography.cardTitle,
-    flex: 1,
-    letterSpacing: 0,
-    fontWeight: '800'
-  },
-  scaffoldSubtitle: {
-    ...appTypography.caption
+    borderRadius: radius.chip,
+    paddingHorizontal: 10,
+    paddingVertical: 3
   },
   scaffoldContent: {
     flex: 1,
     minHeight: 0,
-    paddingHorizontal: spacing.screenHorizontal,
-    paddingTop: spacing.tinyGap
+    paddingHorizontal: spacing.screenHorizontal
   },
-  primaryBottomActionBar: {
+  bottomActionBar: {
     flexShrink: 0,
     paddingHorizontal: spacing.screenHorizontal,
-    paddingTop: spacing.compactInner,
-    minHeight: size.stickyFooterMinHeight,
+    paddingTop: spacing.gap,
     gap: spacing.smallGap
   },
   pathText: {
@@ -699,14 +777,14 @@ function createStyles() {
   },
   badge: {
     minHeight: size.chipHeight,
-    borderWidth: StyleSheet.hairlineWidth,
     borderRadius: radius.chip,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
     alignSelf: 'flex-start'
   },
   badgeText: {
-    ...appTypography.caption,
     fontWeight: '700',
-    maxWidth: 180,
+    maxWidth: 200,
     textAlign: 'auto',
     writingDirection: 'auto'
   },
@@ -717,6 +795,9 @@ function createStyles() {
   },
   primaryButtonContent: {
     minHeight: size.buttonHeight
+  },
+  iconAfterLabel: {
+    flexDirection: 'row-reverse'
   },
   buttonLabel: {
     ...appTypography.button
@@ -730,98 +811,101 @@ function createStyles() {
     minHeight: size.smallButtonHeight
   },
   secondaryButtonLabel: {
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '600'
+  },
+  section: {
+    gap: spacing.smallGap
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.smallGap,
+    minHeight: 36,
+    paddingHorizontal: spacing.tinyGap
+  },
+  sectionHeaderLabel: {
+    ...appTypography.sectionTitle,
+    letterSpacing: 0.1
+  },
+  listGroup: {
+    gap: spacing.segmentGap
+  },
+  segment: {
+    overflow: 'hidden'
+  },
+  listItem: {
+    minHeight: size.listItemMinHeight,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    paddingHorizontal: spacing.compactInner,
+    paddingVertical: 14
+  },
+  listItemWithExtras: {
+    paddingBottom: 6
+  },
+  listExtras: {
+    paddingHorizontal: spacing.compactInner,
+    paddingBottom: 10,
+    gap: 2
+  },
+  listExtrasIndented: {
+    paddingStart: spacing.compactInner + size.iconContainer + 16
+  },
+  listText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2
+  },
+  listTitle: {
     fontSize: 16,
-    lineHeight: 21,
-    fontWeight: '700'
+    lineHeight: 22,
+    fontWeight: '500',
+    letterSpacing: 0
+  },
+  iconCircle: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0
   },
   sectionCard: {
-    borderWidth: StyleSheet.hairlineWidth,
     borderRadius: radius.card,
     padding: spacing.innerCard,
     gap: spacing.gap
   },
-  cardContent: {
-    gap: spacing.gap
-  },
-  sectionHeader: {
+  cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.gap,
     minHeight: size.touchTarget
   },
-  smallIconBubble: {
-    width: 36,
-    height: 36,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  sectionTitle: {
-    flex: 1,
-    ...appTypography.cardTitle
-  },
-  optionCard: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius.card,
-    padding: spacing.compactInner,
-    gap: spacing.gap,
-    minHeight: 88
-  },
-  optionTop: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+  cardContent: {
     gap: spacing.gap
   },
-  optionText: {
-    flex: 1,
-    minWidth: 0,
-    gap: spacing.smallGap
+  banner: {
+    borderRadius: radius.card,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    overflow: 'hidden'
   },
-  optionTitle: {
-    ...appTypography.cardTitle
-  },
-  optionDescription: {
-    ...appTypography.secondaryBody
+  bannerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 16
   },
   badgeLine: {
     flexDirection: 'row',
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
+    paddingTop: 4
   },
-  codePathContainer: {
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8
-  },
-  detailsButton: {
-    alignSelf: 'flex-start',
-    marginHorizontal: -8,
-    marginVertical: -2
-  },
-  detailsButtonLabel: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '700'
-  },
-  settingRow: {
-    minHeight: size.touchTarget,
+  detailsToggle: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.gap
-  },
-  rowIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  settingText: {
-    flex: 1,
-    minWidth: 0,
-    gap: 3
-  },
-  settingTitle: {
-    fontWeight: '700'
+    gap: 2,
+    minHeight: size.touchTarget,
+    alignSelf: 'flex-start'
   },
   expandableDetails: {
     gap: spacing.smallGap
@@ -848,6 +932,16 @@ function createStyles() {
     borderRadius: radius.thumbnail,
     alignItems: 'center',
     justifyContent: 'center'
+  },
+  logo: {
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    backgroundColor: '#ffffff',
+    flexShrink: 0
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%'
   },
   tabular: {
     fontVariant: ['tabular-nums'],

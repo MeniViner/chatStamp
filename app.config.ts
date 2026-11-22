@@ -1,7 +1,7 @@
 const config = {
   name: 'chatStamp',
   slug: 'chatstamp',
-  version: '0.2.2',
+  version: '0.2.3',
   orientation: 'portrait',
   icon: './assets/icon.png',
   scheme: 'chatstamp',
@@ -9,7 +9,7 @@ const config = {
   assetBundlePatterns: ['**/*'],
   android: {
     package: 'com.menis10tec.chatstamp',
-    versionCode: 16,
+    versionCode: 17,
     allowBackup: false,
     icon: './assets/icon.png',
     adaptiveIcon: {

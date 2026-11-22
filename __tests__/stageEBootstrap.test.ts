@@ -12,7 +12,7 @@ vi.mock('react-native', () => ({ ActivityIndicator: 'ActivityIndicator', Pressab
 }));
 vi.mock('expo-font', () => ({ loadAsync: state.font }));
 vi.mock('@expo/vector-icons', () => ({ MaterialCommunityIcons: { font: {} }, MaterialIcons: { font: {} } }));
-vi.mock('react-native-safe-area-context', () => ({ SafeAreaProvider: 'SafeAreaProvider' }));
+vi.mock('react-native-safe-area-context', () => ({ SafeAreaProvider: 'SafeAreaProvider', initialWindowMetrics: null }));
 vi.mock('../src/theme/theme', async () => { const { createElement, Fragment } = await import('react'); return { AppThemeProvider: ({ children }: { children?: React.ReactNode }) => createElement(Fragment, null, children) }; });
 vi.mock('../src/screens/AppNavigator', async () => {
   const { createElement, useEffect } = await import('react');

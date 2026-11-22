@@ -56,7 +56,7 @@ class CiPolicyTest(unittest.TestCase):
         self.report()
         self.manifest = self.root / 'AndroidManifest.xml'
         self.manifest.write_text('''<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.menis10tec.chatstamp" android:versionName="0.2.2" android:versionCode="16">
+          package="com.menis10tec.chatstamp" android:versionName="0.2.3" android:versionCode="17">
           <uses-sdk android:minSdkVersion="30" android:targetSdkVersion="36"/>
           <uses-feature android:name="android.hardware.screen.portrait" android:required="false"/>
           <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
@@ -88,18 +88,18 @@ class CiPolicyTest(unittest.TestCase):
             ci.inspect_inputs(self.manifest, rules, self.junit, ci.release.Expected())
 
     def sources(self, package='com.menis10tec.chatstamp'):
-        (self.root / 'package.json').write_text(json.dumps({'version': '0.2.2'}))
-        (self.root / 'package-lock.json').write_text(json.dumps({'packages': {'': {'version': '0.2.2'}}}))
+        (self.root / 'package.json').write_text(json.dumps({'version': '0.2.3'}))
+        (self.root / 'package-lock.json').write_text(json.dumps({'packages': {'': {'version': '0.2.3'}}}))
         (self.root / 'app.config.ts').write_text(
-            "export default { version: '0.2.2', android: { package: '" + package + "', versionCode: 16 } };\n")
+            "export default { version: '0.2.3', android: { package: '" + package + "', versionCode: 17 } };\n")
         native = self.root / 'modules/chatstamp-native/android/build.gradle'
         native.parent.mkdir(parents=True, exist_ok=True)
-        native.write_text('android { defaultConfig { versionCode 16\n versionName "0.2.2" } }\n')
+        native.write_text('android { defaultConfig { versionCode 17\n versionName "0.2.3" } }\n')
 
-    def test_current_ci_source_identity_is_the_new_owner_package_and_code16(self):
+    def test_current_ci_source_identity_is_the_new_owner_package_and_code17(self):
         self.sources()
         expected = ci.source_expected(self.root)
-        self.assertEqual((expected.package, expected.version, expected.code), ('com.menis10tec.chatstamp', '0.2.2', 16))
+        self.assertEqual((expected.package, expected.version, expected.code), ('com.menis10tec.chatstamp', '0.2.3', 17))
         self.assertEqual((expected.min_sdk, expected.target_sdk), (30, 36))
 
     def test_old_package_is_rejected_by_current_ci_even_with_consistent_versions(self):
