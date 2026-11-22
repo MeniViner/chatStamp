@@ -1657,3 +1657,12 @@ permission request removed; honest permission copy; iOS notice/omitted/caption
 parsing; shared line split; dead tokens/props removed; 48dp targets; duplicate
 Home row removed; Done success icon requires verified dates; small logo asset.
 The compact Select title keeps its untruncated text as the accessible name.
+
+## 2026-11-22 — 0.2.3 (17) release build
+
+Owner asked to ship the design pass to the store. Version bumped to 0.2.3/code 17
+in the same places as the code 16 bump (app config, package files, native module
+Gradle, release verifier and its tests). Signed AAB and minified QA APK built and
+verified (see VERIFICATION). `CHATSTAMP_PLAY_SERVICE_ACCOUNT_JSON` is not set and
+AGENTS.md forbids automating Play Console with the owner's login, so the upload is
+handed to the owner with exact steps in `dist/play/release-0.2.3-17/README.md`.

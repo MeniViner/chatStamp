@@ -1553,3 +1553,18 @@ colors (API 30 has none; brown fallback shown); the cold-start first frame after
 reading of bubbles and option rows on a device; Processing/Done/History restyle
 with a real save; real WhatsApp export and Gallery date acceptance are unchanged
 from earlier entries and not re-run here.
+
+## 2026-11-22 — 0.2.3 (17) signed release checks
+
+Source `5c1f2e5`. Clean production prebuild and `:app:bundleRelease`; AAB
+`dist/play/release-0.2.3-17/chatstamp-0.2.3-17.aab`, 50,854,041 bytes, SHA256
+`3b5494d1a8427c2eba406f009b1942155f638ce1f2865413511bf90830c4f318`.
+`verify-release.py` PASS: bundletool 1.18.3 validate, 16 KB page alignment,
+`com.menis10tec.chatstamp` 0.2.3/17, min 30/target 36, debuggable=false, three
+expected permissions, backup rules, existing upload certificate `efe36695…66c8`.
+Minified `.qa` release APK (release-test init script) PASS and cold-launched on
+SM-A305F with an empty crash buffer; onboarding, Home and Settings → Appearance
+rendered; QA package removed and stay-awake restored to 7. Python verifier tests
+127 PASS. Evidence: `dist/play/design-0.2.3-17-20261122/` (148 KB).
+UNVERIFIED: Play upload/processing of code 17 (no service-account key configured;
+upload handed to the owner), real WhatsApp export and Gallery dates.
