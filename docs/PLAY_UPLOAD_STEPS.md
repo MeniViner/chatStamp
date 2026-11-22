@@ -1,6 +1,18 @@
 # chatStamp — Google Play continuation
 
-## Current checkpoint —21 November 2026, installed launcher icons
+## Current checkpoint — 22 November 2026, design pass 0.2.3 (17)
+
+chatStamp **0.2.3/code17**, source `5c1f2e5` (branch
+`claude/revanced-design-chatstamp-7834de`): ReVanced-style design language and
+bubble chat reader. Signed AAB SHA256 `3b5494d1…f318` passed `verify-release.py`
+with the existing upload certificate. The owner uploaded the AAB in Play Console
+(the browser tool cannot upload files over 10 MB). Internal 17 is available to
+internal testers (22 Nov 02:44 local) with EN/HE notes; the same bundle was
+promoted to Alpha (full rollout) and sent for review: **Changes in review**,
+quick checks running. No closed approval/availability or Play installation of 17
+is claimed. No tester, country, listing or production-access change.
+
+## Previous checkpoint —21 November 2026, installed launcher icons
 
 chatStamp **0.2.2/code16**, app4975002762311404414/packagecom.menis10tec.chatstamp,
 source **d26bddfa0eb37e090d24fb8a1969715e3e40b5d9**: full605host/127Python/59freshJVM/

@@ -1568,3 +1568,17 @@ rendered; QA package removed and stay-awake restored to 7. Python verifier tests
 127 PASS. Evidence: `dist/play/design-0.2.3-17-20261122/` (148 KB).
 UNVERIFIED: Play upload/processing of code 17 (no service-account key configured;
 upload handed to the owner), real WhatsApp export and Gallery dates.
+
+## 2026-11-22 — 0.2.3 (17) Play submission
+
+Owner chose Chrome-driven Play Console publishing for this release (overriding the
+AGENTS.md handoff rule for this release). The owner uploaded
+`chatstamp-0.2.3-17.aab` themselves because the browser tool rejects files over
+10 MB and Play Console blocked a local-server handoff. Console readback: bundle
+17 (0.2.3), API 30+, target 36, 4 ABIs; internal release "ready to launch", no
+device-support change (phones 7,320); EN/HE notes entered for 2 of 2 languages;
+**Internal 17 available to internal testers, 22 Nov 02:44**. Same bundle promoted
+to Alpha (full rollout) and sent for review: publishing overview shows **Changes
+in review**, quick checks running. Per-device download measured with bundletool
+`get-size total`: 14.3 MB for an arm64 API 30 device (AAB 50.9 MB, consistent with
+code 16). UNVERIFIED: Google review outcome, closed availability, Play install of 17.
